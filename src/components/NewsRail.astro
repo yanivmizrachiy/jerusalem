@@ -11,6 +11,9 @@ const accents = ['var(--amber)', 'var(--sky)', 'var(--terracotta)', 'var(--olive
 
 <aside class="rail" id="ma-chadash" aria-label="מה חדש?">
   <h2 class="rail-title">מה חדש?</h2>
+  <p class="rail-countdown" data-countdown>
+    פתיחת שנת הלימודים תשפ״ז: 1/9/2026
+  </p>
   <div class="rail-viewport">
     <div class="rail-track">
       <ul class="rail-list">
@@ -53,6 +56,22 @@ const accents = ['var(--amber)', 'var(--sky)', 'var(--terracotta)', 'var(--olive
     border-block-end: 2px solid transparent;
     border-image: linear-gradient(90deg, var(--amber), var(--terracotta), var(--sky)) 1;
     border-image-slice: 0 0 1 0;
+  }
+
+  /* ספירה לאחור אמיתית לפתיחת תשפ״ז — בכחול־אור זוהר (7.20) */
+  .rail-countdown {
+    margin: 0 0 0.9rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #0b1524, #0e1c31);
+    color: #7ed2ff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    text-shadow:
+      0 0 2px rgb(126 210 255 / 0.9),
+      0 0 12px rgb(126 210 255 / 0.5);
   }
 
   .rail-list {
@@ -134,3 +153,41 @@ const accents = ['var(--amber)', 'var(--sky)', 'var(--terracotta)', 'var(--olive
     .rail-viewport { mask-image: none; overflow-y: auto; }
   }
 </style>
+
+<script>
+  // מספר הימים המדויק עד פתיחת שנת הלימודים תשפ״ז (1/9/2026), לפי שעון ירושלים,
+  // מתעדכן מדי יממה בזמן אמת (7.20). ללא JS מוצג התאריך הקבוע — אמיתי בכל מקרה.
+  const el = document.querySelector<HTMLElement>('[data-countdown]');
+  if (el) {
+    const dayInJerusalem = (d: Date) => {
+      const p = Object.fromEntries(
+        new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Jerusalem',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        })
+          .formatToParts(d)
+          .map((x) => [x.type, x.value])
+      );
+      return Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day));
+    };
+
+    const OPENING = Date.UTC(2026, 8, 1); // 1/9/2026 — פתיחת תשפ״ז
+
+    const render = () => {
+      const days = Math.round((OPENING - dayInJerusalem(new Date())) / 86_400_000);
+      el.textContent =
+        days > 1
+          ? `עוד ${days} ימים לפתיחת שנת הלימודים תשפ״ז`
+          : days === 1
+            ? 'מחר נפתחת שנת הלימודים תשפ״ז!'
+            : days === 0
+              ? 'היום נפתחת שנת הלימודים תשפ״ז — בהצלחה!'
+              : 'שנת הלימודים תשפ״ז בעיצומה — בהצלחה!';
+    };
+
+    render();
+    setInterval(render, 60_000);
+  }
+</script>

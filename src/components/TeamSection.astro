@@ -89,12 +89,14 @@ const waPath =
     font-size: 3rem;
   }
 
-  @media (min-width: 900px) {
-    .team-grid { grid-template-columns: 1.35fr 1fr 1fr 1fr; }
+  /* רספונסיביות מדויקת: טור אחד → שני טורים (איילת פרושה למעלה) → ארבעה */
+  @media (min-width: 680px) and (max-width: 1199px) {
+    .team-grid { grid-template-columns: 1fr 1fr; }
+    .team-card.is-featured { grid-column: 1 / -1; }
   }
 
-  @media (max-width: 899px) {
-    .team-card.is-featured { grid-column: 1 / -1; }
+  @media (min-width: 1200px) {
+    .team-grid { grid-template-columns: 1.35fr 1fr 1fr 1fr; }
   }
 
   .avatar {

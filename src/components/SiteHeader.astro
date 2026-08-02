@@ -46,6 +46,7 @@ const isActive = (href: string) =>
     min-block-size: var(--header-h);
     display: flex;
     align-items: center;
+    padding-inline: max(0px, env(safe-area-inset-right)) max(0px, env(safe-area-inset-left));
     background: color-mix(in srgb, var(--paper) 88%, transparent);
     backdrop-filter: blur(14px);
     border-block-end: 1px solid var(--line);

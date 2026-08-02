@@ -48,6 +48,7 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  overflow-x: clip; /* אפס גלילה אופקית — בכל מכשיר */
 }
 
 body {
@@ -59,6 +60,38 @@ body {
   line-height: 1.75;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+/* עיגון גלילה: כותרות ועוגנים לא נבלעים מתחת ל־header הדביק */
+[id] { scroll-margin-block-start: calc(var(--header-h) + 1.2rem); }
+
+/* מעברי עמוד חלקים בין דפים — ללא JavaScript, עם כבוד לרגישי תנועה */
+@media not (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation-duration: 340ms; }
+}
+
+/* פס התקדמות גלילה עדין — שיפור הדרגתי בדפדפנים תומכים */
+@supports (animation-timeline: scroll()) {
+  body::before {
+    content: '';
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    inline-size: 100%;
+    block-size: 3px;
+    z-index: 60;
+    pointer-events: none;
+    background: linear-gradient(90deg, var(--amber), var(--terracotta), var(--rose), var(--sky), var(--olive));
+    transform-origin: 100% 50%;
+    scale: 0 1;
+    animation: scroll-progress linear both;
+    animation-timeline: scroll(root);
+  }
+
+  @keyframes scroll-progress { to { scale: 1 1; } }
 }
 
 img, video, iframe { max-width: 100%; }

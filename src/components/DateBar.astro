@@ -1,0 +1,90 @@
+---
+/**
+ * פס התאריך (RULES 7.22): שעון דיגיטלי יוקרתי בכחול־אור —
+ * מימין התאריך העברי המלא, משמאל הלועזי בסגנון 23/5/26.
+ * מחושב לפי שעון ירושלים ומתעדכן אוטומטית מדי דקה (חוצה חצות אמיתי).
+ */
+---
+
+<section class="datebar" aria-label="התאריך היום">
+  <div class="container datebar-inner">
+    <p class="date-he" id="date-he" dir="rtl"></p>
+    <p class="date-greg" id="date-greg" dir="ltr"></p>
+  </div>
+</section>
+
+<style>
+  .datebar {
+    background: linear-gradient(180deg, #0b1524 0%, #0e1c31 100%);
+    border-block: 1px solid #17293f;
+  }
+
+  .datebar-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem 1.4rem;
+    min-block-size: 62px;
+    padding-block: 0.7rem;
+  }
+
+  .date-he,
+  .date-greg {
+    margin: 0;
+    color: #7ed2ff;
+    font-weight: 600;
+    font-size: clamp(1rem, 2.3vw, 1.3rem);
+    letter-spacing: 0.03em;
+    font-variant-numeric: tabular-nums;
+    text-shadow:
+      0 0 2px rgb(126 210 255 / 0.9),
+      0 0 14px rgb(126 210 255 / 0.5),
+      0 0 34px rgb(64 156 255 / 0.35);
+  }
+
+  @media (max-width: 560px) {
+    .datebar-inner { justify-content: center; text-align: center; }
+  }
+</style>
+
+<script>
+  const heEl = document.getElementById('date-he')!;
+  const gregEl = document.getElementById('date-greg')!;
+
+  const TZ = 'Asia/Jerusalem';
+
+  const render = () => {
+    const now = new Date();
+
+    // עברי: "היום יום רביעי, א׳ באלול התשפ״ז"
+    const heParts = Object.fromEntries(
+      new Intl.DateTimeFormat('he-u-ca-hebrew', {
+        timeZone: TZ,
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+        .formatToParts(now)
+        .map((p) => [p.type, p.value])
+    );
+    heEl.textContent = `היום ${heParts.weekday}, ${heParts.day} ב${heParts.month} ה${heParts.year}`;
+
+    // לועזי: "23/5/26"
+    const g = Object.fromEntries(
+      new Intl.DateTimeFormat('en-GB', {
+        timeZone: TZ,
+        day: 'numeric',
+        month: 'numeric',
+        year: '2-digit',
+      })
+        .formatToParts(now)
+        .map((p) => [p.type, p.value])
+    );
+    gregEl.textContent = `${g.day}/${g.month}/${g.year}`;
+  };
+
+  render();
+  setInterval(render, 60_000); // מתעדכן אוטומטית — חוצה חצות בזמן אמת
+</script>
