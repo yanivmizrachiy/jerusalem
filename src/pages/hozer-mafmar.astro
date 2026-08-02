@@ -1,0 +1,428 @@
+---
+/**
+ * חוזר מפמ״ר תשפ״ז (RULES 9.3): ההטמעה המלאה היחידה של ה־PDF הרשמי החי,
+ * ארבעה כפתורי קפיצה מאומתים (9.3.8), אינדקס 23 מקטעי MAF עם טווחים
+ * שנבדקו חזותית (9.3.10), שיתוף יציב עם מזהה MAF (9.3.12) ותיעוד
+ * מה שהחוזר החדש מבטל מהשנה שעברה.
+ */
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import {
+  MAFMAR_URL,
+  MAFMAR_TOTAL_PAGES,
+  mafmarParts,
+  mafmarSections,
+  mafmarObsoletes,
+} from '../data/mafmar';
+
+const partAccents = ['var(--olive)', 'var(--terracotta)', 'var(--sky)', 'var(--lilac)'];
+const audiences = [
+  { key: 'חט״ב', label: 'חטיבת ביניים', accent: 'var(--olive)' },
+  { key: 'מעבר', label: 'המעבר לחטיבה העליונה', accent: 'var(--terracotta)' },
+  { key: 'חט״ע', label: 'חטיבה עליונה', accent: 'var(--sky)' },
+  { key: 'משותף', label: 'משותף לשתי החטיבות', accent: 'var(--lilac)' },
+] as const;
+---
+
+<Base
+  title="חוזר מפמ״ר תשפ״ז — מחוז ירושלים"
+  description="חוזר המפמ״ר הרשמי לשנת תשפ״ז — צפייה מלאה, קפיצה לארבעת החלקים ולכל אחד מ־23 המקטעים בטווחי עמודים מאומתים, כולל מה שהתבטל מהשנה שעברה."
+>
+  <div class="container page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'מידע רשמי ומדיניות' },
+        { label: 'חוזר מפמ״ר תשפ״ז' },
+      ]}
+    />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">מידע רשמי ומדיניות · תשפ״ז</p>
+      <h1>חוזר מפמ״ר</h1>
+      <p class="lede">
+        המסמך הרשמי של הפיקוח על הוראת המתמטיקה לשנת הלימודים תשפ״ז — {MAFMAR_TOTAL_PAGES}
+        עמודים, ארבעה חלקים. מוצג כאן ישירות מהמקור הרשמי החי של משרד החינוך; כל טווחי
+        העמודים שלמטה אומתו חזותית מול המסמך.
+      </p>
+    </header>
+
+    <nav class="part-jumps" aria-label="קפיצה לחלקי החוזר" data-reveal>
+      {
+        mafmarParts.map((p, i) => (
+          <button
+            class="part-btn"
+            style={`--part-accent:${partAccents[i]}`}
+            type="button"
+            data-goto={p.startPage}
+            data-frag={p.id}
+            data-label={`${p.title} — מעמוד ${p.startPage}`}
+          >
+            <span class="part-num">{i + 1}</span>
+            <span class="part-title">{p.title}</span>
+            <span class="part-page">מעמוד {p.startPage}</span>
+          </button>
+        ))
+      }
+    </nav>
+
+    <section class="viewer card-accent" style="--card-accent:var(--gold)" data-reveal>
+      <p class="viewer-status" id="viewer-status" role="status" aria-live="polite">
+        מציג את החוזר המלא — {MAFMAR_TOTAL_PAGES} עמודים
+      </p>
+      <div class="viewer-shell" id="viewer-shell">
+        <iframe
+          id="mafmar-frame"
+          src={`${MAFMAR_URL}#page=1&view=FitH`}
+          title="חוזר מפמ״ר תשפ״ז — המסמך הרשמי המלא"
+          loading="lazy"
+        ></iframe>
+      </div>
+      <div class="viewer-actions" role="group" aria-label="פעולות על החוזר">
+        <a class="btn btn-primary" href={MAFMAR_URL} target="_blank" rel="noopener">
+          פתיחת המקור הרשמי ↗
+        </a>
+        <button class="btn btn-ghost" type="button" id="copy-link">העתקת קישור לקטע הנוכחי</button>
+        <a class="btn btn-whatsapp" id="wa-share" href="#" target="_blank" rel="noopener">
+          שליחה ב־WhatsApp
+        </a>
+        <a class="btn btn-ghost" id="mail-share" href="#">שליחה בדוא״ל</a>
+        <button class="btn btn-ghost" type="button" id="fullscreen-btn" hidden>מסך מלא</button>
+      </div>
+      <p class="viewer-note">
+        ה־PDF מוצג מהכתובת הרשמית של משרד החינוך ואינו נשמר באתר. אם התצוגה אינה נטענת —
+        <a href={MAFMAR_URL} target="_blank" rel="noopener">פתחו את המקור ישירות</a>.
+      </p>
+    </section>
+
+    <section class="sections-block" aria-labelledby="maf-title">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">23 מקטעים מאומתים</p>
+        <h2 id="maf-title">ניווט מדויק בתוך החוזר</h2>
+        <p class="lede">
+          בחירת מקטע פותחת את החוזר בדיוק בעמוד ההתחלה המאומת שלו. הקישור בסרגל הכתובת
+          מתעדכן — אפשר לשתף כל מקטע ישירות.
+        </p>
+      </div>
+
+      {
+        audiences.map((a) => (
+          <div class="aud-group" data-reveal>
+            <h3 class="aud-title" style={`--aud-accent:${a.accent}`}>{a.label}</h3>
+            <ul class="maf-list">
+              {mafmarSections
+                .filter((s) => s.audience === a.key)
+                .map((s) => (
+                  <li class="maf-item" id={s.id} style={`--aud-accent:${a.accent}`}>
+                    <button
+                      class="maf-btn"
+                      type="button"
+                      data-goto={s.startPage}
+                      data-frag={s.id}
+                      data-label={`${s.title} — עמודים ${s.startPage}–${s.endPage} מתוך חוזר מפמ״ר תשפ״ז`}
+                    >
+                      <span class="maf-id">{s.id}</span>
+                      <span class="maf-text">
+                        <span class="maf-title">{s.title}</span>
+                        <span class="maf-meta">
+                          עמודים {s.startPage}–{s.endPage} · מתוך חוזר מפמ״ר תשפ״ז
+                        </span>
+                        {s.note && <span class="maf-note">{s.note}</span>}
+                        <span class="maf-replaces">מחליף: {s.replaces}</span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        ))
+      }
+    </section>
+
+    <section class="obsolete card-accent" style="--card-accent:var(--terracotta)" data-reveal>
+      <h2>מה התבטל מהשנה שעברה — לפי החוזר החדש עצמו</h2>
+      <ul>
+        {
+          mafmarObsoletes.map((o) => (
+            <li>
+              <button class="obs-btn" type="button" data-goto={o.page} data-frag="" data-label={`${o.fact} — עמוד ${o.page}`}>
+                {o.fact} <span class="obs-page">(עמ׳ {o.page})</span>
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="obsolete-note">
+        המקורות הישנים של תשפ״ו הוסרו מהאתר ואינם מוצגים — החוזר החדש הוא מקור האמת
+        השנתי היחיד.
+      </p>
+    </section>
+
+    <nav class="back-nav" aria-label="ניווט חזרה">
+      <a class="btn btn-ghost" href="/chativat-beynayim/">לשער חטיבת הביניים</a>
+      <a class="btn btn-ghost" href="/">לעמוד הראשי</a>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+
+  .page-head { max-width: 680px; margin-block: 1.6rem 2rem; }
+
+  /* ארבעת כפתורי הקפיצה (9.3.8) */
+  .part-jumps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+    gap: 0.9rem;
+    margin-block-end: 1.6rem;
+  }
+
+  .part-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    padding: 1rem 1.1rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-block-start: 4px solid var(--part-accent);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: var(--font-body);
+    text-align: start;
+    transition: transform 300ms var(--ease), box-shadow 300ms var(--ease);
+  }
+
+  .part-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
+
+  .part-num {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--part-accent);
+  }
+
+  .part-title { font-weight: 700; font-size: 1.05rem; color: var(--ink); }
+
+  .part-page { font-size: 0.85rem; color: var(--ink-faint); }
+
+  /* הצופה */
+  .viewer {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+  }
+
+  .viewer-status {
+    margin: 0;
+    padding: 0.85rem 1.3rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--gold-deep);
+    border-block-end: 1px solid var(--line);
+    background: var(--paper-soft);
+  }
+
+  .viewer-shell { block-size: clamp(520px, 74vh, 860px); background: var(--paper-soft); }
+
+  .viewer-shell:fullscreen { block-size: 100%; }
+
+  .viewer-shell iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; }
+
+  .viewer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding: 1rem 1.3rem 0.4rem;
+  }
+
+  .viewer-note {
+    margin: 0;
+    padding: 0.6rem 1.3rem 1.1rem;
+    color: var(--ink-faint);
+    font-size: 0.88rem;
+  }
+
+  /* אינדקס המקטעים */
+  .sections-block { margin-block-start: clamp(2.6rem, 6vw, 4rem); }
+
+  .aud-group { margin-block-end: 2rem; }
+
+  .aud-title {
+    font-size: 1.2rem;
+    margin-block-end: 0.9rem;
+    padding-inline-start: 0.8rem;
+    border-inline-start: 4px solid var(--aud-accent);
+  }
+
+  .maf-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
+    gap: 0.8rem;
+  }
+
+  .maf-btn {
+    display: flex;
+    gap: 0.8rem;
+    inline-size: 100%;
+    padding: 0.95rem 1rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: var(--font-body);
+    text-align: start;
+    transition: transform 300ms var(--ease), box-shadow 300ms var(--ease), border-color 300ms var(--ease);
+  }
+
+  .maf-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+    border-color: color-mix(in srgb, var(--line) 30%, var(--aud-accent) 70%);
+  }
+
+  .maf-item.is-active .maf-btn {
+    border-color: var(--aud-accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--aud-accent) 35%, transparent);
+  }
+
+  .maf-id {
+    flex: none;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--aud-accent);
+    padding-block-start: 0.2rem;
+  }
+
+  .maf-text { display: flex; flex-direction: column; gap: 0.25rem; }
+
+  .maf-title { font-weight: 700; color: var(--ink); line-height: 1.4; }
+
+  .maf-meta { font-size: 0.82rem; color: var(--ink-faint); }
+
+  .maf-note { font-size: 0.84rem; color: var(--ink-soft); }
+
+  .maf-replaces {
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    border-inline-start: 2px solid var(--line);
+    padding-inline-start: 0.55rem;
+  }
+
+  /* מה התבטל */
+  .obsolete {
+    margin-block-start: clamp(2.4rem, 5vw, 3.4rem);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.4rem, 3vw, 2rem);
+  }
+
+  .obsolete h2 { font-size: 1.3rem; margin-block-end: 1rem; }
+
+  .obsolete ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.55rem; }
+
+  .obs-btn {
+    background: none;
+    border: 0;
+    padding: 0.35rem 0;
+    font: inherit;
+    color: var(--ink-soft);
+    cursor: pointer;
+    text-align: start;
+    border-block-end: 1px dashed transparent;
+  }
+
+  .obs-btn:hover { color: var(--terracotta); }
+
+  .obs-page { color: var(--ink-faint); font-size: 0.85rem; }
+
+  .obsolete-note {
+    margin: 1.1rem 0 0;
+    font-size: 0.88rem;
+    color: var(--ink-faint);
+  }
+
+  .back-nav { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-block-start: 2.4rem; }
+</style>
+
+<script>
+  import { MAFMAR_URL } from '../data/mafmar';
+
+  const frame = document.getElementById('mafmar-frame') as HTMLIFrameElement;
+  const status = document.getElementById('viewer-status')!;
+  const shell = document.getElementById('viewer-shell')!;
+  const copyBtn = document.getElementById('copy-link') as HTMLButtonElement;
+  const wa = document.getElementById('wa-share') as HTMLAnchorElement;
+  const mail = document.getElementById('mail-share') as HTMLAnchorElement;
+  const fsBtn = document.getElementById('fullscreen-btn') as HTMLButtonElement;
+
+  let currentLabel = status.textContent ?? 'חוזר מפמ״ר תשפ״ז';
+
+  const updateShare = () => {
+    const url = location.href;
+    const text = `${currentLabel} — ${url}`;
+    wa.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    mail.href = `mailto:?subject=${encodeURIComponent('חוזר מפמ״ר תשפ״ז')}&body=${encodeURIComponent(text)}`;
+  };
+
+  const goto = (page: number, frag: string, label: string) => {
+    // טעינה מחדש של ה־iframe בעמוד המבוקש — כך #page נאכף גם אחרי ניווט קודם
+    frame.src = `${MAFMAR_URL}#page=${page}&view=FitH`;
+    currentLabel = label;
+    status.textContent = `מציג: ${label}`;
+    document.querySelectorAll('.maf-item.is-active').forEach((el) => el.classList.remove('is-active'));
+    if (frag) {
+      history.replaceState(null, '', `#${frag}`);
+      document.getElementById(frag)?.classList.add('is-active');
+    } else {
+      history.replaceState(null, '', location.pathname);
+    }
+    updateShare();
+    frame.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  document.querySelectorAll<HTMLButtonElement>('[data-goto]').forEach((btn) => {
+    btn.addEventListener('click', () =>
+      goto(Number(btn.dataset.goto), btn.dataset.frag ?? '', btn.dataset.label ?? '')
+    );
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      status.textContent = 'הקישור הועתק — ' + currentLabel;
+    } catch {
+      status.textContent = 'ההעתקה נכשלה';
+    }
+  });
+
+  if (document.fullscreenEnabled) fsBtn.hidden = false;
+  fsBtn.addEventListener('click', async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await shell.requestFullscreen();
+    } catch {
+      status.textContent = 'מסך מלא נכשל';
+    }
+  });
+
+  // כניסה עם קישור עמוק (9.3.12): פתיחת המקטע המשותף ישירות
+  const frag = decodeURIComponent(location.hash.slice(1));
+  if (frag) {
+    const target = document.querySelector<HTMLButtonElement>(`#${CSS.escape(frag)} [data-goto]`);
+    if (target) {
+      goto(Number(target.dataset.goto), frag, target.dataset.label ?? '');
+      document.getElementById(frag)?.scrollIntoView({ behavior: 'auto', block: 'center' });
+    }
+  }
+
+  updateShare();
+</script>
