@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import UnitPlaylist from '../../components/UnitPlaylist.astro';
+import { aiUnit } from '../../data/units';
+---
+
+<Base
+  title="מיזם AI וגאומטריה — פיתוח מקצועי — מחוז ירושלים"
+  description="מיזם המחוז לשילוב בינה מלאכותית בהוראת הגאומטריה: מפגש, מאגרים, תבניות פרומפט, סדנאות, אישורי הורים והנחיות רשמיות — 16 משאבים בדוקים."
+>
+  <div class="container page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'פיתוח מקצועי', href: '/pituach-miktzoi/' },
+        { label: 'מיזם AI וגאומטריה' },
+      ]}
+    />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">{aiUnit.domain} · {aiUnit.grade}</p>
+      <h1>{aiUnit.title}</h1>
+      <p class="lede">{aiUnit.intro}</p>
+    </header>
+
+    <div data-reveal>
+      <UnitPlaylist unit={aiUnit} />
+    </div>
+
+    <nav class="pager-nav" aria-label="ניווט חזרה">
+      <a class="btn btn-ghost" href="/pituach-miktzoi/">חזרה לפיתוח מקצועי</a>
+      <a class="btn btn-ghost" href="/">לעמוד הראשי</a>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+  .page-head { max-width: 680px; margin-block: 1.6rem 2rem; }
+  .pager-nav { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-block-start: clamp(2.2rem, 5vw, 3rem); }
+</style>

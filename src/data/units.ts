@@ -6,7 +6,7 @@
 
 export const LINKS_VERIFIED_ON = '3/8/26';
 
-export type UnitKind = 'youtube' | 'drive' | 'gdoc' | 'gslides' | 'app' | 'site';
+export type UnitKind = 'youtube' | 'drive' | 'gdoc' | 'gslides' | 'app' | 'form' | 'canva' | 'site';
 
 export interface UnitResource {
   id: string;
@@ -14,6 +14,8 @@ export interface UnitResource {
   title: string;
   url: string;
   kind: UnitKind;
+  /** true = נפתח במקור בלבד (עורכי Canva, כלים חיצוניים) — לא מוטמע */
+  external?: boolean;
 }
 
 export interface Unit {
@@ -34,6 +36,8 @@ export const kindLabels: Record<UnitKind, string> = {
   gdoc: 'מסמך',
   gslides: 'מצגת',
   app: 'יישומון',
+  form: 'טופס',
+  canva: 'Canva',
   site: 'אתר',
 };
 
@@ -50,10 +54,13 @@ export const toEmbed = (r: UnitResource): string => {
   if (r.kind === 'gdoc' || r.kind === 'gslides') {
     return r.url.replace(/\/edit.*$/, '/preview');
   }
+  if (r.kind === 'canva' && /\/view/.test(r.url)) {
+    return `${r.url}${r.url.includes('?') ? '&' : '?'}embed`;
+  }
   return r.url;
 };
 
-const R = (id: string, section: string, title: string, url: string): UnitResource => {
+const R = (id: string, section: string, title: string, url: string, external = false): UnitResource => {
   const kind: UnitKind = /youtu/.test(url)
     ? 'youtube'
     : /drive\.google\.com\/file/.test(url)
@@ -64,8 +71,12 @@ const R = (id: string, section: string, title: string, url: string): UnitResourc
           ? 'gdoc'
           : /learningapps/.test(url)
             ? 'app'
-            : 'site';
-  return { id, section, title, url, kind };
+            : /forms\.gle|docs\.google\.com\/forms/.test(url)
+              ? 'form'
+              : /canva\.com\/design/.test(url)
+                ? 'canva'
+                : 'site';
+  return { id, section, title, url, kind, external };
 };
 
 /** הוראת משוואות ללא מספרים שליליים (RULES §10) */
@@ -162,5 +173,41 @@ export const mivchanimUnit: Unit = {
     R('EXAM-006', 'מבחן דמוי מיצ״ב', 'מבחן דמוי מיצ״ב', 'https://docs.google.com/document/d/1-F8gCF7V9X1afsr2D5vOLdgq8DC1OzlH/edit'),
     R('EXAM-007', 'מבחן דמוי מיצ״ב', 'מחוון למבחן דמוי מיצ״ב', 'https://docs.google.com/document/d/10eruHhJRK6HX3nvD17tAypCTqNoC83WD/edit'),
     R('EXAM-001', 'הנחיות', 'מסמך הנחיות לכתיבת מבחנים', 'https://drive.google.com/file/d/19edSXZCMSSnFVFvD6B4I-VKRqyGVNwcK/view'),
+  ],
+};
+
+/**
+ * מיזם AI וגאומטריה (RULES §13) — מיקום קנוני: פיתוח מקצועי (3.14).
+ * 17 קישורים נבדקו לעומק ב־03/08/2026: 16 תקינים ומפורסמים.
+ * הוחרגו לפי הכללים: AI-003 (טופס הגשה — HTTP 401, אינו פעיל; 1.12)
+ * ו־AI-018 (קישור Meet — לא מפורסם ללא אימות פעילות; 13.1).
+ */
+export const aiUnit: Unit = {
+  slug: 'ai-geometria',
+  title: 'מיזם AI וגאומטריה',
+  grade: 'חט״ב וחט״ע',
+  domain: 'פיתוח מקצועי',
+  topic: 'בינה מלאכותית וחדשנות בהוראת המתמטיקה',
+  path: '/pituach-miktzoi/ai-geometria/',
+  accent: 'var(--lilac)',
+  intro:
+    'מיזם המחוז לשילוב בינה מלאכותית בהוראת הגאומטריה: מצגת והקלטת המפגש, מאגרי משפטים ותכונות, תבניות פרומפט, סדנאות לצוותים, אישורי הורים והנחיות משרד החינוך — לצד כלי היצירה עצמם.',
+  resources: [
+    R('AI-001', 'המפגש', 'מצגת המפגש', 'https://www.canva.com/design/DAGS_5y1S1Q/dlXqz9hNqBcmVUTw1jLVew/view'),
+    R('AI-009', 'המפגש', 'הקלטת המפגש', 'https://drive.google.com/file/d/15CaDtBwic1wmVU-khR73LO31fHiT0YGL/view'),
+    R('AI-002', 'מאגרים ותבניות', 'מאגר משפטים לחט״ב וחט״ע', 'https://docs.google.com/document/d/1hROVvxSZ5W_-e_IeyIp5wfFcZ7BQRTQYr8m5jgl8sTE/edit'),
+    R('AI-008', 'מאגרים ותבניות', 'מאגר תכונות ליסודי', 'https://docs.google.com/document/d/14UQjaAkcT0i1RM83J5W9DZwNoPhNDnQc5JWtf8phXHY/edit'),
+    R('AI-011', 'מאגרים ותבניות', 'תבנית למבנה פרומפט', 'https://www.canva.com/design/DAGTchEijyY/O8m11CGHBEMdHXoms8Q6ow/edit', true),
+    R('AI-010', 'מאגרים ותבניות', 'אתרים לעזר לתלמידים', 'https://www.canva.com/design/DAGTci51edI/pE8mI4hCVHdsX-ieWX5BfQ/edit', true),
+    R('AI-005', 'הצטרפות', 'טופס הרשמה למיזם', 'https://forms.gle/JeLj3GYJtEGF6o4QA'),
+    R('AI-004', 'סדנאות והדרכה', 'סדנה לצוות בנושא AI', 'https://docs.google.com/document/d/1IVVogee2WtilgKINVJZiuazjufFJGS1I44qielWozCM/edit'),
+    R('AI-006', 'סדנאות והדרכה', 'סרטוני הדרכה לכלי AI', 'https://www.canva.com/design/DAGTcgS715I/CNLgikXKBiuP1yrYVbAixg/edit', true),
+    R('AI-007', 'הורים ואישורים', 'אישורי הורים AI', 'https://drive.google.com/file/d/19U0lwwda6WD0Wp1m-zzcRbxicPPHFaBf/view'),
+    R('AI-012', 'הורים ואישורים', 'מדריך להורים — כיצד לאשר', 'https://drive.google.com/file/d/1QSZYOq-tAMMyDKqPCNn_ExiaWxg5Ebgx/view'),
+    R('AI-014', 'מסמכים רשמיים', 'הנחיות משרד החינוך לשימוש ב־AI', 'https://meyda.education.gov.il/files/Mazkirut_Pedagogit/Ivrit/instructionsai.pdf'),
+    R('AI-013', 'כלים ואתרים', 'עמוד המיזם באתר המחוז', 'https://sites.google.com/edujer.org.il/main/projects/GEOM?authuser=0'),
+    R('AI-017', 'כלים ואתרים', 'אתר המקפצה', 'https://homework.lnet.org.il'),
+    R('AI-015', 'כלים ואתרים', 'Copilot — מחולל תמונות', 'https://copilot.microsoft.com/images/create?cc=by&setlang=he', true),
+    R('AI-016', 'כלים ואתרים', 'Canva', 'https://www.canva.com', true),
   ],
 };

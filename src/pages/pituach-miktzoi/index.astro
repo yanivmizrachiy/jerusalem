@@ -1,0 +1,68 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import MafmarRange from '../../components/MafmarRange.astro';
+---
+
+<Base
+  title="פיתוח מקצועי — מחוז ירושלים"
+  description="פיתוח מקצועי למורות ולמורי המתמטיקה בתשפ״ז: קהילות, השתלמויות וימי עיון בחט״ב ובחט״ע — ומיזם ה־AI והגאומטריה של המחוז."
+>
+  <div class="container page">
+    <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'פיתוח מקצועי' }]} />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">צומחים יחד · תשפ״ז</p>
+      <h1>פיתוח מקצועי</h1>
+      <p class="lede">
+        קהילות מורים, השתלמויות ארציות ומחוזיות, ימי עיון וכנסים — הכול מתוך החוזר
+        הרשמי, לצד מיזם הדגל המחוזי לשילוב בינה מלאכותית בהוראת הגאומטריה.
+      </p>
+    </header>
+
+    <section class="section-block" data-reveal>
+      <h2>מיזם הדגל המחוזי</h2>
+      <a class="card card-accent ai-card" style="--card-accent:var(--lilac)" href="/pituach-miktzoi/ai-geometria/">
+        <span class="ai-domain">חט״ב וחט״ע · 16 משאבים בדוקים</span>
+        <h3>מיזם AI וגאומטריה</h3>
+        <p>
+          מצגת והקלטת המפגש, מאגרי משפטים ותכונות, תבניות פרומפט, סדנאות לצוותים,
+          אישורי הורים והנחיות משרד החינוך — וכלי היצירה עצמם.
+        </p>
+        <span class="ai-cta">למיזם המלא ←</span>
+      </a>
+    </section>
+
+    <section class="section-block" data-reveal>
+      <h2>הפיתוח המקצועי בחוזר מפמ״ר</h2>
+      <div class="stack">
+        <MafmarRange sectionId="MAF-07" accent="var(--olive)" />
+      </div>
+      <div class="stack">
+        <MafmarRange sectionId="MAF-22" accent="var(--sky)" />
+      </div>
+    </section>
+
+    <nav class="pager-nav" aria-label="ניווט חזרה">
+      <a class="btn btn-ghost" href="/chativat-beynayim/">לשער חטיבת הביניים</a>
+      <a class="btn btn-ghost" href="/chativa-elyona/">לשער החטיבה העליונה</a>
+      <a class="btn btn-ghost" href="/">לעמוד הראשי</a>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+  .page-head { max-width: 680px; margin-block: 1.6rem 2rem; }
+  .section-block { margin-block-start: clamp(2.4rem, 5vw, 3.4rem); }
+  .section-block h2 { margin-block-end: 1.2rem; }
+  .stack { margin-block-end: clamp(1.6rem, 3.5vw, 2.2rem); }
+
+  .ai-card { display: flex; flex-direction: column; gap: 0.5rem; padding: 1.8rem 1.6rem 1.5rem; color: var(--ink); max-width: 640px; }
+  .ai-domain { font-size: 0.8rem; font-weight: 700; color: var(--ink-faint); }
+  .ai-card h3 { margin: 0; font-size: 1.4rem; }
+  .ai-card p { margin: 0; color: var(--ink-soft); }
+  .ai-cta { margin-block-start: 0.4rem; font-weight: 700; color: var(--gold-deep); }
+
+  .pager-nav { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-block-start: clamp(2.2rem, 5vw, 3rem); }
+</style>

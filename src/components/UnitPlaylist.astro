@@ -62,19 +62,26 @@ const sections = [...new Set(unit.resources.map((r) => r.section))];
               .filter((r) => r.section === sec)
               .map((r) => (
                 <li id={r.id}>
-                  <button
-                    class="uplay-item"
-                    type="button"
-                    data-item
-                    data-id={r.id}
-                    data-url={r.url}
-                    data-embed={toEmbed(r)}
-                    data-rtitle={r.title}
-                    data-kind={kindLabels[r.kind]}
-                  >
-                    <span class="uplay-kind">{kindLabels[r.kind]}</span>
-                    <span class="uplay-rtitle">{r.title}</span>
-                  </button>
+                  {r.external ? (
+                    <a class="uplay-item is-ext" href={r.url} target="_blank" rel="noopener">
+                      <span class="uplay-kind">{kindLabels[r.kind]}</span>
+                      <span class="uplay-rtitle">{r.title} ↗</span>
+                    </a>
+                  ) : (
+                    <button
+                      class="uplay-item"
+                      type="button"
+                      data-item
+                      data-id={r.id}
+                      data-url={r.url}
+                      data-embed={toEmbed(r)}
+                      data-rtitle={r.title}
+                      data-kind={kindLabels[r.kind]}
+                    >
+                      <span class="uplay-kind">{kindLabels[r.kind]}</span>
+                      <span class="uplay-rtitle">{r.title}</span>
+                    </button>
+                  )}
                 </li>
               ))}
           </ul>
@@ -167,6 +174,9 @@ const sections = [...new Set(unit.resources.map((r) => r.section))];
   }
 
   .uplay-item:hover { background: var(--paper-soft); }
+
+  a.uplay-item.is-ext { text-decoration: none; }
+  a.uplay-item.is-ext .uplay-rtitle { color: var(--gold-deep); }
 
   li.is-active .uplay-item {
     background: color-mix(in srgb, var(--card-accent, var(--gold)) 12%, #fff);
