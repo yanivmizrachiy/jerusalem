@@ -211,3 +211,40 @@ export const aiUnit: Unit = {
     R('AI-016', 'כלים ואתרים', 'Canva', 'https://www.canva.com', true),
   ],
 };
+
+/**
+ * מאגרי החטיבה העליונה (RULES §11, מבנה לפי 3.18).
+ * כל 22 הקישורים נבדקו ב־03/08/2026 — 22/22 נגישים. שניים מוחזקים
+ * עריכתית עד הכרעת יניב (9.3.18): HS-005 (שאלות 582 — שאלון התוכנית
+ * הישנה) ו־HS-013 (טבלת צירופים 2023 — הוחלפה בטבלה המעודכנת שב־MAF-20).
+ */
+export const hsUnit: Unit = {
+  slug: 'homrei-horaa',
+  title: 'חומרי הוראה ומאגרים — חטיבה עליונה',
+  grade: 'י׳–י״ב',
+  domain: 'חטיבה עליונה',
+  topic: 'חומרי הוראה ומאגרים',
+  path: '/chativa-elyona/homrei-horaa/',
+  accent: 'var(--gold)',
+  intro:
+    'המאגרים המרכזיים לתוכנית החדשה: מסמכי התוכנית, קורסי קמפוס IL, חומרי מרכז המורים, תכנון שנתי, מאגרי אייל שלמה, רשת ביטחון ומבוא לאנליזה — כל קישור בדוק.',
+  resources: [
+    R('HS-001', 'תוכנית הלימודים החדשה', 'תוכנית הלימודים החדשה — הפורטל הרשמי', 'https://pop.education.gov.il/tchumey_daat/matmatika/chativa-elyona/teaching-mathematics/new-curriculum/', true),
+    R('HS-002', 'תוכנית הלימודים החדשה', 'מתאם וניבוי — ספר סטטיסטיקה', 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativa-Elyona/new-curriculum/correlation-prediction-12.pdf'),
+    R('HS-003', 'תוכנית הלימודים החדשה', 'אוסף שאלות בגרות — התוכנית החדשה', 'https://drive.google.com/file/d/1RsGHTLn2SfpuUPNPtVSTHb4xEl6BDS70/view'),
+    R('HS-006', 'קמפוס IL', 'קמפוס IL — הפורטל', 'https://campus.gov.il', true),
+    R('HS-007', 'קמפוס IL', 'פירוט הקורסים במתמטיקה', 'https://pop.education.gov.il/tchumey_daat/matmatika/chativa-elyona/teaching-mathematics/preparatory-courses-for-matriculation/', true),
+    R('HS-008', 'קמפוס IL', 'איך מצטרפים — מדריך', 'https://drive.google.com/file/d/1X__pL0hlNV55NkrDcIhKNjrfOEaIE_bd/view'),
+    R('HS-009', 'קמפוס IL', 'סרטון הדרכה', 'https://www.youtube.com/watch?v=tt-xGW3Vb2g'),
+    R('HS-017', 'חומרי הוראה', 'חומרים — מרכז המורים', 'https://newhighmath.haifa.ac.il/index.php/2015-05-31-10-59-23/2015-05-31-11-12-42'),
+    R('HS-018', 'חומרי הוראה', 'חומרים תומכי הוראה', 'https://newhighmath.haifa.ac.il/index.php/2017-08-14-09-30-32'),
+    R('HS-019', 'חומרי הוראה', 'משאבי הוראה — רשת עתיד', 'https://drive.google.com/file/d/1NdKxVSdRnkbWS0k9aZmV3kINAvlC1q6i/view'),
+    R('HS-020', 'חומרי הוראה', 'משחקים — רשת עתיד', 'https://drive.google.com/file/d/1V1k-jZXw3ZC23jVuG5XO01Km0bbgi25s/view'),
+    R('HS-022', 'תכנון שנתי', 'תכנון שנתי י׳–י״ב, 4–5 יח״ל', 'https://docs.google.com/document/d/1fIKdN4Z2P5m2qQ_ordySt8iYE_61fEDdykzIx3kPOKQ/edit'),
+    R('HS-023', 'מאגרי אייל שלמה', 'כיתה י׳ — 4 יח״ל', 'https://docs.google.com/document/d/15Y-T9nA6JPPfrNR8ochfyh-vznx4JV6osz8YlJoAYrY'),
+    R('HS-024', 'מאגרי אייל שלמה', 'כיתה י״א — 471', 'https://docs.google.com/document/d/1DX_XRBOuTmaW8K7kjlre6kmFig630yKVWK0PNC4NK6I/edit'),
+    R('HS-025', 'מאגרי אייל שלמה', 'כיתה י״ב — 472', 'https://docs.google.com/document/d/1Q5X9z1kc2BFynRNuIyD5_RIujFS8RgdMI_1qsK3aYnI/edit'),
+    R('HS-021', 'מעבר בין רמות', 'רשת ביטחון — המסמך', 'https://drive.google.com/file/d/1MxbkdfSrW83Qv0lRTELlSu1eBnV1Q5hs/view'),
+    R('HS-026', 'מבוא לאנליזה', 'מבוא לאנליזה — מכון ויצמן', 'https://www.weizmann.ac.il/ScienceTeaching/sites/ScienceTeaching/files/uploads/mbv_lnlyzh.pdf'),
+  ],
+};

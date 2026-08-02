@@ -10,6 +10,7 @@
     "check": "astro check"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
     "@fontsource-variable/heebo": "^5.2.0",
     "@fontsource/frank-ruhl-libre": "^5.2.0",
     "astro": "^5.0.0"
