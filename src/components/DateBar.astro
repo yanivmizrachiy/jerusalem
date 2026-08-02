@@ -57,9 +57,9 @@
   const render = () => {
     const now = new Date();
 
-    // עברי: "היום יום רביעי, א׳ באלול התשפ״ז"
+    // עברי באותיות: "היום יום רביעי, א׳ באלול התשפ״ז" (nu-hebr = ספרות עבריות)
     const heParts = Object.fromEntries(
-      new Intl.DateTimeFormat('he-u-ca-hebrew', {
+      new Intl.DateTimeFormat('he-u-ca-hebrew-nu-hebr', {
         timeZone: TZ,
         weekday: 'long',
         day: 'numeric',
@@ -82,7 +82,7 @@
         .formatToParts(now)
         .map((p) => [p.type, p.value])
     );
-    gregEl.textContent = `${g.day}/${g.month}/${g.year}`;
+    gregEl.textContent = `${Number(g.day)}/${Number(g.month)}/${g.year}`; // בלי אפסים מובילים — 23/5/26
   };
 
   render();
