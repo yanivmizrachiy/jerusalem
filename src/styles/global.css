@@ -11,11 +11,11 @@
   --line: #ddd4c3;
   --ink: #2a2520;
   --ink-soft: #5c544a;
-  --ink-faint: #8a8071;
+  --ink-faint: #6e6456; /* ניגודיות ‎5.5:1 על הנייר — עומד ב-WCAG AA גם בטקסט קטן */
 
   /* סדרת הצבע הבהירה (5.19) */
   --gold: #b08d3e;
-  --gold-deep: #8f7130;
+  --gold-deep: #77602a; /* ‎5.6:1 על הנייר — AA גם בטקסט קטן */
   --amber: #c99b3f;
   --terracotta: #c06a50;
   --rose: #c2798f;
@@ -30,7 +30,7 @@
 @supports (color: oklch(50% 0.1 100)) {
   :root {
     --gold: oklch(66% 0.105 88);
-    --gold-deep: oklch(56% 0.1 87);
+    --gold-deep: oklch(49.5% 0.09 87);
     --amber: oklch(72% 0.12 84);
     --terracotta: oklch(64% 0.115 38);
     --rose: oklch(67% 0.09 5);

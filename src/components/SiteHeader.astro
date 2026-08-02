@@ -135,8 +135,8 @@ const isActive = (href: string) =>
   }
 
   .nav-list a[aria-current='page'] {
-    color: var(--gold-deep);
-    background: color-mix(in srgb, var(--gold) 14%, transparent);
+    color: var(--ink); /* ניגודיות מלאה — הזהות נשמרת ברקע המוזהב */
+    background: color-mix(in srgb, var(--gold) 16%, transparent);
   }
 
   @media (max-width: 640px) {

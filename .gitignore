@@ -3,5 +3,7 @@ dist/
 .astro/
 .vercel/
 npm-debug.log*
+test-results/
+playwright-report/
 
 .vercel
