@@ -1,0 +1,77 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="footer-title">מחוז ירושלים</span>
+      <span class="footer-sub">הדרכת מתמטיקה · על־יסודי</span>
+    </div>
+    <nav aria-label="ניווט תחתון">
+      <ul class="footer-nav">
+        <li><a href="/">העמוד הראשי</a></li>
+        <li><a href="/chativat-beynayim/">חטיבת ביניים</a></li>
+        <li><a href="/#hamchashot">אתר ההמחשות</a></li>
+        <li><a href="/#tzevet">צוות ההדרכה</a></li>
+      </ul>
+    </nav>
+    <a class="to-top btn btn-ghost" href="#main">חזרה לראש העמוד ↑</a>
+  </div>
+  <div class="container footer-line">
+    <span>© {year} מחוז ירושלים — הדרכת מתמטיקה</span>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-block-start: clamp(4rem, 8vw, 6rem);
+    border-block-start: 1px solid var(--line);
+    background: var(--paper-soft);
+  }
+
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.4rem;
+    padding-block: 2.4rem;
+  }
+
+  .footer-brand { display: flex; flex-direction: column; }
+
+  .footer-title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+
+  .footer-sub { color: var(--ink-faint); font-size: 0.9rem; }
+
+  .footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .footer-nav a {
+    color: var(--ink-soft);
+    font-weight: 600;
+    min-block-size: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .footer-nav a:hover { color: var(--gold-deep); }
+
+  .footer-line {
+    border-block-start: 1px solid var(--line);
+    padding-block: 1.1rem;
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+  }
+</style>

@@ -1,0 +1,169 @@
+---
+/**
+ * סרטון הפתיחה (RULES §6): ניסיון autoplay עם שמע, ריצה אחת, ללא loop,
+ * ובסיום — מעבר חלק לרקע בהיר עם מלל (6.5–6.6). שכבת הפעלה בעברית אם
+ * הדפדפן חוסם (6.7). משתמשי reduced-motion מקבלים את המצב הבהיר מיד.
+ */
+---
+
+<section class="hero" aria-label="פתיחת האתר">
+  <div class="hero-media" id="hero-media">
+    <video
+      id="hero-video"
+      poster="/media/hero-poster.jpg"
+      preload="metadata"
+      playsinline
+      aria-label="סרטון הפתיחה של מחוז ירושלים"
+    ></video>
+
+    <button class="hero-play btn" id="hero-play" hidden>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M8 5.14v13.72c0 .8.87 1.3 1.56.9l11-6.86a1.05 1.05 0 0 0 0-1.8l-11-6.86A1.05 1.05 0 0 0 8 5.14Z" />
+      </svg>
+      הפעלת סרטון הפתיחה עם קול
+    </button>
+
+    <div class="hero-after" id="hero-after">
+      <div class="hero-after-inner">
+        <p class="hero-kicker">מרכז ההדרכה המחוזי למתמטיקה</p>
+        <h1>מחוז ירושלים</h1>
+        <p class="hero-sub">
+          הבית של קהילת המתמטיקה — חומרי הוראה, סביבות המחשה, הודעות וצוות ההדרכה,
+          לחטיבות הביניים ולחטיבה העליונה.
+        </p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="/chativat-beynayim/">חטיבת ביניים</a>
+          <a class="btn btn-ghost" href="#hamchashot">אתר ההמחשות</a>
+          <a class="btn btn-ghost" href="#tzevet">צוות ההדרכה</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    margin-block-start: calc(-1 * var(--header-h));
+  }
+
+  /* הסרטון המקורי ריבועי (1440×1440) — מוצג בשלמותו, ללא חיתוך פוגעני (6.8) */
+  .hero-media {
+    position: relative;
+    inline-size: 100%;
+    block-size: min(88vh, 100vw);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(90% 120% at 50% 10%, #1a2030 0%, #0d0f16 55%, #090a0f 100%);
+  }
+
+  video {
+    max-inline-size: 100%;
+    max-block-size: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    filter: drop-shadow(0 30px 80px rgb(0 0 0 / 0.55));
+    transition: opacity 1400ms var(--ease);
+  }
+
+  .hero-play {
+    position: absolute;
+    inset-inline-start: 50%;
+    inset-block-start: 50%;
+    translate: 50% -50%;
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    color: var(--ink);
+    box-shadow: var(--shadow-lift);
+    backdrop-filter: blur(8px);
+  }
+  .hero-play:hover { background: var(--paper); transform: translateY(-2px); }
+
+  /* המצב הבהיר שאחרי הסרטון (6.5) */
+  .hero-after {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: clamp(1.5rem, 5vw, 3rem);
+    background:
+      radial-gradient(120% 90% at 50% 0%, rgb(201 155 63 / 0.14), transparent 60%),
+      linear-gradient(180deg, #fdfcf9 0%, var(--paper) 100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 1400ms var(--ease), visibility 0s linear 1400ms;
+  }
+
+  .hero-media.is-ended video { opacity: 0; }
+  .hero-media.is-ended .hero-after {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 200ms, 0s;
+  }
+
+  .hero-after-inner { max-width: 720px; }
+
+  .hero-kicker {
+    color: var(--gold-deep);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-block-end: 0.4rem;
+  }
+
+  .hero-after h1 { margin-block-end: 0.4em; }
+
+  .hero-sub {
+    color: var(--ink-soft);
+    font-size: clamp(1rem, 2vw, 1.18rem);
+    max-width: 56ch;
+    margin-inline: auto;
+  }
+
+  .hero-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-block-start: 1.6rem;
+  }
+
+  @media (max-width: 700px) {
+    .hero-media { block-size: auto; min-block-size: 64vh; padding-block: calc(var(--header-h) + 0.5rem) 1rem; }
+    video { inline-size: 100%; }
+  }
+</style>
+
+<script>
+  const media = document.getElementById('hero-media')!;
+  const video = document.getElementById('hero-video') as HTMLVideoElement;
+  const playBtn = document.getElementById('hero-play') as HTMLButtonElement;
+
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // בחירת גרסה לפי רוחב המסך — שתי הגרסאות קודדו מהמקור ללא שינוי תוכן (6.10)
+  video.src = innerWidth < 760 ? '/media/hero-720.mp4' : '/media/hero-1080.mp4';
+
+  const finish = () => media.classList.add('is-ended');
+
+  video.addEventListener('ended', finish, { once: true });
+
+  if (reduced) {
+    // רגישי תנועה: המצב הבהיר מיד, בלי ניגון אוטומטי
+    finish();
+  } else {
+    // ניסיון autoplay עם שמע (6.3); אם נחסם — שכבת הפעלה בלחיצה אחת (6.7)
+    video.play().catch(() => {
+      playBtn.hidden = false;
+    });
+  }
+
+  playBtn.addEventListener('click', () => {
+    media.classList.remove('is-ended');
+    playBtn.hidden = true;
+    video.play().catch(() => {
+      playBtn.hidden = false;
+    });
+  });
+</script>

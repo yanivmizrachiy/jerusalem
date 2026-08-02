@@ -1,0 +1,324 @@
+---
+/**
+ * סביבת המשאב האחידה (RULES §8):
+ * במחשב — 50%/50%: המשאב בימין, הסבר ולוח פעולות בשמאל (8.2);
+ * במובייל — הטמעה תחילה ואז הסבר ופעולות (8.6).
+ * פעולות אמיתיות בלבד עם משוב מדויק לפי 4.6; skeleton בטעינה ו־fallback
+ * כאשר המקור חוסם (8.8–8.9). אין כפתורי הדפסה/הורדה לאתר ללא קובץ (8.5).
+ */
+interface Props {
+  id: string;
+  title: string;
+  /** הכתובת הקנונית של המשאב (ההעתקה מעתיקה בדיוק אותה — 9.1) */
+  sourceUrl: string;
+  audience?: string;
+  grade?: string;
+  domain?: string;
+  topic?: string;
+  purpose: string;
+  usage: string;
+  accent?: string;
+  /** גובה מותאם להטמעה גדולה ודומיננטית */
+  tall?: boolean;
+}
+
+const {
+  id,
+  title,
+  sourceUrl,
+  audience,
+  grade,
+  domain,
+  topic,
+  purpose,
+  usage,
+  accent = 'var(--gold)',
+  tall = false,
+} = Astro.props;
+
+const chips = [
+  audience && { label: audience },
+  grade && { label: grade },
+  domain && { label: domain },
+  topic && { label: topic },
+].filter(Boolean) as { label: string }[];
+---
+
+<section
+  class:list={['rframe', 'card-accent', { 'is-tall': tall }]}
+  style={`--card-accent:${accent}`}
+  id={id}
+  data-rframe
+  data-source={sourceUrl}
+  data-title={title}
+>
+  <div class="rframe-grid">
+    <div class="rframe-embed">
+      <div class="rframe-shell" data-shell tabindex="-1">
+        <div class="rframe-skeleton" data-skeleton aria-hidden="true">
+          <span class="sk-pulse"></span>
+          <span class="sk-label">טוען את המשאב…</span>
+        </div>
+        <iframe
+          src={sourceUrl}
+          title={`תצוגה מוטמעת: ${title}`}
+          loading="lazy"
+          allow="fullscreen"
+          referrerpolicy="no-referrer-when-downgrade"
+          data-frame
+        ></iframe>
+      </div>
+      <p class="rframe-fallback" data-fallback hidden>
+        אם התצוגה אינה נטענת כאן — ייתכן שהמקור חוסם הטמעה.
+        <a href={sourceUrl} target="_blank" rel="noopener">פתיחת המשאב במקור ↗</a>
+      </p>
+    </div>
+
+    <div class="rframe-info">
+      {
+        chips.length > 0 && (
+          <ul class="rframe-chips" aria-label="שיוך המשאב">
+            {chips.map((c) => (
+              <li>{c.label}</li>
+            ))}
+          </ul>
+        )
+      }
+      <h3 class="rframe-title">{title}</h3>
+      <p class="rframe-purpose">{purpose}</p>
+      <p class="rframe-usage">{usage}</p>
+
+      <div class="rframe-actions" role="group" aria-label={`פעולות עבור ${title}`}>
+        <a class="btn btn-primary" href={sourceUrl} target="_blank" rel="noopener" data-action="open">
+          פתיחה במקור ↗
+        </a>
+        <button class="btn btn-ghost" type="button" data-action="copy">העתקת קישור</button>
+        <button class="btn btn-ghost" type="button" data-action="share" hidden data-needs="share">שיתוף</button>
+        <a class="btn btn-whatsapp" data-action="whatsapp" href="#" target="_blank" rel="noopener">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+          </svg>
+          שליחה ב־WhatsApp
+        </a>
+        <a class="btn btn-ghost" data-action="email" href="#">שליחה בדוא״ל</a>
+        <button class="btn btn-ghost" type="button" data-action="fullscreen" hidden data-needs="fullscreen">
+          מסך מלא
+        </button>
+      </div>
+
+      <p class="rframe-status" data-status role="status" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .rframe {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+  }
+
+  .rframe-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 980px) {
+    .rframe-grid { grid-template-columns: 1fr 1fr; } /* בימין המשאב, בשמאל ההסבר (RTL) */
+  }
+
+  .rframe-shell {
+    position: relative;
+    block-size: clamp(430px, 58vh, 620px);
+    background: var(--paper-soft);
+  }
+
+  .rframe.is-tall .rframe-shell { block-size: clamp(500px, 68vh, 760px); }
+
+  .rframe-shell:fullscreen { block-size: 100%; background: #fff; }
+
+  .rframe-shell iframe {
+    inline-size: 100%;
+    block-size: 100%;
+    border: 0;
+    display: block;
+  }
+
+  .rframe-skeleton {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: 0.8rem;
+    justify-items: center;
+    background:
+      linear-gradient(120deg, var(--paper-soft) 30%, #fff 45%, var(--paper-soft) 60%);
+    background-size: 220% 100%;
+    animation: sk-shimmer 1.6s linear infinite;
+    transition: opacity 500ms var(--ease);
+  }
+
+  .sk-pulse {
+    inline-size: 46px;
+    block-size: 46px;
+    border-radius: 50%;
+    border: 3px solid var(--line);
+    border-block-start-color: var(--gold);
+    animation: sk-spin 900ms linear infinite;
+  }
+
+  .sk-label { color: var(--ink-faint); font-size: 0.9rem; }
+
+  .rframe-shell.is-loaded .rframe-skeleton { opacity: 0; pointer-events: none; }
+
+  @keyframes sk-shimmer { to { background-position: -120% 0; } }
+  @keyframes sk-spin { to { transform: rotate(360deg); } }
+
+  .rframe-fallback {
+    margin: 0;
+    padding: 0.8rem 1.2rem;
+    background: color-mix(in srgb, var(--amber) 10%, #fff);
+    border-block-start: 1px solid var(--line);
+    font-size: 0.92rem;
+  }
+
+  .rframe-info {
+    padding: clamp(1.4rem, 3vw, 2.2rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rframe-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+  }
+
+  .rframe-chips li {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.25rem 0.75rem;
+  }
+
+  .rframe-title { margin: 0 0 0.6rem; }
+
+  .rframe-purpose { color: var(--ink-soft); }
+
+  .rframe-usage {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    border-inline-start: 3px solid var(--card-accent, var(--gold));
+    padding-inline-start: 0.8rem;
+  }
+
+  .rframe-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-block-start: 1.2rem;
+  }
+
+  .rframe-status {
+    min-block-size: 1.4em;
+    margin: 0.8rem 0 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--olive);
+  }
+
+  @media (max-width: 979px) {
+    .rframe-shell { block-size: clamp(420px, 62vh, 560px); } /* לא מקטינים עד חוסר שימושיות (8.12) */
+  }
+</style>
+
+<script>
+  // לוח הפעולות האחיד — משוב עובדתי בלבד (4.6): נפתח / הועתק / הועבר / נכשל
+  for (const frame of document.querySelectorAll<HTMLElement>('[data-rframe]')) {
+    const source = frame.dataset.source!;
+    const title = frame.dataset.title!;
+    const shell = frame.querySelector<HTMLElement>('[data-shell]')!;
+    const iframe = frame.querySelector<HTMLIFrameElement>('[data-frame]')!;
+    const fallback = frame.querySelector<HTMLElement>('[data-fallback]')!;
+    const status = frame.querySelector<HTMLElement>('[data-status]')!;
+
+    const say = (msg: string) => { status.textContent = msg; };
+
+    // skeleton → נטען; אם אין אירוע load תוך 9 שניות — מציגים fallback הוגן (8.8)
+    const loadTimer = setTimeout(() => { fallback.hidden = false; }, 9000);
+    iframe.addEventListener('load', () => {
+      clearTimeout(loadTimer);
+      shell.classList.add('is-loaded');
+    });
+
+    const pageUrl = () => location.href.split('#')[0];
+
+    // כפתורים מותנים ביכולת אמיתית (8.26)
+    const shareBtn = frame.querySelector<HTMLButtonElement>('[data-action="share"]')!;
+    if (typeof navigator.share === 'function') shareBtn.hidden = false;
+
+    const fsBtn = frame.querySelector<HTMLButtonElement>('[data-action="fullscreen"]')!;
+    if (document.fullscreenEnabled) fsBtn.hidden = false;
+
+    // קישורי שיתוף מוכנים מראש (8.20–8.21): שם המשימה + הקישור הקנוני של עמוד המשאב
+    const wa = frame.querySelector<HTMLAnchorElement>('[data-action="whatsapp"]')!;
+    const em = frame.querySelector<HTMLAnchorElement>('[data-action="email"]')!;
+    const applyShareLinks = () => {
+      const text = `${title} — ${pageUrl()}`;
+      wa.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      em.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(
+        `${title}\n${pageUrl()}`
+      )}`;
+    };
+    applyShareLinks();
+
+    frame.addEventListener('click', async (ev) => {
+      const el = (ev.target as HTMLElement).closest<HTMLElement>('[data-action]');
+      if (!el || !frame.contains(el)) return;
+      const action = el.dataset.action;
+
+      if (action === 'open') { say('נפתח בכרטיסייה חדשה'); return; }
+      if (action === 'whatsapp') { say('נפתח WhatsApp — ההודעה מוכנה לשליחה'); return; }
+      if (action === 'email') { say('נפתחה הודעת דוא״ל חדשה'); return; }
+
+      if (action === 'copy') {
+        try {
+          await navigator.clipboard.writeText(source);
+          say('הקישור הועתק');
+        } catch {
+          say('ההעתקה נכשלה');
+        }
+      }
+
+      if (action === 'share') {
+        try {
+          await navigator.share({ title, url: pageUrl() });
+          say('הועבר למנגנון השיתוף');
+        } catch (err) {
+          if ((err as DOMException)?.name !== 'AbortError') say('השיתוף נכשל');
+        }
+      }
+
+      if (action === 'fullscreen') {
+        try {
+          if (document.fullscreenElement) {
+            await document.exitFullscreen();
+          } else {
+            await shell.requestFullscreen();
+            say('מסך מלא — Esc ליציאה');
+          }
+        } catch {
+          say('מסך מלא נכשל');
+        }
+      }
+    });
+  }
+</script>

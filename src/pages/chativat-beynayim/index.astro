@@ -1,0 +1,119 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { grade7Resources, whatsappCommunity } from '../../data/resources';
+
+const sorted = [...grade7Resources].sort((a, b) => a.order - b.order);
+---
+
+<Base
+  title="חטיבת ביניים — מחוז ירושלים"
+  description="שער חטיבת הביניים של מחוז ירושלים: משאבים קנוניים לכיתה ז׳ — מספרים מכוונים, זוויות ומערכת צירים — וקהילת המורים המחוזית."
+>
+  <div class="container page">
+    <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'חטיבת ביניים' }]} />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">השער של חטיבות הביניים</p>
+      <h1>חטיבת ביניים</h1>
+      <p class="lede">
+        המשאבים הקנוניים לכיתה ז׳ וקהילת המורים המחוזית. השער ימשיך לגדול — כיתות ח׳–ט׳,
+        בחינות והערכה וחומרי הוראה נוספים בדרך.
+      </p>
+    </header>
+
+    <section class="section-block" aria-labelledby="grade7-title">
+      <h2 id="grade7-title" data-reveal>כיתה ז׳ — משאבים קנוניים</h2>
+      <div class="res-grid">
+        {
+          sorted.map((r, i) => (
+            <a
+              class="card card-accent res-card"
+              style={`--card-accent:${r.accent}; --reveal-delay:${i * 100}ms`}
+              href={r.path}
+              data-reveal
+            >
+              <span class="res-domain">{r.domain}</span>
+              <h3>{r.title}</h3>
+              <p>{r.short}</p>
+              <span class="res-cta">לעמוד המשאב ←</span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="section-block" aria-labelledby="kehila-title">
+      <h2 id="kehila-title" data-reveal>קהילת מורים ותקשורת</h2>
+      <div class="card card-accent kehila-card" style="--card-accent:var(--olive)" data-reveal>
+        <div class="kehila-text">
+          <h3>{whatsappCommunity.title}</h3>
+          <p>
+            הערוץ המהיר לעדכונים, שאלות ושיתוף בין מורות ומורי המתמטיקה בעיר ובמחוז.
+          </p>
+        </div>
+        <a class="btn btn-primary" href={whatsappCommunity.path}>לעמוד הקהילה ←</a>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+
+  .page-head { max-width: 640px; margin-block: 1.6rem 2.4rem; }
+
+  .section-block { margin-block-end: clamp(2.6rem, 6vw, 4rem); }
+
+  .section-block h2 { margin-block-end: 1.4rem; }
+
+  .res-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+    gap: clamp(1rem, 2.4vw, 1.6rem);
+  }
+
+  .res-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.7rem 1.5rem 1.4rem;
+    color: var(--ink);
+  }
+
+  .res-domain {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+  }
+
+  .res-card h3 { margin: 0; }
+
+  .res-card p { margin: 0; color: var(--ink-soft); font-size: 0.96rem; }
+
+  .res-cta {
+    margin-block-start: auto;
+    padding-block-start: 0.8rem;
+    font-weight: 700;
+    color: var(--gold-deep);
+    transition: translate 300ms var(--ease);
+  }
+
+  .res-card:hover .res-cta { translate: -6px 0; }
+
+  .kehila-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    padding: 1.8rem 1.6rem;
+  }
+
+  .kehila-text { max-width: 60ch; }
+
+  .kehila-card h3 { margin: 0 0 0.4rem; font-size: 1.15rem; }
+
+  .kehila-card p { margin: 0; color: var(--ink-soft); }
+</style>

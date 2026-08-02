@@ -1,0 +1,139 @@
+---
+import Base from '../layouts/Base.astro';
+import HeroVideo from '../components/HeroVideo.astro';
+import NewsRail from '../components/NewsRail.astro';
+import ResourceFrame from '../components/ResourceFrame.astro';
+import TeamSection from '../components/TeamSection.astro';
+import { hamchashot } from '../data/resources';
+
+const gates = [
+  {
+    href: '/chativat-beynayim/',
+    title: 'חטיבת ביניים',
+    desc: 'משאבים קנוניים לכיתה ז׳, קהילת מורים ותקשורת — והיד עוד נטויה.',
+    accent: 'var(--olive)',
+    cta: 'כניסה לשער',
+  },
+  {
+    href: '#hamchashot',
+    title: 'אתר ההמחשות',
+    desc: 'סביבת ההמחשות של איילת קריספין — משאב מרכזי לכל שכבות הגיל.',
+    accent: 'var(--gold)',
+    cta: 'לצפייה בהמחשות',
+  },
+  {
+    href: '#tzevet',
+    title: 'צוות ההדרכה',
+    desc: 'המדריכות והמדריכים המחוזיים — זמינים ב־WhatsApp ובדוא״ל.',
+    accent: 'var(--rose)',
+    cta: 'להכרת הצוות',
+  },
+];
+---
+
+<Base
+  title="מחוז ירושלים — הדרכת מתמטיקה"
+  description="המרכז המחוזי להוראת מתמטיקה במחוז ירושלים: סביבות המחשה, משאבים קנוניים לחטיבת הביניים, צוות ההדרכה ועדכונים שוטפים."
+  transparentHeader
+>
+  <HeroVideo />
+
+  <div class="rail-slot">
+    <div class="container">
+      <NewsRail />
+    </div>
+  </div>
+
+  <div class="rail-offset">
+    <section class="section" id="shearim">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <p class="eyebrow">מתחילים כאן</p>
+          <h2>שערי הכניסה המרכזיים</h2>
+        </div>
+        <div class="gates-grid">
+          {
+            gates.map((g, i) => (
+              <a
+                class="card card-accent gate-card"
+                style={`--card-accent:${g.accent}; --reveal-delay:${i * 110}ms`}
+                href={g.href}
+                data-reveal
+              >
+                <h3>{g.title}</h3>
+                <p>{g.desc}</p>
+                <span class="gate-cta">{g.cta} ←</span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="hamchashot-section">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <p class="eyebrow">המשאב המרכזי</p>
+          <h2>אתר ההמחשות של איילת קריספין</h2>
+          <p class="lede">
+            המחשות דינמיות למושגי המתמטיקה — לצפייה ולשימוש ישירות מכאן, או במקור בכרטיסייה
+            נפרדת.
+          </p>
+        </div>
+        <div data-reveal>
+          <ResourceFrame
+            id="hamchashot"
+            title={hamchashot.title}
+            sourceUrl={hamchashot.url}
+            audience="מורות ומורים"
+            topic="המחשות למושגי המתמטיקה"
+            purpose="סביבת ההמחשות המחוזית: הדגמות חזותיות ואינטראקטיביות שהופכות מושגים מופשטים למוחשיים — להקרנה בכיתה ולהעמקה אישית."
+            usage="גללו ונווטו בתוך הסביבה כאן בעמוד; לחוויית עבודה מלאה פתחו את המקור בכרטיסייה חדשה או במסך מלא."
+            accent="var(--gold)"
+            tall
+          />
+        </div>
+      </div>
+    </section>
+
+    <TeamSection />
+  </div>
+</Base>
+
+<style>
+  /* פינוי מקום לפס "מה חדש?" הקבוע במסכים רחבים (7.20) */
+  @media (min-width: 1280px) {
+    .rail-offset { padding-inline-end: calc(var(--rail-w) + 2.2rem); }
+    .rail-slot .container { display: contents; } /* הפס עצמו הופך קבוע; אין רווח מיותר */
+  }
+
+  .rail-slot { margin-block-start: clamp(1.6rem, 4vw, 2.8rem); }
+
+  .gates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+    gap: clamp(1rem, 2.4vw, 1.6rem);
+  }
+
+  .gate-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.8rem 1.6rem 1.5rem;
+    color: var(--ink);
+  }
+
+  .gate-card h3 { margin: 0; }
+
+  .gate-card p { margin: 0; color: var(--ink-soft); font-size: 0.98rem; }
+
+  .gate-card .gate-cta {
+    margin-block-start: auto;
+    padding-block-start: 0.9rem;
+    font-weight: 700;
+    color: var(--gold-deep);
+    transition: translate 300ms var(--ease);
+  }
+
+  .gate-card:hover .gate-cta { translate: -6px 0; }
+</style>

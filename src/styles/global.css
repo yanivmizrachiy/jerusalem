@@ -1,0 +1,262 @@
+/* ============================================================
+   מחוז ירושלים — מערכת עיצוב אחת (RULES §5)
+   בסיס שקט בהשראת יוקרה מינימליסטית; צבע כהדגשה מדודה (5.18–5.19)
+   ============================================================ */
+
+:root {
+  /* בסיס — נייר, אבן, דיו */
+  --paper: #fbf9f5;
+  --paper-soft: #f5f1e8;
+  --stone: #ece6d9;
+  --line: #ddd4c3;
+  --ink: #2a2520;
+  --ink-soft: #5c544a;
+  --ink-faint: #8a8071;
+
+  /* סדרת הצבע הבהירה (5.19) */
+  --gold: #b08d3e;
+  --gold-deep: #8f7130;
+  --amber: #c99b3f;
+  --terracotta: #c06a50;
+  --rose: #c2798f;
+  --sky: #6e9fc3;
+  --olive: #7e8f58;
+  --lilac: #9c7fb8;
+
+  --whatsapp: #25d366;
+
+  /* טיפוגרפיה */
+  --font-display: 'Frank Ruhl Libre', 'Heebo Variable', serif;
+  --font-body: 'Heebo Variable', 'Heebo', system-ui, sans-serif;
+
+  /* קצב, עומק, עיגול */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur: 700ms;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --shadow-soft: 0 18px 50px -24px rgb(42 37 32 / 0.22);
+  --shadow-lift: 0 26px 60px -22px rgb(42 37 32 / 0.3);
+
+  --header-h: 76px;
+  --rail-w: 260px;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, video, iframe { max-width: 100%; }
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.25;
+  margin: 0 0 0.5em;
+  text-wrap: balance;
+}
+
+h1 { font-size: clamp(2.1rem, 5.2vw, 3.6rem); }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.4rem); }
+h3 { font-size: clamp(1.2rem, 2.2vw, 1.5rem); }
+
+p { margin: 0 0 1em; }
+
+a { color: var(--gold-deep); text-decoration: none; }
+a:hover { color: var(--ink); }
+
+:focus-visible {
+  outline: 3px solid var(--sky);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+::selection { background: rgb(176 141 62 / 0.25); }
+
+/* ---------- פריסה ---------- */
+
+.container {
+  width: min(1180px, 100% - 2 * clamp(1.1rem, 4vw, 2.5rem));
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: clamp(4rem, 9vw, 7.5rem);
+}
+
+.section + .section { padding-block-start: 0; }
+
+.section-head {
+  max-width: 620px;
+  margin-block-end: clamp(2rem, 4vw, 3.2rem);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--gold-deep);
+  margin-block-end: 0.9rem;
+}
+
+.eyebrow::before {
+  content: '';
+  inline-size: 2.2rem;
+  block-size: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--amber), var(--terracotta), var(--sky));
+}
+
+.lede { color: var(--ink-soft); font-size: 1.1rem; }
+
+/* ---------- כפתורים (5.14, 5.21) ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-block-size: 48px;
+  padding: 0.65rem 1.5rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: 600 1rem var(--font-body);
+  cursor: pointer;
+  transition: transform 300ms var(--ease), box-shadow 300ms var(--ease),
+    background-color 300ms var(--ease), color 300ms var(--ease),
+    border-color 300ms var(--ease);
+}
+
+.btn:active { transform: translateY(1px) scale(0.99); }
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn-primary:hover {
+  background: var(--gold-deep);
+  color: #fff;
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+.btn-ghost:hover {
+  border-color: var(--gold);
+  color: var(--gold-deep);
+  transform: translateY(-2px);
+}
+
+.btn-whatsapp {
+  background: var(--whatsapp);
+  color: #fff;
+}
+.btn-whatsapp:hover {
+  filter: brightness(0.94);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+
+.btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+
+.btn svg { flex: none; }
+
+/* ---------- כרטיסים ---------- */
+
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 34px -26px rgb(42 37 32 / 0.25);
+  transition: transform 450ms var(--ease), box-shadow 450ms var(--ease),
+    border-color 450ms var(--ease);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+  border-color: color-mix(in srgb, var(--line) 40%, var(--card-accent, var(--gold)) 60%);
+}
+
+/* פס הדגשה צבעוני עדין לפי תחום (5.19) */
+.card-accent {
+  position: relative;
+  overflow: hidden;
+}
+.card-accent::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 4px;
+  background: var(--card-accent, var(--gold));
+  opacity: 0.85;
+}
+
+/* ---------- חשיפה בגלילה (5.20) ---------- */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal].in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- נגישות ותנועה ---------- */
+
+.skip-link {
+  position: absolute;
+  inset-inline-start: 1rem;
+  inset-block-start: -4rem;
+  z-index: 100;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.7rem 1.2rem;
+  border-radius: 0 0 12px 12px;
+  transition: inset-block-start 250ms var(--ease);
+}
+.skip-link:focus-visible { inset-block-start: 0; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .btn, .card { transition-duration: 1ms; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}

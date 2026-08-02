@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+import ResourcePageShell from '../../components/ResourcePageShell.astro';
+import { grade7Resources } from '../../data/resources';
+
+const resource = grade7Resources.find((r) => r.id === 'tzirim')!;
+const prev = grade7Resources.find((r) => r.id === 'zaviyot')!;
+---
+
+<Base
+  title={`${resource.title} — חטיבת ביניים — מחוז ירושלים`}
+  description={resource.short}
+>
+  <ResourcePageShell resource={resource} prev={{ label: prev.title, href: prev.path }} />
+</Base>
