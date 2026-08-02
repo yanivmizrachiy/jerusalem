@@ -24,13 +24,42 @@
   --lilac: #9c7fb8;
 
   --whatsapp: #25d366;
+}
 
+/* פלטה פרספטואלית — OKLCH מדויק בדפדפנים תומכים (עקביות גוונים אמיתית) */
+@supports (color: oklch(50% 0.1 100)) {
+  :root {
+    --gold: oklch(66% 0.105 88);
+    --gold-deep: oklch(56% 0.1 87);
+    --amber: oklch(72% 0.12 84);
+    --terracotta: oklch(64% 0.115 38);
+    --rose: oklch(67% 0.09 5);
+    --sky: oklch(69% 0.075 245);
+    --olive: oklch(63% 0.09 125);
+    --lilac: oklch(65% 0.09 305);
+  }
+}
+
+/* ריכוך קפיצי עדין להרמות hover — טכנולוגיית linear() */
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --ease-lift: linear(
+      0, 0.218 2.1%, 0.862 6.5%, 1.114 8.6%, 1.296 10.7%,
+      1.346 11.8%, 1.341 12.9%, 1.315 13.9%, 1.105 17.2%,
+      1.011 18.9%, 0.936 20.9%, 0.906 23.9%, 0.967 30.6%,
+      1.003 38.4%, 0.993 59.8%, 1
+    );
+  }
+}
+
+:root {
   /* טיפוגרפיה */
   --font-display: 'Frank Ruhl Libre', 'Heebo Variable', serif;
   --font-body: 'Heebo Variable', 'Heebo', system-ui, sans-serif;
 
   /* קצב, עומק, עיגול */
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-lift: var(--ease);
   --dur: 700ms;
   --radius: 14px;
   --radius-lg: 22px;
@@ -47,6 +76,7 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable; /* אפס קפיצות layout כשמופיע פס גלילה */
   -webkit-text-size-adjust: 100%;
   overflow-x: clip; /* אפס גלילה אופקית — בכל מכשיר */
 }
@@ -108,7 +138,19 @@ h1 { font-size: clamp(2.1rem, 5.2vw, 3.6rem); }
 h2 { font-size: clamp(1.6rem, 3.4vw, 2.4rem); }
 h3 { font-size: clamp(1.2rem, 2.2vw, 1.5rem); }
 
-p { margin: 0 0 1em; }
+p { margin: 0 0 1em; text-wrap: pretty; }
+
+/* מרקם נייר עדין בסגנון יוקרה — בלתי מורגש אך מעניק עומק */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+  opacity: 0.026;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
 a { color: var(--gold-deep); text-decoration: none; }
 a:hover { color: var(--ink); }
@@ -156,6 +198,23 @@ a:hover { color: var(--ink); }
   block-size: 2px;
   border-radius: 2px;
   background: linear-gradient(90deg, var(--amber), var(--terracotta), var(--sky));
+  transform-origin: 100% 50%;
+}
+
+/* קו המותג מצטייר עם הגלילה — scroll-driven, ללא JavaScript */
+@supports (animation-timeline: view()) {
+  @media not (prefers-reduced-motion: reduce) {
+    .eyebrow::before {
+      animation: eyebrow-draw both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 45%;
+    }
+  }
+}
+
+@keyframes eyebrow-draw {
+  from { scale: 0 1; }
+  to { scale: 1 1; }
 }
 
 .lede { color: var(--ink-soft); font-size: 1.1rem; }
@@ -173,7 +232,7 @@ a:hover { color: var(--ink); }
   border-radius: 999px;
   font: 600 1rem var(--font-body);
   cursor: pointer;
-  transition: transform 300ms var(--ease), box-shadow 300ms var(--ease),
+  transition: transform 460ms var(--ease-lift), box-shadow 300ms var(--ease),
     background-color 300ms var(--ease), color 300ms var(--ease),
     border-color 300ms var(--ease);
 }
@@ -223,7 +282,7 @@ a:hover { color: var(--ink); }
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: 0 10px 34px -26px rgb(42 37 32 / 0.25);
-  transition: transform 450ms var(--ease), box-shadow 450ms var(--ease),
+  transition: transform 520ms var(--ease-lift), box-shadow 450ms var(--ease),
     border-color 450ms var(--ease);
 }
 
@@ -292,4 +351,17 @@ a:hover { color: var(--ink); }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
   .btn, .card { transition-duration: 1ms; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+
+/* ---------- הדפסה — בסיס נקי (8.16) ---------- */
+
+@media print {
+  body { background: #fff; color: #000; }
+  body::before, body::after { display: none !important; }
+  .site-header, .site-footer, .rail, .skip-link,
+  video, iframe, .btn, .hero-play, .rframe-actions, .uplay-actions,
+  .mrange-actions, .mrange-pager, .viewer-actions { display: none !important; }
+  .card, .card-accent { box-shadow: none !important; border: 1px solid #999 !important; }
+  a { color: #000; text-decoration: underline; }
+  main a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; word-break: break-all; }
 }

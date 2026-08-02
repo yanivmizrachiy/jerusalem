@@ -118,8 +118,15 @@ const isActive = (href: string) =>
     border-radius: 999px;
     color: var(--ink-soft);
     font-weight: 600;
+    font-variation-settings: 'wght' 600; /* פונט משתנה — מעבר משקל חלק */
     font-size: 0.98rem;
-    transition: color 250ms var(--ease), background-color 250ms var(--ease);
+    transition: color 250ms var(--ease), background-color 250ms var(--ease),
+      font-variation-settings 300ms var(--ease);
+  }
+
+  .nav-list a:hover,
+  .nav-list a[aria-current='page'] {
+    font-variation-settings: 'wght' 720;
   }
 
   .nav-list a:hover {

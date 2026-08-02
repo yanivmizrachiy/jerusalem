@@ -118,6 +118,7 @@ const chips = [
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-soft);
     overflow: hidden;
+    container-type: inline-size; /* הרכיב מגיב לרוחב שלו, לא למסך */
   }
 
   .rframe-grid {
@@ -125,7 +126,7 @@ const chips = [
     grid-template-columns: 1fr;
   }
 
-  @media (min-width: 980px) {
+  @container (min-width: 880px) {
     .rframe-grid { grid-template-columns: 1fr 1fr; } /* בימין המשאב, בשמאל ההסבר (RTL) */
   }
 

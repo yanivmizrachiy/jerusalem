@@ -112,7 +112,13 @@
     margin-block-end: 0.4rem;
   }
 
-  .hero-after h1 { margin-block-end: 0.4em; }
+  .hero-after h1 {
+    margin-block-end: 0.4em;
+    background: linear-gradient(175deg, var(--gold-deep) 20%, var(--amber) 80%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 
   .hero-sub {
     color: var(--ink-soft);
