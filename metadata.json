@@ -1,6 +1,0 @@
-{
-  "name": "מערכת דפי עבודה: אי-ודאות והסתברות",
-  "description": "מערכת אינטראקטיבית ליצירה, התאמה אישית והדפסה של דפי עבודה וחוברות תרגול בנושא אי-ודאות והסתברות לגילאי חטיבת הביניים",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
