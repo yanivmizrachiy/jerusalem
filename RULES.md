@@ -797,7 +797,7 @@
 - המלצות הוראה תשפ״ו ל־3 יח״ל: `https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativa-Elyona/tashpav/Teaching_Recommendations-3units-tashpav.pdf`.
 - המלצות הוראה תשפ״ו ל־4 יח״ל: `https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativa-Elyona/tashpav/Teaching-Recommendations-4units-tashpav.pdf`.
 - המלצות הוראה תשפ״ו ל־5 יח״ל: `https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativa-Elyona/tashpav/Teaching-Recommendations-5units-tashpav.pdf`.
-- חוברת מחוז מרכז שתזוהה לפי סעיף 9.7; לאחר זיהוי הכתובת המדויקת היא תתווסף לרשימה זו.
+- חוברת מחוז מרכז — **זוהתה ב־03/08/2026** בכריית האתר הישן (מסלול: מקור־השורש ← שער חט״ב ← "חוברת של מחוז מרכז"): `https://docs.google.com/document/d/172Jn_mlXp0UJoOO3KyzfdUdydYNNXa_rj_rKZKUhym8/edit` — חסומה לתצוגה בהתאם ל־9.7.
 
 הופעת כתובת חסומה בתוך מקור ישן אינה מאשרת אותה מחדש. רשימת החסימה גוברת על תוצאת crawl ועל טבלה ישנה.
 
