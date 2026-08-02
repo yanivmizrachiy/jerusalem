@@ -1,0 +1,53 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import UnitPlaylist from '../../components/UnitPlaylist.astro';
+import { mivchanimUnit } from '../../data/units';
+---
+
+<Base
+  title="בחינות והערכה — חטיבת ביניים — מחוז ירושלים"
+  description="נוסחאות רשמיות לכיתות ז׳–ט׳, מבחן דמוי מיצ״ב עם מחוון והנחיות לכתיבת מבחנים — כל הקבצים בדוקים וזמינים לצפייה ישירה."
+>
+  <div class="container page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
+        { label: 'בחינות והערכה' },
+      ]}
+    />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">חטיבת ביניים · {mivchanimUnit.grade}</p>
+      <h1>{mivchanimUnit.title}</h1>
+      <p class="lede">{mivchanimUnit.intro}</p>
+    </header>
+
+    <div data-reveal>
+      <UnitPlaylist unit={mivchanimUnit} />
+    </div>
+
+    <section class="section-block" data-reveal>
+      <h2>ההקשר הרשמי בחוזר מפמ״ר</h2>
+      <div class="chip-links">
+        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-05">אירועי הערכה ומבחנים בחט״ב</a>
+        <a class="btn btn-ghost" href="/chativat-beynayim/kita-t/#maf-04">מבחן תנופה ט׳ — 25.11.26</a>
+      </div>
+    </section>
+
+    <nav class="pager-nav" aria-label="ניווט חזרה">
+      <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
+      <a class="btn btn-ghost" href="/">לעמוד הראשי</a>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+  .page-head { max-width: 680px; margin-block: 1.6rem 2rem; }
+  .section-block { margin-block-start: clamp(2.4rem, 5vw, 3.4rem); }
+  .section-block h2 { margin-block-end: 1.2rem; }
+  .chip-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .pager-nav { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-block-start: clamp(2.2rem, 5vw, 3rem); }
+</style>

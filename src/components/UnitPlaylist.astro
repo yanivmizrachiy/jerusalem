@@ -1,0 +1,272 @@
+---
+/**
+ * נגן יחידת הוראה: צופה אחד + פלייליסט מקובץ לפי שלבי ההוראה.
+ * בחירת משאב מחליפה את ההטמעה (YouTube ללא עוגיות / תצוגת Drive / תצוגת
+ * Docs) עם קישור עמוק יציב (#EQ-005), פעולות אמיתיות ומשוב מדויק (4.6).
+ * כל הקישורים נבדקו בפועל (1.12) — תאריך הבדיקה מוצג.
+ */
+import { toEmbed, kindLabels, LINKS_VERIFIED_ON, type Unit } from '../data/units';
+
+interface Props {
+  unit: Unit;
+}
+
+const { unit } = Astro.props;
+const first = unit.resources[0]!;
+const sections = [...new Set(unit.resources.map((r) => r.section))];
+---
+
+<section
+  class="uplay card-accent"
+  style={`--card-accent:${unit.accent}`}
+  data-uplay
+  data-title={unit.title}
+>
+  <div class="uplay-viewer">
+    <p class="uplay-status" data-status role="status" aria-live="polite">
+      מציג: {first.title} ({kindLabels[first.kind]})
+    </p>
+    <div class="uplay-shell" data-shell>
+      <iframe
+        src={toEmbed(first)}
+        title={`תצוגה מוטמעת: ${first.title}`}
+        loading="lazy"
+        allow="fullscreen; autoplay"
+        referrerpolicy="no-referrer-when-downgrade"
+        data-frame
+      ></iframe>
+    </div>
+    <p class="uplay-fallback" data-fallback hidden>
+      אם התצוגה אינה נטענת —
+      <a data-fallback-link href={first.url} target="_blank" rel="noopener">פתיחת המשאב במקור ↗</a>
+    </p>
+    <div class="uplay-actions" role="group" aria-label="פעולות על המשאב הנוכחי">
+      <a class="btn btn-primary" data-open href={first.url} target="_blank" rel="noopener">
+        פתיחה במקור ↗
+      </a>
+      <button class="btn btn-ghost" type="button" data-copy>העתקת קישור</button>
+      <a class="btn btn-whatsapp" data-wa href="#" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="btn btn-ghost" data-mail href="#">דוא״ל</a>
+      <button class="btn btn-ghost" type="button" data-fs hidden>מסך מלא</button>
+    </div>
+    <p class="uplay-verified">כל הקישורים ביחידה נבדקו בפועל ב־{LINKS_VERIFIED_ON}</p>
+  </div>
+
+  <nav class="uplay-list" aria-label={`משאבי ${unit.title}`}>
+    {
+      sections.map((sec) => (
+        <div class="uplay-group">
+          <h3 class="uplay-sec">{sec}</h3>
+          <ul>
+            {unit.resources
+              .filter((r) => r.section === sec)
+              .map((r) => (
+                <li id={r.id}>
+                  <button
+                    class="uplay-item"
+                    type="button"
+                    data-item
+                    data-id={r.id}
+                    data-url={r.url}
+                    data-embed={toEmbed(r)}
+                    data-rtitle={r.title}
+                    data-kind={kindLabels[r.kind]}
+                  >
+                    <span class="uplay-kind">{kindLabels[r.kind]}</span>
+                    <span class="uplay-rtitle">{r.title}</span>
+                  </button>
+                </li>
+              ))}
+          </ul>
+        </div>
+      ))
+    }
+  </nav>
+</section>
+
+<style>
+  .uplay {
+    display: grid;
+    grid-template-columns: 1fr;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+  }
+
+  /* במחשב: הצופה בימין (ראשון ב־RTL), הפלייליסט בשמאל */
+  @media (min-width: 1020px) {
+    .uplay { grid-template-columns: 1.6fr 1fr; }
+    .uplay-list {
+      border-inline-start: 1px solid var(--line);
+      max-block-size: 760px;
+      overflow-y: auto;
+    }
+  }
+
+  .uplay-status {
+    margin: 0;
+    padding: 0.85rem 1.3rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--gold-deep);
+    border-block-end: 1px solid var(--line);
+    background: var(--paper-soft);
+  }
+
+  .uplay-shell { position: relative; block-size: clamp(420px, 56vh, 620px); background: var(--paper-soft); }
+  .uplay-shell:fullscreen { block-size: 100%; background: #000; }
+  .uplay-shell iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; }
+
+  .uplay-fallback {
+    margin: 0;
+    padding: 0.7rem 1.3rem;
+    background: color-mix(in srgb, var(--amber) 10%, #fff);
+    border-block-start: 1px solid var(--line);
+    font-size: 0.9rem;
+  }
+
+  .uplay-actions { display: flex; flex-wrap: wrap; gap: 0.55rem; padding: 1rem 1.3rem 0.4rem; }
+
+  .uplay-verified {
+    margin: 0;
+    padding: 0.4rem 1.3rem 1rem;
+    color: var(--ink-faint);
+    font-size: 0.82rem;
+  }
+
+  .uplay-list { padding: 1.1rem 1.1rem 1.3rem; }
+
+  .uplay-group + .uplay-group { margin-block-start: 1.2rem; }
+
+  .uplay-sec {
+    font-size: 0.95rem;
+    margin: 0 0 0.5rem;
+    color: var(--ink-soft);
+    padding-inline-start: 0.6rem;
+    border-inline-start: 3px solid var(--card-accent, var(--gold));
+  }
+
+  .uplay-group ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+
+  .uplay-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    inline-size: 100%;
+    min-block-size: 44px;
+    padding: 0.5rem 0.7rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    text-align: start;
+    transition: background-color 250ms var(--ease), border-color 250ms var(--ease);
+  }
+
+  .uplay-item:hover { background: var(--paper-soft); }
+
+  li.is-active .uplay-item {
+    background: color-mix(in srgb, var(--card-accent, var(--gold)) 12%, #fff);
+    border-color: color-mix(in srgb, var(--card-accent, var(--gold)) 45%, transparent);
+  }
+
+  .uplay-kind {
+    flex: none;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink-faint);
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+  }
+
+  li.is-active .uplay-kind { color: var(--gold-deep); }
+
+  .uplay-rtitle { font-weight: 600; color: var(--ink); font-size: 0.95rem; line-height: 1.4; }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-uplay]').forEach((root) => {
+    const unitTitle = root.dataset.title ?? '';
+    const frame = root.querySelector<HTMLIFrameElement>('[data-frame]')!;
+    const shell = root.querySelector<HTMLElement>('[data-shell]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const fallback = root.querySelector<HTMLElement>('[data-fallback]')!;
+    const fallbackLink = root.querySelector<HTMLAnchorElement>('[data-fallback-link]')!;
+    const openBtn = root.querySelector<HTMLAnchorElement>('[data-open]')!;
+    const copyBtn = root.querySelector<HTMLButtonElement>('[data-copy]')!;
+    const wa = root.querySelector<HTMLAnchorElement>('[data-wa]')!;
+    const mail = root.querySelector<HTMLAnchorElement>('[data-mail]')!;
+    const fs = root.querySelector<HTMLButtonElement>('[data-fs]')!;
+
+    let currentTitle = '';
+    let loadTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const pageUrl = (id: string) => `${location.origin}${location.pathname}#${id}`;
+
+    const armFallback = () => {
+      fallback.hidden = true;
+      clearTimeout(loadTimer);
+      loadTimer = setTimeout(() => { fallback.hidden = false; }, 9000);
+    };
+
+    frame.addEventListener('load', () => { clearTimeout(loadTimer); fallback.hidden = true; });
+
+    const select = (btn: HTMLElement, updateHash: boolean) => {
+      const { id = '', url = '', embed = '', rtitle = '', kind = '' } = btn.dataset;
+      currentTitle = rtitle;
+      armFallback();
+      frame.src = embed;
+      status.textContent = `מציג: ${rtitle} (${kind})`;
+      openBtn.href = url;
+      fallbackLink.href = url;
+      const share = `${rtitle} — ${unitTitle} — ${pageUrl(id)}`;
+      wa.href = `https://wa.me/?text=${encodeURIComponent(share)}`;
+      mail.href = `mailto:?subject=${encodeURIComponent(`${rtitle} — ${unitTitle}`)}&body=${encodeURIComponent(share)}`;
+      root.querySelectorAll('li.is-active').forEach((li) => li.classList.remove('is-active'));
+      btn.closest('li')?.classList.add('is-active');
+      if (updateHash) history.replaceState(null, '', `#${id}`);
+      copyBtn.dataset.link = pageUrl(id);
+    };
+
+    const items = root.querySelectorAll<HTMLElement>('[data-item]');
+    items.forEach((btn) => btn.addEventListener('click', () => select(btn, true)));
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(copyBtn.dataset.link ?? location.href);
+        status.textContent = `הקישור הועתק — ${currentTitle}`;
+      } catch {
+        status.textContent = 'ההעתקה נכשלה';
+      }
+    });
+
+    wa.addEventListener('click', () => { status.textContent = 'נפתח WhatsApp — ההודעה מוכנה לשליחה'; });
+    mail.addEventListener('click', () => { status.textContent = 'נפתחה הודעת דוא״ל חדשה'; });
+
+    if (document.fullscreenEnabled) fs.hidden = false;
+    fs.addEventListener('click', async () => {
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else await shell.requestFullscreen();
+      } catch {
+        status.textContent = 'מסך מלא נכשל';
+      }
+    });
+
+    // אתחול: קישור עמוק (#EQ-005) או המשאב הראשון
+    const frag = decodeURIComponent(location.hash.slice(1));
+    const deep = frag
+      ? root.querySelector<HTMLElement>(`#${CSS.escape(frag)} [data-item]`)
+      : null;
+    const initial = deep ?? items[0];
+    if (initial) {
+      select(initial, false);
+      if (deep) initial.closest('li')?.scrollIntoView({ behavior: 'auto', block: 'center' });
+    }
+  });
+</script>

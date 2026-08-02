@@ -4,7 +4,6 @@ import ResourcePageShell from '../../components/ResourcePageShell.astro';
 import { grade7Resources } from '../../data/resources';
 
 const resource = grade7Resources.find((r) => r.id === 'zaviyot')!;
-const prev = grade7Resources.find((r) => r.id === 'misparim')!;
 const next = grade7Resources.find((r) => r.id === 'tzirim')!;
 ---
 
@@ -14,7 +13,7 @@ const next = grade7Resources.find((r) => r.id === 'tzirim')!;
 >
   <ResourcePageShell
     resource={resource}
-    prev={{ label: prev.title, href: prev.path }}
+    prev={{ label: 'הוראת משוואות ללא מספרים שליליים', href: '/chativat-beynayim/mishvaot/' }}
     next={{ label: next.title, href: next.path }}
   />
 </Base>
