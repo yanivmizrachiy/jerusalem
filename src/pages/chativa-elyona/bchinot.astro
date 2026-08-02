@@ -1,0 +1,56 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import MafmarRange from '../../components/MafmarRange.astro';
+---
+
+<Base
+  title="בחינות ומידע מנהלי — חטיבה עליונה — מחוז ירושלים"
+  description="בגרויות תשפ״ז: עקרונות בדיקה וטוהר בחינות, חוקי מענה, נוסחאוני התוכנית החדשה, רשת ביטחון, מועדים, גמולים וצירופים — ישירות מחוזר המפמ״ר."
+>
+  <div class="container page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'חטיבה עליונה', href: '/chativa-elyona/' },
+        { label: 'בחינות ומידע מנהלי' },
+      ]}
+    />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">חטיבה עליונה · תשפ״ז</p>
+      <h1>בחינות בגרות ומידע מנהלי</h1>
+      <p class="lede">
+        ארבעת המקטעים הרשמיים למנהלת הבגרות: בדיקה וטוהר בחינות וחוקי מענה, נוסחאונים,
+        רשת ביטחון, ומועדים־גמולים־צירופים. חשוב: הקלות תשפ״ו חלות רק עד מועד חורף
+        תשפ״ז.
+      </p>
+    </header>
+
+    <div class="stack" data-reveal>
+      <MafmarRange sectionId="MAF-15" accent="var(--terracotta)" />
+    </div>
+    <div class="stack" data-reveal>
+      <MafmarRange sectionId="MAF-16" accent="var(--gold)" />
+    </div>
+    <div class="stack" data-reveal>
+      <MafmarRange sectionId="MAF-19" accent="var(--olive)" />
+    </div>
+    <div class="stack" data-reveal>
+      <MafmarRange sectionId="MAF-20" accent="var(--sky)" />
+    </div>
+
+    <nav class="pager-nav" aria-label="ניווט חזרה">
+      <a class="btn btn-ghost" href="/chativa-elyona/">חזרה לחטיבה העליונה</a>
+      <a class="btn btn-ghost" href="/hozer-mafmar/">לחוזר המלא</a>
+      <a class="btn btn-ghost" href="/">לעמוד הראשי</a>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+  .page-head { max-width: 680px; margin-block: 1.6rem 2rem; }
+  .stack { margin-block-end: clamp(1.8rem, 4vw, 2.6rem); }
+  .pager-nav { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-block-start: clamp(2.2rem, 5vw, 3rem); }
+</style>

@@ -1,0 +1,187 @@
+---
+/**
+ * הטמעת טווח ממוקד מתוך חוזר מפמ״ר תשפ״ז (RULES 3.17, 9.3.11):
+ * כותרת + הסימון "מתוך חוזר מפמ״ר תשפ״ז" + הטווח המאומת, ניווט
+ * עמוד קודם/הבא הכלוא לטווח, מחוון "עמוד X מתוך Y בטווח זה",
+ * פתיחת החוזר המלא, פתיחה במקור, העתקה ושיתוף יציב (9.3.12).
+ * המקור: ה־PDF הרשמי החי בלבד — לא נשמר עותק (9.3.4).
+ */
+import { MAFMAR_URL, mafmarSections } from '../data/mafmar';
+
+interface Props {
+  /** מזהה מתוך ה־manifest המאומת, למשל "MAF-02" */
+  sectionId: string;
+  accent?: string;
+  tall?: boolean;
+}
+
+const { sectionId, accent = 'var(--gold)', tall = false } = Astro.props;
+const s = mafmarSections.find((x) => x.id === sectionId);
+if (!s) throw new Error(`MafmarRange: מזהה לא קיים ב-manifest — ${sectionId}`);
+const anchorId = s.id.toLowerCase();
+---
+
+<section
+  class:list={['mrange', 'card-accent', { 'is-tall': tall }]}
+  style={`--card-accent:${accent}`}
+  id={anchorId}
+  data-mafrange
+  data-start={s.startPage}
+  data-end={s.endPage}
+  data-title={s.title}
+>
+  <header class="mrange-head">
+    <p class="mrange-badge">מתוך חוזר מפמ״ר תשפ״ז · עמודים {s.startPage}–{s.endPage} (מאומת)</p>
+    <h3 class="mrange-title">{s.title}</h3>
+    {s.note && <p class="mrange-note">{s.note}</p>}
+    <p class="mrange-replaces">מחליף את המידע הישן: {s.replaces}</p>
+  </header>
+
+  <div class="mrange-shell" data-shell>
+    <iframe
+      src={`${MAFMAR_URL}#page=${s.startPage}&view=FitH`}
+      title={`${s.title} — מתוך חוזר מפמ״ר תשפ״ז`}
+      loading="lazy"
+    ></iframe>
+  </div>
+
+  <div class="mrange-pager" role="group" aria-label={`ניווט עמודים בתוך ${s.title}`}>
+    <button class="btn btn-ghost" type="button" data-prev>→ עמוד קודם</button>
+    <span class="mrange-ind" data-ind aria-live="polite">
+      עמוד 1 מתוך {s.endPage - s.startPage + 1} בטווח זה
+    </span>
+    <button class="btn btn-ghost" type="button" data-next>עמוד הבא ←</button>
+  </div>
+
+  <div class="mrange-actions" role="group" aria-label={`פעולות עבור ${s.title}`}>
+    <a class="btn btn-primary" href={`/hozer-mafmar/#${s.id}`}>פתיחת החוזר המלא</a>
+    <a class="btn btn-ghost" href={MAFMAR_URL} target="_blank" rel="noopener">המקור הרשמי ↗</a>
+    <button class="btn btn-ghost" type="button" data-copy>העתקת קישור</button>
+    <a class="btn btn-whatsapp" data-wa href="#" target="_blank" rel="noopener">WhatsApp</a>
+    <a class="btn btn-ghost" data-mail href="#">דוא״ל</a>
+  </div>
+
+  <p class="mrange-status" data-status role="status" aria-live="polite"></p>
+</section>
+
+<style>
+  .mrange {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+  }
+
+  .mrange-head { padding: 1.3rem 1.4rem 1rem; }
+
+  .mrange-badge {
+    margin: 0 0 0.45rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: var(--gold-deep);
+  }
+
+  .mrange-title { margin: 0 0 0.5rem; font-size: 1.25rem; }
+
+  .mrange-note { margin: 0 0 0.4rem; color: var(--ink-soft); font-size: 0.92rem; }
+
+  .mrange-replaces {
+    margin: 0;
+    color: var(--ink-faint);
+    font-size: 0.84rem;
+    border-inline-start: 2px solid var(--card-accent, var(--line));
+    padding-inline-start: 0.6rem;
+  }
+
+  .mrange-shell {
+    block-size: clamp(460px, 62vh, 680px);
+    background: var(--paper-soft);
+    border-block: 1px solid var(--line);
+  }
+
+  .mrange.is-tall .mrange-shell { block-size: clamp(520px, 72vh, 820px); }
+
+  .mrange-shell iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; }
+
+  .mrange-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding: 0.9rem 1.4rem 0;
+  }
+
+  .mrange-ind { font-weight: 700; font-size: 0.92rem; color: var(--ink-soft); }
+
+  .mrange-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    padding: 0.8rem 1.4rem 0.3rem;
+  }
+
+  .mrange-status {
+    min-block-size: 1.3em;
+    margin: 0;
+    padding: 0.4rem 1.4rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--olive);
+  }
+
+  @media (max-width: 640px) {
+    .mrange-pager { justify-content: center; }
+  }
+</style>
+
+<script>
+  import { MAFMAR_URL } from '../data/mafmar';
+
+  document.querySelectorAll<HTMLElement>('[data-mafrange]').forEach((root) => {
+    const start = Number(root.dataset.start);
+    const end = Number(root.dataset.end);
+    const title = root.dataset.title ?? '';
+    const frame = root.querySelector('iframe')!;
+    const ind = root.querySelector<HTMLElement>('[data-ind]')!;
+    const prev = root.querySelector<HTMLButtonElement>('[data-prev]')!;
+    const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const wa = root.querySelector<HTMLAnchorElement>('[data-wa]')!;
+    const mail = root.querySelector<HTMLAnchorElement>('[data-mail]')!;
+    const copy = root.querySelector<HTMLButtonElement>('[data-copy]')!;
+
+    let page = start;
+
+    const pageUrl = () => `${location.origin}${location.pathname}#${root.id}`;
+
+    const render = (reload: boolean) => {
+      if (reload) frame.src = `${MAFMAR_URL}#page=${page}&view=FitH`;
+      ind.textContent = `עמוד ${page - start + 1} מתוך ${end - start + 1} בטווח זה`;
+      prev.disabled = page <= start;
+      next.disabled = page >= end;
+    };
+
+    prev.addEventListener('click', () => { if (page > start) { page -= 1; render(true); } });
+    next.addEventListener('click', () => { if (page < end) { page += 1; render(true); } });
+
+    const shareText = `${title} — מתוך חוזר מפמ״ר תשפ״ז — ${pageUrl()}`;
+    wa.href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    mail.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(shareText)}`;
+    wa.addEventListener('click', () => { status.textContent = 'נפתח WhatsApp — ההודעה מוכנה לשליחה'; });
+    mail.addEventListener('click', () => { status.textContent = 'נפתחה הודעת דוא״ל חדשה'; });
+
+    copy.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(pageUrl());
+        status.textContent = 'הקישור הועתק';
+      } catch {
+        status.textContent = 'ההעתקה נכשלה';
+      }
+    });
+
+    render(false);
+  });
+</script>

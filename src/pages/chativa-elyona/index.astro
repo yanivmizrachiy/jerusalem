@@ -1,0 +1,97 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import MafmarRange from '../../components/MafmarRange.astro';
+
+const levels = [
+  {
+    href: '/chativa-elyona/3-yahal/',
+    title: '3 יח״ל',
+    desc: 'שאלונים 35371 ו־35372, הערכה בית ספרית 35173 והמלצות רצף ההוראה.',
+    accent: 'var(--olive)',
+  },
+  {
+    href: '/chativa-elyona/4-yahal/',
+    title: '4 יח״ל',
+    desc: 'דגשי כיתה י׳, שאלון 35471 (שני נושאים בגאומטריה, ללא פרמטרים) ו־35472.',
+    accent: 'var(--sky)',
+  },
+  {
+    href: '/chativa-elyona/5-yahal/',
+    title: '5 יח״ל',
+    desc: 'שאלון 35571 במספור החדש, קדם אנליזה מוקדמת והמלצות ההוראה.',
+    accent: 'var(--terracotta)',
+  },
+];
+---
+
+<Base
+  title="חטיבה עליונה — מחוז ירושלים"
+  description="שער החטיבה העליונה בתשפ״ז: תוכנית הלימודים החדשה, רמות 3/4/5 יח״ל, בחינות בגרות, נוסחאונים ורשת ביטחון — ישירות מחוזר המפמ״ר."
+>
+  <div class="container page">
+    <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'חטיבה עליונה' }]} />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">השער של החטיבה העליונה · תשפ״ז</p>
+      <h1>חטיבה עליונה</h1>
+      <p class="lede">
+        שנת מפתח: בתשפ״ז כלל התלמידים נבחנים בשאלוני הבגרות של <strong>התוכנית החדשה</strong>.
+        כאן מרוכזים העקרונות, הרמות, הבחינות והמידע המנהלי — ישירות מהחוזר הרשמי.
+      </p>
+    </header>
+
+    <div data-reveal>
+      <MafmarRange sectionId="MAF-11" accent="var(--gold)" />
+    </div>
+
+    <section class="section-block" aria-labelledby="levels-title">
+      <h2 id="levels-title" data-reveal>רמות הלימוד</h2>
+      <div class="levels-grid">
+        {
+          levels.map((l, i) => (
+            <a
+              class="card card-accent level-card"
+              style={`--card-accent:${l.accent}; --reveal-delay:${i * 100}ms`}
+              href={l.href}
+              data-reveal
+            >
+              <h3>{l.title}</h3>
+              <p>{l.desc}</p>
+              <span class="level-cta">לעמוד הרמה ←</span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="section-block" data-reveal>
+      <h2>בחינות, נוסחאונים ומידע מנהלי</h2>
+      <div class="chip-links">
+        <a class="btn btn-primary" href="/chativa-elyona/bchinot/">לעמוד הבחינות והמידע המנהלי ←</a>
+        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-18">קמפוס IL — קורסים דיגיטליים</a>
+        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-22">פיתוח מקצועי והדרכה</a>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+  .page-head { max-width: 680px; margin-block: 1.6rem 2rem; }
+  .section-block { margin-block-start: clamp(2.4rem, 5vw, 3.4rem); }
+  .section-block h2 { margin-block-end: 1.2rem; }
+
+  .levels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: clamp(1rem, 2.4vw, 1.5rem);
+  }
+
+  .level-card { display: flex; flex-direction: column; gap: 0.5rem; padding: 1.7rem 1.5rem 1.4rem; color: var(--ink); }
+  .level-card h3 { margin: 0; font-size: 1.5rem; }
+  .level-card p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+  .level-cta { margin-block-start: auto; padding-block-start: 0.8rem; font-weight: 700; color: var(--gold-deep); }
+
+  .chip-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+</style>

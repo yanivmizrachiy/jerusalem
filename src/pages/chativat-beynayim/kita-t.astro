@@ -1,0 +1,73 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import MafmarRange from '../../components/MafmarRange.astro';
+---
+
+<Base
+  title="כיתה ט׳ — חטיבת ביניים — מחוז ירושלים"
+  description="כיתה ט׳ בתשפ״ז: שתי פריסות (רגילה ומצומצמת), קדם־אנליזה, מבחן תנופה 25.11.26 — והשיבוץ לרמות 3/4/5 במעבר לחטיבה העליונה, ישירות מחוזר המפמ״ר."
+>
+  <div class="container page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
+        { label: 'כיתה ט׳' },
+      ]}
+    />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">חטיבת ביניים · תשפ״ז</p>
+      <h1>כיתה ט׳</h1>
+      <p class="lede">
+        לומדים לפי התוכנית שלפני העדכון, בשתי פריסות: רגילה ומצומצמת (עד 25% מהשכבה,
+        לקראת 3 יח״ל). כולל קדם־אנליזה, ‏Moodle ומבחן תנופה שיתקיים ב־<strong>25.11.26</strong>.
+      </p>
+    </header>
+
+    <div data-reveal>
+      <MafmarRange sectionId="MAF-04" accent="var(--terracotta)" />
+    </div>
+
+    <section class="section-block" data-reveal>
+      <h2>המעבר לחטיבה העליונה — שיבוץ לרמות</h2>
+      <p class="lede block-lede">
+        העיקרון המחייב מהחוזר: לשבץ כמה שיותר תלמידים ברמות 4–5, ובמקרה של ספק — לרמה
+        הגבוהה. השיבוץ נעשה בשיתוף רכזי חט״ב וחט״ע, בשיקול דעת ולא רק לפי ציונים.
+      </p>
+      <MafmarRange sectionId="MAF-10" accent="var(--lilac)" />
+    </section>
+
+    <section class="section-block" data-reveal>
+      <h2>ממשיכים לחטיבה העליונה</h2>
+      <div class="chip-links">
+        <a class="btn btn-primary" href="/chativa-elyona/">לשער החטיבה העליונה ←</a>
+        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-05">מבחן תנופה והערכה בחט״ב</a>
+      </div>
+    </section>
+
+    <nav class="pager-nav" aria-label="ניווט בין שכבות">
+      <a class="btn btn-ghost" href="/chativat-beynayim/kita-h/">→ השכבה הקודמת: כיתה ח׳</a>
+      <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
+      <span></span>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+  .page-head { max-width: 660px; margin-block: 1.6rem 2rem; }
+  .section-block { margin-block-start: clamp(2.4rem, 5vw, 3.4rem); }
+  .section-block h2 { margin-block-end: 1rem; }
+  .block-lede { max-width: 640px; margin-block-end: 1.4rem; }
+  .chip-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .pager-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-block-start: clamp(2.2rem, 5vw, 3rem);
+  }
+</style>

@@ -1,0 +1,65 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import MafmarRange from '../../components/MafmarRange.astro';
+---
+
+<Base
+  title="כיתה ח׳ — חטיבת ביניים — מחוז ירושלים"
+  description="כיתה ח׳ בתשפ״ז: פריסת הוראה ארצית מיוחדת, Moodle מחייבת, משימות הערכה ומבחן מפמ״ר, והמשך פיילוט פרויקט 720 — ישירות מחוזר המפמ״ר."
+>
+  <div class="container page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
+        { label: 'כיתה ח׳' },
+      ]}
+    />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">חטיבת ביניים · תשפ״ז</p>
+      <h1>כיתה ח׳</h1>
+      <p class="lede">
+        שנת התאמה בין התוכנית המעודכנת לספרי הלימוד הקיימים — פריסה ארצית מיוחדת עם
+        תרגולים משלימים, ‏Moodle מחייבת ומשימות הערכה לאורך השנה. חשוב: נושאי כיתה ח׳
+        יופיעו במבחן תנופה ט׳ של תשפ״ח.
+      </p>
+    </header>
+
+    <div data-reveal>
+      <MafmarRange sectionId="MAF-03" accent="var(--sky)" />
+    </div>
+
+    <section class="section-block" data-reveal>
+      <h2>עוד בחוזר הרלוונטי לכיתה ח׳</h2>
+      <div class="chip-links">
+        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-05">אירועי הערכה ומבחני מפמ״ר</a>
+        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-06">Moodle ולמידה דיגיטלית</a>
+        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-09">חלוקה לרמות והדרכה</a>
+      </div>
+    </section>
+
+    <nav class="pager-nav" aria-label="ניווט בין שכבות">
+      <a class="btn btn-ghost" href="/chativat-beynayim/kita-z/">→ השכבה הקודמת: כיתה ז׳</a>
+      <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
+      <a class="btn btn-primary" href="/chativat-beynayim/kita-t/">השכבה הבאה: כיתה ט׳ ←</a>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+  .page-head { max-width: 660px; margin-block: 1.6rem 2rem; }
+  .section-block { margin-block-start: clamp(2.4rem, 5vw, 3.4rem); }
+  .section-block h2 { margin-block-end: 1.2rem; }
+  .chip-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .pager-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-block-start: clamp(2.2rem, 5vw, 3rem);
+  }
+</style>
