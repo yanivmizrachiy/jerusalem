@@ -27,7 +27,7 @@ const { id, title, url, tall = false } = Astro.props;
         <path d="M13.5 10.5a4.2 4.2 0 0 0-6 0l-3 3a4.24 4.24 0 0 0 6 6l1.6-1.6" />
       </svg>
     </button>
-    <span class="semb-note" data-note role="status">העתקת קישור אל {title}</span>
+    <button class="semb-note" type="button" data-copy={url} data-note aria-live="polite">העתקת קישור אל {title}</button>
   </div>
 </div>
 
@@ -71,11 +71,23 @@ const { id, title, url, tall = false } = Astro.props;
 
   .semb-copy:hover { transform: translateY(-3px) scale(1.05); color: var(--ink); box-shadow: var(--shadow-lift); }
 
-  .semb-note { color: var(--ink-soft); font-size: 0.92rem; font-weight: 600; }
+  /* המלל לחיץ ומעתיק אף הוא (הוראת יניב, 03/08/2026) */
+  .semb-note {
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    font-weight: 600;
+    min-block-size: 44px;
+  }
+
+  .semb-note:hover { color: var(--gold-deep); text-decoration: underline; }
 </style>
 
 <script>
-  document.querySelectorAll<HTMLButtonElement>('.semb-copy').forEach((btn) => {
+  document.querySelectorAll<HTMLButtonElement>('.semb-copy, .semb-note').forEach((btn) => {
     const note = btn.parentElement?.querySelector<HTMLElement>('[data-note]');
     btn.addEventListener('click', async () => {
       try {

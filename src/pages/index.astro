@@ -17,7 +17,7 @@ const gates = [
   {
     href: '#hamchashot',
     title: 'אתר ההמחשות',
-    desc: 'סביבת ההמחשות של איילת קריספין — משאב מרכזי לכל שכבות הגיל.',
+    desc: 'סביבת ההמחשות של איילת קריספין — המחשות דינמיות למושגי המתמטיקה.',
     accent: 'var(--gold)',
     cta: 'לצפייה בהמחשות',
   },
@@ -118,7 +118,7 @@ const gates = [
                 <path d="M13.5 10.5a4.2 4.2 0 0 0-6 0l-3 3a4.24 4.24 0 0 0 6 6l1.6-1.6" />
               </svg>
             </button>
-            <span class="mam-note" id="mam-note" role="status">העתקת קישור לאתר ההמחשות</span>
+            <button class="mam-note" type="button" id="mam-note" aria-live="polite">העתקת קישור לאתר ההמחשות</button>
           </div>
         </div>
       </div>
@@ -206,19 +206,31 @@ const gates = [
 
   .mam-copy:hover { transform: translateY(-3px) scale(1.05); color: var(--ink); box-shadow: var(--shadow-lift); }
 
-  .mam-note { color: var(--ink-soft); font-size: 0.92rem; font-weight: 600; }
+  .mam-note {
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    font-weight: 600;
+    min-block-size: 44px;
+  }
+
+  .mam-note:hover { color: var(--gold-deep); text-decoration: underline; }
 </style>
 
 <script>
   import { hamchashot } from '../data/resources';
-  const btn = document.getElementById('mam-copy');
   const note = document.getElementById('mam-note');
-  btn?.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(hamchashot.url);
-      note!.textContent = 'הקישור הועתק';
-    } catch {
-      note!.textContent = 'ההעתקה נכשלה';
-    }
-  });
+  for (const el of [document.getElementById('mam-copy'), note]) {
+    el?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(hamchashot.url);
+        note!.textContent = 'הקישור הועתק';
+      } catch {
+        note!.textContent = 'ההעתקה נכשלה';
+      }
+    });
+  }
 </script>

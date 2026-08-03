@@ -86,9 +86,15 @@ test('כפתורי WhatsApp אמיתיים: כל כפתור מוביל ישיר�
   }
   // "מה צפוי?": הלוגו העגול + שני הכיתובים הירוקים — שלושתם ישירות לקבוצה (7.20)
   await expect(page.locator(`.rail a[href="${whatsappCommunity.url}"]`)).toHaveCount(3);
-  // כפתור הפייסבוק של יניב רז — לדף האמיתי (7.25)
+  // הכפתורים האישיים של יניב רז — פייסבוק והאתר האישי (7.25–7.26)
   const yaniv = team.find((m) => m.facebook)!;
   await expect(page.locator(`#tzevet a.btn-facebook[href="${yaniv.facebook}"]`)).toHaveCount(1);
+  await expect(page.locator(`#tzevet a.btn-site[href="${yaniv.website}"]`)).toHaveCount(1);
+  // עוגן אישי: המסך הפותח מקשר לכרטיס של כל חבר צוות, לא לראש הרשימה (6.5)
+  for (const m of team) {
+    await expect(page.locator(`.hero-after a[href="#tzevet-${m.slug}"]`)).toHaveCount(1);
+    await expect(page.locator(`article#tzevet-${m.slug}`)).toHaveCount(1);
+  }
 
   await page.goto('/chativat-beynayim/');
   await expect(page.locator(`a[href="${whatsappCommunity.url}"]`)).toHaveCount(1);

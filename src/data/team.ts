@@ -1,5 +1,7 @@
 /** צוות ההדרכה המחוזי — הנתונים המאושרים בלבד (RULES §7). */
 export interface TeamMember {
+  /** מזהה עוגן — לחיצה בצוות שבמסך הפתיחה מגיעה לכרטיס האישי (6.5) */
+  slug: string;
   /** שם תצוגה מלא */
   name: string;
   /** תפקיד מדויק כפי שנקבע */
@@ -18,6 +20,8 @@ export interface TeamMember {
   accent: string;
   /** דף פייסבוק אישי — רק כאשר נמסר (7.25) */
   facebook?: string;
+  /** אתר אישי — רק כאשר נמסר (7.26) */
+  website?: string;
   /**
    * נגזרת תצוגה ממוטבת של תמונת המקור (7.6–7.7).
    * איילת וויקטוריה: התמונות המקוריות מהאתר הקודם, חולצו ממקור-השורש
@@ -28,6 +32,7 @@ export interface TeamMember {
 
 export const team: TeamMember[] = [
   {
+    slug: 'ayelet',
     name: 'איילת קריספין',
     role: 'מתכללת את תחום המתמטיקה בעל יסודי בעיר ירושלים ובמחוז ירושלים',
     phoneDisplay: '050-272-1656',
@@ -39,6 +44,7 @@ export const team: TeamMember[] = [
     photo: '/media/team/ayelet.jpg',
   },
   {
+    slug: 'victoria',
     name: 'ויקטוריה צורי',
     role: 'מדריכה מחוזית חט״ע מחוז ירושלים',
     phoneDisplay: '050-564-6264',
@@ -49,6 +55,7 @@ export const team: TeamMember[] = [
     photo: '/media/team/victoria.jpg',
   },
   {
+    slug: 'orly',
     name: 'אורלי לוין',
     role: 'מדריכה מחוזית חט״ע מחוז ירושלים',
     phoneDisplay: '050-639-5257',
@@ -59,12 +66,14 @@ export const team: TeamMember[] = [
     photo: '/media/team/orly.jpg',
   },
   {
+    slug: 'yaniv',
     name: 'יניב רז',
     role: 'מדריך מחוזי לחטיבת הביניים בעיר ירושלים',
     phoneDisplay: '052-374-8115',
     phoneIntl: '972523748115',
     email: 'yanivmiz77@gmail.com',
     facebook: 'https://www.facebook.com/people/%D7%94%D7%93%D7%A4%D7%99%D7%9D-%D7%A9%D7%9C-%D7%99%D7%A0%D7%99%D7%91/61562668603240/',
+    website: 'https://www.yanivraz.co.il/',
     initial: 'י',
     accent: 'var(--olive)',
     photo: '/media/team/yaniv.jpg',

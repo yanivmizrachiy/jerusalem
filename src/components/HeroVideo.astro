@@ -28,7 +28,7 @@ import { team } from '../data/team';
           {
             team.filter((m) => m.featured).map((m) => (
               <li class:list={['hero-member', 'is-featured']}>
-                <a href="#tzevet" aria-label={`${m.name} — לפרטי הקשר המלאים`}>
+                <a href={`#tzevet-${m.slug}`} aria-label={`${m.name} — לפרטי הקשר`}>
                   {m.photo ? (
                     <img
                       class="hero-avatar"
@@ -55,7 +55,7 @@ import { team } from '../data/team';
           {
             team.filter((m) => !m.featured).map((m) => (
               <li class="hero-member">
-                <a href="#tzevet" aria-label={`${m.name} — לפרטי הקשר המלאים`}>
+                <a href={`#tzevet-${m.slug}`} aria-label={`${m.name} — לפרטי הקשר`}>
                   {m.photo ? (
                     <img
                       class="hero-avatar"

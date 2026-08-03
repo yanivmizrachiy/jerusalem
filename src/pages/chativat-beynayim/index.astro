@@ -26,7 +26,7 @@ const updatedLine = `מאגר המשאבים התעדכן ב${stamp.weekday}, ${
 
 <Base
   title="מתמטיקה לחטיבת הביניים — מחוז ירושלים"
-  description="מתמטיקה לחטיבת הביניים במחוז ירושלים: האתרים החיים של כיתה ז׳, יחידות ההוראה, שכבות הגיל והחיבור הישיר למורים."
+  description="מתמטיקה לחטיבת הביניים במחוז ירושלים: האתרים החיים של כיתה ז׳, יחידות ההוראה, כיתות ז׳–ט׳ והחיבור הישיר למורים."
 >
   <div class="container page">
     <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'חטיבת ביניים' }]} />
@@ -42,8 +42,7 @@ const updatedLine = `מאגר המשאבים התעדכן ב${stamp.weekday}, ${
       position="center 42%"
     />
 
-    <section class="section-block" aria-labelledby="grades-title">
-      <h2 id="grades-title" data-reveal>שכבות הגיל</h2>
+    <section class="section-block" aria-label="כיתות ז׳–ט׳">
       <div class="res-grid">
         <a class="card card-accent res-card" style="--card-accent:var(--olive)" href="/chativat-beynayim/kita-z/" data-reveal>
           <h3>כיתה ז׳</h3>
@@ -76,7 +75,7 @@ const updatedLine = `מאגר המשאבים התעדכן ב${stamp.weekday}, ${
     </section>
 
     <section class="section-block" aria-labelledby="units-title">
-      <h2 id="units-title" data-reveal>יחידות הוראה ובחינות</h2>
+      <h2 id="units-title" data-reveal>יחידות הוראה</h2>
       <div class="res-grid">
         <a class="card card-accent res-card" style="--card-accent:var(--amber)" href="/chativat-beynayim/mishvaot/" data-reveal>
           <span class="res-domain">כיתה ז׳ · אלגברה · 19 משאבים</span>
@@ -90,16 +89,22 @@ const updatedLine = `מאגר המשאבים התעדכן ב${stamp.weekday}, ${
           <p>שלושת משפטי החפיפה, תרגול מדורג, הוכחות, קטעים מיוחדים ובוחן מסכם.</p>
           <span class="res-cta">ליחידה ←</span>
         </a>
+        <a class="card card-accent res-card" style="--card-accent:var(--rose); --reveal-delay:200ms" href="/chativat-beynayim/mischakim/" data-reveal>
+          <span class="res-domain">כיתות ז׳–ט׳ · 8 משאבים</span>
+          <h3>משחקים והעשרה</h3>
+          <p>משחקים לפי הפריסות, חנוכה, מתמטיקה בפרשה ואתרי העשרה מחוזיים.</p>
+          <span class="res-cta">לעמוד ←</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section-block" aria-labelledby="mivchanim-title">
+      <h2 id="mivchanim-title" data-reveal>מבחנים והערכה</h2>
+      <div class="res-grid">
         <a class="card card-accent res-card" style="--card-accent:var(--lilac); --reveal-delay:200ms" href="/chativat-beynayim/mivchanim/" data-reveal>
           <span class="res-domain">כיתות ז׳–ט׳ · 7 משאבים</span>
           <h3>בחינות והערכה — נוסחאות והנחיות</h3>
           <p>דפי הנוסחאות לכל שכבה, מבחן דמוי מיצ״ב עם מחוון והנחיות.</p>
-          <span class="res-cta">לעמוד ←</span>
-        </a>
-        <a class="card card-accent res-card" style="--card-accent:var(--rose); --reveal-delay:300ms" href="/chativat-beynayim/mischakim/" data-reveal>
-          <span class="res-domain">כיתות ז׳–ט׳ · 8 משאבים</span>
-          <h3>משחקים והעשרה</h3>
-          <p>משחקים לפי הפריסות, חנוכה, מתמטיקה בפרשה ואתרי העשרה מחוזיים.</p>
           <span class="res-cta">לעמוד ←</span>
         </a>
       </div>

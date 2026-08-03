@@ -314,6 +314,40 @@ a:hover { color: var(--ink); }
   box-shadow: 0 12px 26px -10px rgb(24 119 242 / 0.7);
 }
 
+/* דוא״ל — עגול בסגנון Gmail, הלוגו הרשמי על לבן (7.18; הוראת יניב 03/08/2026) */
+.btn-gmail {
+  inline-size: 50px;
+  block-size: 50px;
+  min-block-size: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-soft);
+}
+.btn-gmail svg { inline-size: 22px; block-size: 22px; }
+.btn-gmail:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: var(--shadow-lift);
+}
+
+/* אתר אישי — עגול זהב עם גלובוס (7.26; הוראת יניב 03/08/2026) */
+.btn-site {
+  inline-size: 50px;
+  block-size: 50px;
+  min-block-size: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: linear-gradient(160deg, #d4af5c 0%, var(--gold-deep) 70%);
+  color: #fff;
+  box-shadow: 0 6px 18px -8px rgb(176 141 62 / 0.65);
+}
+.btn-site svg { inline-size: 22px; block-size: 22px; }
+.btn-site:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 12px 26px -10px rgb(176 141 62 / 0.75);
+}
+
 .btn[disabled] { opacity: 0.55; cursor: not-allowed; }
 
 .btn svg { flex: none; }
