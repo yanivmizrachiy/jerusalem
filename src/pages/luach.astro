@@ -19,17 +19,18 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'לוח שנה ירושלמי' }]} />
 
     <header class="luach-head" data-reveal>
-      <svg class="tower" viewBox="0 0 64 84" aria-hidden="true">
-        <g fill="none" stroke="var(--gold-deep)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 80h52" />
-          <path d="M12 80V46h40v34" />
-          <path d="M12 46l4-6h32l4 6" />
-          <path d="M26 40V16a6 6 0 0 1 12 0v24" />
-          <path d="M24 16h4v-6h3v6h4v-6h3v6h4" />
-          <path d="M20 58h6v10h-6zM38 58h6v10h-6z" />
-          <circle cx="32" cy="52" r="3.2" />
-        </g>
-      </svg>
+      <picture>
+        <source srcset="/media/art/tower-night.avif" type="image/avif" />
+        <img
+          class="tower"
+          src="/media/art/tower-night.jpg"
+          alt="מגדל דוד מואר בלילה, נשקף מבעד לקשת אבן"
+          width="480"
+          height="480"
+          loading="eager"
+          title="צילום: Micha Y Shamir, ויקישיתוף, CC BY-SA 4.0"
+        />
+      </picture>
       <div>
         <h1>לוח שנה ירושלמי</h1>
         <p class="luach-sub">מה צפוי? · שנת הלימודים תשפ״ז</p>
@@ -61,7 +62,8 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
     <p class="luach-note" data-reveal>
       ימי החופשה מוצגים לפי ימי החג הקבועים בלוח העברי; טווחי חופשה מורחבים יעודכנו עם
-      פרסום לוח שנת הלימודים בחוזר מנכ״ל לתשפ״ז.
+      פרסום לוח שנת הלימודים בחוזר מנכ״ל לתשפ״ז. · צילום מגדל דוד:
+      <a href="https://commons.wikimedia.org/wiki/File:Tower_of_David_at_night.jpg" target="_blank" rel="noopener">Micha Y Shamir, ויקישיתוף (CC BY-SA 4.0)</a>
     </p>
 
     <dialog id="vac-dialog" class="vac-dialog" aria-labelledby="vac-title">
@@ -84,7 +86,18 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     margin-block: 1.6rem 1.8rem;
   }
 
-  .tower { inline-size: clamp(52px, 7vw, 72px); flex: none; filter: drop-shadow(0 6px 14px rgb(176 141 62 / 0.35)); }
+  .tower {
+    inline-size: clamp(72px, 10vw, 104px);
+    block-size: clamp(72px, 10vw, 104px);
+    flex: none;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid transparent;
+    background:
+      linear-gradient(var(--paper), var(--paper)) padding-box,
+      conic-gradient(from 210deg, var(--gold), #f3d68b, var(--gold-deep), var(--gold)) border-box;
+    box-shadow: 0 10px 28px -10px rgb(176 141 62 / 0.55);
+  }
 
   .luach-head h1 { margin: 0; }
 
@@ -139,12 +152,20 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   }
 
   .cal th {
-    background: var(--paper-soft);
-    padding: 0.6rem 0.4rem;
-    font-size: 0.85rem;
+    background: linear-gradient(180deg, #f7f1e3 0%, #efe6d0 100%);
+    padding: 0.7rem 0.4rem;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
     font-weight: 700;
-    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+    color: var(--gold-deep);
     border: 1px solid var(--line);
+    border-block-end: 2px solid color-mix(in srgb, var(--gold) 55%, var(--line));
+  }
+
+  .cal th:last-child {
+    background: linear-gradient(180deg, #f7ecec 0%, #f0dfdf 100%);
+    color: color-mix(in srgb, var(--rose) 70%, var(--ink));
   }
 
   .cal td {
@@ -158,10 +179,31 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
   .cal td.is-out { background: color-mix(in srgb, var(--paper-soft) 60%, #fff); color: var(--ink-faint); }
   .cal td.is-shabbat { background: color-mix(in srgb, var(--paper-soft) 85%, #fff); }
-  .cal td.is-today { outline: 2px solid var(--sky); outline-offset: -2px; }
+  .cal td:not(.is-out):hover { background: color-mix(in srgb, var(--gold) 6%, #fff); }
 
-  .d-greg { font-weight: 800; font-size: 1.02rem; }
-  .d-heb { font-size: 0.72rem; color: var(--ink-soft); display: block; }
+  .cal td.is-today {
+    outline: 2px solid var(--gold);
+    outline-offset: -2px;
+    background: color-mix(in srgb, var(--gold) 10%, #fff);
+  }
+
+  .cal td.is-today .d-greg { color: var(--gold-deep); font-weight: 700; }
+
+  .d-greg {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.18rem;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+
+  .d-heb {
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+    color: var(--gold-deep);
+    display: block;
+    margin-block-start: 0.05rem;
+  }
 
   .d-tag {
     display: block;
@@ -173,7 +215,8 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
   .d-reason { display: block; font-size: 0.66rem; font-weight: 600; opacity: 0.85; }
 
-  td.is-vac { background: var(--vacation-soft); }
+  td.is-vac { background: linear-gradient(180deg, #eaf6ef 0%, var(--vacation-soft) 100%); }
+  td.is-vac .d-greg { color: var(--vacation); }
   td.is-vac .d-tag, td.is-vac .d-reason { color: var(--vacation); }
 
   td.is-open { background: color-mix(in srgb, var(--gold) 20%, #fff); }
