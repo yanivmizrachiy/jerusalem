@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ArtBanner from '../../components/ArtBanner.astro';
 import { grade7Resources, whatsappCommunity } from '../../data/resources';
 
 const sorted = [...grade7Resources].sort((a, b) => a.order - b.order);
@@ -21,6 +22,12 @@ const sorted = [...grade7Resources].sort((a, b) => a.order - b.order);
         בחינות והערכה וחומרי הוראה נוספים בדרך.
       </p>
     </header>
+
+    <ArtBanner
+      art="festival"
+      alt="איור אמנותי: פסטיבל מתמטיקה צבעוני ברחבת שער יפו בירושלים — קהל לומדים סביב דודקהדרון ענק"
+      position="center 42%"
+    />
 
     <section class="section-block" aria-labelledby="grades-title">
       <h2 id="grades-title" data-reveal>שכבות הגיל — הדגשים הרשמיים לתשפ״ז</h2>

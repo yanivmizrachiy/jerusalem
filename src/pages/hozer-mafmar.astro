@@ -7,6 +7,7 @@
  */
 import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import ArtBanner from '../components/ArtBanner.astro';
 import {
   MAFMAR_URL,
   MAFMAR_TOTAL_PAGES,
@@ -46,6 +47,12 @@ const audiences = [
         העמודים שלמטה אומתו חזותית מול המסמך.
       </p>
     </header>
+
+    <ArtBanner
+      art="golden"
+      alt="איור אמנותי: ירושלים זהובה בשקיעה — מגדל דוד, גשר המיתרים וגופים גאומטריים זוהרים"
+      position="center 45%"
+    />
 
     <nav class="part-jumps" aria-label="קפיצה לחלקי החוזר" data-reveal>
       {

@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ArtBanner from '../../components/ArtBanner.astro';
 import MafmarRange from '../../components/MafmarRange.astro';
 
 const levels = [
@@ -40,6 +41,12 @@ const levels = [
         כאן מרוכזים העקרונות, הרמות, הבחינות והמידע המנהלי — ישירות מהחוזר הרשמי.
       </p>
     </header>
+
+    <ArtBanner
+      art="panorama"
+      alt="איור אמנותי בגווני ספיה: לומדים צעירים על חומות ירושלים עם נוסחאות מתמטיות בשוליים"
+      position="center 55%"
+    />
 
     <div data-reveal>
       <MafmarRange sectionId="MAF-11" accent="var(--gold)" />

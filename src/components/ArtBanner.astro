@@ -1,0 +1,85 @@
+---
+/**
+ * באנר אמנות מחוזי (RULES 5.20, 5.22): יצירה מהמאגר שמסר יניב, בתנועה
+ * קולנועית עדינה — Ken Burns איטי + פרלקסת גלילה ב-CSS טהור; סטטי לחלוטין
+ * תחת prefers-reduced-motion. AVIF עם נסיגת JPG; נטען עצל (אינו LCP).
+ */
+interface Props {
+  /** שם קובץ ללא סיומת מתוך public/media/art */
+  art: 'festival' | 'panorama' | 'watercolor' | 'golden' | 'city';
+  alt: string;
+  /** מוקד החיתוך הרספונסיבי */
+  position?: string;
+}
+
+const { art, alt, position = 'center 30%' } = Astro.props;
+---
+
+<figure class="art-banner" data-reveal>
+  <picture>
+    <source srcset={`/media/art/${art}.avif`} type="image/avif" />
+    <img
+      src={`/media/art/${art}.jpg`}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      width="1600"
+      height="900"
+      style={`object-position: ${position}`}
+    />
+  </picture>
+  <span class="art-scrim" aria-hidden="true"></span>
+</figure>
+
+<style>
+  .art-banner {
+    position: relative;
+    margin: 0 0 clamp(1.8rem, 4vw, 2.8rem);
+    block-size: clamp(220px, 34vh, 400px);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--line);
+  }
+
+  .art-banner img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    scale: 1.06;
+    animation: art-breathe 36s var(--ease) infinite alternate;
+  }
+
+  /* נשימה איטית — Ken Burns עדין (scale בלבד) */
+  @keyframes art-breathe {
+    from { scale: 1.06; }
+    to { scale: 1.12; }
+  }
+
+  /* פרלקסת גלילה (translate בלבד) — scroll-driven, ללא JavaScript */
+  @supports (animation-timeline: view()) {
+    .art-banner img {
+      animation:
+        art-breathe 36s var(--ease) infinite alternate,
+        art-parallax linear both;
+      animation-timeline: auto, view();
+      animation-range: normal, cover 0% cover 100%;
+    }
+  }
+
+  @keyframes art-parallax {
+    from { translate: 0 -2.4%; }
+    to { translate: 0 2.4%; }
+  }
+
+  .art-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(20 18 14 / 0.06) 0%, transparent 30%, transparent 72%, rgb(20 18 14 / 0.16) 100%);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .art-banner img { animation: none !important; scale: 1; translate: 0 0; }
+  }
+</style>

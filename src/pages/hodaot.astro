@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import ArtBanner from '../components/ArtBanner.astro';
 import { feedDated, feedStanding } from '../data/hodaot';
 ---
 
@@ -19,6 +20,12 @@ import { feedDated, feedStanding } from '../data/hodaot';
         פרסומו.
       </p>
     </header>
+
+    <ArtBanner
+      art="city"
+      alt="ציור שמן צבעוני: הרחבה שליד מגדל דוד הומה לומדים, לוחות משוואות וכרזת Math is Everywhere"
+      position="center 60%"
+    />
 
     <section class="feed-block" aria-labelledby="dated-title">
       <h2 id="dated-title" data-reveal>עדכוני תשפ״ז</h2>
