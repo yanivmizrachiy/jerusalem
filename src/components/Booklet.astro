@@ -271,6 +271,7 @@ const site = 'https://jerusalem-virid.vercel.app';
     background: linear-gradient(180deg, var(--paper) 0%, var(--paper-soft) 100%);
     gap: 0.7rem;
     overflow: hidden;
+    overscroll-behavior: contain;
   }
 
   /* ===== הפס העליון ===== */
@@ -357,8 +358,9 @@ const site = 'https://jerusalem-virid.vercel.app';
 
   .is-full .book-stage { flex: 1; min-block-size: 0; block-size: auto; }
 
-  /* כל עמוד ביחס A4 לאורך (3.29): עמוד אחד — 210/280; שניים — 420/280 */
-  .book { position: relative; perspective: 2600px; }
+  /* כל עמוד ביחס A4 לאורך (3.29): עמוד אחד — 210/280; שניים — 420/280.
+     touch-action: גלילה אנכית חופשית — החלקה אופקית שמורה לדפדוף */
+  .book { position: relative; perspective: 2600px; touch-action: pan-y pinch-zoom; }
 
   .mode-1 .book {
     block-size: min(100cqb, calc(100cqi * 280 / 210));
@@ -447,6 +449,7 @@ const site = 'https://jerusalem-virid.vercel.app';
     inset: 0;
     z-index: 1;
     overflow-y: auto;
+    overscroll-behavior: contain;
     background: linear-gradient(180deg, #fffdf9 0%, #fbf7ee 100%);
     border: 1px solid var(--line);
     border-radius: 18px 6px 6px 18px;
@@ -884,14 +887,18 @@ const site = 'https://jerusalem-virid.vercel.app';
   @media (max-width: 880px) {
     .book-stage { container-type: normal; block-size: auto; display: block; }
     .mode-1 .book,
-    .mode-2 .book { block-size: auto; aspect-ratio: auto; min-block-size: 62vh; }
+    .mode-2 .book,
+    .book-shell.has-wide .book { block-size: auto; aspect-ratio: auto; min-block-size: 62vh; }
     .bpage { position: relative; inset: auto; }
     .bp-rashi { min-block-size: 62vh; }
     .book-edge { display: none; }
     .bp-item { display: block; overflow-y: auto; }
-    /* בנייד הדף זורם טבעי — ההטמעה תחילה (8.6) */
+    /* בנייד הדף זורם טבעי — ההטמעה תחילה (8.6) ומקבלת את מרב השטח:
+       שוליים מצומצמים וגובה יציב (svh — לא קופץ עם סרגל הדפדפן) */
+    .bpage { padding: 0.9rem 0.7rem; }
     .item-grid { grid-template-columns: 1fr; block-size: auto; }
-    .item-frame { block-size: clamp(420px, 60vh, 680px); }
+    .item-frame { flex: none; padding: 6px; border-radius: 16px; block-size: clamp(480px, 68svh, 820px); }
+    .item-frame iframe { border-radius: 11px; }
     .book-nav { flex-wrap: wrap; justify-content: center; }
     .bnav { flex: 1; justify-content: center; min-inline-size: 140px; }
     .book-meter { order: 3; inline-size: 100%; }
@@ -1002,12 +1009,15 @@ const site = 'https://jerusalem-virid.vercel.app';
         );
       });
       history.replaceState(null, '', `#${ids[cur]}`);
+      // הדף יושב מדויק: בכל מעבר, ההשתלטות חוזרת לראש (בנייד השכבה נגללת)
+      if (engaged) shell.scrollTop = 0;
     };
 
     const applySides = (v: number[]) => {
       if (mode === 1) {
-        // עמוד משאב נפרס על כל המסך גם בתצוגת עמוד אחד (3.29)
-        if (isItem(v[0])) pages[v[0]].classList.add('pg-wide');
+        // עמוד משאב נפרס על כל המסך גם בתצוגת עמוד אחד — במסך רחב בלבד;
+        // בנייד הדף זורם טבעי (3.29)
+        if (isItem(v[0]) && !narrow.matches) pages[v[0]].classList.add('pg-wide');
         return;
       }
       if (v.length === 2) {
@@ -1018,7 +1028,7 @@ const site = 'https://jerusalem-virid.vercel.app';
 
     const layout = () => {
       const view = visOf(cur);
-      shell.classList.toggle('has-wide', view.length === 1 && isItem(view[0]));
+      shell.classList.toggle('has-wide', !narrow.matches && view.length === 1 && isItem(view[0]));
       const vis = new Set(view);
       pages.forEach((p, k) => {
         p.classList.remove(...ANIM);
@@ -1263,15 +1273,18 @@ const site = 'https://jerusalem-virid.vercel.app';
       if (fsBtn) fsBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
     });
 
-    // החלקת מגע על הספר עצמו
+    // החלקת מגע: דפדוף רק בתנועה אופקית מובהקת — גלילה אנכית לא מזיזה דף
     const bookEl = shell.querySelector<HTMLElement>('.book')!;
     let x0 = 0;
+    let y0 = 0;
     bookEl.addEventListener('touchstart', (e) => {
       x0 = e.touches[0].clientX;
+      y0 = e.touches[0].clientY;
     }, { passive: true });
     bookEl.addEventListener('touchend', (e) => {
       const dx = e.changedTouches[0].clientX - x0;
-      if (Math.abs(dx) < 60) return;
+      const dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
       engage();
       step(dx < 0 ? 1 : -1);
     }, { passive: true });
