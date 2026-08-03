@@ -13,7 +13,7 @@ const accents = ['var(--amber)', 'var(--sky)', 'var(--terracotta)', 'var(--olive
 <aside class="rail" id="ma-chadash" aria-label="מה צפוי?">
   <h2 class="rail-title">מה צפוי?</h2>
   <p class="rail-countdown" data-countdown>
-    פתיחת שנת הלימודים תשפ״ז: 1/9/2026
+    <span class="cd-label">פתיחת שנת הלימודים תשפ״ז: 1/9/2026</span>
   </p>
   <div class="rail-wa">
     <p class="rail-wa-head">הצטרפו לקבוצת המורים בווטסאפ</p>
@@ -69,17 +69,35 @@ const accents = ['var(--amber)', 'var(--sky)', 'var(--terracotta)', 'var(--olive
   /* ספירה לאחור אמיתית לפתיחת תשפ״ז — בכחול־אור זוהר (7.20) */
   .rail-countdown {
     margin: 0 0 0.9rem;
-    padding: 0.6rem 0.8rem;
+    padding: 0.7rem 0.8rem 0.65rem;
     border-radius: 10px;
     background: linear-gradient(180deg, #0b1524, #0e1c31);
     color: #7ed2ff;
     font-weight: 700;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    text-align: center;
+    line-height: 1.4;
     font-variant-numeric: tabular-nums;
     text-shadow:
       0 0 2px rgb(126 210 255 / 0.9),
       0 0 12px rgb(126 210 255 / 0.5);
+  }
+
+  .rail-countdown :global(.cd-num) {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    text-shadow:
+      0 0 3px rgb(126 210 255 / 0.95),
+      0 0 18px rgb(126 210 255 / 0.55),
+      0 0 38px rgb(64 156 255 / 0.4);
+  }
+
+  .rail-countdown :global(.cd-label) {
+    display: block;
+    font-size: 0.88rem;
   }
 
   /* הקישור הירוק המהיר לקבוצת המורים (7.20) */
@@ -214,14 +232,14 @@ const accents = ['var(--amber)', 'var(--sky)', 'var(--terracotta)', 'var(--olive
 
     const render = () => {
       const days = Math.round((OPENING - dayInJerusalem(new Date())) / 86_400_000);
-      el.textContent =
+      el.innerHTML =
         days > 1
-          ? `עוד ${days} ימים לפתיחת שנת הלימודים תשפ״ז`
+          ? `<span class="cd-num">עוד ${days} ימים</span> <span class="cd-label">לפתיחת שנת הלימודים תשפ״ז</span>`
           : days === 1
-            ? 'מחר נפתחת שנת הלימודים תשפ״ז!'
+            ? '<span class="cd-label">מחר נפתחת שנת הלימודים תשפ״ז!</span>'
             : days === 0
-              ? 'היום נפתחת שנת הלימודים תשפ״ז — בהצלחה!'
-              : 'שנת הלימודים תשפ״ז בעיצומה — בהצלחה!';
+              ? '<span class="cd-label">היום נפתחת שנת הלימודים תשפ״ז — בהצלחה!</span>'
+              : '<span class="cd-label">שנת הלימודים תשפ״ז בעיצומה — בהצלחה!</span>';
     };
 
     render();
