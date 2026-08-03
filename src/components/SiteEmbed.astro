@@ -23,13 +23,13 @@ const { id, title, url, embedSrc, tall = false } = Astro.props;
     ></iframe>
   </div>
   <div class="semb-actions">
-    <button class="semb-copy" type="button" data-copy={url} aria-label={`העתקת קישור אל ${title}`}>
+    <button class="semb-copy" type="button" data-copy={url} aria-label={`העתקת הקישור לאתר ${title}`}>
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
         <path d="M10.5 13.5a4.2 4.2 0 0 0 6 0l3-3a4.24 4.24 0 0 0-6-6l-1.6 1.6" />
         <path d="M13.5 10.5a4.2 4.2 0 0 0-6 0l-3 3a4.24 4.24 0 0 0 6 6l1.6-1.6" />
       </svg>
     </button>
-    <button class="semb-note" type="button" data-copy={url} data-note aria-live="polite">העתקת קישור אל {title}</button>
+    <button class="semb-note" type="button" data-copy={url} data-note aria-live="polite">העתקת הקישור לאתר {title}</button>
   </div>
 </div>
 
@@ -39,16 +39,16 @@ const { id, title, url, embedSrc, tall = false } = Astro.props;
     position: relative;
     padding: 14px;
     border-radius: 28px;
-    background: linear-gradient(135deg, rgb(255 255 255 / 0.72) 0%, rgb(250 246 236 / 0.4) 45%, rgb(255 255 255 / 0.6) 100%);
+    background: linear-gradient(135deg, rgb(250 246 236 / 0.95) 0%, rgb(240 233 216 / 0.78) 45%, rgb(252 249 242 / 0.92) 100%);
     backdrop-filter: blur(16px) saturate(1.4);
     -webkit-backdrop-filter: blur(16px) saturate(1.4);
     box-shadow:
-      inset 0 0 0 1px rgb(255 255 255 / 0.85),
-      inset 0 -1px 0 rgb(176 141 62 / 0.4),
-      inset 1px 1px 0 rgb(255 255 255 / 0.6),
-      0 0 55px -14px rgb(126 210 255 / 0.4),
-      0 24px 70px -28px rgb(176 141 62 / 0.5),
-      0 34px 80px -34px rgb(31 41 61 / 0.4);
+      inset 0 0 0 1px rgb(255 255 255 / 0.9),
+      inset 0 0 0 2.5px rgb(176 141 62 / 0.4),
+      inset 0 -1px 0 rgb(176 141 62 / 0.55),
+      0 0 55px -14px rgb(126 210 255 / 0.35),
+      0 24px 70px -28px rgb(176 141 62 / 0.45),
+      0 34px 80px -34px rgb(31 41 61 / 0.35);
     block-size: clamp(540px, 74vh, 880px);
   }
 

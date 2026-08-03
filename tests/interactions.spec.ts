@@ -59,7 +59,10 @@ test('אחרי הסרטון מופיע צוות ההדרכה — לא תוכן �
 });
 
 test('כרטיסי צוות: קישורי WhatsApp ודוא״ל תקינים ונפרדים (7.16–7.18)', async ({ page }) => {
+  // הפרטים נחשפים רק בעוגן אישי — אין כפילות צוות בעמוד (הוראת 03/08/2026)
   await page.goto('/');
+  await expect(page.locator('[data-team-details]')).toBeHidden();
+  await page.goto('/#tzevet-ayelet');
   const ayelet = page.locator('article', { hasText: 'איילת קריספין' });
   await expect(ayelet.locator('a[href="https://wa.me/972502721656"]')).toBeVisible();
   await expect(ayelet.locator('a[href="mailto:ayeletk59@gmail.com"]')).toBeVisible();
