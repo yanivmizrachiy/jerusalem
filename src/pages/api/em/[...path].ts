@@ -5,6 +5,7 @@
  * שום יעד אחר אינו מועבר. (אסור לתקן בריפו של האתרים — עובדים רק על jerusalem.)
  */
 import type { APIRoute } from 'astro';
+import { injectGuard } from '../../../lib/proxyGuard';
 
 export const prerender = false;
 
@@ -19,8 +20,20 @@ export const ALL: APIRoute = async ({ params, request }) => {
   const origin = SITES[site];
   if (!origin) return new Response('Not found', { status: 404 });
 
+  const base = `/api/em/${site}/`;
   const path = `/${segments.join('/')}`;
-  const search = new URL(request.url).search;
+  let search = new URL(request.url).search;
+  // מייעל התמונות של Next מקבל את נתיב המקור בפרמטר url; ערך שכבר עבר
+  // יישור לקידומת הפרוקסי חייב לחזור לנתיב המקורי — אחרת המקור עונה 400
+  // (ממצא ביקורת 03/08/2026: הלוגו דרך ‎_next/image‎ נשבר בהטמעה)
+  if (path.startsWith('/_next/image') && search) {
+    const q = new URLSearchParams(search);
+    const u = q.get('url');
+    if (u && u.startsWith(base)) {
+      q.set('url', u.slice(base.length - 1));
+      search = `?${q.toString()}`;
+    }
+  }
   let upstream: Response;
   try {
     upstream = await fetch(`${origin}${path}${search}`, {
@@ -44,18 +57,21 @@ export const ALL: APIRoute = async ({ params, request }) => {
   const cache = upstream.headers.get('cache-control');
   if (cache) headers.set('cache-control', cache);
 
-  const base = `/api/em/${site}/`;
-
   if (ct.includes('text/html')) {
     let html = await upstream.text();
-    html = html.replace(/(href|src|action|content|data-src|poster)=("|')\//g, `$1=$2${base}`);
+    html = html.replace(/(href|src|action|content|data-src|poster)=("|')\/(?!\/)/g, `$1=$2${base}`);
     // srcset/imagesrcset — רשימת מקורות מופרדת בפסיקים; הדפדפן מעדיף אותה על src,
     // ולכן בלעדיה הלוגו של האתר המוטמע נשבר (הוראת יניב, 03/08/2026)
     html = html.replace(/(srcset|imagesrcset)=("|')([^"']*)("|')/gi, (_m, attr, q, val, q2) =>
-      `${attr}=${q}${(val as string).replace(/(^|,\s*)\//g, `$1${base}`)}${q2}`);
+      `${attr}=${q}${(val as string).replace(/(^|,\s*)\/(?!\/)/g, `$1${base}`)}${q2}`);
+    // רקעים בתוך style מוטבע — הפנורמה של zaviyot מוגדרת כ-url(/panorama/…)
+    // במאפיין CSS מותאם ונשברה בהטמעה (ממצא ביקורת 03/08/2026)
+    html = html.replace(/url\((["']?)\/(?!\/)/g, `url($1${base}`);
     // מחרוזות נכסים בתוך סקריפטים מוטמעים (Next.js טוען chunks לפי מחרוזת)
     html = html.replace(/(["'])\/_next\//g, `$1${base}_next/`);
     html = html.replace(new RegExp(origin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), base.slice(0, -1));
+    // משמר זמן-הריצה — חייב לרוץ לפני כל סקריפט של האפליקציה (proxyGuard.ts)
+    html = injectGuard(html, base.slice(0, -1));
     const goldScroll =
       '<style>::-webkit-scrollbar{width:30px;height:30px}::-webkit-scrollbar-track{background:#f5f1e8}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#d4af5c,#b08d3e 45%,#77602a);border-radius:15px;border:5px solid #f5f1e8}html{scrollbar-color:#b08d3e #f5f1e8;scrollbar-width:auto}</style>';
     html = html.includes('</head>') ? html.replace('</head>', goldScroll + '</head>') : goldScroll + html;
@@ -65,7 +81,7 @@ export const ALL: APIRoute = async ({ params, request }) => {
   // גם נכסי CSS ו-JS מפנים לנתיבי שורש — משכתבים כדי שהכול יישאר בתוך הפרוקסי
   if (ct.includes('text/css')) {
     let css = await upstream.text();
-    css = css.replace(/url\((["']?)\//g, `url($1${base}`);
+    css = css.replace(/url\((["']?)\/(?!\/)/g, `url($1${base}`);
     return new Response(css, { status: upstream.status, headers });
   }
   if (ct.includes('javascript')) {

@@ -182,6 +182,8 @@ const embedOrigins = [
                             <div class="item-frame">
                               <iframe
                                 data-esrc={item.embed}
+                                data-eurl={item.url}
+                                data-etitle={item.title}
                                 title={`${item.title} — תצוגה חיה`}
                                 allow="fullscreen; clipboard-write"
                               />
@@ -1090,7 +1092,41 @@ const embedOrigins = [
         return;
       }
       p.querySelectorAll<HTMLIFrameElement>('iframe[data-esrc]').forEach((f) => {
-        f.src = f.dataset.esrc!;
+        const esrc = f.dataset.esrc!;
+        // הטמעות הפרוקסי המחוזי הן same-origin: דף אמיתי נושא את חותם המשמר
+        // (window.__EM_PROXY__ מ-proxyGuard.ts). דף בלי חותם הוא דף שגיאה —
+        // סביבה סטטית בלי פונקציות (שרת הבדיקות בפורט 4321) או כשל במקור —
+        // ובמקומו מוצג כרטיס פתיחה אמיתי, לא 404 חשוף בתוך מסגרת (8.8).
+        if (esrc.startsWith('/api/')) {
+          f.addEventListener('load', () => {
+            let dead = false;
+            try {
+              const w = f.contentWindow as (Window & { __EM_PROXY__?: 1 }) | null;
+              dead =
+                !!w &&
+                w.location.href !== 'about:blank' &&
+                w.location.origin === location.origin &&
+                !w.__EM_PROXY__;
+            } catch {
+              /* חוצה-מקור — האפליקציה ניווטה למקור אחר; אין שיפוט */
+            }
+            if (!dead) return;
+            const frame = f.closest<HTMLElement>('.item-frame');
+            if (!frame || frame.dataset.fb) return;
+            frame.dataset.fb = '1';
+            frame.classList.add('item-open-card');
+            const msg = document.createElement('p');
+            msg.textContent = 'התצוגה החיה אינה זמינה כאן כרגע — האתר נפתח בחלון חדש:';
+            const open = document.createElement('a');
+            open.className = 'btn btn-primary';
+            open.href = f.dataset.eurl ?? '#';
+            open.target = '_blank';
+            open.rel = 'noopener';
+            open.textContent = `פתיחת ${f.dataset.etitle ?? 'האתר'} ↗`;
+            frame.replaceChildren(msg, open);
+          });
+        }
+        f.src = esrc;
         f.removeAttribute('data-esrc');
       });
     };
