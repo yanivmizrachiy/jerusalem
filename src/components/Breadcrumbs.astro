@@ -16,8 +16,10 @@ const { items } = Astro.props;
         <li style={`--depth:${i}`}>
           {c.href && i < items.length - 1 ? (
             <a href={c.href}>{c.label}</a>
-          ) : (
+          ) : i === items.length - 1 ? (
             <span aria-current="page">{c.label}</span>
+          ) : (
+            <span>{c.label}</span>
           )}
         </li>
       ))

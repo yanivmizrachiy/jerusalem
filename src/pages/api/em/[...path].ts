@@ -21,14 +21,22 @@ export const ALL: APIRoute = async ({ params, request }) => {
 
   const path = `/${segments.join('/')}`;
   const search = new URL(request.url).search;
-  const upstream = await fetch(`${origin}${path}${search}`, {
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${origin}${path}${search}`, {
     headers: {
       'user-agent': request.headers.get('user-agent') ?? 'Mozilla/5.0',
       accept: request.headers.get('accept') ?? '*/*',
       'accept-language': 'he,en;q=0.8',
     },
-    redirect: 'follow',
-  });
+      redirect: 'follow',
+    });
+  } catch {
+    return new Response('המקור אינו זמין כרגע — נסו שוב בעוד רגע.', {
+      status: 502,
+      headers: { 'content-type': 'text/plain; charset=utf-8' },
+    });
+  }
 
   const headers = new Headers();
   const ct = upstream.headers.get('content-type') ?? 'application/octet-stream';
@@ -63,6 +71,9 @@ export const ALL: APIRoute = async ({ params, request }) => {
   if (ct.includes('javascript')) {
     let js = await upstream.text();
     js = js.replace(/(["'])\/_next\//g, `$1${base}_next/`);
+    // גם נכסים שורשיים בודדים (למשל pdf.worker.min.mjs) — בלעדיהם מציג
+    // ה-PDF בתוך האתר המוטמע נשבר (ממצא ביקורת 03/08/2026)
+    js = js.replace(/(["'])\/([\w.-]+\.(?:mjs|js|json|wasm|pdf|png|jpe?g|svg|webp|woff2?))(["'])/g, `$1${base}$2$3`);
     return new Response(js, { status: upstream.status, headers });
   }
 

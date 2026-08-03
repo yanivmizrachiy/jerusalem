@@ -15,14 +15,22 @@ export const ALL: APIRoute = async ({ params, request }) => {
   const search = new URL(request.url).search;
   const target = `${ORIGIN}${path}${search}`;
 
-  const upstream = await fetch(target, {
+  let upstream: Response;
+  try {
+    upstream = await fetch(target, {
     headers: {
       'user-agent': request.headers.get('user-agent') ?? 'Mozilla/5.0',
       accept: request.headers.get('accept') ?? '*/*',
       'accept-language': 'he,en;q=0.8',
     },
-    redirect: 'follow',
-  });
+      redirect: 'follow',
+    });
+  } catch {
+    return new Response('המקור אינו זמין כרגע — נסו שוב בעוד רגע.', {
+      status: 502,
+      headers: { 'content-type': 'text/plain; charset=utf-8' },
+    });
+  }
 
   const headers = new Headers();
   const ct = upstream.headers.get('content-type') ?? 'application/octet-stream';
