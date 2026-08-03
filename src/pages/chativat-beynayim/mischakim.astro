@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import UnitPlaylist from '../../components/UnitPlaylist.astro';
+import { mischakimUnit } from '../../data/units';
+---
+
+<Base
+  title="משחקים והעשרה — חטיבת ביניים — מחוז ירושלים"
+  description="משחקים מתמטיים לפי פריסות ההוראה, משחקי חנוכה, מתמטיקה בפרשת השבוע ואתרי העשרה מחוזיים — כל קישור בדוק."
+>
+  <div class="container page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
+        { label: 'משחקים והעשרה' },
+      ]}
+    />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">{mischakimUnit.grade} · הצד המהנה</p>
+      <h1>{mischakimUnit.title}</h1>
+      <p class="lede">{mischakimUnit.intro}</p>
+    </header>
+
+    <div data-reveal>
+      <UnitPlaylist unit={mischakimUnit} />
+    </div>
+
+    <nav class="pager-nav" aria-label="ניווט חזרה">
+      <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
+      <a class="btn btn-ghost" href="/">לעמוד הראשי</a>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+  .page-head { max-width: 680px; margin-block: 1.6rem 2rem; }
+  .pager-nav { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-block-start: clamp(2.2rem, 5vw, 3rem); }
+</style>

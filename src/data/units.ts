@@ -110,6 +110,7 @@ export const mishvaotUnit: Unit = {
     R('EQ-015', 'דפי עבודה', 'דף עבודה 4', 'https://drive.google.com/file/d/1VKNTBajl59PkI6EF0lAd2BwnohTqFkcc/view'),
     R('EQ-016', 'תרגול', 'משוואות פשוטות', 'https://drive.google.com/file/d/1MnFTC4YgkN3U3wkLya4qtdTmlOAL8lc3/view'),
     R('EQ-019', 'משחק', 'SET', 'https://docs.google.com/document/d/1qFR6gmvQZ_4N3eOII_WZzUr1ZE2dpjnY/edit'),
+    R('MZ-27', 'המצגת המחוזית', 'המצגת המלאה — משוואות לפני מספרים מכוונים', 'https://www.canva.com/design/DAF40pw1Ca8/ZkuGwava0BeVmVfQF5oyCw/view'),
   ],
 };
 
@@ -148,6 +149,9 @@ export const hafifaUnit: Unit = {
     R('TRI-023', 'משולש שווה־שוקיים ושקפים', 'מצגת משולש שווה־שוקיים', 'https://drive.google.com/file/d/1hXV7TTOGdpTRoEO-GMLQ9U1Ytc0aFUyy/view'),
     R('TRI-017', 'משולש שווה־שוקיים ושקפים', 'משולשים לשקפים — תלמיד', 'https://drive.google.com/file/d/1xJCxI3f3NInPcX_sDE1AOq5xS_8aPOGe/view'),
     R('TRI-018', 'משולש שווה־שוקיים ושקפים', 'משולשים לשקפים — מורה', 'https://drive.google.com/file/d/19YuxUwvrCwEYTJJRaZgYdUxidIlJYdWo/view'),
+    R('MZ-29', 'מצגות והרחבות', 'המצגת המחוזית — הוראת חפיפת משולשים', 'https://www.canva.com/design/DAF16LpV3vw/b3jkkgsWAyjYsVz-CMin_A/view'),
+    R('MZ-30', 'מצגות והרחבות', 'קטעים מיוחדים במשולש ומשולש שווה־שוקיים', 'https://www.canva.com/design/DAF9UOtSUXE/YqgFLe9SPbYql0G96R9fYQ/view'),
+    R('MZ-36', 'גאומטריה במערכת צירים ובוחן', 'שילוב גאומטריה במערכת הצירים — מסמך הפיקוח', 'https://docs.google.com/document/d/1CFHKPpCDTMj3DDr5r2-t94sxYjSWNxLZxEEpFmx-MI0/edit'),
     R('TRI-024', 'גאומטריה במערכת צירים ובוחן', 'גאומטריה במערכת צירים 1', 'https://docs.google.com/document/d/1YxrwU_YoHY1QxFN-fNkCGBYxpjw7Yi0T1CwlZvrPP2E/edit'),
     R('TRI-025', 'גאומטריה במערכת צירים ובוחן', 'גאומטריה במערכת צירים 2', 'https://docs.google.com/document/d/1xAIcMljEP47jDT-6ApRddcrgKYQm_N49szsaXTJF3jc/edit'),
     R('TRI-026', 'גאומטריה במערכת צירים ובוחן', 'בוחן מסכם', 'https://drive.google.com/file/d/1psPLnq6tncumtDhID3KAZZE0w7Ib8ma6/view'),
@@ -209,6 +213,32 @@ export const aiUnit: Unit = {
     R('AI-017', 'כלים ואתרים', 'אתר המקפצה', 'https://homework.lnet.org.il'),
     R('AI-015', 'כלים ואתרים', 'Copilot — מחולל תמונות', 'https://copilot.microsoft.com/images/create?cc=by&setlang=he', true),
     R('AI-016', 'כלים ואתרים', 'Canva', 'https://www.canva.com', true),
+  ],
+};
+
+/**
+ * משחקים והעשרה לחט״ב — נכרה מהאתר הישן, סווג במערך רב-סוכני ואומת
+ * ב-03/08/2026 (פריטי MZ; שנתיים/קורונה הוחזקו להכרעת יניב).
+ */
+export const mischakimUnit: Unit = {
+  slug: 'mischakim',
+  title: 'משחקים והעשרה',
+  grade: 'כיתות ז׳–ט׳',
+  domain: 'משחקים והעשרה',
+  path: '/chativat-beynayim/mischakim/',
+  topic: 'משחקים, חגים והעשרה מתמטית',
+  accent: 'var(--rose)',
+  intro:
+    'הצד המהנה של המתמטיקה: משחקים הצמודים לפריסות ההוראה, משחקי חנוכה, מתמטיקה בפרשת השבוע — ואתרי העשרה מחוזיים.',
+  resources: [
+    R('MZ-25', 'משחקים לפי הפריסות', 'משחקים הצמודים לפריסות ההוראה', 'https://docs.google.com/document/d/1AQNue5voom-CuO3opIJMjQoIzy5Ryl1dXPLd-c8IW-M/edit'),
+    R('MZ-19', 'העשרה', 'מתמטיקה בפרשה שלי', 'https://www.canva.com/design/DAGa9tq_uLQ/WtXuSJ80nCM8Ow9p7Gd9Eg/view'),
+    R('MZ-39', 'חגים', 'משחקי חנוכה — חוברת', 'https://drive.google.com/file/d/1DBXCKHarZAuBCQreKrvxKUwDLa3k4IHF/view'),
+    R('MZ-38', 'חגים', 'משחקי חנוכה לכיתה ז׳ — תיקייה', 'https://drive.google.com/drive/folders/1CO-6MbihZaNkHT34kbYuB3YKliuOitgV', true),
+    R('MZ-40', 'חגים', 'משחקי חנוכה לכיתה ח׳ — תיקייה', 'https://drive.google.com/drive/folders/1Sv2iLXVFe_QYhe_3hEIAqCuN_YrlLM7A', true),
+    R('MZ-32', 'העשרה', 'משחקים לכיתות ז׳–ח׳ — תבנית Canva', 'https://www.canva.com/design/DAF3dEaqSG8/TPgg_h9hz37GX09p6A4rWQ/edit', true),
+    R('MZ-23', 'אתרי העשרה', 'אתר החינוך המיוחד המחוזי', 'https://view.genially.com/652ba55030c0f100115d551e/interactive-content-'),
+    R('MZ-26', 'אתרי העשרה', 'מתמטיקה על הרצף — מיכל דוד', 'https://mathonthespectrum.my.canva.site/', true),
   ],
 };
 
