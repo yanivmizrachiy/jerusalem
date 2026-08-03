@@ -108,8 +108,16 @@ const waPath =
     .team-card.is-featured { grid-column: 1 / -1; }
   }
 
+  /* איילת מעל כולם — שורה עליונה משלה גם במחשב (7.1) */
   @media (min-width: 1200px) {
-    .team-grid { grid-template-columns: 1.35fr 1fr 1fr 1fr; }
+    .team-grid { grid-template-columns: repeat(3, 1fr); }
+    .team-card.is-featured { grid-column: 1 / -1; }
+    .team-card.is-featured .avatar {
+      inline-size: 150px;
+      block-size: 150px;
+      font-size: 3.4rem;
+    }
+    .team-card.is-featured .member-name { font-size: 1.6rem; }
   }
 
   /* תמונה אמיתית: חיתוך תצוגה ב-CSS בלבד — המקור אינו נחתך (7.10) */

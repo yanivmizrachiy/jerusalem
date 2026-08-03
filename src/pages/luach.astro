@@ -135,7 +135,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   .lg-vac { background: var(--vacation-soft); border-color: var(--vacation); color: var(--vacation); }
   .lg-open { background: color-mix(in srgb, var(--gold) 18%, #fff); border-color: var(--gold-deep); color: var(--gold-deep); }
   .lg-jlm { background: color-mix(in srgb, var(--sky) 16%, #fff); border-color: var(--sky); color: #2d5a7a; }
-  .lg-exam { background: color-mix(in srgb, var(--terracotta) 16%, #fff); border-color: var(--terracotta); color: var(--terracotta); }
+  .lg-exam { background: color-mix(in srgb, var(--terracotta) 16%, #fff); border-color: var(--terracotta); color: #8a3f28; }
   .lg-mark { color: var(--ink-soft); }
 
   #open-vacations { margin-inline-start: auto; }
@@ -228,12 +228,13 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   td.is-jlm .d-tag { color: #2d5a7a; }
 
   td.is-exam { background: color-mix(in srgb, var(--terracotta) 13%, #fff); }
-  td.is-exam .d-tag { color: var(--terracotta); }
-  td.is-exam .d-greg { color: var(--terracotta); }
+  td.is-exam .d-tag { color: #8a3f28; }
+  td.is-exam .d-greg { color: #8a3f28; }
 
   td.is-mark .d-tag { color: var(--ink-soft); }
 
   .luach-note { color: var(--ink-faint); font-size: 0.85rem; margin-block-start: 1rem; }
+  .luach-note a { text-decoration: underline; }
 
   /* דיאלוג החופשות */
   .vac-dialog {
@@ -349,6 +350,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
   const specials = new Map<number, { cls: string; tag: string; reason?: string }>();
   specials.set(Date.UTC(2026, 8, 1), { cls: 'is-open', tag: 'פתיחת שנת הלימודים', reason: 'תשפ״ז — בהצלחה!' });
+  specials.set(Date.UTC(2026, 8, 16), { cls: 'is-mark', tag: 'מפגש מובילי קהילה ראשון' });
   specials.set(Date.UTC(2026, 10, 25), { cls: 'is-exam', tag: 'מבחן תנופה — כיתות ט׳', reason: 'מתוך חוזר מפמ״ר תשפ״ז' });
   specials.set(hebToTime('ניסן', 27) ?? 0, { cls: 'is-mark', tag: 'יום הזיכרון לשואה ולגבורה' });
   specials.set(atzmaut - DAY, { cls: 'is-mark', tag: 'יום הזיכרון' });

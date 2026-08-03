@@ -17,6 +17,14 @@ export interface FeedItem {
 
 export const feedDated: FeedItem[] = [
   {
+    date: '16/9/26',
+    category: 'קהילה',
+    accent: 'var(--lilac)',
+    title: 'מפגש מובילי קהילה ראשון',
+    desc: 'המפגש הראשון של מובילי הקהילות המחוזיות לשנת תשפ״ז.',
+    href: '/luach/',
+  },
+  {
     date: '3/8/26',
     category: 'האתר',
     accent: 'var(--gold)',

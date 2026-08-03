@@ -23,6 +23,7 @@ export default defineConfig({
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile', use: { ...devices['Pixel 7'] } },
+    // מטריצת הרספונסיביות (19.32) רצה בפרויקט הדסקטופ עם viewports משתנים
+    { name: 'mobile', use: { ...devices['Pixel 7'] }, testIgnore: /responsive/ },
   ],
 });

@@ -27,7 +27,7 @@ export interface TeamMember {
 export const team: TeamMember[] = [
   {
     name: 'איילת קריספין',
-    role: 'מדריכה מחוזית למתמטיקה על־יסודי',
+    role: 'מתכללת את תחום המתמטיקה בעל יסודי בעיר ירושלים ובמחוז ירושלים',
     phoneDisplay: '050-272-1656',
     phoneIntl: '972502721656',
     email: 'ayeletk59@gmail.com',
