@@ -95,6 +95,44 @@
       0 0 34px rgb(64 156 255 / 0.35);
   }
 
+  /* אנימציית הכתיבה מימין לשמאל (7.22, הוראת יניב 03/08/2026):
+     האותיות נוצרות ב-JS ולכן :global */
+  .date-he :global(.dw-ch),
+  .date-greg :global(.dw-ch) {
+    display: inline-block;
+    white-space: pre;
+    opacity: 0;
+    filter: blur(7px);
+    transform: translateY(0.18em);
+    animation: dw-in 780ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  }
+
+  @keyframes dw-in {
+    55% {
+      opacity: 1;
+      filter: blur(0.5px);
+      text-shadow:
+        0 0 4px rgb(126 210 255 / 1),
+        0 0 22px rgb(126 210 255 / 0.9),
+        0 0 44px rgb(64 156 255 / 0.6);
+    }
+    100% {
+      opacity: 1;
+      filter: blur(0);
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .date-he :global(.dw-ch),
+    .date-greg :global(.dw-ch) {
+      animation: none;
+      opacity: 1;
+      filter: none;
+      transform: none;
+    }
+  }
+
   @media (max-width: 640px) {
     .datebar-inner { justify-content: center; text-align: center; }
     .datebar-dates { justify-content: center; }
@@ -127,6 +165,24 @@
     return s.length === 1 ? `${s}׳` : `${s.slice(0, -1)}״${s.slice(-1)}`;
   };
 
+  // כתיבה אות-אות בכיוון הקריאה — עברית מימין לשמאל; איטית ויוקרתית (7.22)
+  const write = (el: HTMLElement, text: string, delay: number, step: number): number => {
+    el.innerHTML = '';
+    const wrap = document.createElement('span');
+    [...text].forEach((ch) => {
+      const c = document.createElement('span');
+      c.className = 'dw-ch';
+      c.textContent = ch;
+      c.style.animationDelay = `${delay}ms`;
+      delay += step;
+      wrap.appendChild(c);
+    });
+    el.appendChild(wrap);
+    return delay;
+  };
+
+  let lastHe = '';
+
   const render = () => {
     const now = new Date();
     const heNames = Object.fromEntries(
@@ -137,13 +193,16 @@
       new Intl.DateTimeFormat('en-u-ca-hebrew', { timeZone: TZ, day: 'numeric', year: 'numeric' })
         .formatToParts(now).map((p) => [p.type, p.value])
     );
-    heEl.textContent = `היום ${heNames.weekday}, ${toGematria(Number(heNums.day))} ב${heNames.month} ה${toGematria(Number(heNums.year) % 1000)}`;
+    const heText = `היום ${heNames.weekday}, ${toGematria(Number(heNums.day))} ב${heNames.month} ה${toGematria(Number(heNums.year) % 1000)}`;
+    if (heText === lastHe) return; // אותו יום — בלי כתיבה מחדש בכל דקה
+    lastHe = heText;
 
     const g = Object.fromEntries(
       new Intl.DateTimeFormat('en-GB', { timeZone: TZ, day: 'numeric', month: 'numeric', year: '2-digit' })
         .formatToParts(now).map((p) => [p.type, p.value])
     );
-    gregEl.textContent = `${Number(g.day)}/${Number(g.month)}/${g.year}`;
+    const after = write(heEl, heText, 200, 60);
+    write(gregEl, `${Number(g.day)}/${Number(g.month)}/${g.year}`, after + 350, 85);
   };
 
   render();

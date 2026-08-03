@@ -51,7 +51,7 @@ test('אחרי הסרטון מופיע צוות ההדרכה — לא תוכן �
   await page.emulateMedia({ reducedMotion: 'reduce' }); // מדלג ישר למצב הסיום
   await page.goto('/');
   const after = page.locator('#hero-after');
-  await expect(after.locator('h1')).toHaveText('צוות ההדרכה המחוזי');
+  await expect(after.locator('h1')).toHaveText('צוות הדרכה');
   for (const name of ['איילת קריספין', 'ויקטוריה צורי', 'אורלי לוין', 'יניב רז']) {
     await expect(after.locator('.hero-name', { hasText: name })).toBeVisible();
   }
