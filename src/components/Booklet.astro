@@ -47,6 +47,8 @@ const site = 'https://jerusalem-virid.vercel.app';
 
 <div class="book-shell" data-book data-initial={initial} data-total={total}>
   <div class="book" role="region" aria-roledescription="חוברת" aria-label="החוברת הדיגיטלית — מתמטיקה לחטיבת הביניים">
+    <button class="book-edge book-edge-next" type="button" data-nav-next tabindex="-1" aria-hidden="true"><span>‹</span></button>
+    <button class="book-edge book-edge-prev" type="button" data-nav-prev tabindex="-1" aria-hidden="true"><span>›</span></button>
     <!-- כריכה -->
     <section class="bpage bp-cover" data-page="cover" data-n="1" hidden>
       <div class="cover-inner">
@@ -220,17 +222,75 @@ const site = 'https://jerusalem-virid.vercel.app';
     <button class="bnav bnav-next" type="button" data-nav-next>
       עמוד הבא <span class="bnav-arrow" aria-hidden="true">←</span>
     </button>
+    <button class="bfs" type="button" data-fullscreen aria-label="חוברת במסך מלא">⛶</button>
   </div>
 </div>
 
 <style>
-  .book-shell { margin-block: 1.2rem 2rem; }
+  /* הספר משתלט על רוחב המסך — full-bleed מתוך המיכל (3.29) */
+  .book-shell {
+    margin-block: 1.2rem 2rem;
+    inline-size: min(100vw - clamp(0.8rem, 3vw, 3rem) * 2, 1680px);
+    margin-inline: calc((100% - min(100vw - clamp(0.8rem, 3vw, 3rem) * 2, 1680px)) / 2);
+  }
 
-  /* הספר: דף בגודל קבוע, פנים נגלל — כמו חוברת אמיתית */
+  .book-shell:fullscreen {
+    inline-size: 100%;
+    margin: 0;
+    padding: clamp(0.6rem, 2vh, 1.4rem) clamp(0.8rem, 2vw, 2rem);
+    background: var(--paper);
+    overflow: auto;
+  }
+
+  .book-shell:fullscreen .book { block-size: calc(100vh - 120px); }
+
+  /* הספר לאורך (הוראת יניב, 03/08/2026): דף עומד ביחס A4 — הרוחב נגזר
+     מהגובה; ממלא את גובה המסך וממורכז, כמו חוברת אמיתית מונחת מולך */
   .book {
     position: relative;
     perspective: 2600px;
-    block-size: clamp(600px, 76vh, 940px);
+    block-size: max(600px, calc(100dvh - var(--header-h) - 225px));
+    aspect-ratio: 210 / 280;
+    max-inline-size: min(100%, 96vw);
+    margin-inline: auto;
+  }
+
+  /* אזורי דפדוף שקטים בשולי הדף — לחיצה על הקצה מדפדפת */
+  .book-edge {
+    position: absolute;
+    inset-block: 0;
+    inline-size: 30px;
+    z-index: 4;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    color: transparent;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  .book-edge-next { left: 0; border-radius: 6px 0 0 6px; }
+  .book-edge-prev { right: 0; border-radius: 0 18px 18px 0; }
+
+  .book-edge:hover {
+    color: var(--gold-deep);
+    background: linear-gradient(90deg, rgb(212 175 92 / 0.18), transparent);
+  }
+
+  .book-edge-prev:hover { background: linear-gradient(270deg, rgb(212 175 92 / 0.18), transparent); }
+
+  /* מספר עמוד מודפס בפינת הדף */
+  .book :global(.bp-num) {
+    position: absolute;
+    inset-block-end: 10px;
+    inset-inline-start: 18px;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink-faint);
+    pointer-events: none;
   }
 
   .bpage {
@@ -442,16 +502,27 @@ const site = 'https://jerusalem-virid.vercel.app';
   .toc-arrow { margin-inline-start: auto; color: var(--ch-dark); font-weight: 800; }
 
   /* ===== עמוד משאב ===== */
-  .bp-item { border-block-start: 6px solid var(--ch-color); }
+  .bp-item {
+    border-block-start: 6px solid var(--ch-color);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
 
-  /* חצייה מדויקת חצי-חצי (הוראת יניב, 03/08/2026) */
+  .bp-item .item-grid { flex: 1; }
+
+  /* חצייה מדויקת חצי-חצי — בדף לאורך החצייה היא לגובה (הוראת יניב, 03/08/2026) */
   .item-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: clamp(0.9rem, 2vw, 1.5rem);
-    align-items: start;
-    min-block-size: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(0.7rem, 1.6vh, 1.1rem);
+    block-size: 100%;
   }
+
+  .item-embed { min-block-size: 0; display: flex; flex-direction: column; }
+
+  .item-info { min-block-size: 0; overflow-y: auto; }
 
   .item-frame {
     position: relative;
@@ -462,7 +533,8 @@ const site = 'https://jerusalem-virid.vercel.app';
       inset 0 0 0 1px rgb(255 255 255 / 0.9),
       inset 0 0 0 2px rgb(176 141 62 / 0.4),
       0 18px 44px -22px rgb(31 41 61 / 0.4);
-    block-size: clamp(480px, 62vh, 780px);
+    flex: 1;
+    min-block-size: 0;
   }
 
   .item-frame iframe {
@@ -547,6 +619,22 @@ const site = 'https://jerusalem-virid.vercel.app';
 
   .bnav-arrow { font-size: 1.2em; }
 
+  /* מסך מלא — כפתור עדין בקצה הסרגל */
+  .bfs {
+    flex: none;
+    inline-size: 54px;
+    block-size: 54px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    color: var(--gold-deep);
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: transform 300ms var(--ease-lift), box-shadow 300ms var(--ease);
+  }
+
+  .bfs:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
+
   .book-meter {
     flex: 1;
     display: flex;
@@ -601,7 +689,11 @@ const site = 'https://jerusalem-virid.vercel.app';
     .item-grid { grid-template-columns: 1fr; }
     .item-info { order: -1; }
     .item-frame { block-size: clamp(420px, 62vh, 680px); }
-    .book { block-size: auto; min-block-size: 74vh; }
+    .book { block-size: auto; min-block-size: calc(100dvh - var(--header-h) - 220px); aspect-ratio: auto; }
+    .book-edge { display: none; }
+    .bp-item { display: block; overflow-y: auto; }
+    .item-grid { grid-template-rows: none; block-size: auto; }
+    .item-frame { block-size: clamp(420px, 60vh, 680px); }
     .bpage { position: relative; inset: auto; max-block-size: none; overflow: visible; }
     .book-nav { flex-wrap: wrap; justify-content: center; }
     .bnav { flex: 1; justify-content: center; min-inline-size: 140px; }
@@ -623,6 +715,16 @@ const site = 'https://jerusalem-virid.vercel.app';
 
     let cur = -1;
     let busy = false;
+
+    // מספר עמוד מודפס בפינת כל דף — כמו בחוברת אמיתית (הכריכה בלי מספר)
+    pages.forEach((p) => {
+      if (p.dataset.page !== 'cover') {
+        const n = document.createElement('span');
+        n.className = 'bp-num';
+        n.textContent = `עמוד ${p.dataset.n}`;
+        p.appendChild(n);
+      }
+    });
 
     // ההטמעה נטענת רק כשהעמוד נפתח (3.29) — לא 20 iframes בבת אחת
     const mount = (p: HTMLElement) => {
@@ -678,11 +780,23 @@ const site = 'https://jerusalem-virid.vercel.app';
       b.addEventListener('click', () => goto(b.dataset.jump!))
     );
 
-    // מקלדת: בעברית "קדימה" הוא שמאלה
+    // מקלדת: בעברית "קדימה" הוא שמאלה; Home לכריכה, End לעמוד האחרון
     addEventListener('keydown', (e) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === 'ArrowLeft') show(cur + 1, 1);
-      if (e.key === 'ArrowRight') show(cur - 1, -1);
+      if (e.key === 'ArrowLeft' || e.key === 'PageDown') show(cur + 1, 1);
+      if (e.key === 'ArrowRight' || e.key === 'PageUp') show(cur - 1, -1);
+      if (e.key === 'Home') show(0, -1);
+      if (e.key === 'End') show(total - 1, 1);
+    });
+
+    // מסך מלא אמיתי — הספר משתלט על כל המסך (3.29)
+    const fsBtn = shell.querySelector<HTMLButtonElement>('[data-fullscreen]');
+    fsBtn?.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else shell.requestFullscreen?.();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      if (fsBtn) fsBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
     });
 
     // החלקת מגע

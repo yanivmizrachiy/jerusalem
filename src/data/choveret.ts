@@ -38,7 +38,7 @@ export interface ChoveretChapter {
 }
 
 export interface ChoveretGrade {
-  slug: 'z' | 'h' | 't';
+  slug: string;
   letter: string;
   title: string;
   intro: string;
@@ -306,6 +306,74 @@ export const choveret: ChoveretGrade[] = [
             kind: 'link',
           },
           hozerAnchor('maf-05-t', 'MAF-05', 'מבחן תנופה והערכה בחט״ב'),
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'klali',
+    letter: 'כללי',
+    title: 'משותף לכל השכבות',
+    intro: 'מבחנים והערכה, משחקים והעשרה ומשאבי הרוחב הדיגיטליים — לכל כיתות ז׳–ט׳.',
+    chapters: [
+      {
+        id: 'mivchanim',
+        title: 'מבחנים והערכה',
+        color: '#be185d',
+        dark: '#9d174d',
+        items: [
+          {
+            id: 'mivchanim',
+            title: 'בחינות והערכה — נוסחאות והנחיות',
+            note: '7 קבצים — דפי הנוסחאות לכל שכבה, מבחן דמוי מיצ״ב עם מחוון והנחיות.',
+            url: '/chativat-beynayim/mivchanim/',
+            kind: 'link',
+            pageHref: '/chativat-beynayim/mivchanim/',
+          },
+        ],
+      },
+      {
+        id: 'mischakim',
+        title: 'משחקים והעשרה',
+        color: '#059669',
+        dark: '#047857',
+        items: [
+          {
+            id: 'mischakim',
+            title: 'משחקים והעשרה',
+            note: '8 קבצים — משחקים לפי הפריסות, חנוכה, מתמטיקה בפרשה ואתרי העשרה.',
+            url: '/chativat-beynayim/mischakim/',
+            kind: 'link',
+            pageHref: '/chativat-beynayim/mischakim/',
+          },
+        ],
+      },
+      {
+        id: 'rohav',
+        title: 'משאבי רוחב ולמידה דיגיטלית',
+        color: '#0d9488',
+        dark: '#0f766e',
+        items: [
+          {
+            id: 'moodle-guide',
+            title: 'אתר המודל — מדריך למורה',
+            note: 'המדריך הרשמי למורה באתר המודל למתמטיקה.',
+            url: 'https://sites.google.com/view/moodlemath/%D7%9E%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%A6%D7%95%D7%95%D7%AA/%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9C%D7%9E%D7%95%D7%A8%D7%94',
+            kind: 'link',
+          },
+          {
+            id: 'moodle-slides',
+            title: 'מצגות מהמודל לפי נושאים',
+            note: 'גיליון מרכז של כל המצגות לפי נושא.',
+            url: 'https://docs.google.com/spreadsheets/d/1l8-7V7DMQSMkWNCFj3Y1OTnrJmaoOuRPWFkIP0a0_OE/edit',
+            embed: 'https://docs.google.com/spreadsheets/d/1l8-7V7DMQSMkWNCFj3Y1OTnrJmaoOuRPWFkIP0a0_OE/preview',
+            kind: 'doc',
+          },
+          doc('ruach-tochnit', '1RYQQdKawSDPYYCDlUrm2MzcrNskv1SZQKHTNf8JJPuo', 'חומרים ברוח התוכנית החדשה', 'ריכוז חומרים מעודכנים ברוח התוכנית.'),
+          doc('amat-nosim', '1u98c3VxZYCvuy9LPV-MzZyLKzYB6vI1I', 'נושאי עמ״ט לפי שכבות', 'מיפוי נושאי עתודה מדעית-טכנולוגית.'),
+          doc('tochen-chova', '1D4JdPdoOMc23XgMCbAv24D28tW7VkUyoK19U3ZVHAQE', 'תכני חובה לפי חודשים', 'פריסת תכני החובה על פני השנה.'),
+          doc('kvatzim-nosim', '1ILL7bpo4LLNmXfE0Kaz1ApoWmDIzk6ILDX3HpDeFd5o', 'קבצים לפי נושאים', 'מאגר קבצים מסודר לפי נושא.'),
+          canva('sheelot-chashiva', 'https://www.canva.com/design/DAGXwB1tskI/-SQYskyIRJmt8i4W8A806w/edit', 'שאלות חשיבה מסדר גבוה', 'אוסף שאלות חשיבה מוכן להוראה.'),
         ],
       },
     ],

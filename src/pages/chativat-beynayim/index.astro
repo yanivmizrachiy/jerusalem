@@ -2,11 +2,9 @@
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import ArtBanner from '../../components/ArtBanner.astro';
-import SiteEmbed from '../../components/SiteEmbed.astro';
-import { grade7Resources, whatsappCommunity } from '../../data/resources';
-import { gradeCounts } from '../../data/choveret';
+import Booklet from '../../components/Booklet.astro';
+import { whatsappCommunity } from '../../data/resources';
 
-const sorted = [...grade7Resources].sort((a, b) => a.order - b.order);
 // חותמת עדכון אמת (3.25): זמן הבנייה בפועל — מתחדשת אוטומטית בכל פריסה
 const stamp = Object.fromEntries(
   new Intl.DateTimeFormat('he', {
@@ -26,7 +24,7 @@ const updatedLine = `מאגר הקבצים עודכן ב${stamp.weekday}, ${Numb
 
 <Base
   title="מתמטיקה לחטיבת הביניים — מחוז ירושלים"
-  description="מתמטיקה לחטיבת הביניים במחוז ירושלים: האתרים החיים של כיתה ז׳, יחידות ההוראה, כיתות ז׳–ט׳ והחיבור הישיר למורים."
+  description="החוברת הדיגיטלית של חטיבת הביניים במחוז ירושלים: כל הקבצים, הקישורים והפעילויות של כיתות ז׳–ט׳ בספר מדפדף אחד."
 >
   <div class="container page">
     <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'חטיבת ביניים' }]} />
@@ -42,83 +40,7 @@ const updatedLine = `מאגר הקבצים עודכן ב${stamp.weekday}, ${Numb
       position="center 42%"
     />
 
-    <section class="section-block" aria-label="כיתות ז׳–ט׳">
-      <div class="res-grid">
-        <a class="card card-accent res-card" style="--card-accent:var(--olive)" href="/chativat-beynayim/kita-z/" data-reveal>
-          <h3>כיתה ז׳</h3>
-          <p class="grade-count">{gradeCounts.z} קבצים, קישורים ופעילויות</p>
-        </a>
-        <a class="card card-accent res-card" style="--card-accent:var(--sky); --reveal-delay:100ms" href="/chativat-beynayim/kita-h/" data-reveal>
-          <h3>כיתה ח׳</h3>
-          <p class="grade-count">{gradeCounts.h} קבצים, קישורים ופעילויות</p>
-        </a>
-        <a class="card card-accent res-card" style="--card-accent:var(--terracotta); --reveal-delay:200ms" href="/chativat-beynayim/kita-t/" data-reveal>
-          <h3>כיתה ט׳</h3>
-          <p class="grade-count">{gradeCounts.t} קבצים, קישורים ופעילויות</p>
-        </a>
-      </div>
-    </section>
-
-    <section class="section-block" aria-labelledby="grade7-title">
-      <h2 id="grade7-title" data-reveal>האתרים של כיתה ז׳</h2>
-      {
-        sorted.map((r) => (
-          <div class="site-block" data-reveal>
-            <h3 class="site-title">{r.title}</h3>
-            <SiteEmbed id={`embed-${r.id}`} title={r.title} url={r.url} embedSrc={r.embedUrl} />
-          </div>
-        ))
-      }
-    </section>
-
-    <section class="section-block" aria-labelledby="units-title">
-      <h2 id="units-title" data-reveal>יחידות הוראה</h2>
-      <div class="res-grid">
-        <a class="card card-accent res-card" style="--card-accent:var(--amber)" href="/chativat-beynayim/mishvaot/" data-reveal>
-          <span class="res-domain">כיתה ז׳ · אלגברה · 19 קבצים</span>
-          <h3>הוראת משוואות ללא מספרים שליליים</h3>
-          <p>המחשות, שקילות, פתרון, אביזרים, דפי עבודה, חידות ומשחק — בנגן יחידה אחד.</p>
-          <span class="res-cta">ליחידה ←</span>
-        </a>
-        <a class="card card-accent res-card" style="--card-accent:var(--sky); --reveal-delay:100ms" href="/chativat-beynayim/hafifat-meshulashim/" data-reveal>
-          <span class="res-domain">כיתה ח׳ · גאומטריה · 26 קבצים</span>
-          <h3>חפיפת משולשים</h3>
-          <p>שלושת משפטי החפיפה, תרגול מדורג, הוכחות, קטעים מיוחדים ובוחן מסכם.</p>
-          <span class="res-cta">ליחידה ←</span>
-        </a>
-        <a class="card card-accent res-card" style="--card-accent:var(--rose); --reveal-delay:200ms" href="/chativat-beynayim/mischakim/" data-reveal>
-          <span class="res-domain">כיתות ז׳–ט׳ · 8 קבצים</span>
-          <h3>משחקים והעשרה</h3>
-          <p>משחקים לפי הפריסות, חנוכה, מתמטיקה בפרשה ואתרי העשרה מחוזיים.</p>
-          <span class="res-cta">לעמוד ←</span>
-        </a>
-      </div>
-    </section>
-
-    <section class="section-block" aria-labelledby="mivchanim-title">
-      <h2 id="mivchanim-title" data-reveal>מבחנים והערכה</h2>
-      <div class="res-grid">
-        <a class="card card-accent res-card" style="--card-accent:var(--lilac); --reveal-delay:200ms" href="/chativat-beynayim/mivchanim/" data-reveal>
-          <span class="res-domain">כיתות ז׳–ט׳ · 7 קבצים</span>
-          <h3>בחינות והערכה — נוסחאות והנחיות</h3>
-          <p>דפי הנוסחאות לכל שכבה, מבחן דמוי מיצ״ב עם מחוון והנחיות.</p>
-          <span class="res-cta">לעמוד ←</span>
-        </a>
-      </div>
-    </section>
-
-    <section class="section-block" aria-labelledby="rohav-title">
-      <h2 id="rohav-title" data-reveal>משאבי רוחב ולמידה דיגיטלית</h2>
-      <div class="chip-links" data-reveal>
-        <a class="btn btn-ghost" href="https://sites.google.com/view/moodlemath/%D7%9E%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%A6%D7%95%D7%95%D7%AA/%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9C%D7%9E%D7%95%D7%A8%D7%94" target="_blank" rel="noopener">אתר המודל — מדריך למורה ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/spreadsheets/d/1l8-7V7DMQSMkWNCFj3Y1OTnrJmaoOuRPWFkIP0a0_OE/edit" target="_blank" rel="noopener">מצגות מהמודל לפי נושאים ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1RYQQdKawSDPYYCDlUrm2MzcrNskv1SZQKHTNf8JJPuo/edit" target="_blank" rel="noopener">חומרים ברוח התוכנית החדשה ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1u98c3VxZYCvuy9LPV-MzZyLKzYB6vI1I/edit" target="_blank" rel="noopener">נושאי עמ״ט לפי שכבות ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1D4JdPdoOMc23XgMCbAv24D28tW7VkUyoK19U3ZVHAQE/edit" target="_blank" rel="noopener">תכני חובה לפי חודשים ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1ILL7bpo4LLNmXfE0Kaz1ApoWmDIzk6ILDX3HpDeFd5o/edit" target="_blank" rel="noopener">קבצים לפי נושאים ↗</a>
-        <a class="btn btn-ghost" href="https://www.canva.com/design/DAGXwB1tskI/-SQYskyIRJmt8i4W8A806w/edit" target="_blank" rel="noopener">שאלות חשיבה מסדר גבוה ↗</a>
-      </div>
-    </section>
+    <Booklet initial="cover" />
 
     <section class="section-block" data-reveal>
       <div class="wa-row">
@@ -132,71 +54,18 @@ const updatedLine = `מאגר הקבצים עודכן ב${stamp.weekday}, ${Numb
 </Base>
 
 <style>
-  .page { padding-block-start: 1.6rem; }
+  .page { padding-block: 1.6rem 2.5rem; }
 
-  .page-head { max-width: 760px; margin-block: 1.6rem 2.4rem; }
+  .page-head { max-width: 760px; margin-block: 1.6rem 2rem; }
 
-  /* מספר אמיתי + חותמת עדכון כחולה קטנה מתחת לכפתור (3.27) */
-  .grade-count {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--ink);
-    margin: 0.2rem 0 0.6rem;
-  }
-
-  .big-title { font-size: clamp(2.4rem, 6vw, 4rem); margin-block-end: 0.25em; }
-
-  .updated-line {
-    margin: 0;
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: var(--ink-faint);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .section-block { margin-block-end: clamp(2.6rem, 6vw, 4rem); }
-
-  .section-block h2 { margin-block-end: 1.4rem; }
-
-  .site-block { margin-block-end: clamp(2rem, 4.5vw, 3rem); }
-  .site-title { margin: 0 0 0.8rem; font-size: 1.3rem; }
-
-  .res-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
-    gap: clamp(1rem, 2.4vw, 1.6rem);
-  }
-
-  .res-card {
+  .wa-row {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1.7rem 1.5rem 1.4rem;
-    color: var(--ink);
+    align-items: center;
+    gap: 0.9rem;
+    justify-content: center;
   }
 
-  .res-domain {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--ink-faint);
-    letter-spacing: 0.04em;
-  }
+  .wa-text { font-weight: 700; color: var(--ink-soft); }
 
-  .res-card h3 { margin: 0; }
-
-  .res-card p { margin: 0; color: var(--ink-soft); font-size: 0.96rem; }
-
-  .res-cta {
-    margin-block-start: auto;
-    padding-block-start: 0.8rem;
-    font-weight: 700;
-    color: var(--gold-deep);
-    transition: translate 300ms var(--ease);
-  }
-
-  .res-card:hover .res-cta { translate: -6px 0; }
-
-  .wa-row { display: flex; align-items: center; gap: 0.9rem; }
-  .wa-row .btn-whatsapp { inline-size: 58px; block-size: 58px; }
-  .wa-text { font-weight: 700; color: var(--ink); font-size: 1.05rem; }
+  .section-block { margin-block-start: clamp(2rem, 4vw, 2.8rem); }
 </style>
