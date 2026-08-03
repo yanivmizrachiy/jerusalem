@@ -11,4 +11,6 @@ export default defineConfig({
   compressHTML: true,
   build: { inlineStylesheets: 'auto' },
   integrations: [sitemap()],
+  // שרת הפיתוח מכבד PORT מהסביבה כדי לא להתנגש בשרתים מקבילים
+  server: { port: Number(process.env.PORT) || 4322 },
 });

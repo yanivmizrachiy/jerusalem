@@ -70,6 +70,21 @@ const pdf = (id: string, url: string, title: string, note: string): ChoveretItem
   download: url,
   kind: 'pdf',
 });
+/**
+ * תוכניות ופריסות תשפ״ז — הקובץ הרשמי plan&prisa.pdf (החוזר, עמ׳ 3) הוא המקור:
+ * הקישור החי של משרד החינוך נשאר הקנוני (מועתק, משותף ונפתח במקור), וההטמעה
+ * וההורדה מוגשות מעותק same-origin מאומת ב-/docs/ (RULES 8.26, 9.8).
+ */
+const TASHPAZ = 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz';
+const gov = (id: string, remote: string, local: string, title: string, note: string): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url: `${TASHPAZ}/${remote}`,
+  embed: `${local}#view=FitH`,
+  download: local,
+  kind: 'pdf',
+});
 const maf = (id: string, sectionId: string, note: string): ChoveretItem => {
   const s = mafmarSections.find((x) => x.id === sectionId)!;
   return {
@@ -142,13 +157,12 @@ export const choveret: ChoveretGrade[] = [
       },
       {
         id: 'tichnun',
-        title: 'תכנון והוראה מחוזי',
+        title: 'תכנון והוראה',
         color: '#ea580c',
         dark: '#b45309',
         items: [
-          doc('tochnit-z', '14KjhWbFLH_xACivC32ETs0jyN7CwWadX9Q0NzxkclwY', 'תוכנית הוראה ז׳', 'התוכנית המחוזית המלאה לשכבה.'),
-          doc('prisa-z', '17bGFCtZjygxCWsj3Dya8la4trFfW2QYq', 'פריסת הוראה ז׳', 'פריסה שבועית מעשית לאורך השנה.'),
-          doc('prisa-z-amat', '1Fyy98IMHRtDoex4RhrPbUWDgCxE3vzhM', 'פריסת ז׳ עמ״ט', 'הפריסה למסלול עתודה מדעית-טכנולוגית.'),
+          gov('tochnit-z', 'plan_7.pdf', '/docs/plan-7-tashpaz.pdf', 'תוכנית הוראה ז׳', 'התוכנית הרשמית לתשפ״ז — חלוקת הנושאים והשעות לפי חודשים.'),
+          gov('prisa-z', 'prisa_7.pdf', '/docs/prisa-7-tashpaz.pdf', 'פריסת הוראה ז׳', 'הפריסה הרשמית לתשפ״ז — פירוט הנושאים וחומרי הלמידה לאורך השנה.'),
           canva('ahuzim', 'https://www.canva.com/design/DAF9_Xrvh6Q/mVYOMINxUghHUcwfpt2-eg/view', 'הוראת אחוזים — מצגת', 'מצגת הוראה מלאה לנושא האחוזים.'),
           canva('pilug', 'https://www.canva.com/design/DAGPDbvr6iU/7he5iyBvtlJgsjic2Ucy4A/view', 'חוק הפילוג ושיטת הרשת', 'תבנית הוראה ויזואלית לחוק הפילוג.'),
           canva('mechuvanim-tavnit', 'https://www.canva.com/design/DAF4MgAMjRg/e6QN_h0zEVqOJPtRQjyJHw/edit', 'פעולות במספרים מכוונים — תבנית', 'תבנית עבודה לפעולות במספרים מכוונים.'),
@@ -160,7 +174,7 @@ export const choveret: ChoveretGrade[] = [
         color: '#7c3aed',
         dark: '#6d28d9',
         items: [
-          pdf('prisot-pdf', 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/plan%26prisa.pdf', 'פריסות ההוראה תשפ״ז', 'קובץ הפריסות הרשמי של משרד החינוך (החוזר, עמ׳ 3).'),
+          gov('prisot-pdf', 'plan%26prisa.pdf', '/docs/plan-prisa-tashpaz.pdf', 'פריסות ההוראה תשפ״ז', 'טבלת התוכניות והפריסות הרשמית (החוזר, עמ׳ 3); פריסות עמ״ט יתווספו בה במהלך השנה.'),
           hozerAnchor('maf-05-z', 'MAF-05', 'אירועי הערכה ומבחנים בחט״ב'),
           hozerAnchor('maf-06-z', 'MAF-06', 'Moodle ולמידה דיגיטלית'),
           hozerAnchor('maf-08-z', 'MAF-08', 'חומרי למידה וספרי לימוד'),
@@ -199,13 +213,12 @@ export const choveret: ChoveretGrade[] = [
       },
       {
         id: 'tichnun',
-        title: 'תכנון והוראה מחוזי',
+        title: 'תכנון והוראה',
         color: '#ea580c',
         dark: '#b45309',
         items: [
-          doc('tochnit-h', '1X0eGs1fvFdvk6429mCfYcIvDQeuGGa1BzHAmxI4dQrg', 'תוכנית הוראה ח׳', 'התוכנית המחוזית המלאה לשכבה.'),
-          doc('prisa-h', '1l40XxpILIZPGNqPBkCDAfUcJR5Njl1JP', 'פריסת הוראה ח׳', 'הפריסה הארצית המיוחדת של שנת ההתאמה.'),
-          doc('prisa-h-amat', '1kFCQt_dIwtvRK4gjC3mVNEQmxENRCppC', 'פריסת ח׳ עמ״ט', 'הפריסה למסלול עתודה מדעית-טכנולוגית.'),
+          gov('tochnit-h', 'plan_8.pdf', '/docs/plan-8-tashpaz.pdf', 'תוכנית הוראה ח׳', 'התוכנית הרשמית לתשפ״ז — מותאמת לתוכנית המעודכנת שנלמדה בכיתה ז׳.'),
+          gov('prisa-h', 'prisa_8.pdf', '/docs/prisa-8-tashpaz.pdf', 'פריסת הוראה ח׳', 'הפריסה הרשמית לתשפ״ז — שנת המעבר בין התוכנית הקיימת למעודכנת.'),
           {
             id: 'ishi-plus',
             title: 'תוכנית אישי פלוס',
@@ -233,7 +246,7 @@ export const choveret: ChoveretGrade[] = [
         color: '#7c3aed',
         dark: '#6d28d9',
         items: [
-          pdf('prisot-pdf-h', 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/plan%26prisa.pdf', 'פריסות ההוראה תשפ״ז', 'קובץ הפריסות הרשמי של משרד החינוך (החוזר, עמ׳ 3).'),
+          gov('prisot-pdf-h', 'plan%26prisa.pdf', '/docs/plan-prisa-tashpaz.pdf', 'פריסות ההוראה תשפ״ז', 'טבלת התוכניות והפריסות הרשמית (החוזר, עמ׳ 3); פריסות עמ״ט יתווספו בה במהלך השנה.'),
           hozerAnchor('maf-05-h', 'MAF-05', 'אירועי הערכה ומבחני מפמ״ר'),
           hozerAnchor('maf-06-h', 'MAF-06', 'Moodle ולמידה דיגיטלית'),
           hozerAnchor('maf-09-h', 'MAF-09', 'חלוקה לרמות והדרכה'),
@@ -259,14 +272,14 @@ export const choveret: ChoveretGrade[] = [
       },
       {
         id: 'tichnun',
-        title: 'תכנון והוראה מחוזי',
+        title: 'תכנון והוראה',
         color: '#ea580c',
         dark: '#b45309',
         items: [
-          doc('tochnit-t', '1M0xtCJTqiOZEyYsG4SOZIZU8FsbnO2X6iuqGeBB9_dA', 'תוכנית הוראה ט׳', 'התוכנית המחוזית המלאה לשכבה.'),
-          doc('prisa-t', '1mLDtQqvYkOX3tQLdC9AcPVjeC36jodXJzzGP-gZ_0oI', 'פריסת הוראה ט׳', 'הפריסה הרגילה לאורך השנה.'),
-          doc('tochnit-t-m', '1hVEXoMaz55Bh0TbCZlJBDIYs7T-MM-sRSHu1zbd2Qjk', 'תוכנית ט׳ מצומצמת', 'המסלול המצומצם הרשמי (עד 25% מהשכבה; החוזר, עמ׳ 7).'),
-          doc('prisa-t-m', '1sjF0sQTi9xZeNpDaZ-gOzhqLP4KGRy1Fr5zeCcYC168', 'פריסת ט׳ מצומצמת', 'הפריסה למסלול המצומצם.'),
+          gov('tochnit-t', 'plan_9A.pdf', '/docs/plan-9a-tashpaz.pdf', 'תוכנית הוראה ט׳', 'התוכנית הרשמית לתשפ״ז — חלוקת הנושאים והשעות לפי חודשים.'),
+          gov('prisa-t', 'prisa_9A.pdf', '/docs/prisa-9a-tashpaz.pdf', 'פריסת הוראה ט׳', 'הפריסה הרשמית לתשפ״ז — עם דגשי ההכנה לרמת 4 יח״ל.'),
+          gov('tochnit-t-m', 'plan_9B.pdf', '/docs/plan-9b-tashpaz.pdf', 'תוכנית ט׳ מצומצמת', 'המסלול המצומצם הרשמי לתשפ״ז (עד 25% מהשכבה; החוזר, עמ׳ 7).'),
+          gov('prisa-t-m', 'prisa_9B.pdf', '/docs/prisa-9b-tashpaz.pdf', 'פריסת ט׳ מצומצמת', 'הפריסה הרשמית לתשפ״ז למסלול המצומצם — לקראת 3 יח״ל.'),
           doc('kdam-analiza', '1E4K9BLDyxieZkniWbBwNVV0TWNitIdkt', 'קדם־אנליזה — מגרף לתכונות', 'החומר המחוזי לקדם־אנליזה.'),
           doc('sheelot-t', '11Prx5DTCwHhYFqLTWduW6v3SOZH9jYTrOglg5HkDSck', 'שאלות קצרות ט׳', 'מאגר שאלות קצרות לתרגול שוטף.'),
         ],
@@ -280,7 +293,7 @@ export const choveret: ChoveretGrade[] = [
           pdf('kdam-algebra', 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/algebraic%20profile%204%20unit.pdf', 'טכניקה אלגברית', 'פרופיל הטכניקה האלגברית הנדרש ל-4 יח״ל.'),
           pdf('kdam-functions', 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/functions%20profile%204%20unit.pdf', 'פונקציות', 'פרופיל הפונקציות הנדרש ל-4 יח״ל.'),
           pdf('kdam-geometry', 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/geometry%20profile%204%20units.pdf', 'גאומטריה', 'פרופיל הגאומטריה הנדרש ל-4 יח״ל.'),
-          pdf('prisot-pdf-t', 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/plan%26prisa.pdf', 'פריסות ההוראה תשפ״ז', 'קובץ הפריסות הרשמי של משרד החינוך.'),
+          gov('prisot-pdf-t', 'plan%26prisa.pdf', '/docs/plan-prisa-tashpaz.pdf', 'פריסות ההוראה תשפ״ז', 'טבלת התוכניות והפריסות הרשמית (החוזר, עמ׳ 3); פריסות עמ״ט יתווספו בה במהלך השנה.'),
         ],
       },
       {
@@ -370,9 +383,7 @@ export const choveret: ChoveretGrade[] = [
             kind: 'doc',
           },
           doc('ruach-tochnit', '1RYQQdKawSDPYYCDlUrm2MzcrNskv1SZQKHTNf8JJPuo', 'חומרים ברוח התוכנית החדשה', 'ריכוז חומרים מעודכנים ברוח התוכנית.'),
-          doc('amat-nosim', '1u98c3VxZYCvuy9LPV-MzZyLKzYB6vI1I', 'נושאי עמ״ט לפי שכבות', 'מיפוי נושאי עתודה מדעית-טכנולוגית.'),
-          doc('tochen-chova', '1D4JdPdoOMc23XgMCbAv24D28tW7VkUyoK19U3ZVHAQE', 'תכני חובה לפי חודשים', 'פריסת תכני החובה על פני השנה.'),
-          doc('kvatzim-nosim', '1ILL7bpo4LLNmXfE0Kaz1ApoWmDIzk6ILDX3HpDeFd5o', 'קבצים לפי נושאים', 'מאגר קבצים מסודר לפי נושא.'),
+          doc('kvatzim-nosim', '1ILL7bpo4LLNmXfE0Kaz1ApoWmDIzk6ILDX3HpDeFd5o', 'לקראת מבחן תנופה — נושאים וקישורים', 'מאגר הנושאים והקישורים להכנה למבחן תנופה.'),
           canva('sheelot-chashiva', 'https://www.canva.com/design/DAGXwB1tskI/-SQYskyIRJmt8i4W8A806w/edit', 'שאלות חשיבה מסדר גבוה', 'אוסף שאלות חשיבה מוכן להוראה.'),
         ],
       },

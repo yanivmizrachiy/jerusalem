@@ -5,7 +5,9 @@
  * משתלט על כל שטח המסך, עם כפתור זהב קבוע לחזרה לאתר; במסך רחב הוא נפתח
  * באוטומט כשני עמודים זה לצד זה (מתג נוח לעמוד אחד); היפוך-דף תלת-ממדי
  * בכיוון ספר עברי מעל השדרה, מספור מודפס, לשוניות, מקלדת, מגע וקישור
- * עומק. הטמעה נטענת רק כשהעמוד נפתח; רגישי תנועה מקבלים החלפה מיידית.
+ * עומק. הטמעה חכמה (3.29): preconnect למקורות, העמוד הפתוח נטען מיד,
+ * שכנים מתחממים ברגעי סרק ועמוד שנטען נשאר חם; כל מה שלחיץ במקור לחיץ
+ * גם בפנים — בלי שכבות מעל ההטמעה ובלי sandbox; רגישי תנועה — החלפה מיידית.
  */
 import MafmarRange from './MafmarRange.astro';
 import { choveret } from '../data/choveret';
@@ -43,9 +45,21 @@ const total = pages.length;
 const pageNum = (id: string) => pages.findIndex((p) => p.id === id) + 1;
 
 const site = 'https://jerusalem-virid.vercel.app';
+
+// חיבור-מראש לכל מקורות ההטמעה החיצוניים — העמוד הראשון של כל משאב נפתח מהר (3.29)
+const embedOrigins = [
+  ...new Set(
+    choveret
+      .flatMap((g) => g.chapters.flatMap((ch) => ch.items))
+      .map((it) => it.embed ?? '')
+      .filter((u) => u.startsWith('https://'))
+      .map((u) => new URL(u).origin)
+  ),
+];
 ---
 
 <div class="book-shell" data-book data-initial={initial} data-total={total}>
+  {embedOrigins.map((o) => <link rel="preconnect" href={o} />)}
   <!-- פס עליון קבוע: חזרה לאתר, לשוניות קפיצה, מתג תצוגה ומסך מלא -->
   <div class="book-bar">
     <a class="book-exit" href="/" data-exit>
@@ -144,6 +158,7 @@ const site = 'https://jerusalem-virid.vercel.app';
                     class="bpage bp-item"
                     data-page={`it-${g.slug}-${item.id}`}
                     data-n={pageNum(`it-${g.slug}-${item.id}`)}
+                    data-kind={item.kind}
                     style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}
                     hidden
                   >
@@ -152,13 +167,23 @@ const site = 'https://jerusalem-virid.vercel.app';
                         {item.kind === 'maf' && item.maf ? (
                           <MafmarRange sectionId={item.maf} accent={ch.color} />
                         ) : item.embed ? (
-                          <div class="item-frame">
-                            <iframe
-                              data-esrc={item.embed}
-                              title={`${item.title} — תצוגה חיה`}
-                              allow="fullscreen"
-                            />
-                          </div>
+                          <>
+                            <div class="item-frame">
+                              <iframe
+                                data-esrc={item.embed}
+                                title={`${item.title} — תצוגה חיה`}
+                                allow="fullscreen; clipboard-write"
+                              />
+                            </div>
+                            {item.kind === 'pdf' && (
+                              <div class="item-frame item-open-card" data-pdf-fb hidden>
+                                <p>בדפדפן הזה קובצי PDF נפתחים לצפייה מלאה במסך נפרד:</p>
+                                <a class="btn btn-primary" href={item.url} target="_blank" rel="noopener">
+                                  פתיחת {item.title} ↗
+                                </a>
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <div class="item-frame item-open-card">
                             <p>המשאב הזה נפתח באתר המקור:</p>
@@ -396,6 +421,10 @@ const site = 'https://jerusalem-virid.vercel.app';
 
   .book-edge-next { left: 0; border-radius: 18px 0 0 18px; }
   .book-edge-prev { right: 0; border-radius: 0 18px 18px 0; }
+
+  /* בעמוד משאב שום שכבה של החוברת לא יושבת מעל ההטמעה — הקישורים
+     שבפנים לחיצים תמיד, עד הפיקסל האחרון (3.29) */
+  .book-shell.on-embed .book-edge { display: none; }
 
   .book-edge:hover {
     color: var(--gold-deep);
@@ -956,12 +985,46 @@ const site = 'https://jerusalem-virid.vercel.app';
       }
     });
 
-    // ההטמעה נטענת רק כשהעמוד נפתח (3.29)
+    // ההטמעה נטענת רק כשהעמוד נפתח, ועמוד שנטען נשאר חם (3.29).
+    // דפדפן בלי מציג PDF מובנה (בעיקר אנדרואיד) — כרטיס פתיחה אמיתי
+    // במקום מסגרת ריקה (8.8)
+    const noPdfViewer = 'pdfViewerEnabled' in navigator && !navigator.pdfViewerEnabled;
     const mount = (p: HTMLElement) => {
+      if (noPdfViewer && p.dataset.kind === 'pdf') {
+        const fb = p.querySelector<HTMLElement>('[data-pdf-fb]');
+        const frame = p.querySelector<HTMLElement>('iframe[data-esrc]')?.closest<HTMLElement>('.item-frame');
+        if (fb && frame) {
+          frame.hidden = true;
+          fb.hidden = false;
+        }
+        return;
+      }
       p.querySelectorAll<HTMLIFrameElement>('iframe[data-esrc]').forEach((f) => {
         f.src = f.dataset.esrc!;
         f.removeAttribute('data-esrc');
       });
+    };
+
+    // הטמעה חכמה: אחרי שהעמוד הפתוח נטען, העמודים השכנים מתחממים בשקט
+    // ברגעי סרק — הדפדוף הבא מציג הטמעה שכבר חיה. רשת חסכונית לא מחוממת.
+    const conn = (navigator as { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    const idle: (cb: () => void) => void =
+      'requestIdleCallback' in window ? (cb) => requestIdleCallback(cb, { timeout: 2500 }) : (cb) => setTimeout(cb, 600);
+    let warmTimer = 0;
+    const warmNeighbors = () => {
+      clearTimeout(warmTimer);
+      if (conn?.saveData || /2g/.test(conn?.effectiveType ?? '')) return;
+      warmTimer = window.setTimeout(
+        () =>
+          idle(() => {
+            const around =
+              mode === 1
+                ? [cur + 1, cur - 1]
+                : [...(views2[view2Of[cur] + 1] ?? []), ...(views2[view2Of[cur] - 1] ?? [])];
+            for (const k of around) if (k >= 0 && k < total) mount(pages[k]);
+          }),
+        900
+      );
     };
 
     const ANIM = [
@@ -1010,8 +1073,13 @@ const site = 'https://jerusalem-virid.vercel.app';
         );
       });
       history.replaceState(null, '', `#${ids[cur]}`);
+      // בשער — האתר חוזר: עמוד יחיד רחב בלי השתלטות, בכל מסלול הגעה (3.29)
+      if (ids[cur] === 'rashi') disengage();
       // הדף יושב מדויק: בכל מעבר, ההשתלטות חוזרת לראש (בנייד השכבה נגללת)
       if (engaged) shell.scrollTop = 0;
+      // עמוד משאב פתוח לרוחב — אזורי הקצה כבויים, ההטמעה לחיצה עד הקצה
+      shell.classList.toggle('on-embed', !narrow.matches && vis.length === 1 && isItem(vis[0]));
+      warmNeighbors();
     };
 
     const applySides = (v: number[]) => {
@@ -1048,8 +1116,6 @@ const site = 'https://jerusalem-virid.vercel.app';
       applySides(view);
       shell.classList.toggle('mode-2', mode === 2);
       shell.classList.toggle('mode-1', mode === 1);
-      // בשער — האתר חוזר: עמוד יחיד רחב בלי השתלטות (הוראת יניב, 03/08/2026)
-      if (ids[cur] === 'rashi') disengage();
       paint();
     };
 
