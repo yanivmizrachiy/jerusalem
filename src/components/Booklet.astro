@@ -401,6 +401,12 @@ const site = 'https://jerusalem-virid.vercel.app';
     aspect-ratio: 420 / 280;
   }
 
+  /* עמוד משאב נפרס על כל המסך גם בתצוגת עמוד אחד (3.29) */
+  .book-shell.has-wide .book {
+    block-size: min(100cqb, calc(100cqi * 280 / 420));
+    aspect-ratio: 420 / 280;
+  }
+
   /* אזורי דפדוף שקטים בשולי הדף */
   .book-edge {
     position: absolute;
@@ -430,7 +436,8 @@ const site = 'https://jerusalem-virid.vercel.app';
   /* השדרה באמצע הספר הפתוח */
   .book-spine { display: none; }
 
-  .mode-2 .book-spine {
+  .mode-2 .book-spine,
+  .book-shell.has-wide .book-spine {
     display: block;
     position: absolute;
     inset-block: 0;
@@ -506,8 +513,8 @@ const site = 'https://jerusalem-virid.vercel.app';
     transform-origin: 100% 50%; /* השדרה בקצה הימני של העמוד השמאלי */
   }
 
-  /* עמוד משאב בתצוגה כפולה: נפרס על שני עמודי הספר — המסך נחלק ימין/שמאל */
-  .mode-2 .bpage.pg-wide {
+  /* עמוד משאב: נפרס על כל רוחב הספר — המסך נחלק ימין/שמאל (3.29) */
+  .bpage.pg-wide {
     inset: 0;
     border-radius: 18px;
     box-shadow:
@@ -521,7 +528,7 @@ const site = 'https://jerusalem-virid.vercel.app';
     transform-origin: 100% 50%;
   }
 
-  .mode-2 .bpage.pg-wide .item-grid { column-gap: 56px; }
+  .bpage.pg-wide .item-grid { column-gap: 56px; }
 
   /* עמוד חלק מול עמוד בודד — כמו בספר אמיתי */
   .mode-2 .book::before,
@@ -1009,7 +1016,11 @@ const site = 'https://jerusalem-virid.vercel.app';
     };
 
     const applySides = (v: number[]) => {
-      if (mode !== 2) return;
+      if (mode === 1) {
+        // עמוד משאב נפרס על כל המסך גם בתצוגת עמוד אחד (3.29)
+        if (isItem(v[0])) pages[v[0]].classList.add('pg-wide');
+        return;
+      }
       if (v.length === 2) {
         pages[v[0]].classList.add('pg-right');
         pages[v[1]].classList.add('pg-left');
@@ -1018,6 +1029,7 @@ const site = 'https://jerusalem-virid.vercel.app';
 
     const layout = () => {
       const view = visOf(cur);
+      shell.classList.toggle('has-wide', view.length === 1 && isItem(view[0]));
       const vis = new Set(view);
       pages.forEach((p, k) => {
         p.classList.remove(...ANIM);
@@ -1051,11 +1063,17 @@ const site = 'https://jerusalem-virid.vercel.app';
         layout();
         return;
       }
+      // מעבר בין עמוד רגיל לעמוד משאב רחב משנה את מידות הספר — החלפה נקייה
+      if (mode === 1 && isItem(cur) !== isItem(prev)) {
+        layout();
+        return;
+      }
       busy = true;
       if (mode === 1) {
         const from = pages[prev];
         const to = pages[cur];
         to.classList.remove(...ANIM);
+        applySides([cur]);
         to.hidden = false;
         mount(to);
         to.scrollTop = 0;
@@ -1066,6 +1084,7 @@ const site = 'https://jerusalem-virid.vercel.app';
           from.hidden = true;
           from.classList.remove(...ANIM);
           to.classList.remove(...ANIM);
+          applySides([cur]);
           busy = false;
         }, 480);
         return;
