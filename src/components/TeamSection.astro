@@ -104,39 +104,27 @@ const waPath =
       }
     </div>
 
-    <div class="team-foot">
-      <button class="btn btn-primary team-all" id="team-show-all" type="button" hidden>הצגת כל הצוות</button>
-      <a class="btn btn-ghost team-back" href="#main">↑ חזרה לראש העמוד</a>
-    </div>
+    <a class="team-arrow" href="#main" aria-label="חזרה לראש העמוד">↑</a>
   </div>
 </section>
 
 <script>
   // מצב כרטיס-יחיד (6.5, הוראת יניב 03/08/2026): הגעה בעוגן אישי מציגה
-  // אך ורק את הכרטיס של אותו חבר צוות; "הצגת כל הצוות" מחזירה את כולם.
+  // אך ורק את הכרטיס של אותו חבר צוות; חץ עדין אחד מחזיר לראש העמוד.
   // אין כפילות עם צוות ראש העמוד (הוראת יניב, 03/08/2026): המקטע מוסתר
-  // דרך קבע ונחשף רק במצב כרטיס-יחיד או בלחיצת "הצגת כל הצוות".
+  // דרך קבע ונחשף רק במצב כרטיס-יחיד.
   const section = document.querySelector<HTMLElement>('[data-team-details]');
   const grid = document.querySelector<HTMLElement>('#tzevet .team-grid');
-  const showAll = document.getElementById('team-show-all') as HTMLButtonElement | null;
-  if (section && grid && showAll) {
-    let wantAll = false;
+  if (section && grid) {
     const apply = () => {
       const m = location.hash.match(/^#tzevet-([a-z]+)$/);
       const solo = m ? document.getElementById(`tzevet-${m[1]}`) : null;
-      if (solo) wantAll = false;
-      section.hidden = !solo && !wantAll;
+      section.hidden = !solo;
       grid.classList.toggle('is-solo', !!solo);
-      showAll.hidden = !solo;
       grid.querySelectorAll<HTMLElement>('.team-card').forEach((c) => {
         c.hidden = !!solo && c !== solo;
       });
     };
-    showAll.addEventListener('click', () => {
-      wantAll = true;
-      history.replaceState(null, '', location.pathname);
-      apply();
-    });
     addEventListener('hashchange', apply);
     apply();
   }
@@ -238,6 +226,26 @@ const waPath =
     background: linear-gradient(180deg, #fff 0%, #fdf7ea 100%);
   }
 
+  /* חץ עדין אחד לחזרה (6.5, הוראת יניב 03/08/2026) */
+  .team-arrow {
+    display: grid;
+    place-items: center;
+    inline-size: 46px;
+    block-size: 46px;
+    margin-block-start: 1.6rem;
+    margin-inline: auto;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--gold-deep);
+    font-size: 1.2rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-soft);
+    transition: transform 300ms var(--ease-lift), box-shadow 300ms var(--ease);
+  }
+
+  .team-arrow:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+
   /* מצב כרטיס-יחיד: לחיצה על חבר צוות מציגה רק אותו (6.5) */
   .team-card[hidden] { display: none; }
 
@@ -247,14 +255,6 @@ const waPath =
   }
 
   .team-grid.is-solo .team-card.is-featured { grid-column: auto; }
-
-  .team-foot {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.8rem;
-    margin-block-start: 2rem;
-  }
 
   .member-actions {
     display: flex;
