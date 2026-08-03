@@ -24,6 +24,8 @@ const routes = [
   '/pituach-miktzoi/ai-geometria/',
   '/hodaot/',
   '/luach/',
+  '/chativat-beynayim/reader/z/maf-02/',
+  '/chativat-beynayim/reader/t/mifrat-tnufa/',
 ];
 
 for (const route of routes) {

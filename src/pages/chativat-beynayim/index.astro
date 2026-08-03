@@ -4,28 +4,9 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import ArtBanner from '../../components/ArtBanner.astro';
 import SiteEmbed from '../../components/SiteEmbed.astro';
 import { grade7Resources, whatsappCommunity } from '../../data/resources';
+import { gradeCounts } from '../../data/choveret';
 
 const sorted = [...grade7Resources].sort((a, b) => a.order - b.order);
-
-// ספירה אמיתית של קבצים/קישורים/פעילויות בעמוד כל שכבה — מחושבת בכל build (3.27):
-// המקור מוטמע כטקסט בזמן הבנייה, כך שהמניין מתעדכן מעצמו עם כל שינוי בעמודי השכבות
-const gradeSources = import.meta.glob('./kita-*.astro', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-}) as Record<string, string>;
-const countGrade = (name: string, dynamicExtra = 0): number => {
-  const src = gradeSources[`./kita-${name}.astro`];
-  const ext = (src.match(/rel="noopener"/g) ?? []).length;
-  const internal = (src.match(/href="\/chativat-beynayim\//g) ?? []).length;
-  const maf = (src.match(/<MafmarRange/g) ?? []).length;
-  return ext + internal + maf + dynamicExtra;
-};
-const gradeCounts = {
-  z: countGrade('z', grade7Resources.length),
-  h: countGrade('h'),
-  t: countGrade('t'),
-};
 // חותמת עדכון אמת (3.25): זמן הבנייה בפועל — מתחדשת אוטומטית בכל פריסה
 const stamp = Object.fromEntries(
   new Intl.DateTimeFormat('he', {

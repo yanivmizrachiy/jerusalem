@@ -26,7 +26,7 @@ test('חוזר מפמ״ר: קפיצת MAF מעדכנת hash, סטטוס ו-ifram
 });
 
 test('MafmarRange: דפדוף כלוא לטווח המאומת', async ({ page }) => {
-  await page.goto('/chativat-beynayim/kita-t/');
+  await page.goto('/chativat-beynayim/reader/t/maf-04/');
   const range = page.locator('#maf-04');
   await range.scrollIntoViewIfNeeded();
   const next = range.locator('[data-next]');

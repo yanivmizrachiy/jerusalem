@@ -1,0 +1,312 @@
+---
+/**
+ * הקורא של החוברת הדיגיטלית (RULES 3.29, הוראת יניב 03/08/2026):
+ * מסך מפוצל — מימין ההטמעה בדפדוף נוח בתוך מסגרת הזכוכית (8.26),
+ * משמאל הסבר קצר, מידע וכפתורי פעולה: הורדה (רק כשקיים קובץ אמיתי),
+ * WhatsApp, דוא״ל, העתקה ופתיחה במקור, וניווט לפרק, לתוכן העניינים
+ * ולשכבות האחרות. פריט בלי הטמעה מאומתת מקבל כרטיס פתיחה — לא iframe ריק.
+ */
+import Base from '../../../../layouts/Base.astro';
+import Breadcrumbs from '../../../../components/Breadcrumbs.astro';
+import MafmarRange from '../../../../components/MafmarRange.astro';
+import { choveret, readerItems } from '../../../../data/choveret';
+
+export function getStaticPaths() {
+  return readerItems.map(({ grade, chapter, item }) => ({
+    params: { grade: grade.slug, item: item.id },
+    props: { gradeSlug: grade.slug, chapterId: chapter.id, itemId: item.id },
+  }));
+}
+
+const { gradeSlug, chapterId, itemId } = Astro.props;
+const grade = choveret.find((g) => g.slug === gradeSlug)!;
+const chapter = grade.chapters.find((c) => c.id === chapterId)!;
+const item = chapter.items.find((i) => i.id === itemId)!;
+
+const flat = grade.chapters.flatMap((c) => c.items.filter((i) => !i.pageHref).map((i) => ({ c, i })));
+const idx = flat.findIndex((x) => x.i.id === item.id);
+const prev = idx > 0 ? flat[idx - 1] : undefined;
+const next = idx < flat.length - 1 ? flat[idx + 1] : undefined;
+const readerHref = (g: string, i: string) => `/chativat-beynayim/reader/${g}/${i}/`;
+
+const kindLabel: Record<string, string> = {
+  site: 'אתר חי',
+  doc: 'מסמך',
+  drive: 'קובץ',
+  pdf: 'PDF',
+  canva: 'מצגת',
+  flip: 'חוברת דפדוף',
+  maf: 'מתוך החוזר',
+  link: 'קישור',
+};
+
+const shareUrl = new URL(readerHref(grade.slug, item.id), 'https://jerusalem-virid.vercel.app').href;
+const shareText = `${item.title} — ${grade.title} — ${shareUrl}`;
+const others = choveret.filter((g) => g.slug !== grade.slug);
+---
+
+<Base title={`${item.title} — ${grade.title} — מחוז ירושלים`} description={item.note}>
+  <div class="container-wide page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
+        { label: `כיתה ${grade.letter}`, href: `/chativat-beynayim/kita-${grade.slug}/` },
+        { label: item.title },
+      ]}
+    />
+
+    <div class="reader-grid" data-reveal>
+      <section class="reader-embed" aria-label={`תצוגת ${item.title}`}>
+        {
+          item.kind === 'maf' && item.maf ? (
+            <MafmarRange sectionId={item.maf} accent={chapter.color} tall />
+          ) : item.embed ? (
+            <div class="reader-frame">
+              <iframe src={item.embed} title={`${item.title} — תצוגה חיה`} loading="eager" allow="fullscreen" />
+            </div>
+          ) : (
+            <div class="reader-frame reader-open-card">
+              <p>המשאב הזה נפתח באתר המקור:</p>
+              <a class="btn btn-primary" href={item.url} target="_blank" rel="noopener">
+                פתיחת {item.title} ↗
+              </a>
+            </div>
+          )
+        }
+      </section>
+
+      <aside class="reader-info" style={`--ch-color:${chapter.color}; --ch-dark:${chapter.dark}`}>
+        <p class="reader-chapter">{chapter.title} · כיתה {grade.letter}</p>
+        <h1 class="reader-title">{item.title}</h1>
+        <p class="reader-note">{item.note}</p>
+        <p class="reader-kind">{kindLabel[item.kind]}</p>
+
+        <div class="reader-actions" role="group" aria-label="פעולות">
+          {
+            item.download && (
+              <a class="btn btn-primary" href={item.download} target="_blank" rel="noopener" download>
+                הורדה ⬇
+              </a>
+            )
+          }
+          <a
+            class="btn btn-whatsapp"
+            href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+            target="_blank"
+            rel="noopener"
+            aria-label={`שיתוף ${item.title} ב־WhatsApp`}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+          </a>
+          <a
+            class="btn btn-gmail"
+            href={`mailto:?subject=${encodeURIComponent(item.title)}&body=${encodeURIComponent(shareText)}`}
+            aria-label={`שליחת ${item.title} בדוא״ל`}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M1.636 20.5h3.819V11.73L0 7.64v11.223c0 .904.732 1.636 1.636 1.636Z" />
+              <path fill="#34A853" d="M18.545 20.5h3.819c.904 0 1.636-.732 1.636-1.636V7.64l-5.455 4.09Z" />
+              <path fill="#FBBC04" d="M18.545 5.457v6.273L24 7.64V6.275c0-2.023-2.309-3.178-3.927-1.964Z" />
+              <path fill="#EA4335" d="M5.455 11.73V5.457L12 10.366l6.545-4.909v6.273L12 16.639Z" />
+              <path fill="#C5221F" d="M0 6.275v1.365l5.455 4.09V5.457L4.073 4.42C2.309 3.098 0 4.252 0 6.275Z" />
+            </svg>
+          </a>
+          <button class="btn btn-ghost" type="button" data-copy={item.url.startsWith('/') ? shareUrl : item.url}>
+            העתקת קישור
+          </button>
+          <a class="btn btn-ghost" href={item.url.startsWith('/') ? item.url : item.url} target={item.url.startsWith('/') ? undefined : '_blank'} rel="noopener">
+            פתיחה במקור ↗
+          </a>
+        </div>
+        <p class="reader-status" data-status role="status" aria-live="polite"></p>
+
+        <nav class="reader-nav" aria-label="ניווט בחוברת">
+          {
+            prev ? (
+              <a class="reader-step" href={readerHref(grade.slug, prev.i.id)}>
+                <span class="step-tag">הקודם בחוברת</span>
+                <span class="step-title">{prev.i.title}</span>
+              </a>
+            ) : null
+          }
+          {
+            next ? (
+              <a class="reader-step" href={readerHref(grade.slug, next.i.id)}>
+                <span class="step-tag">הבא בחוברת</span>
+                <span class="step-title">{next.i.title}</span>
+              </a>
+            ) : null
+          }
+          <a class="btn btn-primary reader-toc-btn" href={`/chativat-beynayim/kita-${grade.slug}/`}>
+            תוכן העניינים — כיתה {grade.letter}
+          </a>
+          <div class="reader-grades">
+            {
+              others.map((g) => (
+                <a class="btn btn-ghost" href={`/chativat-beynayim/kita-${g.slug}/`}>
+                  כיתה {g.letter} ←
+                </a>
+              ))
+            }
+          </div>
+        </nav>
+      </aside>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block: 1.6rem 2.5rem; }
+
+  /* המסך המפוצל (3.29): מימין ההטמעה, משמאל המידע */
+  .reader-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+    gap: clamp(1rem, 2.4vw, 1.8rem);
+    align-items: start;
+    margin-block-start: 1.4rem;
+  }
+
+  .reader-frame {
+    position: relative;
+    padding: 14px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, rgb(250 246 236 / 0.95) 0%, rgb(240 233 216 / 0.78) 45%, rgb(252 249 242 / 0.92) 100%);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.9),
+      inset 0 0 0 2.5px rgb(176 141 62 / 0.4),
+      inset 0 -1px 0 rgb(176 141 62 / 0.55),
+      0 0 55px -14px rgb(126 210 255 / 0.35),
+      0 24px 70px -28px rgb(176 141 62 / 0.45),
+      0 34px 80px -34px rgb(31 41 61 / 0.35);
+    block-size: clamp(560px, 78vh, 940px);
+  }
+
+  .reader-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 28px;
+    background: linear-gradient(115deg, transparent 36%, rgb(255 255 255 / 0.22) 46%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .reader-frame iframe {
+    inline-size: 100%;
+    block-size: 100%;
+    border: 0;
+    display: block;
+    border-radius: 16px;
+    background: #fff;
+  }
+
+  .reader-open-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    text-align: center;
+    block-size: auto;
+    min-block-size: 280px;
+  }
+
+  .reader-open-card p { margin: 0; font-weight: 600; color: var(--ink-soft); }
+
+  .reader-info {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-block-start: 6px solid var(--ch-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    padding: 1.4rem 1.4rem 1.2rem;
+    position: sticky;
+    top: calc(var(--header-h) + 1rem);
+  }
+
+  .reader-chapter {
+    margin: 0 0 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--ch-dark);
+  }
+
+  .reader-title { margin: 0 0 0.6rem; font-size: clamp(1.3rem, 2.6vw, 1.7rem); }
+
+  .reader-note { margin: 0 0 0.7rem; color: var(--ink-soft); line-height: 1.6; }
+
+  .reader-kind {
+    display: inline-block;
+    margin: 0 0 1rem;
+    padding: 0.18rem 0.7rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--ch-dark);
+    color: var(--ch-dark);
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .reader-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .reader-status { min-block-size: 1.2em; margin: 0.5rem 0 0; font-size: 0.88rem; font-weight: 600; color: var(--olive); }
+
+  .reader-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin-block-start: 1.2rem;
+    padding-block-start: 1.1rem;
+    border-block-start: 1px solid var(--line);
+  }
+
+  .reader-step {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--ink);
+    transition: transform 300ms var(--ease), box-shadow 300ms var(--ease);
+  }
+
+  .reader-step:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+
+  .step-tag { font-size: 0.75rem; font-weight: 800; color: var(--ch-dark); }
+  .step-title { font-weight: 600; font-size: 0.95rem; }
+
+  .reader-toc-btn { justify-content: center; }
+
+  .reader-grades { display: flex; gap: 0.6rem; }
+  .reader-grades a { flex: 1; justify-content: center; }
+
+  /* נייד: נערמים — המידע הקצר קודם, ההטמעה בגובה מלא אחריה */
+  @media (max-width: 920px) {
+    .reader-grid { grid-template-columns: 1fr; }
+    .reader-info { position: static; order: -1; }
+    .reader-frame { block-size: clamp(480px, 72vh, 760px); }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const status = btn.closest('.reader-info')?.querySelector<HTMLElement>('[data-status]');
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy!);
+        if (status) status.textContent = 'הקישור הועתק';
+      } catch {
+        if (status) status.textContent = 'ההעתקה נכשלה';
+      }
+    });
+  });
+</script>

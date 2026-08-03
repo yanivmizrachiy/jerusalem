@@ -1,12 +1,15 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import MafmarRange from '../../components/MafmarRange.astro';
+import ChoveretToc from '../../components/ChoveretToc.astro';
+import { choveret } from '../../data/choveret';
+
+const grade = choveret.find((g) => g.slug === 't')!;
 ---
 
 <Base
   title="מתמטיקה לכיתה ט׳ — מחוז ירושלים"
-  description="כיתה ט׳ בתשפ״ז: שתי פריסות (רגילה ומצומצמת), קדם־אנליזה, מבחן תנופה 25.11.26 — והשיבוץ לרמות 3/4/5 במעבר לחטיבה העליונה, ישירות מחוזר המפמ״ר."
+  description="החוברת הדיגיטלית של כיתה ט׳: תוכן עניינים צבעוני — החוזר הרשמי, תכנון והוראה, הכנה ל-4 יח״ל והמעבר לחטיבה העליונה."
 >
   <div class="container page">
     <Breadcrumbs
@@ -18,79 +21,15 @@ import MafmarRange from '../../components/MafmarRange.astro';
     />
 
     <header class="page-head" data-reveal>
-      <h1 class="big-title">מתמטיקה לכיתה ט׳</h1>
-      <p class="lede">
-        לומדים לפי התוכנית שלפני העדכון, בשתי פריסות: רגילה ומצומצמת (עד 25% מהשכבה,
-        לקראת 3 יח״ל). כולל קדם־אנליזה, ‏Moodle ומבחן תנופה שיתקיים ב־<strong>25.11.26</strong>.
-      </p>
+      <h1 class="big-title">{grade.title}</h1>
+      <p class="lede">{grade.intro}</p>
     </header>
 
-    <div data-reveal>
-      <MafmarRange sectionId="MAF-04" accent="var(--terracotta)" />
-    </div>
-
-    <section class="section-block" data-reveal>
-      <h2>המעבר לחטיבה העליונה — שיבוץ לרמות</h2>
-      <p class="lede block-lede">
-        העיקרון המחייב מהחוזר: לשבץ כמה שיותר תלמידים ברמות 4–5, ובמקרה של ספק — לרמה
-        הגבוהה. השיבוץ נעשה בשיתוף רכזי חט״ב וחט״ע, בשיקול דעת ולא רק לפי ציונים.
-      </p>
-      <MafmarRange sectionId="MAF-10" accent="var(--lilac)" />
-    </section>
-
-    <section class="section-block" data-reveal>
-      <h2>תכנון והוראה מחוזי</h2>
-      <div class="chip-links">
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1M0xtCJTqiOZEyYsG4SOZIZU8FsbnO2X6iuqGeBB9_dA/edit" target="_blank" rel="noopener">תוכנית הוראה ט׳ ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1mLDtQqvYkOX3tQLdC9AcPVjeC36jodXJzzGP-gZ_0oI/edit" target="_blank" rel="noopener">פריסת הוראה ט׳ ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1hVEXoMaz55Bh0TbCZlJBDIYs7T-MM-sRSHu1zbd2Qjk/edit" target="_blank" rel="noopener" title="המסלול המצומצם הרשמי — מוגדר בחוזר תשפ״ז עמ׳ 7">תוכנית ט׳ מצומצמת ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1sjF0sQTi9xZeNpDaZ-gOzhqLP4KGRy1Fr5zeCcYC168/edit" target="_blank" rel="noopener">פריסת ט׳ מצומצמת ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1E4K9BLDyxieZkniWbBwNVV0TWNitIdkt/edit" target="_blank" rel="noopener">קדם־אנליזה — מגרף לתכונות ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/11Prx5DTCwHhYFqLTWduW6v3SOZH9jYTrOglg5HkDSck/edit" target="_blank" rel="noopener">שאלות קצרות ט׳ ↗</a>
-      </div>
-    </section>
-
-    <section class="section-block" data-reveal>
-      <h2>הכנה ל־4 יח״ל</h2>
-      <div class="chip-links">
-        <a class="btn btn-ghost" href="https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/algebraic%20profile%204%20unit.pdf" target="_blank" rel="noopener">טכניקה אלגברית ↗</a>
-        <a class="btn btn-ghost" href="https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/functions%20profile%204%20unit.pdf" target="_blank" rel="noopener">פונקציות ↗</a>
-        <a class="btn btn-ghost" href="https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/geometry%20profile%204%20units.pdf" target="_blank" rel="noopener">גאומטריה ↗</a>
-        <a class="btn btn-ghost" href="https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/plan%26prisa.pdf" target="_blank" rel="noopener">פריסות ההוראה תשפ״ז ↗</a>
-      </div>
-    </section>
-
-    <section class="section-block" data-reveal>
-      <h2>ממשיכים לחטיבה העליונה</h2>
-      <div class="chip-links">
-        <a class="btn btn-primary" href="/chativa-elyona/">לשער החטיבה העליונה ←</a>
-        <a class="btn btn-primary" href="https://meyda.education.gov.il/files/Rama/Mifrat_Math_LangH_9_26.pdf" target="_blank" rel="noopener" title="המפרט הרשמי של ראמ״ה — אותר בכריית האתר הישן ואומת">מפרט מבחן תנופה — ראמ״ה ↗</a>
-        <a class="btn btn-ghost" href="https://rama.edu.gov.il/assessments/tnufa-math-heb-9-2026" target="_blank" rel="noopener">עמוד תנופה באתר ראמ״ה ↗</a>
-        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-05">מבחן תנופה והערכה בחט״ב</a>
-      </div>
-    </section>
-
-    <nav class="pager-nav" aria-label="ניווט בין שכבות">
-      <a class="btn btn-ghost" href="/chativat-beynayim/kita-h/">→ השכבה הקודמת: כיתה ח׳</a>
-      <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
-      <span></span>
-    </nav>
+    <ChoveretToc slug="t" />
   </div>
 </Base>
 
 <style>
-  .page { padding-block-start: 1.6rem; }
-  .page-head { max-width: 660px; margin-block: 1.6rem 2rem; }
-  .section-block { margin-block-start: clamp(2.4rem, 5vw, 3.4rem); }
-  .section-block h2 { margin-block-end: 1rem; }
-  .block-lede { max-width: 640px; margin-block-end: 1.4rem; }
-  .chip-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-  .pager-nav {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.8rem;
-    margin-block-start: clamp(2.2rem, 5vw, 3rem);
-  }
+  .page { padding-block: 1.6rem 2.5rem; }
+  .page-head { max-width: 660px; margin-block: 1.6rem 0.6rem; }
 </style>

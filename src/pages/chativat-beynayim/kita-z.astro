@@ -1,15 +1,15 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import MafmarRange from '../../components/MafmarRange.astro';
-import { grade7Resources } from '../../data/resources';
+import ChoveretToc from '../../components/ChoveretToc.astro';
+import { choveret } from '../../data/choveret';
 
-const sorted = [...grade7Resources].sort((a, b) => a.order - b.order);
+const grade = choveret.find((g) => g.slug === 'z')!;
 ---
 
 <Base
   title="מתמטיקה לכיתה ז׳ — מחוז ירושלים"
-  description="כיתה ז׳ בתשפ״ז: הדגשים הרשמיים מחוזר המפמ״ר — פריסות, Moodle, הערכה ופרויקט 720 — לצד המשאבים הקנוניים של השכבה."
+  description="החוברת הדיגיטלית של כיתה ז׳: תוכן עניינים צבעוני — החוזר הרשמי, האתרים החיים, יחידת הדגל, תכנון והוראה מחוזי."
 >
   <div class="container page">
     <Breadcrumbs
@@ -21,84 +21,15 @@ const sorted = [...grade7Resources].sort((a, b) => a.order - b.order);
     />
 
     <header class="page-head" data-reveal>
-      <h1 class="big-title">מתמטיקה לכיתה ז׳</h1>
-      <p class="lede">
-        השכבה הראשונה שלומדת לפי תוכנית הלימודים המעודכנת — עם Moodle מחייבת, ספרי לימוד
-        חדשים ופרויקט 720 — ישירות מתוך החוזר.
-      </p>
+      <h1 class="big-title">{grade.title}</h1>
+      <p class="lede">{grade.intro}</p>
     </header>
 
-    <div data-reveal>
-      <MafmarRange sectionId="MAF-02" accent="var(--olive)" />
-    </div>
-
-    <section class="section-block" aria-labelledby="z-res">
-      <h2 id="z-res" data-reveal>האתרים והיחידות של כיתה ז׳</h2>
-      <div class="chip-links" data-reveal>
-        {
-          sorted.map((r) => (
-            <a class="btn btn-ghost" href={r.path}>{r.title} ←</a>
-          ))
-        }
-        <a class="btn btn-ghost" href="/chativat-beynayim/mishvaot/">הוראת משוואות ללא מספרים שליליים ←</a>
-      </div>
-    </section>
-
-    <section class="section-block" data-reveal>
-      <h2>תכנון והוראה מחוזי</h2>
-      <div class="chip-links">
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/14KjhWbFLH_xACivC32ETs0jyN7CwWadX9Q0NzxkclwY/edit" target="_blank" rel="noopener">תוכנית הוראה ז׳ ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/17bGFCtZjygxCWsj3Dya8la4trFfW2QYq/edit" target="_blank" rel="noopener">פריסת הוראה ז׳ ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1Fyy98IMHRtDoex4RhrPbUWDgCxE3vzhM/edit" target="_blank" rel="noopener">פריסת ז׳ עמ״ט ↗</a>
-        <a class="btn btn-ghost" href="https://www.canva.com/design/DAF9_Xrvh6Q/mVYOMINxUghHUcwfpt2-eg/view" target="_blank" rel="noopener">הוראת אחוזים — מצגת ↗</a>
-        <a class="btn btn-ghost" href="https://www.canva.com/design/DAGPDbvr6iU/7he5iyBvtlJgsjic2Ucy4A/view" target="_blank" rel="noopener">חוק הפילוג ושיטת הרשת ↗</a>
-        <a class="btn btn-ghost" href="https://www.canva.com/design/DAF4MgAMjRg/e6QN_h0zEVqOJPtRQjyJHw/edit" target="_blank" rel="noopener">פעולות במספרים מכוונים — תבנית ↗</a>
-      </div>
-    </section>
-
-    <section class="section-block" data-reveal>
-      <h2>עוד בחוזר על כיתה ז׳ ועל חט״ב</h2>
-      <div class="chip-links">
-        <a class="btn btn-primary" href="https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/plan%26prisa.pdf" target="_blank" rel="noopener" title="מקור: החוזר, עמ׳ 3">פריסות ההוראה תשפ״ז ↗</a>
-        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-05">אירועי הערכה ומבחנים בחט״ב</a>
-        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-06">Moodle ולמידה דיגיטלית</a>
-        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-08">חומרי למידה וספרי לימוד</a>
-      </div>
-    </section>
-
-    <nav class="pager-nav" aria-label="ניווט בין שכבות">
-      <span></span>
-      <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
-    </nav>
+    <ChoveretToc slug="z" />
   </div>
 </Base>
 
 <style>
-  .page { padding-block-start: 1.6rem; }
-  .page-head { max-width: 660px; margin-block: 1.6rem 2rem; }
-  .section-block { margin-block-start: clamp(2.4rem, 5vw, 3.4rem); }
-  .section-block h2 { margin-block-end: 1.2rem; }
-
-  .res-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
-    gap: clamp(1rem, 2.4vw, 1.5rem);
-  }
-
-  .res-card { display: flex; flex-direction: column; gap: 0.5rem; padding: 1.6rem 1.4rem 1.3rem; color: var(--ink); }
-  .res-domain { font-size: 0.8rem; font-weight: 700; color: var(--ink-faint); }
-  .res-card h3 { margin: 0; }
-  .res-card p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
-  .res-cta { margin-block-start: auto; padding-block-start: 0.7rem; font-weight: 700; color: var(--gold-deep); }
-
-  .chip-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-
-  .pager-nav {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.8rem;
-    margin-block-start: clamp(2.2rem, 5vw, 3rem);
-  }
+  .page { padding-block: 1.6rem 2.5rem; }
+  .page-head { max-width: 660px; margin-block: 1.6rem 0.6rem; }
 </style>

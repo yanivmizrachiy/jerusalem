@@ -1,12 +1,15 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import MafmarRange from '../../components/MafmarRange.astro';
+import ChoveretToc from '../../components/ChoveretToc.astro';
+import { choveret } from '../../data/choveret';
+
+const grade = choveret.find((g) => g.slug === 'h')!;
 ---
 
 <Base
   title="מתמטיקה לכיתה ח׳ — מחוז ירושלים"
-  description="כיתה ח׳ בתשפ״ז: פריסת הוראה ארצית מיוחדת, Moodle מחייבת, משימות הערכה ומבחן מפמ״ר, והמשך פיילוט פרויקט 720 — ישירות מחוזר המפמ״ר."
+  description="החוברת הדיגיטלית של כיתה ח׳: תוכן עניינים צבעוני — החוזר הרשמי, יחידת הדגל, תכנון והוראה מחוזי ועוד מהחוזר."
 >
   <div class="container page">
     <Breadcrumbs
@@ -18,75 +21,15 @@ import MafmarRange from '../../components/MafmarRange.astro';
     />
 
     <header class="page-head" data-reveal>
-      <h1 class="big-title">מתמטיקה לכיתה ח׳</h1>
-      <p class="lede">
-        שנת התאמה בין התוכנית המעודכנת לספרי הלימוד הקיימים — פריסה ארצית מיוחדת עם
-        תרגולים משלימים, ‏Moodle מחייבת ומשימות הערכה לאורך השנה. חשוב: נושאי כיתה ח׳
-        יופיעו במבחן תנופה ט׳ של תשפ״ח.
-      </p>
+      <h1 class="big-title">{grade.title}</h1>
+      <p class="lede">{grade.intro}</p>
     </header>
 
-    <div data-reveal>
-      <MafmarRange sectionId="MAF-03" accent="var(--sky)" />
-    </div>
-
-    <section class="section-block" data-reveal>
-      <h2>תכנון והוראה מחוזי</h2>
-      <div class="chip-links">
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1X0eGs1fvFdvk6429mCfYcIvDQeuGGa1BzHAmxI4dQrg/edit" target="_blank" rel="noopener">תוכנית הוראה ח׳ ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1l40XxpILIZPGNqPBkCDAfUcJR5Njl1JP/edit" target="_blank" rel="noopener">פריסת הוראה ח׳ ↗</a>
-        <a class="btn btn-ghost" href="https://docs.google.com/document/d/1kFCQt_dIwtvRK4gjC3mVNEQmxENRCppC/edit" target="_blank" rel="noopener">פריסת ח׳ עמ״ט ↗</a>
-        <a class="btn btn-ghost" href="https://drive.google.com/file/d/11qeHERvoqEVXI2G8L0FxME6rHHw4w_KC/view" target="_blank" rel="noopener">תוכנית אישי פלוס ↗</a>
-        <a class="btn btn-ghost" href="https://heyzine.com/flip-book/8a267e4232.html" target="_blank" rel="noopener">חוברת פונקציה קווית ↗</a>
-        <a class="btn btn-ghost" href="https://www.canva.com/design/DAFzg6Naayw/KeCuPV3438_wq4WHOOylwg/edit" target="_blank" rel="noopener">הוראת פונקציה קווית — תבנית ↗</a>
-        <a class="btn btn-ghost" href="https://www.canva.com/design/DAGZcMbg0x8/WM5X1ydiUJ4XtX2Z9Sh9cA/view" target="_blank" rel="noopener">מבחני דמה למהלך השנה ↗</a>
-      </div>
-    </section>
-
-    <section class="section-block" data-reveal>
-      <h2>יחידת הדגל של השכבה</h2>
-      <a class="card card-accent unit-card" style="--card-accent:var(--sky)" href="/chativat-beynayim/hafifat-meshulashim/">
-        <span class="unit-domain">גאומטריה · 26 קבצים</span>
-        <h3>חפיפת משולשים</h3>
-        <p>שלושת משפטי החפיפה, תרגול מדורג, הוכחות ואוריינות, קטעים מיוחדים במשולש ובוחן מסכם — הכול בנגן יחידה אחד.</p>
-        <span class="unit-cta">ליחידה המלאה ←</span>
-      </a>
-    </section>
-
-    <section class="section-block" data-reveal>
-      <h2>עוד בחוזר הרלוונטי לכיתה ח׳</h2>
-      <div class="chip-links">
-        <a class="btn btn-primary" href="https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/plan%26prisa.pdf" target="_blank" rel="noopener" title="מקור: החוזר, עמ׳ 3">פריסות ההוראה תשפ״ז ↗</a>
-        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-05">אירועי הערכה ומבחני מפמ״ר</a>
-        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-06">Moodle ולמידה דיגיטלית</a>
-        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-09">חלוקה לרמות והדרכה</a>
-      </div>
-    </section>
-
-    <nav class="pager-nav" aria-label="ניווט בין שכבות">
-      <a class="btn btn-ghost" href="/chativat-beynayim/kita-z/">→ השכבה הקודמת: כיתה ז׳</a>
-      <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
-    </nav>
+    <ChoveretToc slug="h" />
   </div>
 </Base>
 
 <style>
-  .page { padding-block-start: 1.6rem; }
-  .page-head { max-width: 660px; margin-block: 1.6rem 2rem; }
-  .section-block { margin-block-start: clamp(2.4rem, 5vw, 3.4rem); }
-  .section-block h2 { margin-block-end: 1.2rem; }
-  .chip-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-  .unit-card { display: flex; flex-direction: column; gap: 0.5rem; padding: 1.7rem 1.5rem 1.4rem; color: var(--ink); max-width: 560px; }
-  .unit-domain { font-size: 0.8rem; font-weight: 700; color: var(--ink-faint); }
-  .unit-card h3 { margin: 0; }
-  .unit-card p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
-  .unit-cta { margin-block-start: 0.4rem; font-weight: 700; color: var(--gold-deep); }
-  .pager-nav {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.8rem;
-    margin-block-start: clamp(2.2rem, 5vw, 3rem);
-  }
+  .page { padding-block: 1.6rem 2.5rem; }
+  .page-head { max-width: 660px; margin-block: 1.6rem 0.6rem; }
 </style>
