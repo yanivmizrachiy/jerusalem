@@ -44,12 +44,14 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     </div>
 
     <div class="luach-legend" data-reveal>
-      <span class="lg lg-vac">חופשה במוסדות החינוך</span>
-      <span class="lg lg-open">פתיחת שנת הלימודים</span>
-      <span class="lg lg-jlm">יום ירושלמי</span>
-      <span class="lg lg-exam">מבחן ארצי</span>
-      <span class="lg lg-mark">ציון חינוכי</span>
-      <button class="btn btn-primary" id="open-vacations" type="button">לוח חופשות</button>
+      <button class="vac-btn" id="open-vacations" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="16" rx="3" />
+          <path d="M3 10h18M8 3v4M16 3v4" />
+          <path d="M8 15h3M13 15h3M8 18h3" />
+        </svg>
+        לוח חופשות
+      </button>
     </div>
 
     <div class="cal-wrap" data-reveal tabindex="0" role="region" aria-labelledby="month-title">
@@ -123,22 +125,37 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     margin-block-end: 1.2rem;
   }
 
-  .lg {
-    font-size: 0.8rem;
-    font-weight: 700;
-    padding: 0.25rem 0.7rem;
+  /* כפתור לוח החופשות — נייבי עמוק, מסגרת זהב וזוהר עדין, בשפת האתר (23.5) */
+  .vac-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-block-size: 48px;
+    padding: 0.65rem 1.5rem;
     border-radius: 999px;
-    border: 1px solid var(--line);
-    background: #fff;
+    border: 1px solid var(--gold);
+    background: linear-gradient(180deg, #16273f 0%, #0e1c31 100%);
+    color: #f3d68b;
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    box-shadow:
+      0 0 0 1px rgb(212 175 92 / 0.25),
+      0 10px 26px -12px rgb(11 21 36 / 0.65);
+    transition: transform 400ms var(--ease-lift), box-shadow 300ms var(--ease), color 300ms var(--ease);
   }
 
-  .lg-vac { background: var(--vacation-soft); border-color: var(--vacation); color: var(--vacation); }
-  .lg-open { background: color-mix(in srgb, var(--gold) 18%, #fff); border-color: var(--gold-deep); color: var(--gold-deep); }
-  .lg-jlm { background: color-mix(in srgb, var(--sky) 16%, #fff); border-color: var(--sky); color: #2d5a7a; }
-  .lg-exam { background: color-mix(in srgb, var(--terracotta) 16%, #fff); border-color: var(--terracotta); color: #8a3f28; }
-  .lg-mark { color: var(--ink-soft); }
-
-  #open-vacations { margin-inline-start: auto; }
+  .vac-btn:hover,
+  .vac-btn:focus-visible {
+    transform: translateY(-3px);
+    color: #ffe9b3;
+    box-shadow:
+      0 0 0 1px rgb(212 175 92 / 0.5),
+      0 0 22px rgb(212 175 92 / 0.4),
+      0 16px 32px -14px rgb(11 21 36 / 0.7);
+  }
 
   .cal-wrap { overflow-x: auto; }
 
@@ -226,16 +243,16 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     display: block;
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: clamp(1.25rem, 2.2vw, 1.55rem);
+    font-size: clamp(1.55rem, 2.8vw, 2rem);
     line-height: 1.05;
     color: var(--ink);
   }
 
-  /* האות העברית — קטנה, באדום, בפינה (23.2) */
+  /* האות העברית — קטנה, באדום, בפינה השמאלית-תחתונה (23.2) */
   .cal .d-heb {
     position: absolute;
-    inset-inline-end: 0.5rem;
-    inset-block-start: 0.5rem;
+    left: 0.5rem;
+    bottom: 0.4rem;
     font-size: 0.74rem;
     font-weight: 800;
     color: #b3262e;
@@ -260,10 +277,31 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
   .cal td.is-vac { background: linear-gradient(180deg, #eaf6ef 0%, var(--vacation-soft) 100%); }
   .cal td.is-vac .d-greg { color: var(--vacation); }
-  .cal td.is-vac .d-tag, td.is-vac .d-reason { color: var(--vacation); }
 
-  .cal td.is-open { background: color-mix(in srgb, var(--gold) 20%, #fff); }
-  .cal td.is-open .d-tag { color: var(--gold-deep); }
+  .cal td.is-open {
+    background:
+      radial-gradient(120% 100% at 50% 0%, rgb(212 175 92 / 0.5), transparent 65%),
+      color-mix(in srgb, var(--gold) 28%, #fff);
+    outline: 2px solid var(--gold);
+    outline-offset: -2px;
+    box-shadow:
+      inset 0 0 22px rgb(212 175 92 / 0.55),
+      0 0 18px rgb(212 175 92 / 0.5);
+    animation: open-glow 2.6s ease-in-out infinite alternate;
+  }
+
+  .cal td.is-open .d-greg { color: var(--gold-deep); }
+
+  .cal td.is-open .d-tag {
+    color: var(--gold-deep);
+    font-size: 0.78rem;
+    text-shadow: 0 0 8px rgb(212 175 92 / 0.85);
+  }
+
+  @keyframes open-glow {
+    from { box-shadow: inset 0 0 14px rgb(212 175 92 / 0.4), 0 0 10px rgb(212 175 92 / 0.35); }
+    to { box-shadow: inset 0 0 26px rgb(212 175 92 / 0.7), 0 0 26px rgb(212 175 92 / 0.65); }
+  }
 
   .cal td.is-jlm { background: color-mix(in srgb, var(--sky) 14%, #fff); }
   .cal td.is-jlm .d-tag { color: #2d5a7a; }
@@ -287,6 +325,47 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     .cal td { height: 84px; padding: 0.3rem 0.35rem; }
     .cal .d-tag { font-size: 0.6rem; }
     .cal .d-reason { font-size: 0.56rem; }
+    .cal .vac-banner-main { font-size: 0.56rem; letter-spacing: 0.08em; }
+    .cal .vac-banner-sub { font-size: 0.52rem; letter-spacing: 0.04em; }
+  }
+
+  /* באנר חופשה אחד על פני הרצף — ממורכז, אותיות מרווחות (23.3) */
+  .cal td.vac-run-start { overflow: visible; }
+
+  .cal .vac-banner {
+    position: absolute;
+    inset-inline-start: 5px;
+    inline-size: calc(var(--run) * 100% - 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1rem;
+    text-align: center;
+    padding: 0.3rem 0.25rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, #dff0e6 88%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vacation) 28%, transparent);
+    pointer-events: none;
+  }
+
+  .cal .vac-banner-main {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    color: var(--vacation);
+    line-height: 1.3;
+  }
+
+  .cal .vac-banner-sub {
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--vacation);
+    line-height: 1.25;
   }
 </style>
 
@@ -426,17 +505,26 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
           (h ? `<span class="d-heb">${gem(h.hd)}</span>${h.hd === 1 ? `<span class="d-hm">${h.hm}</span>` : ''}` : '');
 
         const vac = vacOf(t);
-        if (vac) {
-          td.classList.add('is-vac');
-          const tag = vac.jlm ? 'חופשה בירושלים' : 'חופשה במוסדות החינוך';
-          td.innerHTML += `<span class="d-tag">${tag}</span><span class="d-reason">${vac.name}</span>`;
-        }
+        if (vac) td.classList.add('is-vac');
         const sp = specials.get(t);
         if (sp && !vac) {
           td.classList.add(sp.cls);
           td.innerHTML += `<span class="d-tag">${sp.tag}</span>` + (sp.reason ? `<span class="d-reason">${sp.reason}</span>` : '');
         }
         tr.appendChild(td);
+      }
+      // כיתוב חופשה אחד, ממורכז על פני כל רצף הימים בשורה — גם רצף קצר (23.3)
+      const weekStart = t - 7 * DAY;
+      for (let i = 0; i < 7; ) {
+        const v = vacOf(weekStart + i * DAY);
+        if (!v) { i++; continue; }
+        let n = 1;
+        while (i + n < 7 && vacOf(weekStart + (i + n) * DAY) === v) n++;
+        const cell = tr.children[i] as HTMLElement;
+        cell.classList.add('vac-run-start');
+        const tag = v.jlm ? 'חופשה בירושלים' : 'חופשה במוסדות החינוך';
+        cell.innerHTML += `<span class="vac-banner" style="--run:${n}"><span class="vac-banner-main">${tag}</span><span class="vac-banner-sub">${v.name}</span></span>`;
+        i += n;
       }
       body.appendChild(tr);
       if (t > last && new Date(t).getUTCDay() === 0) break;
