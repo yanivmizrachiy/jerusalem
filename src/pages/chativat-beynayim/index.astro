@@ -21,7 +21,7 @@ const stamp = Object.fromEntries(
     .formatToParts(new Date())
     .map((p) => [p.type, p.value])
 );
-const updatedLine = `מאגר המשאבים התעדכן ביום ${stamp.weekday}, ${Number(stamp.day)}/${Number(stamp.month)}/${stamp.year}, בשעה ${stamp.hour}:${stamp.minute}`;
+const updatedLine = `מאגר המשאבים התעדכן ב${stamp.weekday}, ${Number(stamp.day)}/${Number(stamp.month)}/${stamp.year}, בשעה ${stamp.hour}:${stamp.minute}`;
 ---
 
 <Base
