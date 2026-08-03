@@ -1,9 +1,9 @@
 ---
 /**
- * סרטון הפתיחה (RULES §6): ניסיון autoplay עם שמע, ריצה אחת, ללא loop,
- * ובסיום — מעבר חלק לרקע בהיר שעליו מוצג צוות ההדרכה המחוזי (6.5, הוראת
- * יניב 03/08/2026). שכבת הפעלה בעברית אם הדפדפן חוסם (6.7); רגישי תנועה
- * מקבלים את מצב הצוות מיד.
+ * סרטון הפתיחה (RULES §6): נפתח אוטומטית עם קול, ריצה אחת, ללא loop,
+ * ובסיום נעצר ומושתק אוטומטית ומתחלף ברקע בהיר שעליו צוות ההדרכה (6.5).
+ * אם הדפדפן חוסם שמע — ניגון אוטומטי מושתק, בלי שום כפתור (6.7, הוראת
+ * יניב 03/08/2026); רגישי תנועה מקבלים את מצב הצוות מיד.
  */
 import { team } from '../data/team';
 ---
@@ -19,13 +19,6 @@ import { team } from '../data/team';
       playsinline
       aria-label="סרטון הפתיחה של מחוז ירושלים"
     ></video>
-
-    <button class="hero-play btn" id="hero-play" hidden>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M8 5.14v13.72c0 .8.87 1.3 1.56.9l11-6.86a1.05 1.05 0 0 0 0-1.8l-11-6.86A1.05 1.05 0 0 0 8 5.14Z" />
-      </svg>
-      הפעלת סרטון הפתיחה עם קול
-    </button>
 
     <div class="hero-after" id="hero-after">
       <div class="hero-after-inner">
@@ -85,7 +78,6 @@ import { team } from '../data/team';
             ))
           }
         </ul>
-        <a class="btn btn-primary" href="#tzevet">לפרטי הקשר המלאים ←</a>
       </div>
     </div>
   </div>
@@ -120,17 +112,6 @@ import { team } from '../data/team';
     transition: opacity 1400ms var(--ease);
   }
 
-  .hero-play {
-    position: absolute;
-    inset-inline-start: 50%;
-    inset-block-start: 50%;
-    translate: 50% -50%;
-    background: color-mix(in srgb, var(--paper) 92%, transparent);
-    color: var(--ink);
-    box-shadow: var(--shadow-lift);
-    backdrop-filter: blur(8px);
-  }
-  .hero-play:hover { background: var(--paper); transform: translateY(-2px); }
 
   /* המצב הבהיר שאחרי הסרטון (6.5) */
   .hero-after {
@@ -239,21 +220,6 @@ import { team } from '../data/team';
     color: transparent;
   }
 
-  .hero-sub {
-    color: var(--ink-soft);
-    font-size: clamp(1rem, 2vw, 1.18rem);
-    max-width: 56ch;
-    margin-inline: auto;
-  }
-
-  .hero-ctas {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.8rem;
-    margin-block-start: 1.6rem;
-  }
-
   @media (max-width: 700px) {
     .hero-media { block-size: auto; min-block-size: 64vh; padding-block: calc(var(--header-h) + 0.5rem) 1rem; }
     video { inline-size: 100%; }
@@ -263,7 +229,6 @@ import { team } from '../data/team';
 <script>
   const media = document.getElementById('hero-media')!;
   const video = document.getElementById('hero-video') as HTMLVideoElement;
-  const playBtn = document.getElementById('hero-play') as HTMLButtonElement;
 
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -275,20 +240,14 @@ import { team } from '../data/team';
   video.addEventListener('ended', finish, { once: true });
 
   if (reduced) {
-    // רגישי תנועה: המצב הבהיר מיד, בלי ניגון אוטומטי
+    // רגישי תנועה: מצב הצוות מיד, בלי ניגון אוטומטי
     finish();
   } else {
-    // ניסיון autoplay עם שמע (6.3); אם נחסם — שכבת הפעלה בלחיצה אחת (6.7)
+    // פתיחה אוטומטית עם קול (6.3, הוראת יניב); אם הדפדפן חוסם שמע —
+    // ניגון אוטומטי מושתק, בלי שום כפתור (6.7). בסיום — עצירה אוטומטית.
     video.play().catch(() => {
-      playBtn.hidden = false;
+      video.muted = true;
+      video.play().catch(finish);
     });
   }
-
-  playBtn.addEventListener('click', () => {
-    media.classList.remove('is-ended');
-    playBtn.hidden = true;
-    video.play().catch(() => {
-      playBtn.hidden = false;
-    });
-  });
 </script>

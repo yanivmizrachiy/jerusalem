@@ -231,7 +231,13 @@ const audiences = [
     background: var(--paper-soft);
   }
 
-  .viewer-shell { block-size: clamp(520px, 74vh, 860px); background: var(--paper-soft); }
+  .viewer-shell {
+    border: 8px solid #0e1c31;
+    outline: 1px solid #24406b;
+    border-radius: calc(var(--radius) + 6px);
+    box-shadow: 0 0 0 1px rgb(126 210 255 / 0.15), 0 26px 60px -26px rgb(11 21 36 / 0.5);
+    overflow: hidden;
+    block-size: clamp(520px, 74vh, 860px); background: var(--paper-soft); }
 
   .viewer-shell:fullscreen { block-size: 100%; }
 

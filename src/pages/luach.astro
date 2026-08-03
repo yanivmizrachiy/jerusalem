@@ -145,6 +145,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   .cal {
     inline-size: 100%;
     min-inline-size: 640px;
+    table-layout: fixed;
     border-collapse: collapse;
     background: #fff;
     border: 1px solid var(--line);
@@ -171,11 +172,13 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   }
 
   .cal td {
+    position: relative;
     border: 1px solid var(--line);
     vertical-align: top;
-    padding: 0.45rem 0.5rem;
-    block-size: 96px;
+    padding: 0.5rem 0.55rem 0.45rem;
+    height: clamp(88px, 11vh, 112px);
     inline-size: 14.28%;
+    overflow: hidden;
     transition: background-color 250ms var(--ease);
   }
 
@@ -192,19 +195,29 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   .cal td.is-today .d-greg { color: var(--gold-deep); font-weight: 700; }
 
   .d-greg {
+    display: block;
     font-family: var(--font-display);
-    font-weight: 500;
-    font-size: 1.18rem;
-    line-height: 1.1;
+    font-weight: 600;
+    font-size: clamp(1.25rem, 2.2vw, 1.55rem);
+    line-height: 1.05;
     color: var(--ink);
   }
 
+  /* האות העברית — קטנה, באדום, בפינה (23.2) */
   .d-heb {
-    font-size: 0.7rem;
-    letter-spacing: 0.02em;
-    color: var(--gold-deep);
+    position: absolute;
+    inset-inline-end: 0.5rem;
+    inset-block-start: 0.5rem;
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #b3262e;
+  }
+
+  .d-hm {
     display: block;
-    margin-block-start: 0.05rem;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--gold-deep);
   }
 
   .d-tag {
@@ -404,7 +417,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
         const h = hebByTime.get(t);
         td.innerHTML = `<span class="d-greg">${d.getUTCDate()}</span>` +
-          (h ? `<span class="d-heb">${gem(h.hd)} ${h.hm}</span>` : '');
+          (h ? `<span class="d-heb">${gem(h.hd)}</span>${h.hd === 1 ? `<span class="d-hm">${h.hm}</span>` : ''}` : '');
 
         const vac = vacOf(t);
         if (vac) {

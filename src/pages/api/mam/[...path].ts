@@ -37,7 +37,7 @@ export const ALL: APIRoute = async ({ params, request }) => {
     html = html.replace(/https:\/\/mamhishim\.my\.canva\.site/g, '/api/mam');
     // גלילת זהב רחבה גם בתוך הסביבה המוטמעת (5.23)
     const goldScroll =
-      '<style>::-webkit-scrollbar{width:15px;height:15px}::-webkit-scrollbar-track{background:#f5f1e8}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#d4af5c,#b08d3e 45%,#77602a);border-radius:10px;border:3px solid #f5f1e8}html{scrollbar-color:#b08d3e #f5f1e8;scrollbar-width:auto}</style>';
+      '<style>::-webkit-scrollbar{width:30px;height:30px}::-webkit-scrollbar-track{background:#f5f1e8}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#d4af5c,#b08d3e 45%,#77602a);border-radius:15px;border:5px solid #f5f1e8}html{scrollbar-color:#b08d3e #f5f1e8;scrollbar-width:auto}</style>';
     html = html.includes('</head>')
       ? html.replace('</head>', goldScroll + '</head>')
       : goldScroll + html;

@@ -125,7 +125,15 @@ const sections = [...new Set(unit.resources.map((r) => r.section))];
     background: var(--paper-soft);
   }
 
-  .uplay-shell { position: relative; block-size: clamp(420px, 56vh, 620px); background: var(--paper-soft); }
+  .uplay-shell {
+    position: relative;
+    border: 8px solid #0e1c31;
+    outline: 1px solid #24406b;
+    border-radius: calc(var(--radius) + 6px);
+    box-shadow: 0 0 0 1px rgb(126 210 255 / 0.15), 0 26px 60px -26px rgb(11 21 36 / 0.5);
+    overflow: hidden;
+    margin: 0 0.8rem;
+    block-size: clamp(420px, 56vh, 620px); background: var(--paper-soft); }
   .uplay-shell:fullscreen { block-size: 100%; background: #000; }
   .uplay-shell iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; }
 

@@ -96,9 +96,14 @@ const anchorId = s.id.toLowerCase();
   }
 
   .mrange-shell {
+    border: 8px solid #0e1c31;
+    outline: 1px solid #24406b;
+    border-radius: calc(var(--radius) + 6px);
+    box-shadow: 0 0 0 1px rgb(126 210 255 / 0.15), 0 26px 60px -26px rgb(11 21 36 / 0.5);
+    overflow: hidden;
+    margin-inline: 0.8rem;
     block-size: clamp(460px, 62vh, 680px);
     background: var(--paper-soft);
-    border-block: 1px solid var(--line);
   }
 
   .mrange.is-tall .mrange-shell { block-size: clamp(520px, 72vh, 820px); }

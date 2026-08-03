@@ -6,21 +6,34 @@ import SiteEmbed from '../../components/SiteEmbed.astro';
 import { grade7Resources, whatsappCommunity } from '../../data/resources';
 
 const sorted = [...grade7Resources].sort((a, b) => a.order - b.order);
+
+// חותמת עדכון אמת (3.25): זמן הבנייה בפועל — מתחדשת אוטומטית בכל פריסה
+const stamp = Object.fromEntries(
+  new Intl.DateTimeFormat('he', {
+    timeZone: 'Asia/Jerusalem',
+    weekday: 'long',
+    day: 'numeric',
+    month: 'numeric',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+    .formatToParts(new Date())
+    .map((p) => [p.type, p.value])
+);
+const updatedLine = `מאגר המשאבים התעדכן ביום ${stamp.weekday}, ${Number(stamp.day)}/${Number(stamp.month)}/${stamp.year}, בשעה ${stamp.hour}:${stamp.minute}`;
 ---
 
 <Base
-  title="חטיבת ביניים — מחוז ירושלים"
-  description="שער חטיבת הביניים של מחוז ירושלים: האתרים החיים של כיתה ז׳, יחידות ההוראה, שכבות הגיל והחיבור הישיר למורים."
+  title="מתמטיקה לחטיבת הביניים — מחוז ירושלים"
+  description="מתמטיקה לחטיבת הביניים במחוז ירושלים: האתרים החיים של כיתה ז׳, יחידות ההוראה, שכבות הגיל והחיבור הישיר למורים."
 >
   <div class="container page">
     <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'חטיבת ביניים' }]} />
 
     <header class="page-head" data-reveal>
-      <p class="eyebrow">השער של חטיבות הביניים</p>
-      <h1>חטיבת ביניים</h1>
-      <p class="lede">
-        האתרים החיים, שכבות הגיל, יחידות ההוראה והחיבור הישיר למורות ולמורים.
-      </p>
+      <h1 class="big-title">מתמטיקה לחטיבת הביניים</h1>
+      <p class="updated-line">{updatedLine}</p>
     </header>
 
     <ArtBanner
@@ -119,7 +132,17 @@ const sorted = [...grade7Resources].sort((a, b) => a.order - b.order);
 <style>
   .page { padding-block-start: 1.6rem; }
 
-  .page-head { max-width: 640px; margin-block: 1.6rem 2.4rem; }
+  .page-head { max-width: 760px; margin-block: 1.6rem 2.4rem; }
+
+  .big-title { font-size: clamp(2.4rem, 6vw, 4rem); margin-block-end: 0.25em; }
+
+  .updated-line {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
 
   .section-block { margin-block-end: clamp(2.6rem, 6vw, 4rem); }
 

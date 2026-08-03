@@ -72,3 +72,21 @@ test('ניווט פדגוגי: משוואות משולבת בשרשרת ז׳ (5.
     page.locator('.pager a', { hasText: 'הוראת משוואות ללא מספרים שליליים' })
   ).toBeVisible();
 });
+
+test('כפתורי WhatsApp אמיתיים: כל כפתור מוביל ישירות למספר הנכון (7.16)', async ({ page }) => {
+  const { team } = await import('../src/data/team');
+  const { whatsappCommunity } = await import('../src/data/resources');
+
+  await page.goto('/');
+  for (const m of team) {
+    await expect(
+      page.locator(`#tzevet a.btn-whatsapp[href="https://wa.me/${m.phoneIntl}"]`),
+      `כפתור WhatsApp של ${m.name}`
+    ).toHaveCount(1);
+  }
+  // הקישור הירוק המהיר בפס "מה צפוי?" — לקבוצה הקנונית בדיוק (7.20)
+  await expect(page.locator(`.rail a[href="${whatsappCommunity.url}"]`)).toHaveCount(1);
+
+  await page.goto('/chativat-beynayim/');
+  await expect(page.locator(`a[href="${whatsappCommunity.url}"]`)).toHaveCount(1);
+});
