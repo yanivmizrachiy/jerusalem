@@ -6,7 +6,7 @@
  * פתיחת החוזר המלא, פתיחה במקור, העתקה ושיתוף יציב (9.3.12).
  * המקור: ה־PDF הרשמי החי בלבד — לא נשמר עותק (9.3.4).
  */
-import { MAFMAR_URL, mafmarSections } from '../data/mafmar';
+import { MAFMAR_URL, MAFMAR_LOCAL, mafmarSections } from '../data/mafmar';
 
 interface Props {
   /** מזהה מתוך ה־manifest המאומת, למשל "MAF-02" */
@@ -39,10 +39,16 @@ const anchorId = s.id.toLowerCase();
 
   <div class="mrange-shell" data-shell>
     <iframe
-      src={`${MAFMAR_URL}#page=${s.startPage}&view=FitH`}
+      src={`${MAFMAR_LOCAL}#page=${s.startPage}&view=FitH`}
       title={`${s.title} — מתוך חוזר מפמ״ר תשפ״ז`}
       loading="lazy"
     ></iframe>
+    <div class="mrange-fallback" data-fallback hidden>
+      <p>בדפדפן הזה קובצי PDF נפתחים לצפייה מלאה במסך נפרד:</p>
+      <a class="btn btn-primary" data-fb-open href={`${MAFMAR_LOCAL}#page=${s.startPage}`} target="_blank" rel="noopener">
+        פתיחת הטווח (מעמוד {s.startPage}) ↗
+      </a>
+    </div>
   </div>
 
   <div class="mrange-pager" role="group" aria-label={`ניווט עמודים בתוך ${s.title}`}>
@@ -96,19 +102,54 @@ const anchorId = s.id.toLowerCase();
   }
 
   .mrange-shell {
-    border: 8px solid #0e1c31;
-    outline: 1px solid #24406b;
-    border-radius: calc(var(--radius) + 6px);
-    box-shadow: 0 0 0 1px rgb(126 210 255 / 0.15), 0 26px 60px -26px rgb(11 21 36 / 0.5);
-    overflow: hidden;
-    margin-inline: 0.8rem;
+    position: relative;
+    padding: 14px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, rgb(255 255 255 / 0.72) 0%, rgb(250 246 236 / 0.4) 45%, rgb(255 255 255 / 0.6) 100%);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.85),
+      inset 0 -1px 0 rgb(176 141 62 / 0.4),
+      inset 1px 1px 0 rgb(255 255 255 / 0.6),
+      0 0 55px -14px rgb(126 210 255 / 0.4),
+      0 24px 70px -28px rgb(176 141 62 / 0.5),
+      0 34px 80px -34px rgb(31 41 61 / 0.4);
     block-size: clamp(460px, 62vh, 680px);
-    background: var(--paper-soft);
+  }
+
+  /* קו-אור אלכסוני על הזכוכית — ספקולר עדין */
+    .mrange-shell::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 28px;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 32%, rgb(255 255 255 / 0.42) 45%, transparent 57%);
   }
 
   .mrange.is-tall .mrange-shell { block-size: clamp(520px, 72vh, 820px); }
 
-  .mrange-shell iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; }
+  .mrange-shell iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; border-radius: 16px; background: #fff; }
+
+  /* display:block היה גובר על hidden — הכלל הזה סוגר את הפרצה */
+  .mrange-shell iframe[hidden] { display: none; }
+
+  /* בלי מציג PDF — ה-shell מתכווץ לגובה התוכן, בלי שכבה סמויה */
+  .mrange-shell.no-viewer { block-size: auto; }
+
+  /* דפדפן בלי מציג PDF מובנה (navigator.pdfViewerEnabled=false) — חלופה אמיתית */
+  .mrange-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.9rem;
+    text-align: center;
+    padding: 1.4rem;
+  }
+
+  .mrange-fallback p { margin: 0; font-weight: 600; color: var(--ink-soft); }
 
   .mrange-pager {
     display: flex;
@@ -143,7 +184,7 @@ const anchorId = s.id.toLowerCase();
 </style>
 
 <script>
-  import { MAFMAR_URL } from '../data/mafmar';
+  import { MAFMAR_LOCAL as LOCAL } from '../data/mafmar';
 
   document.querySelectorAll<HTMLElement>('[data-mafrange]').forEach((root) => {
     const start = Number(root.dataset.start);
@@ -160,10 +201,21 @@ const anchorId = s.id.toLowerCase();
 
     let page = start;
 
+    // דפדפן ללא מציג PDF מובנה (בעיקר אנדרואיד) — חלופה גלויה במקום לוח ריק
+    const fallback = root.querySelector<HTMLElement>('[data-fallback]')!;
+    const fbOpen = root.querySelector<HTMLAnchorElement>('[data-fb-open]')!;
+    const noViewer = 'pdfViewerEnabled' in navigator && !navigator.pdfViewerEnabled;
+    if (noViewer) {
+      frame.hidden = true;
+      fallback.hidden = false;
+      frame.closest('[data-shell]')?.classList.add('no-viewer');
+    }
+
     const pageUrl = () => `${location.origin}${location.pathname}#${root.id}`;
 
     const render = (reload: boolean) => {
-      if (reload) frame.src = `${MAFMAR_URL}#page=${page}&view=FitH`;
+      if (reload) frame.src = `${LOCAL}#page=${page}&view=FitH`;
+      fbOpen.href = `${LOCAL}#page=${page}`;
       ind.textContent = `עמוד ${page - start + 1} מתוך ${end - start + 1} בטווח זה`;
       prev.disabled = page <= start;
       next.disabled = page >= end;

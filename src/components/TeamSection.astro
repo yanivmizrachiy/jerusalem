@@ -104,9 +104,36 @@ const waPath =
       }
     </div>
 
-    <a class="btn btn-ghost team-back" href="#main">↑ חזרה לראש העמוד</a>
+    <div class="team-foot">
+      <button class="btn btn-primary team-all" id="team-show-all" type="button" hidden>הצגת כל הצוות</button>
+      <a class="btn btn-ghost team-back" href="#main">↑ חזרה לראש העמוד</a>
+    </div>
   </div>
 </section>
+
+<script>
+  // מצב כרטיס-יחיד (6.5, הוראת יניב 03/08/2026): הגעה בעוגן אישי מציגה
+  // אך ורק את הכרטיס של אותו חבר צוות; "הצגת כל הצוות" מחזירה את כולם.
+  const grid = document.querySelector<HTMLElement>('#tzevet .team-grid');
+  const showAll = document.getElementById('team-show-all') as HTMLButtonElement | null;
+  if (grid && showAll) {
+    const apply = () => {
+      const m = location.hash.match(/^#tzevet-([a-z]+)$/);
+      const solo = m ? document.getElementById(`tzevet-${m[1]}`) : null;
+      grid.classList.toggle('is-solo', !!solo);
+      showAll.hidden = !solo;
+      grid.querySelectorAll<HTMLElement>('.team-card').forEach((c) => {
+        c.hidden = !!solo && c !== solo;
+      });
+    };
+    showAll.addEventListener('click', () => {
+      history.replaceState(null, '', location.pathname);
+      apply();
+    });
+    addEventListener('hashchange', apply);
+    apply();
+  }
+</script>
 
 <style>
   .team-grid {
@@ -204,7 +231,23 @@ const waPath =
     background: linear-gradient(180deg, #fff 0%, #fdf7ea 100%);
   }
 
-  .team-back { margin-block-start: 2rem; }
+  /* מצב כרטיס-יחיד: לחיצה על חבר צוות מציגה רק אותו (6.5) */
+  .team-card[hidden] { display: none; }
+
+  .team-grid.is-solo {
+    grid-template-columns: min(440px, 100%);
+    justify-content: center;
+  }
+
+  .team-grid.is-solo .team-card.is-featured { grid-column: auto; }
+
+  .team-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
+    margin-block-start: 2rem;
+  }
 
   .member-actions {
     display: flex;

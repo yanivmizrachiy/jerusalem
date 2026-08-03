@@ -40,8 +40,7 @@ const stamp = Object.fromEntries(
     .formatToParts(new Date())
     .map((p) => [p.type, p.value])
 );
-const updatedLine = `מאגר המשאבים התעדכן ב${stamp.weekday}, ${Number(stamp.day)}/${Number(stamp.month)}/${stamp.year}, בשעה ${stamp.hour}:${stamp.minute}`;
-const shortStamp = `התעדכן לאחרונה ב־${Number(stamp.day)}/${Number(stamp.month)}/${stamp.year} בשעה ${stamp.hour}:${stamp.minute}`;
+const updatedLine = `מאגר הקבצים עודכן ב${stamp.weekday}, ${Number(stamp.day)}/${Number(stamp.month)}/${stamp.year}, בשעה ${stamp.hour}:${stamp.minute}`;
 ---
 
 <Base
@@ -67,20 +66,14 @@ const shortStamp = `התעדכן לאחרונה ב־${Number(stamp.day)}/${Numbe
         <a class="card card-accent res-card" style="--card-accent:var(--olive)" href="/chativat-beynayim/kita-z/" data-reveal>
           <h3>כיתה ז׳</h3>
           <p class="grade-count">{gradeCounts.z} קבצים, קישורים ופעילויות</p>
-          <span class="res-cta">לעמוד השכבה ←</span>
-          <span class="grade-updated">{shortStamp}</span>
         </a>
         <a class="card card-accent res-card" style="--card-accent:var(--sky); --reveal-delay:100ms" href="/chativat-beynayim/kita-h/" data-reveal>
           <h3>כיתה ח׳</h3>
           <p class="grade-count">{gradeCounts.h} קבצים, קישורים ופעילויות</p>
-          <span class="res-cta">לעמוד השכבה ←</span>
-          <span class="grade-updated">{shortStamp}</span>
         </a>
         <a class="card card-accent res-card" style="--card-accent:var(--terracotta); --reveal-delay:200ms" href="/chativat-beynayim/kita-t/" data-reveal>
           <h3>כיתה ט׳</h3>
           <p class="grade-count">{gradeCounts.t} קבצים, קישורים ופעילויות</p>
-          <span class="res-cta">לעמוד השכבה ←</span>
-          <span class="grade-updated">{shortStamp}</span>
         </a>
       </div>
     </section>
@@ -91,7 +84,7 @@ const shortStamp = `התעדכן לאחרונה ב־${Number(stamp.day)}/${Numbe
         sorted.map((r) => (
           <div class="site-block" data-reveal>
             <h3 class="site-title">{r.title}</h3>
-            <SiteEmbed id={`embed-${r.id}`} title={r.title} url={r.url} />
+            <SiteEmbed id={`embed-${r.id}`} title={r.title} url={r.url} embedSrc={r.embedUrl} />
           </div>
         ))
       }
@@ -101,19 +94,19 @@ const shortStamp = `התעדכן לאחרונה ב־${Number(stamp.day)}/${Numbe
       <h2 id="units-title" data-reveal>יחידות הוראה</h2>
       <div class="res-grid">
         <a class="card card-accent res-card" style="--card-accent:var(--amber)" href="/chativat-beynayim/mishvaot/" data-reveal>
-          <span class="res-domain">כיתה ז׳ · אלגברה · 19 משאבים</span>
+          <span class="res-domain">כיתה ז׳ · אלגברה · 19 קבצים</span>
           <h3>הוראת משוואות ללא מספרים שליליים</h3>
           <p>המחשות, שקילות, פתרון, אביזרים, דפי עבודה, חידות ומשחק — בנגן יחידה אחד.</p>
           <span class="res-cta">ליחידה ←</span>
         </a>
         <a class="card card-accent res-card" style="--card-accent:var(--sky); --reveal-delay:100ms" href="/chativat-beynayim/hafifat-meshulashim/" data-reveal>
-          <span class="res-domain">כיתה ח׳ · גאומטריה · 26 משאבים</span>
+          <span class="res-domain">כיתה ח׳ · גאומטריה · 26 קבצים</span>
           <h3>חפיפת משולשים</h3>
           <p>שלושת משפטי החפיפה, תרגול מדורג, הוכחות, קטעים מיוחדים ובוחן מסכם.</p>
           <span class="res-cta">ליחידה ←</span>
         </a>
         <a class="card card-accent res-card" style="--card-accent:var(--rose); --reveal-delay:200ms" href="/chativat-beynayim/mischakim/" data-reveal>
-          <span class="res-domain">כיתות ז׳–ט׳ · 8 משאבים</span>
+          <span class="res-domain">כיתות ז׳–ט׳ · 8 קבצים</span>
           <h3>משחקים והעשרה</h3>
           <p>משחקים לפי הפריסות, חנוכה, מתמטיקה בפרשה ואתרי העשרה מחוזיים.</p>
           <span class="res-cta">לעמוד ←</span>
@@ -125,7 +118,7 @@ const shortStamp = `התעדכן לאחרונה ב־${Number(stamp.day)}/${Numbe
       <h2 id="mivchanim-title" data-reveal>מבחנים והערכה</h2>
       <div class="res-grid">
         <a class="card card-accent res-card" style="--card-accent:var(--lilac); --reveal-delay:200ms" href="/chativat-beynayim/mivchanim/" data-reveal>
-          <span class="res-domain">כיתות ז׳–ט׳ · 7 משאבים</span>
+          <span class="res-domain">כיתות ז׳–ט׳ · 7 קבצים</span>
           <h3>בחינות והערכה — נוסחאות והנחיות</h3>
           <p>דפי הנוסחאות לכל שכבה, מבחן דמוי מיצ״ב עם מחוון והנחיות.</p>
           <span class="res-cta">לעמוד ←</span>
@@ -168,14 +161,6 @@ const shortStamp = `התעדכן לאחרונה ב־${Number(stamp.day)}/${Numbe
     font-weight: 700;
     color: var(--ink);
     margin: 0.2rem 0 0.6rem;
-  }
-
-  .grade-updated {
-    display: block;
-    margin-block-start: 0.45rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #2d5a7a;
   }
 
   .big-title { font-size: clamp(2.4rem, 6vw, 4rem); margin-block-end: 0.25em; }

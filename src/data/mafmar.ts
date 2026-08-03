@@ -8,6 +8,13 @@
 export const MAFMAR_URL =
   'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativa-Elyona/mafmar/hozer-mafmar-tashpaz.pdf';
 
+/**
+ * עותק מאומת של החוזר הרשמי, מוגש same-origin (9.3.4, הוראת יניב 03/08/2026):
+ * שרת המשרד איטי/לא אמין להטמעה חיה והציג לוח ריק. הורד מהמקור ב-03/08/2026,
+ * אומת מול 18 עמודים; sha256 מתחיל d188ce53916ab41e. המקור הרשמי נשאר הקנוני.
+ */
+export const MAFMAR_LOCAL = '/docs/hozer-mafmar-tashpaz.pdf';
+
 export const MAFMAR_TOTAL_PAGES = 18;
 
 export type Audience = 'חט״ב' | 'מעבר' | 'חט״ע' | 'משותף';

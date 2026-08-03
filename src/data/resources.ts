@@ -4,6 +4,8 @@ export interface CanonicalResource {
   title: string;
   /** הכתובת הקנונית של המשאב עצמו */
   url: string;
+  /** מקור הטמעה דרך הפרוקסי המחוזי — לאתרים ששולחים X-Frame-Options (9.4–9.5) */
+  embedUrl?: string;
   /** נתיב העמוד הקנוני באתר */
   path: string;
   grade: string;
@@ -22,6 +24,7 @@ export const grade7Resources: CanonicalResource[] = [
     id: 'misparim',
     title: 'מספרים מכוונים',
     url: 'https://misparim.vercel.app/',
+    embedUrl: '/api/em/misparim/',
     path: '/chativat-beynayim/misparim-mechuvanim/',
     grade: 'כיתה ז׳',
     domain: 'תחום מספרי',
@@ -38,6 +41,7 @@ export const grade7Resources: CanonicalResource[] = [
     id: 'zaviyot',
     title: 'אתר זוויות',
     url: 'https://zaviyot.vercel.app/',
+    embedUrl: '/api/em/zaviyot/',
     path: '/chativat-beynayim/zaviyot/',
     grade: 'כיתה ז׳',
     domain: 'גאומטריה',

@@ -13,7 +13,7 @@ const { items } = Astro.props;
   <ol>
     {
       items.map((c, i) => (
-        <li>
+        <li style={`--depth:${i}`}>
           {c.href && i < items.length - 1 ? (
             <a href={c.href}>{c.label}</a>
           ) : (
@@ -29,18 +29,21 @@ const { items } = Astro.props;
   .crumbs ol {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: baseline;
     gap: 0.15rem;
     list-style: none;
     margin: 0;
     padding: 0;
-    font-size: 0.9rem;
   }
 
+  /* היררכיה מדורגת (5.26): הכללי ביותר הגדול ביותר, ויורד עם העומק */
   .crumbs li {
     display: inline-flex;
-    align-items: center;
+    align-items: baseline;
+    font-size: clamp(0.8rem, calc(1.14rem - var(--depth, 0) * 0.09rem), 1.14rem);
   }
+
+  .crumbs li:first-child a { font-weight: 800; color: var(--ink); }
 
   .crumbs li + li::before {
     content: '‹';

@@ -41,7 +41,7 @@ const { resource, prev, next } = Astro.props;
   </header>
 
   <div data-reveal>
-    <SiteEmbed id={resource.id} title={resource.title} url={resource.url} tall />
+    <SiteEmbed id={resource.id} title={resource.title} url={resource.url} embedSrc={resource.embedUrl} tall />
   </div>
 
   <nav class="pager" aria-label="ניווט בין נושאים">
