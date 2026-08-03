@@ -6,11 +6,11 @@
  */
 ---
 
-<section class="datebar" aria-label="מחוז ירושלים — התאריך היום">
+<section class="datebar" aria-label="הדרכה במחוז ירושלים — התאריך היום">
   <div class="container datebar-inner">
-    <a class="datebar-brand" href="/" aria-label="מחוז ירושלים — לעמוד הראשי">
+    <a class="datebar-brand" href="/" aria-label="הדרכה במחוז ירושלים והעיר ירושלים — לעמוד הראשי">
       <img id="site-logo" src="/logo.png" alt="" width="44" height="44" loading="eager" fetchpriority="high" />
-      <span class="datebar-title">מחוז ירושלים <small>הדרכת מתמטיקה</small></span>
+      <span class="datebar-title">הדרכה במחוז ירושלים והעיר ירושלים — מנח״י <small>בהובלת איילת קריספין</small></span>
     </a>
     <div class="datebar-dates">
       <p class="date-he" id="date-he" dir="rtl"></p>
@@ -51,19 +51,26 @@
 
   .datebar-title {
     font-family: var(--font-display);
-    font-size: 1.15rem;
+    font-size: clamp(0.95rem, 2.2vw, 1.12rem);
     font-weight: 700;
-    line-height: 1.05;
+    line-height: 1.2;
     display: flex;
     flex-direction: column;
+    gap: 0.15rem;
+    max-inline-size: 34ch;
   }
 
+  /* הכיתוב הקטן — תכלת מוארת באיכות של שעון דיגיטלי (7.22) */
   .datebar-title small {
     font-family: var(--font-body);
-    font-size: 0.68rem;
-    font-weight: 500;
-    color: #9fc6e8;
-    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #8fd9ff;
+    letter-spacing: 0.09em;
+    text-shadow:
+      0 0 2px rgb(126 210 255 / 0.9),
+      0 0 12px rgb(126 210 255 / 0.55),
+      0 0 26px rgb(64 156 255 / 0.35);
   }
 
   .datebar-dates {
