@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npx astro check
       - run: npm run build
       - run: npx playwright install --with-deps chromium

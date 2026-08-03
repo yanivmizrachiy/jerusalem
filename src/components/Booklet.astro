@@ -1,0 +1,720 @@
+---
+/**
+ * החוברת הדיגיטלית — ספר אחד אמיתי (RULES 3.29, הוראת יניב 03/08/2026):
+ * כל החומרים בספר מדפדף אחד — כריכה, תוכן עניינים צבעוני לכל שכבה, ועמוד
+ * לכל משאב (מימין ההטמעה, משמאל מידע ופעולות). דפדוף בהיפוך-דף תלת-ממדי
+ * בכיוון ספר עברי (השדרה מימין), כפתורי ניווט מיוחדים, מונה עמודים ופס
+ * התקדמות, חיצי מקלדת והחלקת מגע, וקישור עומק לכל עמוד (hash). הטמעה
+ * נטענת רק כשהעמוד נפתח; רגישי תנועה מקבלים החלפה מיידית.
+ */
+import MafmarRange from './MafmarRange.astro';
+import { choveret } from '../data/choveret';
+
+interface Props {
+  /** מזהה העמוד הפותח: cover / toc-z / it-z-maf-02 ... */
+  initial?: string;
+}
+
+const { initial = 'cover' } = Astro.props;
+
+const kindLabel: Record<string, string> = {
+  site: 'אתר חי',
+  doc: 'מסמך',
+  drive: 'קובץ',
+  pdf: 'PDF',
+  canva: 'מצגת',
+  flip: 'חוברת דפדוף',
+  maf: 'מתוך החוזר',
+  link: 'קישור',
+};
+
+interface PageDef {
+  id: string;
+  label: string;
+}
+const pages: PageDef[] = [{ id: 'cover', label: 'כריכה' }];
+for (const g of choveret) {
+  pages.push({ id: `toc-${g.slug}`, label: `תוכן — כיתה ${g.letter}` });
+  for (const ch of g.chapters)
+    for (const it of ch.items)
+      if (!it.pageHref) pages.push({ id: `it-${g.slug}-${it.id}`, label: it.title });
+}
+const total = pages.length;
+const pageNum = (id: string) => pages.findIndex((p) => p.id === id) + 1;
+
+const site = 'https://jerusalem-virid.vercel.app';
+---
+
+<div class="book-shell" data-book data-initial={initial} data-total={total}>
+  <div class="book" role="region" aria-roledescription="חוברת" aria-label="החוברת הדיגיטלית — מתמטיקה לחטיבת הביניים">
+    <!-- כריכה -->
+    <section class="bpage bp-cover" data-page="cover" data-n="1" hidden>
+      <div class="cover-inner">
+        <p class="cover-kicker">מחוז ירושלים · הדרכת מתמטיקה</p>
+        <h1 class="cover-title">החוברת הדיגיטלית</h1>
+        <p class="cover-sub">מתמטיקה לחטיבת הביניים — כל הקבצים, הקישורים והפעילויות בספר אחד</p>
+        <div class="cover-grades">
+          {
+            choveret.map((g) => (
+              <button class="cover-grade" type="button" data-jump={`toc-${g.slug}`}>
+                <span class="cover-grade-letter">{g.letter}</span>
+                <span class="cover-grade-name">כיתה {g.letter}</span>
+                <span class="cover-grade-count">
+                  {g.chapters.reduce((n, c) => n + c.items.length, 0)} קבצים, קישורים ופעילויות
+                </span>
+              </button>
+            ))
+          }
+        </div>
+        <p class="cover-hint">דפדפו עם הכפתורים, עם חיצי המקלדת או בהחלקה — כמו בחוברת אמיתית</p>
+      </div>
+    </section>
+
+    {
+      choveret.map((g) => (
+        <>
+          <section class="bpage bp-toc" data-page={`toc-${g.slug}`} data-n={pageNum(`toc-${g.slug}`)} hidden>
+            <header class="toc-head">
+              <h2 class="toc-title">{g.title}</h2>
+              <p class="toc-intro">{g.intro}</p>
+            </header>
+            {g.chapters.map((ch) => (
+              <div class="toc-chapter" style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}>
+                <h3 class="toc-chapter-title">{ch.title}</h3>
+                <ol class="toc-list">
+                  {ch.items.map((item) => (
+                    <li>
+                      {item.pageHref ? (
+                        <a class="toc-item" href={item.pageHref}>
+                          <span class="toc-num" aria-hidden="true">◆</span>
+                          <span class="toc-text">
+                            <span class="toc-item-title">{item.title}</span>
+                            <span class="toc-item-note">{item.note}</span>
+                          </span>
+                          <span class="toc-arrow" aria-hidden="true">↗</span>
+                        </a>
+                      ) : (
+                        <button class="toc-item" type="button" data-jump={`it-${g.slug}-${item.id}`}>
+                          <span class="toc-num">{pageNum(`it-${g.slug}-${item.id}`)}</span>
+                          <span class="toc-text">
+                            <span class="toc-item-title">{item.title}</span>
+                            <span class="toc-item-note">{item.note}</span>
+                          </span>
+                          <span class="toc-arrow" aria-hidden="true">←</span>
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ))}
+          </section>
+
+          {g.chapters.map((ch) =>
+            ch.items
+              .filter((it) => !it.pageHref)
+              .map((item) => (
+                <section
+                  class="bpage bp-item"
+                  data-page={`it-${g.slug}-${item.id}`}
+                  data-n={pageNum(`it-${g.slug}-${item.id}`)}
+                  style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}
+                  hidden
+                >
+                  <div class="item-grid">
+                    <div class="item-embed">
+                      {item.kind === 'maf' && item.maf ? (
+                        <MafmarRange sectionId={item.maf} accent={ch.color} />
+                      ) : item.embed ? (
+                        <div class="item-frame">
+                          <iframe
+                            data-esrc={item.embed}
+                            title={`${item.title} — תצוגה חיה`}
+                            allow="fullscreen"
+                          />
+                        </div>
+                      ) : (
+                        <div class="item-frame item-open-card">
+                          <p>המשאב הזה נפתח באתר המקור:</p>
+                          <a class="btn btn-primary" href={item.url} target="_blank" rel="noopener">
+                            פתיחת {item.title} ↗
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                    <aside class="item-info">
+                      <p class="item-chapter">{ch.title} · כיתה {g.letter}</p>
+                      <h2 class="item-title">{item.title}</h2>
+                      <p class="item-note">{item.note}</p>
+                      <p class="item-kind">{kindLabel[item.kind]}</p>
+                      <div class="item-actions" role="group" aria-label="פעולות">
+                        {item.download && (
+                          <a class="btn btn-primary" href={item.download} target="_blank" rel="noopener" download>
+                            הורדה ⬇
+                          </a>
+                        )}
+                        <a
+                          class="btn btn-whatsapp"
+                          href={`https://wa.me/?text=${encodeURIComponent(`${item.title} — ${g.title} — ${site}/chativat-beynayim/reader/${g.slug}/${item.id}/`)}`}
+                          target="_blank"
+                          rel="noopener"
+                          aria-label={`שיתוף ${item.title} ב־WhatsApp`}
+                        >
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                        </a>
+                        <a
+                          class="btn btn-gmail"
+                          href={`mailto:?subject=${encodeURIComponent(item.title)}&body=${encodeURIComponent(`${item.title} — ${site}/chativat-beynayim/reader/${g.slug}/${item.id}/`)}`}
+                          aria-label={`שליחת ${item.title} בדוא״ל`}
+                        >
+                          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="#4285F4" d="M1.636 20.5h3.819V11.73L0 7.64v11.223c0 .904.732 1.636 1.636 1.636Z" />
+                            <path fill="#34A853" d="M18.545 20.5h3.819c.904 0 1.636-.732 1.636-1.636V7.64l-5.455 4.09Z" />
+                            <path fill="#FBBC04" d="M18.545 5.457v6.273L24 7.64V6.275c0-2.023-2.309-3.178-3.927-1.964Z" />
+                            <path fill="#EA4335" d="M5.455 11.73V5.457L12 10.366l6.545-4.909v6.273L12 16.639Z" />
+                            <path fill="#C5221F" d="M0 6.275v1.365l5.455 4.09V5.457L4.073 4.42C2.309 3.098 0 4.252 0 6.275Z" />
+                          </svg>
+                        </a>
+                        <button class="btn btn-ghost" type="button" data-copy={item.url.startsWith('/') ? `${site}${item.url}` : item.url}>
+                          העתקת קישור
+                        </button>
+                        <a
+                          class="btn btn-ghost"
+                          href={item.url}
+                          target={item.url.startsWith('/') ? undefined : '_blank'}
+                          rel="noopener"
+                        >
+                          פתיחה במקור ↗
+                        </a>
+                      </div>
+                      <p class="item-status" data-status role="status" aria-live="polite"></p>
+                    </aside>
+                  </div>
+                </section>
+              ))
+          )}
+        </>
+      ))
+    }
+  </div>
+
+  <!-- סרגל הדפדוף — כפתורי הניווט המיוחדים של החוברת -->
+  <div class="book-nav" role="group" aria-label="דפדוף בחוברת">
+    <button class="bnav bnav-prev" type="button" data-nav-prev>
+      <span class="bnav-arrow" aria-hidden="true">→</span> עמוד קודם
+    </button>
+    <div class="book-meter">
+      <span class="book-counter" data-counter aria-live="polite">עמוד 1 מתוך {total}</span>
+      <span class="book-progress"><span class="book-progress-fill" data-progress></span></span>
+      <div class="book-tabs" role="group" aria-label="קפיצה מהירה">
+        <button class="btab" type="button" data-jump="cover">כריכה</button>
+        {
+          choveret.map((g) => (
+            <button class="btab" type="button" data-jump={`toc-${g.slug}`}>
+              {g.letter}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <button class="bnav bnav-next" type="button" data-nav-next>
+      עמוד הבא <span class="bnav-arrow" aria-hidden="true">←</span>
+    </button>
+  </div>
+</div>
+
+<style>
+  .book-shell { margin-block: 1.2rem 2rem; }
+
+  /* הספר: דף בגודל קבוע, פנים נגלל — כמו חוברת אמיתית */
+  .book {
+    position: relative;
+    perspective: 2600px;
+    block-size: clamp(600px, 76vh, 940px);
+  }
+
+  .bpage {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #fffdf9 0%, #fbf7ee 100%);
+    border: 1px solid var(--line);
+    border-radius: 18px 6px 6px 18px;
+    box-shadow:
+      -1px 0 0 #e7ddc8,
+      -3px 0 0 #f2ead8,
+      -5px 0 0 #e7ddc8,
+      0 26px 60px -28px rgb(31 41 61 / 0.45);
+    padding: clamp(1.1rem, 2.6vw, 2rem);
+    transform-origin: 100% 50%; /* השדרה מימין — ספר עברי */
+    backface-visibility: hidden;
+  }
+
+  .bpage[hidden] { display: none; }
+
+  /* צל נייר בזמן ההיפוך */
+  .bpage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(270deg, rgb(31 25 12 / 0.28), transparent 55%);
+    transition: opacity 200ms linear;
+  }
+
+  .bpage.turn-out {
+    animation: page-out 420ms cubic-bezier(0.55, 0, 0.85, 0.4) forwards;
+    z-index: 3;
+  }
+
+  .bpage.turn-out::after { opacity: 1; }
+
+  .bpage.turn-in {
+    animation: page-in 460ms cubic-bezier(0.16, 0.6, 0.25, 1) backwards;
+    z-index: 2;
+  }
+
+  .bpage.turn-out-back {
+    animation: page-out-back 420ms cubic-bezier(0.55, 0, 0.85, 0.4) forwards;
+    z-index: 3;
+  }
+
+  .bpage.turn-in-back {
+    animation: page-in-back 460ms cubic-bezier(0.16, 0.6, 0.25, 1) backwards;
+    z-index: 2;
+  }
+
+  @keyframes page-out {
+    to { transform: rotateY(88deg); }
+  }
+  @keyframes page-in {
+    from { transform: rotateY(-70deg); }
+    to { transform: rotateY(0); }
+  }
+  @keyframes page-out-back {
+    to { transform: rotateY(-70deg); }
+  }
+  @keyframes page-in-back {
+    from { transform: rotateY(88deg); }
+    to { transform: rotateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bpage.turn-out,
+    .bpage.turn-in,
+    .bpage.turn-out-back,
+    .bpage.turn-in-back {
+      animation: none;
+    }
+  }
+
+  /* ===== כריכה ===== */
+  .bp-cover {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    background:
+      radial-gradient(120% 90% at 50% 0%, rgb(201 155 63 / 0.16), transparent 60%),
+      linear-gradient(180deg, #16273f 0%, #0e1c31 100%);
+    color: #f6efdd;
+    border-color: #24406b;
+  }
+
+  .cover-kicker { margin: 0 0 0.5rem; color: #d4af5c; font-weight: 700; letter-spacing: 0.08em; }
+
+  .cover-title {
+    margin: 0 0 0.4rem;
+    font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+    background: linear-gradient(175deg, #f3d68b 20%, #d4af5c 80%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .cover-sub { margin: 0 0 1.8rem; color: #cfd9ea; font-size: clamp(1rem, 2vw, 1.15rem); }
+
+  .cover-grades {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .cover-grade {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    min-inline-size: 168px;
+    padding: 1.1rem 1.2rem;
+    border-radius: var(--radius-lg);
+    border: 1.5px solid rgb(212 175 92 / 0.55);
+    background: rgb(255 255 255 / 0.05);
+    color: #f6efdd;
+    cursor: pointer;
+    transition: transform 350ms var(--ease-lift), background-color 300ms var(--ease), box-shadow 300ms var(--ease);
+  }
+
+  .cover-grade:hover {
+    transform: translateY(-4px);
+    background: rgb(255 255 255 / 0.1);
+    box-shadow: 0 0 26px rgb(212 175 92 / 0.35);
+  }
+
+  .cover-grade-letter {
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #f3d68b;
+    line-height: 1;
+  }
+
+  .cover-grade-name { font-weight: 800; font-size: 1.05rem; }
+
+  .cover-grade-count { font-size: 0.8rem; color: #cfd9ea; }
+
+  .cover-hint { margin: 2rem 0 0; font-size: 0.88rem; color: #9fb3cd; }
+
+  /* ===== תוכן עניינים ===== */
+  .toc-head { margin-block-end: 1.2rem; }
+  .toc-title { margin: 0 0 0.3rem; font-size: clamp(1.6rem, 3.4vw, 2.2rem); }
+  .toc-intro { margin: 0; color: var(--ink-soft); }
+
+  .toc-chapter {
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1.5px solid color-mix(in srgb, var(--ch-color) 45%, #fff);
+    box-shadow: 0 14px 34px -22px color-mix(in srgb, var(--ch-color) 55%, transparent);
+    background: #fff;
+    margin-block-end: 1.1rem;
+  }
+
+  .toc-chapter-title {
+    margin: 0;
+    padding: 0.65rem 1.1rem;
+    background: linear-gradient(120deg, var(--ch-color), color-mix(in srgb, var(--ch-color) 72%, #000));
+    color: #fff;
+    font-size: clamp(1.15rem, 2.2vw, 1.35rem);
+  }
+
+  .toc-list { list-style: none; margin: 0; padding: 0.35rem 0.45rem 0.45rem; }
+
+  .toc-item {
+    inline-size: 100%;
+    text-align: start;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.55rem 0.7rem;
+    border: 0;
+    background: none;
+    border-radius: var(--radius);
+    color: var(--ink);
+    min-block-size: 50px;
+    cursor: pointer;
+    font: inherit;
+    transition: background-color 250ms var(--ease), transform 250ms var(--ease);
+  }
+
+  .toc-item:hover {
+    background: color-mix(in srgb, var(--ch-color) 8%, #fff);
+    transform: translateX(-4px);
+  }
+
+  .toc-num {
+    flex: none;
+    inline-size: 2em;
+    block-size: 2em;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 2px solid var(--ch-color);
+    color: var(--ch-dark);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9rem;
+  }
+
+  .toc-text { display: flex; flex-direction: column; gap: 0.05rem; min-inline-size: 0; }
+  .toc-item-title { font-weight: 700; }
+  .toc-item-note { font-size: 0.83rem; color: var(--ink-soft); }
+  .toc-arrow { margin-inline-start: auto; color: var(--ch-dark); font-weight: 800; }
+
+  /* ===== עמוד משאב ===== */
+  .bp-item { border-block-start: 6px solid var(--ch-color); }
+
+  /* חצייה מדויקת חצי-חצי (הוראת יניב, 03/08/2026) */
+  .item-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(0.9rem, 2vw, 1.5rem);
+    align-items: start;
+    min-block-size: 100%;
+  }
+
+  .item-frame {
+    position: relative;
+    padding: 10px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgb(250 246 236 / 0.95) 0%, rgb(240 233 216 / 0.78) 45%, rgb(252 249 242 / 0.92) 100%);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.9),
+      inset 0 0 0 2px rgb(176 141 62 / 0.4),
+      0 18px 44px -22px rgb(31 41 61 / 0.4);
+    block-size: clamp(480px, 62vh, 780px);
+  }
+
+  .item-frame iframe {
+    inline-size: 100%;
+    block-size: 100%;
+    border: 0;
+    display: block;
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .item-open-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    text-align: center;
+    block-size: auto;
+    min-block-size: 240px;
+  }
+
+  .item-open-card p { margin: 0; font-weight: 600; color: var(--ink-soft); }
+
+  .item-chapter { margin: 0 0 0.3rem; font-size: 0.8rem; font-weight: 800; color: var(--ch-dark); }
+  .item-title { margin: 0 0 0.4rem; font-size: clamp(1.2rem, 2.4vw, 1.5rem); }
+  .item-note { margin: 0 0 0.6rem; color: var(--ink-soft); line-height: 1.55; }
+
+  .item-kind {
+    display: inline-block;
+    margin: 0 0 0.9rem;
+    padding: 0.15rem 0.65rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--ch-dark);
+    color: var(--ch-dark);
+    font-size: 0.76rem;
+    font-weight: 800;
+  }
+
+  .item-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+
+  .item-status { min-block-size: 1.2em; margin: 0.45rem 0 0; font-size: 0.86rem; font-weight: 600; color: var(--olive); }
+
+  /* ===== סרגל הדפדוף ===== */
+  .book-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-block-start: 1rem;
+  }
+
+  .bnav {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: 54px;
+    padding: 0.7rem 1.4rem;
+    border: 0;
+    border-radius: 999px;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 300ms var(--ease-lift), box-shadow 300ms var(--ease), opacity 200ms var(--ease);
+  }
+
+  .bnav[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+  .bnav-prev {
+    background: linear-gradient(180deg, #8e2740 0%, #7a1f33 100%);
+    box-shadow: 0 8px 20px -10px rgb(122 31 51 / 0.7);
+  }
+
+  .bnav-next {
+    background: linear-gradient(180deg, #0f6b3a 0%, #0b5d31 100%);
+    box-shadow: 0 8px 20px -10px rgb(11 93 49 / 0.7);
+  }
+
+  .bnav:not([disabled]):hover { transform: translateY(-3px); }
+
+  .bnav-arrow { font-size: 1.2em; }
+
+  .book-meter {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    min-inline-size: 0;
+  }
+
+  .book-counter { font-weight: 800; font-size: 0.92rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+  .book-progress {
+    inline-size: min(100%, 340px);
+    block-size: 7px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--gold) 22%, #fff);
+    overflow: hidden;
+  }
+
+  .book-progress-fill {
+    display: block;
+    block-size: 100%;
+    inline-size: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--gold-deep), var(--gold));
+    transition: inline-size 400ms var(--ease);
+  }
+
+  .book-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; }
+
+  .btab {
+    min-block-size: 36px;
+    min-inline-size: 44px;
+    padding: 0.25rem 0.8rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 250ms var(--ease), color 250ms var(--ease);
+  }
+
+  .btab.is-current {
+    background: linear-gradient(180deg, #16273f 0%, #0e1c31 100%);
+    border-color: var(--gold);
+    color: #f3d68b;
+  }
+
+  /* נייד: עמוד המשאב נערם — מידע קודם; סרגל נגיש */
+  @media (max-width: 880px) {
+    .item-grid { grid-template-columns: 1fr; }
+    .item-info { order: -1; }
+    .item-frame { block-size: clamp(420px, 62vh, 680px); }
+    .book { block-size: auto; min-block-size: 74vh; }
+    .bpage { position: relative; inset: auto; max-block-size: none; overflow: visible; }
+    .book-nav { flex-wrap: wrap; justify-content: center; }
+    .bnav { flex: 1; justify-content: center; min-inline-size: 140px; }
+    .book-meter { order: 3; inline-size: 100%; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-book]').forEach((shell) => {
+    const pages = [...shell.querySelectorAll<HTMLElement>('.bpage')];
+    const ids = pages.map((p) => p.dataset.page!);
+    const total = pages.length;
+    const prevBtn = shell.querySelector<HTMLButtonElement>('[data-nav-prev]')!;
+    const nextBtn = shell.querySelector<HTMLButtonElement>('[data-nav-next]')!;
+    const counter = shell.querySelector<HTMLElement>('[data-counter]')!;
+    const progress = shell.querySelector<HTMLElement>('[data-progress]')!;
+    const tabs = [...shell.querySelectorAll<HTMLButtonElement>('.btab')];
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let cur = -1;
+    let busy = false;
+
+    // ההטמעה נטענת רק כשהעמוד נפתח (3.29) — לא 20 iframes בבת אחת
+    const mount = (p: HTMLElement) => {
+      p.querySelectorAll<HTMLIFrameElement>('iframe[data-esrc]').forEach((f) => {
+        f.src = f.dataset.esrc!;
+        f.removeAttribute('data-esrc');
+      });
+    };
+
+    const paint = (i: number) => {
+      counter.textContent = `עמוד ${i + 1} מתוך ${total}`;
+      progress.style.inlineSize = `${((i + 1) / total) * 100}%`;
+      prevBtn.disabled = i === 0;
+      nextBtn.disabled = i === total - 1;
+      const id = ids[i];
+      tabs.forEach((t) => t.classList.toggle('is-current', t.dataset.jump === id || (id.startsWith('toc-') && t.dataset.jump === id) || (id.startsWith('it-') && t.dataset.jump === `toc-${id.split('-')[1]}`)));
+      history.replaceState(null, '', `#${id}`);
+    };
+
+    const show = (i: number, dir: 1 | -1 | 0) => {
+      if (i < 0 || i >= total || i === cur || busy) return;
+      const from = cur >= 0 ? pages[cur] : null;
+      const to = pages[i];
+      cur = i;
+      mount(to);
+      paint(i);
+      if (!from || dir === 0 || reduced) {
+        pages.forEach((p, k) => (p.hidden = k !== i));
+        to.scrollTop = 0;
+        return;
+      }
+      busy = true;
+      to.hidden = false;
+      to.scrollTop = 0;
+      from.classList.add(dir === 1 ? 'turn-out' : 'turn-out-back');
+      to.classList.add(dir === 1 ? 'turn-in' : 'turn-in-back');
+      setTimeout(() => {
+        from.hidden = true;
+        from.classList.remove('turn-out', 'turn-out-back');
+        to.classList.remove('turn-in', 'turn-in-back');
+        busy = false;
+      }, 480);
+    };
+
+    const goto = (id: string) => {
+      const i = ids.indexOf(id);
+      if (i >= 0) show(i, i >= cur ? 1 : -1);
+    };
+
+    prevBtn.addEventListener('click', () => show(cur - 1, -1));
+    nextBtn.addEventListener('click', () => show(cur + 1, 1));
+    shell.querySelectorAll<HTMLButtonElement>('[data-jump]').forEach((b) =>
+      b.addEventListener('click', () => goto(b.dataset.jump!))
+    );
+
+    // מקלדת: בעברית "קדימה" הוא שמאלה
+    addEventListener('keydown', (e) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowLeft') show(cur + 1, 1);
+      if (e.key === 'ArrowRight') show(cur - 1, -1);
+    });
+
+    // החלקת מגע
+    let x0 = 0;
+    shell.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+    shell.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) < 60) return;
+      if (dx < 0) show(cur + 1, 1);
+      else show(cur - 1, -1);
+    }, { passive: true });
+
+    // העתקת קישור בעמודי המשאבים
+    shell.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const status = btn.closest('.item-info')?.querySelector<HTMLElement>('[data-status]');
+        try {
+          await navigator.clipboard.writeText(btn.dataset.copy!);
+          if (status) status.textContent = 'הקישור הועתק';
+        } catch {
+          if (status) status.textContent = 'ההעתקה נכשלה';
+        }
+      });
+    });
+
+    // עמוד פתיחה: hash עמוק גובר על ברירת המחדל של העמוד
+    const fromHash = location.hash.slice(1);
+    const start = ids.includes(fromHash) ? fromHash : shell.dataset.initial ?? 'cover';
+    show(Math.max(0, ids.indexOf(start)), 0);
+    addEventListener('hashchange', () => {
+      const h = location.hash.slice(1);
+      if (ids.includes(h) && h !== ids[cur]) goto(h);
+    });
+  });
+</script>
