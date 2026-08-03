@@ -154,6 +154,34 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     box-shadow: var(--shadow-soft);
   }
 
+  td.is-mark .d-tag { color: var(--ink-soft); }
+
+  .luach-note { color: var(--ink-faint); font-size: 0.85rem; margin-block-start: 1rem; }
+  .luach-note a { text-decoration: underline; }
+
+  /* דיאלוג החופשות */
+  .vac-dialog {
+    inline-size: min(680px, calc(100vw - 2rem));
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.2rem, 3vw, 1.8rem);
+    box-shadow: var(--shadow-lift);
+  }
+
+  .vac-dialog::backdrop { background: rgb(20 18 14 / 0.45); backdrop-filter: blur(3px); }
+
+  .vac-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-block-end: 1rem; }
+  .vac-head h2 { margin: 0; font-size: 1.3rem; }
+  .vac-close { min-block-size: 40px; padding-inline: 0.9rem; }
+
+  .vac-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+
+</style>
+
+<style is:global>
+  /* תאי הלוח, כותרות הימים ופריטי דיאלוג החופשות נבנים ב-JS בזמן ריצה,
+     ולכן style מגודר של Astro לא חל עליהם — החוקים כאן גלובליים במתכוון,
+     מתוחמים ל-.cal ול-.vac-* בלבד (23.2). */
   .cal th {
     background: linear-gradient(180deg, #f7f1e3 0%, #efe6d0 100%);
     padding: 0.7rem 0.4rem;
@@ -194,7 +222,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
   .cal td.is-today .d-greg { color: var(--gold-deep); font-weight: 700; }
 
-  .d-greg {
+  .cal .d-greg {
     display: block;
     font-family: var(--font-display);
     font-weight: 600;
@@ -204,7 +232,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   }
 
   /* האות העברית — קטנה, באדום, בפינה (23.2) */
-  .d-heb {
+  .cal .d-heb {
     position: absolute;
     inset-inline-end: 0.5rem;
     inset-block-start: 0.5rem;
@@ -213,14 +241,14 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     color: #b3262e;
   }
 
-  .d-hm {
+  .cal .d-hm {
     display: block;
     font-size: 0.66rem;
     font-weight: 700;
     color: var(--gold-deep);
   }
 
-  .d-tag {
+  .cal .d-tag {
     display: block;
     margin-block-start: 0.3rem;
     font-size: 0.68rem;
@@ -228,43 +256,21 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     line-height: 1.25;
   }
 
-  .d-reason { display: block; font-size: 0.66rem; font-weight: 600; opacity: 0.85; }
+  .cal .d-reason { display: block; font-size: 0.66rem; font-weight: 600; color: #5c5346; }
 
-  td.is-vac { background: linear-gradient(180deg, #eaf6ef 0%, var(--vacation-soft) 100%); }
-  td.is-vac .d-greg { color: var(--vacation); }
-  td.is-vac .d-tag, td.is-vac .d-reason { color: var(--vacation); }
+  .cal td.is-vac { background: linear-gradient(180deg, #eaf6ef 0%, var(--vacation-soft) 100%); }
+  .cal td.is-vac .d-greg { color: var(--vacation); }
+  .cal td.is-vac .d-tag, td.is-vac .d-reason { color: var(--vacation); }
 
-  td.is-open { background: color-mix(in srgb, var(--gold) 20%, #fff); }
-  td.is-open .d-tag { color: var(--gold-deep); }
+  .cal td.is-open { background: color-mix(in srgb, var(--gold) 20%, #fff); }
+  .cal td.is-open .d-tag { color: var(--gold-deep); }
 
-  td.is-jlm { background: color-mix(in srgb, var(--sky) 14%, #fff); }
-  td.is-jlm .d-tag { color: #2d5a7a; }
+  .cal td.is-jlm { background: color-mix(in srgb, var(--sky) 14%, #fff); }
+  .cal td.is-jlm .d-tag { color: #2d5a7a; }
 
-  td.is-exam { background: color-mix(in srgb, var(--terracotta) 13%, #fff); }
-  td.is-exam .d-tag { color: #8a3f28; }
-  td.is-exam .d-greg { color: #8a3f28; }
-
-  td.is-mark .d-tag { color: var(--ink-soft); }
-
-  .luach-note { color: var(--ink-faint); font-size: 0.85rem; margin-block-start: 1rem; }
-  .luach-note a { text-decoration: underline; }
-
-  /* דיאלוג החופשות */
-  .vac-dialog {
-    inline-size: min(680px, calc(100vw - 2rem));
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    padding: clamp(1.2rem, 3vw, 1.8rem);
-    box-shadow: var(--shadow-lift);
-  }
-
-  .vac-dialog::backdrop { background: rgb(20 18 14 / 0.45); backdrop-filter: blur(3px); }
-
-  .vac-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-block-end: 1rem; }
-  .vac-head h2 { margin: 0; font-size: 1.3rem; }
-  .vac-close { min-block-size: 40px; padding-inline: 0.9rem; }
-
-  .vac-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+  .cal td.is-exam { background: color-mix(in srgb, var(--terracotta) 13%, #fff); }
+  .cal td.is-exam .d-tag { color: #8a3f28; }
+  .cal td.is-exam .d-greg { color: #8a3f28; }
 
   .vac-list li {
     border-inline-start: 4px solid var(--vacation);
@@ -278,9 +284,9 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   .vac-resume { display: block; font-size: 0.86rem; color: var(--ink-soft); margin-block-start: 0.15rem; }
 
   @media (max-width: 700px) {
-    .cal td { block-size: 84px; padding: 0.3rem 0.35rem; }
-    .d-tag { font-size: 0.6rem; }
-    .d-reason { display: none; }
+    .cal td { height: 84px; padding: 0.3rem 0.35rem; }
+    .cal .d-tag { font-size: 0.6rem; }
+    .cal .d-reason { display: none; }
   }
 </style>
 
