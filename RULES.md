@@ -678,7 +678,7 @@
 | NEWS-004 | הנחיות לכתיבת מבחני בגרות | `https://drive.google.com/file/d/19edSXZCMSSnFVFvD6B4I-VKRqyGVNwcK/view` | לבדוק רלוונטיות |
 | NEWS-005 | הנחיות מותאמות לחטיבה | `https://www.canva.com/design/DAGgNE8sRTg/a5P1Vsf4ClH1fv2S1YvwGA/view` | מקור חט״ב |
 | NEWS-006 | יום הזיכרון לשואה ולגבורה | `https://drive.google.com/file/d/1OF2zYl9y6tS1tdM-z5Nq_uv2ocKoDan1/view` | חומר תקופתי |
-| NEWS-007 | היגדים לתעודה | `https://docs.google.com/document/d/1pumOgbN_yjA2eLzkmOGNgHponWeqWjsX_x29zl9gq4/edit` | לבדוק ולמפות |
+| NEWS-007 | היגדים לתעודה | `https://docs.google.com/document/d/1pumOgbN_yjA2eLz7kmOGNgHponWeqWjsX_x29zl9gq4/edit` | לבדוק ולמפות; המזהה תוקן ב־03/08/2026 לפי הכרייה (חסרה הספרה 7) |
 | NEWS-008 | זוכי המיזם | `https://www.canva.com/design/DAGovHDha5Y/i7UHi1dRl8r2_tMVbcwACw/view` | לבדוק פרטיות |
 | NEWS-009 | כל ההגשות למיזם | `https://www.canva.com/design/DAGnPGxY1s4/8m_6u9es3t6JYNhidJuwcg/view` | לבדוק פרטיות והרשאות |
 | NEWS-010 | מבחן תנופה ט׳ | `https://rama.edu.gov.il/assessments/tnufa-math-9-2026` | מקור רשמי; לבדוק עדכון תשפ״ז |
