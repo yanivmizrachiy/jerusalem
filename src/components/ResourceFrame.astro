@@ -20,12 +20,6 @@ interface Props {
   accent?: string;
   /** גובה מותאם להטמעה גדולה ודומיננטית */
   tall?: boolean;
-  /**
-   * מצב תצוגה מקדימה (8.8): כאשר המקור חוסם הטמעה (frame-ancestors),
-   * מוצג צילום אמיתי של המשאב עם פתיחה במקור — לא מסגרת שבורה.
-   */
-  previewImage?: string;
-  previewNote?: string;
 }
 
 const {
@@ -40,8 +34,6 @@ const {
   usage,
   accent = 'var(--gold)',
   tall = false,
-  previewImage,
-  previewNote,
 } = Astro.props;
 
 const chips = [
@@ -62,22 +54,7 @@ const chips = [
 >
   <div class="rframe-grid">
     <div class="rframe-embed">
-      {
-        previewImage ? (
-          <a
-            class="rframe-preview"
-            href={sourceUrl}
-            target="_blank"
-            rel="noopener"
-            aria-label={`פתיחת ${title} בסביבה המלאה`}
-          >
-            <img src={previewImage} alt={`תצוגה מקדימה: ${title}`} loading="lazy" />
-            <span class="rframe-preview-cta">
-              <span class="btn btn-primary">כניסה לסביבה המלאה ↗</span>
-            </span>
-          </a>
-        ) : (
-          <div class="rframe-shell" data-shell tabindex="-1">
+      <div class="rframe-shell" data-shell tabindex="-1">
             <div class="rframe-skeleton" data-skeleton aria-hidden="true">
               <span class="sk-pulse" />
               <span class="sk-label">טוען את המשאב…</span>
@@ -91,20 +68,12 @@ const chips = [
               data-frame
             />
           </div>
-        )
-      }
-      {
-        previewImage ? (
-          previewNote && <p class="rframe-fallback">{previewNote}</p>
-        ) : (
-          <p class="rframe-fallback" data-fallback hidden>
+      <p class="rframe-fallback" data-fallback hidden>
             אם התצוגה אינה נטענת כאן — ייתכן שהמקור חוסם הטמעה.
             <a href={sourceUrl} target="_blank" rel="noopener">
               פתיחת המשאב במקור ↗
             </a>
           </p>
-        )
-      }
     </div>
 
     <div class="rframe-info">
@@ -172,43 +141,6 @@ const chips = [
 
   .rframe-shell:fullscreen { block-size: 100%; background: #fff; }
 
-  /* תצוגה מקדימה אמיתית כשהמקור חוסם הטמעה (8.8) */
-  .rframe-preview {
-    position: relative;
-    display: block;
-    block-size: clamp(430px, 58vh, 620px);
-    overflow: hidden;
-    background: var(--paper-soft);
-  }
-
-  .rframe.is-tall .rframe-preview { block-size: clamp(500px, 68vh, 760px); }
-
-  .rframe-preview img {
-    inline-size: 100%;
-    block-size: 100%;
-    object-fit: cover;
-    object-position: top center;
-    transition: scale 900ms var(--ease);
-  }
-
-  .rframe-preview:hover img { scale: 1.03; }
-
-  .rframe-preview-cta {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: end center;
-    padding-block-end: 2rem;
-    background: linear-gradient(180deg, transparent 55%, rgb(20 18 14 / 0.45) 100%);
-    opacity: 0.96;
-    transition: opacity 300ms var(--ease);
-  }
-
-  .rframe-preview:hover .rframe-preview-cta { opacity: 1; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .rframe-preview img, .rframe-preview:hover img { scale: 1; }
-  }
 
   .rframe-shell iframe {
     inline-size: 100%;

@@ -94,7 +94,7 @@ const gates = [
     </section>
 
     <section class="section" id="hamchashot-section">
-      <div class="container">
+      <div class="container container-wide">
         <div class="section-head" data-reveal>
           <p class="eyebrow">המשאב המרכזי</p>
           <h2>אתר ההמחשות של איילת קריספין</h2>
@@ -166,14 +166,20 @@ const gates = [
 
   .gate-card:hover .gate-cta { translate: -6px 0; }
 
-  /* הדפדפן הפנימי של ההמחשות (9.1) */
+  /* מיכל רחב במיוחד להטמעה הדומיננטית */
+  .container-wide { width: min(1520px, 100% - 2 * clamp(1rem, 3vw, 2rem)); }
+
+  /* הדפדפן הפנימי של ההמחשות (9.1) — מסגרת כחול כהה בולטת */
   .mam-frame {
     background: #fff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-soft);
+    border: 10px solid #0e1c31;
+    outline: 1px solid #24406b;
+    border-radius: calc(var(--radius-lg) + 6px);
+    box-shadow:
+      0 0 0 1px rgb(126 210 255 / 0.18),
+      0 34px 80px -30px rgb(11 21 36 / 0.55);
     overflow: hidden;
-    block-size: clamp(560px, 76vh, 860px);
+    block-size: clamp(620px, 86vh, 1020px);
   }
 
   .mam-frame iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; }

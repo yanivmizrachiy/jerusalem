@@ -47,6 +47,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
       <span class="lg lg-vac">חופשה במוסדות החינוך</span>
       <span class="lg lg-open">פתיחת שנת הלימודים</span>
       <span class="lg lg-jlm">יום ירושלמי</span>
+      <span class="lg lg-exam">מבחן ארצי</span>
       <span class="lg lg-mark">ציון חינוכי</span>
       <button class="btn btn-primary" id="open-vacations" type="button">לוח חופשות</button>
     </div>
@@ -134,6 +135,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   .lg-vac { background: var(--vacation-soft); border-color: var(--vacation); color: var(--vacation); }
   .lg-open { background: color-mix(in srgb, var(--gold) 18%, #fff); border-color: var(--gold-deep); color: var(--gold-deep); }
   .lg-jlm { background: color-mix(in srgb, var(--sky) 16%, #fff); border-color: var(--sky); color: #2d5a7a; }
+  .lg-exam { background: color-mix(in srgb, var(--terracotta) 16%, #fff); border-color: var(--terracotta); color: var(--terracotta); }
   .lg-mark { color: var(--ink-soft); }
 
   #open-vacations { margin-inline-start: auto; }
@@ -224,6 +226,10 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
   td.is-jlm { background: color-mix(in srgb, var(--sky) 14%, #fff); }
   td.is-jlm .d-tag { color: #2d5a7a; }
+
+  td.is-exam { background: color-mix(in srgb, var(--terracotta) 13%, #fff); }
+  td.is-exam .d-tag { color: var(--terracotta); }
+  td.is-exam .d-greg { color: var(--terracotta); }
 
   td.is-mark .d-tag { color: var(--ink-soft); }
 
@@ -343,7 +349,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
   const specials = new Map<number, { cls: string; tag: string; reason?: string }>();
   specials.set(Date.UTC(2026, 8, 1), { cls: 'is-open', tag: 'פתיחת שנת הלימודים', reason: 'תשפ״ז — בהצלחה!' });
-  specials.set(Date.UTC(2026, 10, 25), { cls: 'is-mark', tag: 'מבחן תנופה ט׳' });
+  specials.set(Date.UTC(2026, 10, 25), { cls: 'is-exam', tag: 'מבחן תנופה — כיתות ט׳', reason: 'מתוך חוזר מפמ״ר תשפ״ז' });
   specials.set(hebToTime('ניסן', 27) ?? 0, { cls: 'is-mark', tag: 'יום הזיכרון לשואה ולגבורה' });
   specials.set(atzmaut - DAY, { cls: 'is-mark', tag: 'יום הזיכרון' });
   specials.set(hebToTime('אייר', 28) ?? 0, { cls: 'is-jlm', tag: 'יום ירושלים', reason: 'החג של העיר שלנו' });

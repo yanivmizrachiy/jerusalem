@@ -95,6 +95,23 @@ body {
   overflow-x: clip;
 }
 
+/* פסי גלילה זהב, רחבים ויוקרתיים — בכל האתר (5.23, הוראת יניב 03/08/2026) */
+html {
+  scrollbar-color: var(--gold) var(--paper-soft);
+  scrollbar-width: auto;
+}
+
+::-webkit-scrollbar { inline-size: 15px; block-size: 15px; }
+::-webkit-scrollbar-track { background: var(--paper-soft); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d4af5c 0%, var(--gold) 45%, var(--gold-deep) 100%);
+  border-radius: 10px;
+  border: 3px solid var(--paper-soft);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-deep) 100%);
+}
+
 /* עיגון גלילה: כותרות ועוגנים לא נבלעים מתחת ל־header הדביק */
 [id] { scroll-margin-block-start: calc(var(--header-h) + 1.2rem); }
 
