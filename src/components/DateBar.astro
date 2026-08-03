@@ -1,22 +1,28 @@
 ---
 /**
- * פס התאריך (RULES 7.22): שעון דיגיטלי יוקרתי בכחול־אור —
- * מימין התאריך העברי המלא, משמאל הלועזי בסגנון 23/5/26.
- * מחושב לפי שעון ירושלים ומתעדכן אוטומטית מדי דקה (חוצה חצות אמיתי).
+ * הפס העליון (RULES 7.22, הוראת יניב 03/08/2026): בראש כל עמוד, העליון
+ * ביותר — הלוגו וכיתוב המחוז על המלבן עצמו, לצד התאריך העברי (גימטריה)
+ * והלועזי בכחול־אור זוהר. מחושב לפי שעון ירושלים ומתעדכן בחציית חצות.
  */
 ---
 
-<section class="datebar" aria-label="התאריך היום">
+<section class="datebar" aria-label="מחוז ירושלים — התאריך היום">
   <div class="container datebar-inner">
-    <p class="date-he" id="date-he" dir="rtl"></p>
-    <p class="date-greg" id="date-greg" dir="ltr"></p>
+    <a class="datebar-brand" href="/" aria-label="מחוז ירושלים — לעמוד הראשי">
+      <img id="site-logo" src="/logo.png" alt="" width="44" height="44" loading="eager" fetchpriority="high" />
+      <span class="datebar-title">מחוז ירושלים <small>הדרכת מתמטיקה</small></span>
+    </a>
+    <div class="datebar-dates">
+      <p class="date-he" id="date-he" dir="rtl"></p>
+      <p class="date-greg" id="date-greg" dir="ltr"></p>
+    </div>
   </div>
 </section>
 
 <style>
   .datebar {
     background: linear-gradient(180deg, #0b1524 0%, #0e1c31 100%);
-    border-block: 1px solid #17293f;
+    border-block-end: 1px solid #17293f;
   }
 
   .datebar-inner {
@@ -24,9 +30,48 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.4rem 1.4rem;
-    min-block-size: 62px;
-    padding-block: 0.7rem;
+    gap: 0.5rem 1.4rem;
+    min-block-size: 64px;
+    padding-block: 0.55rem;
+  }
+
+  .datebar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: #eaf4ff;
+  }
+
+  .datebar-brand img {
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgb(126 210 255 / 0.35), 0 2px 12px rgb(0 0 0 / 0.45);
+  }
+
+  .datebar-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.05;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .datebar-title small {
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: #9fc6e8;
+    letter-spacing: 0.08em;
+  }
+
+  .datebar-dates {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 1.3rem;
+    justify-content: flex-end;
   }
 
   .date-he,
@@ -34,7 +79,7 @@
     margin: 0;
     color: #7ed2ff;
     font-weight: 600;
-    font-size: clamp(1rem, 2.3vw, 1.3rem);
+    font-size: clamp(0.92rem, 2vw, 1.15rem);
     letter-spacing: 0.03em;
     font-variant-numeric: tabular-nums;
     text-shadow:
@@ -43,8 +88,9 @@
       0 0 34px rgb(64 156 255 / 0.35);
   }
 
-  @media (max-width: 560px) {
+  @media (max-width: 640px) {
     .datebar-inner { justify-content: center; text-align: center; }
+    .datebar-dates { justify-content: center; }
   }
 </style>
 
@@ -54,7 +100,6 @@
 
   const TZ = 'Asia/Jerusalem';
 
-  // גימטריה מדויקת (Intl אינו תומך בספרות עבריות אלגוריתמיות): כ׳, ט״ו, תשפ״ו
   const GEMATRIA: readonly (readonly [number, string])[] = [
     [400, 'ת'], [300, 'ש'], [200, 'ר'], [100, 'ק'], [90, 'צ'], [80, 'פ'],
     [70, 'ע'], [60, 'ס'], [50, 'נ'], [40, 'מ'], [30, 'ל'], [20, 'כ'],
@@ -77,44 +122,23 @@
 
   const render = () => {
     const now = new Date();
-
-    // שם היום והחודש בעברית מ־Intl; היום והשנה כמספרים → גימטריה
     const heNames = Object.fromEntries(
-      new Intl.DateTimeFormat('he-u-ca-hebrew', {
-        timeZone: TZ,
-        weekday: 'long',
-        month: 'long',
-      })
-        .formatToParts(now)
-        .map((p) => [p.type, p.value])
+      new Intl.DateTimeFormat('he-u-ca-hebrew', { timeZone: TZ, weekday: 'long', month: 'long' })
+        .formatToParts(now).map((p) => [p.type, p.value])
     );
     const heNums = Object.fromEntries(
-      new Intl.DateTimeFormat('en-u-ca-hebrew', {
-        timeZone: TZ,
-        day: 'numeric',
-        year: 'numeric',
-      })
-        .formatToParts(now)
-        .map((p) => [p.type, p.value])
+      new Intl.DateTimeFormat('en-u-ca-hebrew', { timeZone: TZ, day: 'numeric', year: 'numeric' })
+        .formatToParts(now).map((p) => [p.type, p.value])
     );
-    const day = toGematria(Number(heNums.day));
-    const year = toGematria(Number(heNums.year) % 1000);
-    heEl.textContent = `היום ${heNames.weekday}, ${day} ב${heNames.month} ה${year}`;
+    heEl.textContent = `היום ${heNames.weekday}, ${toGematria(Number(heNums.day))} ב${heNames.month} ה${toGematria(Number(heNums.year) % 1000)}`;
 
-    // לועזי: "23/5/26"
     const g = Object.fromEntries(
-      new Intl.DateTimeFormat('en-GB', {
-        timeZone: TZ,
-        day: 'numeric',
-        month: 'numeric',
-        year: '2-digit',
-      })
-        .formatToParts(now)
-        .map((p) => [p.type, p.value])
+      new Intl.DateTimeFormat('en-GB', { timeZone: TZ, day: 'numeric', month: 'numeric', year: '2-digit' })
+        .formatToParts(now).map((p) => [p.type, p.value])
     );
-    gregEl.textContent = `${Number(g.day)}/${Number(g.month)}/${g.year}`; // בלי אפסים מובילים — 23/5/26
+    gregEl.textContent = `${Number(g.day)}/${Number(g.month)}/${g.year}`;
   };
 
   render();
-  setInterval(render, 60_000); // מתעדכן אוטומטית — חוצה חצות בזמן אמת
+  setInterval(render, 60_000);
 </script>

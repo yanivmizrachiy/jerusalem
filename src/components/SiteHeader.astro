@@ -11,6 +11,7 @@ const links = [
   { href: '/chativa-elyona/', label: 'חטיבה עליונה' },
   { href: '/hozer-mafmar/', label: 'חוזר מפמ״ר' },
   { href: '/hodaot/', label: 'הודעות' },
+  { href: '/luach/', label: 'לוח שנה' },
   { href: '/#hamchashot', label: 'אתר ההמחשות' },
   { href: '/#tzevet', label: 'צוות ההדרכה' },
 ];
@@ -21,10 +22,6 @@ const isActive = (href: string) =>
 
 <header class:list={['site-header', { 'is-transparent': transparent }]} id="site-header">
   <div class="container header-inner">
-    <a class="brand" href="/" aria-label="מחוז ירושלים — לעמוד הראשי">
-      <img class="brand-mark" src="/logo.png" alt="" width="40" height="40" loading="eager" />
-      <span class="brand-text">מחוז ירושלים <small>הדרכת מתמטיקה</small></span>
-    </a>
     <nav aria-label="ניווט ראשי">
       <ul class="nav-list">
         {
@@ -65,41 +62,10 @@ const isActive = (href: string) =>
   .header-inner {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 1rem;
     flex-wrap: wrap;
-    padding-block: 0.6rem;
-  }
-
-  .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.7rem;
-    color: var(--ink);
-  }
-
-  .brand-mark {
-    inline-size: 40px;
-    block-size: 40px;
-    border-radius: 50%;
-    box-shadow: 0 2px 10px -3px rgb(42 37 32 / 0.35);
-  }
-
-  .brand-text {
-    font-family: var(--font-display);
-    font-size: 1.25rem;
-    font-weight: 700;
-    line-height: 1.1;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .brand-text small {
-    font-family: var(--font-body);
-    font-size: 0.72rem;
-    font-weight: 500;
-    color: var(--ink-faint);
-    letter-spacing: 0.06em;
+    padding-block: 0.4rem;
   }
 
   .nav-list {
@@ -141,7 +107,6 @@ const isActive = (href: string) =>
   }
 
   @media (max-width: 640px) {
-    .brand-text { font-size: 1.05rem; }
     .nav-list a { padding-inline: 0.7rem; font-size: 0.92rem; }
   }
 </style>

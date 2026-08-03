@@ -23,6 +23,8 @@ const routes = [
   '/chativa-elyona/homrei-horaa/',
   '/pituach-miktzoi/',
   '/pituach-miktzoi/ai-geometria/',
+  '/hodaot/',
+  '/luach/',
 ];
 
 for (const route of routes) {

@@ -1,9 +1,11 @@
 ---
 /**
  * סרטון הפתיחה (RULES §6): ניסיון autoplay עם שמע, ריצה אחת, ללא loop,
- * ובסיום — מעבר חלק לרקע בהיר עם מלל (6.5–6.6). שכבת הפעלה בעברית אם
- * הדפדפן חוסם (6.7). משתמשי reduced-motion מקבלים את המצב הבהיר מיד.
+ * ובסיום — מעבר חלק לרקע בהיר שעליו מוצג צוות ההדרכה המחוזי (6.5, הוראת
+ * יניב 03/08/2026). שכבת הפעלה בעברית אם הדפדפן חוסם (6.7); רגישי תנועה
+ * מקבלים את מצב הצוות מיד.
  */
+import { team } from '../data/team';
 ---
 
 <section class="hero" aria-label="פתיחת האתר">
@@ -27,17 +29,36 @@
 
     <div class="hero-after" id="hero-after">
       <div class="hero-after-inner">
-        <p class="hero-kicker">מרכז ההדרכה המחוזי למתמטיקה</p>
-        <h1>מחוז ירושלים</h1>
-        <p class="hero-sub">
-          הבית של קהילת המתמטיקה — חומרי הוראה, סביבות המחשה, הודעות וצוות ההדרכה,
-          לחטיבות הביניים ולחטיבה העליונה.
-        </p>
-        <div class="hero-ctas">
-          <a class="btn btn-primary" href="/chativat-beynayim/">חטיבת ביניים</a>
-          <a class="btn btn-ghost" href="#hamchashot">אתר ההמחשות</a>
-          <a class="btn btn-ghost" href="#tzevet">צוות ההדרכה</a>
-        </div>
+        <p class="hero-kicker">מחוז ירושלים · הדרכת מתמטיקה</p>
+        <h1>צוות ההדרכה המחוזי</h1>
+        <ul class="hero-team">
+          {
+            team.map((m) => (
+              <li class:list={['hero-member', { 'is-featured': m.featured }]}>
+                <a href="#tzevet" aria-label={`${m.name} — לפרטי הקשר המלאים`}>
+                  {m.photo ? (
+                    <img
+                      class="hero-avatar"
+                      style={`--accent:${m.accent}`}
+                      src={m.photo}
+                      alt={`תמונתה של ${m.name}`}
+                      width="104"
+                      height="104"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span class="hero-avatar hero-mono" style={`--accent:${m.accent}`} aria-hidden="true">
+                      {m.initial}
+                    </span>
+                  )}
+                  <strong class="hero-name">{m.name}</strong>
+                  <span class="hero-role">{m.role}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <a class="btn btn-primary" href="#tzevet">לפרטי הקשר המלאים ←</a>
       </div>
     </div>
   </div>
@@ -107,7 +128,67 @@
     transition-delay: 200ms, 0s;
   }
 
-  .hero-after-inner { max-width: 720px; }
+  .hero-after-inner { max-width: 860px; }
+
+  /* צוות ההדרכה על המסך הבהיר (6.5) */
+  .hero-team {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: clamp(0.9rem, 3vw, 2.2rem);
+    list-style: none;
+    margin: clamp(1rem, 3vh, 1.8rem) 0;
+    padding: 0;
+  }
+
+  .hero-member a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--ink);
+    max-inline-size: 150px;
+    text-align: center;
+  }
+
+  .hero-avatar {
+    inline-size: clamp(68px, 9vw, 96px);
+    block-size: clamp(68px, 9vw, 96px);
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top center;
+    border: 3px solid transparent;
+    background:
+      linear-gradient(var(--paper), var(--paper)) padding-box,
+      conic-gradient(from 200deg, var(--accent), color-mix(in srgb, var(--accent) 30%, #fff), var(--accent)) border-box;
+    box-shadow: var(--shadow-soft);
+    transition: transform 400ms var(--ease-lift);
+  }
+
+  .hero-member a:hover .hero-avatar { transform: translateY(-4px) scale(1.04); }
+
+  .hero-member.is-featured .hero-avatar {
+    inline-size: clamp(84px, 11vw, 118px);
+    block-size: clamp(84px, 11vw, 118px);
+  }
+
+  .hero-mono {
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .hero-name { font-size: clamp(0.92rem, 1.6vw, 1.05rem); font-weight: 700; }
+
+  .hero-role {
+    font-size: clamp(0.72rem, 1.3vw, 0.8rem);
+    color: var(--ink-soft);
+    line-height: 1.35;
+  }
 
   .hero-kicker {
     color: var(--gold-deep);

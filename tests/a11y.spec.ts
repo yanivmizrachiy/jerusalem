@@ -8,6 +8,7 @@ const pages = [
   '/chativat-beynayim/',
   '/chativat-beynayim/hafifat-meshulashim/',
   '/chativa-elyona/bchinot/',
+  '/luach/',
 ];
 
 for (const route of pages) {

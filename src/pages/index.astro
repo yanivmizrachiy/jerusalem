@@ -1,9 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import HeroVideo from '../components/HeroVideo.astro';
-import DateBar from '../components/DateBar.astro';
+import SplashIntro from '../components/SplashIntro.astro';
 import NewsRail from '../components/NewsRail.astro';
-import ResourceFrame from '../components/ResourceFrame.astro';
 import TeamSection from '../components/TeamSection.astro';
 import { hamchashot } from '../data/resources';
 
@@ -59,9 +58,8 @@ const gates = [
   transparentHeader
 >
   <link slot="head" rel="preload" as="image" href="/media/hero-poster-880.avif" fetchpriority="high" />
+  <SplashIntro />
   <HeroVideo />
-
-  <DateBar />
 
   <div class="rail-slot">
     <div class="container">
@@ -106,19 +104,23 @@ const gates = [
           </p>
         </div>
         <div data-reveal>
-          <ResourceFrame
-            id="hamchashot"
-            title={hamchashot.title}
-            sourceUrl={hamchashot.url}
-            audience="מורות ומורים"
-            topic="המחשות למושגי המתמטיקה"
-            purpose="סביבת ההמחשות המחוזית: הדגמות חזותיות ואינטראקטיביות שהופכות מושגים מופשטים למוחשיים — להקרנה בכיתה ולהעמקה אישית."
-            usage="לחיצה על התצוגה נכנסת לסביבה המלאה בכרטיסייה חדשה — עם כל ההמחשות לפי כיתה ותחום."
-            accent="var(--gold)"
-            tall
-            previewImage="/media/hamchashot-preview.jpg"
-            previewNote="אתר ההמחשות מגן על תוכנו מפני הטמעה — לכן מוצג כאן צילום אמיתי ועדכני שלו, והכניסה נפתחת בסביבה המקורית."
-          />
+          <div class="mam-frame card-accent" style="--card-accent:var(--gold)" id="hamchashot">
+            <iframe
+              src="/api/mam/"
+              title="אתר ההמחשות של איילת קריספין — גלישה חיה בתוך האתר"
+              loading="lazy"
+              allow="fullscreen"
+            ></iframe>
+          </div>
+          <div class="mam-actions">
+            <button class="mam-copy" type="button" id="mam-copy" aria-label="העתקת קישור לאתר ההמחשות">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+                <path d="M10.5 13.5a4.2 4.2 0 0 0 6 0l3-3a4.24 4.24 0 0 0-6-6l-1.6 1.6" />
+                <path d="M13.5 10.5a4.2 4.2 0 0 0-6 0l-3 3a4.24 4.24 0 0 0 6 6l1.6-1.6" />
+              </svg>
+            </button>
+            <span class="mam-note" id="mam-note" role="status">העתקת קישור לאתר ההמחשות</span>
+          </div>
         </div>
       </div>
     </section>
@@ -163,4 +165,55 @@ const gates = [
   }
 
   .gate-card:hover .gate-cta { translate: -6px 0; }
+
+  /* הדפדפן הפנימי של ההמחשות (9.1) */
+  .mam-frame {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    block-size: clamp(560px, 76vh, 860px);
+  }
+
+  .mam-frame iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; }
+
+  .mam-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-block-start: 0.9rem;
+  }
+
+  .mam-copy {
+    inline-size: 46px;
+    block-size: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--gold-deep);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: var(--shadow-soft);
+    transition: transform 400ms var(--ease-lift), box-shadow 300ms var(--ease), color 300ms var(--ease);
+  }
+
+  .mam-copy:hover { transform: translateY(-3px) scale(1.05); color: var(--ink); box-shadow: var(--shadow-lift); }
+
+  .mam-note { color: var(--ink-soft); font-size: 0.92rem; font-weight: 600; }
 </style>
+
+<script>
+  import { hamchashot } from '../data/resources';
+  const btn = document.getElementById('mam-copy');
+  const note = document.getElementById('mam-note');
+  btn?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(hamchashot.url);
+      note!.textContent = 'הקישור הועתק';
+    } catch {
+      note!.textContent = 'ההעתקה נכשלה';
+    }
+  });
+</script>

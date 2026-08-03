@@ -7,6 +7,7 @@ import '@fontsource/frank-ruhl-libre/700.css';
 import heeboHebrewUrl from '@fontsource-variable/heebo/files/heebo-hebrew-wght-normal.woff2?url';
 import frankHebrew500Url from '@fontsource/frank-ruhl-libre/files/frank-ruhl-libre-hebrew-500-normal.woff2?url';
 import '../styles/global.css';
+import DateBar from '../components/DateBar.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 
@@ -45,6 +46,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
   </head>
   <body>
     <a class="skip-link" href="#main">דילוג לתוכן המרכזי</a>
+    <DateBar />
     <SiteHeader transparent={transparentHeader} />
     <main id="main">
       <slot />

@@ -15,7 +15,8 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'npm run preview -- --host 127.0.0.1 --port 4321',
+    // אדפטר Vercel אינו תומך ב-astro preview — מגישים את הפלט הסטטי ישירות
+    command: 'npx --yes serve .vercel/output/static -l 4321 -n',
     url: 'http://127.0.0.1:4321',
     reuseExistingServer: true,
     timeout: 60_000,

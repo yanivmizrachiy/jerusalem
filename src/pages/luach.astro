@@ -1,0 +1,417 @@
+---
+/**
+ * לוח שנה ירושלמי (RULES §23, הוראת יניב 03/08/2026):
+ * לוח חודשי לתשפ״ז — תאריך עברי (גימטריה) ולועזי בכל תא, חופשות מוסדות
+ * החינוך בירוק יוקרתי עם סיבת החופשה, פתיחת שנה״ל בזהב, וימים ירושלמיים
+ * מיוחדים (שושן פורים, יום ירושלים). כל התאריכים מחושבים במדויק בלוח
+ * העברי דרך Intl — אפס ניחושים. כפתור "לוח חופשות" פותח פירוט מלא:
+ * מיום… עד יום… והלימודים יתחדשו ביום…
+ */
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+
+<Base
+  title="לוח שנה ירושלמי — מחוז ירושלים"
+  description="לוח השנה של שנת הלימודים תשפ״ז: חופשות מוסדות החינוך, פתיחת השנה, מבחן תנופה, שושן פורים ויום ירושלים — עברי ולועזי, מחושב במדויק."
+>
+  <div class="container page">
+    <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'לוח שנה ירושלמי' }]} />
+
+    <header class="luach-head" data-reveal>
+      <svg class="tower" viewBox="0 0 64 84" aria-hidden="true">
+        <g fill="none" stroke="var(--gold-deep)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 80h52" />
+          <path d="M12 80V46h40v34" />
+          <path d="M12 46l4-6h32l4 6" />
+          <path d="M26 40V16a6 6 0 0 1 12 0v24" />
+          <path d="M24 16h4v-6h3v6h4v-6h3v6h4" />
+          <path d="M20 58h6v10h-6zM38 58h6v10h-6z" />
+          <circle cx="32" cy="52" r="3.2" />
+        </g>
+      </svg>
+      <div>
+        <h1>לוח שנה ירושלמי</h1>
+        <p class="luach-sub">מה צפוי? · שנת הלימודים תשפ״ז</p>
+      </div>
+    </header>
+
+    <div class="luach-toolbar" data-reveal>
+      <button class="btn btn-ghost" id="prev-month" type="button">→ חודש קודם</button>
+      <h2 class="month-title" id="month-title" aria-live="polite"></h2>
+      <button class="btn btn-ghost" id="next-month" type="button">חודש הבא ←</button>
+    </div>
+
+    <div class="luach-legend" data-reveal>
+      <span class="lg lg-vac">חופשה במוסדות החינוך</span>
+      <span class="lg lg-open">פתיחת שנת הלימודים</span>
+      <span class="lg lg-jlm">יום ירושלמי</span>
+      <span class="lg lg-mark">ציון חינוכי</span>
+      <button class="btn btn-primary" id="open-vacations" type="button">לוח חופשות</button>
+    </div>
+
+    <div class="cal-wrap" data-reveal tabindex="0" role="region" aria-labelledby="month-title">
+      <table class="cal" aria-labelledby="month-title">
+        <thead>
+          <tr id="cal-head"></tr>
+        </thead>
+        <tbody id="cal-body"></tbody>
+      </table>
+    </div>
+
+    <p class="luach-note" data-reveal>
+      ימי החופשה מוצגים לפי ימי החג הקבועים בלוח העברי; טווחי חופשה מורחבים יעודכנו עם
+      פרסום לוח שנת הלימודים בחוזר מנכ״ל לתשפ״ז.
+    </p>
+
+    <dialog id="vac-dialog" class="vac-dialog" aria-labelledby="vac-title">
+      <div class="vac-head">
+        <h2 id="vac-title">לוח החופשות — תשפ״ז</h2>
+        <button class="btn btn-ghost vac-close" id="vac-close" type="button" aria-label="סגירה">✕</button>
+      </div>
+      <ol id="vac-list" class="vac-list"></ol>
+    </dialog>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+
+  .luach-head {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    margin-block: 1.6rem 1.8rem;
+  }
+
+  .tower { inline-size: clamp(52px, 7vw, 72px); flex: none; filter: drop-shadow(0 6px 14px rgb(176 141 62 / 0.35)); }
+
+  .luach-head h1 { margin: 0; }
+
+  .luach-sub { margin: 0.2rem 0 0; color: var(--gold-deep); font-weight: 700; }
+
+  .luach-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-block-end: 1rem;
+  }
+
+  .month-title { margin: 0; font-size: clamp(1.2rem, 3vw, 1.7rem); text-align: center; flex: 1; }
+
+  .luach-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-block-end: 1.2rem;
+  }
+
+  .lg {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+  }
+
+  .lg-vac { background: var(--vacation-soft); border-color: var(--vacation); color: var(--vacation); }
+  .lg-open { background: color-mix(in srgb, var(--gold) 18%, #fff); border-color: var(--gold-deep); color: var(--gold-deep); }
+  .lg-jlm { background: color-mix(in srgb, var(--sky) 16%, #fff); border-color: var(--sky); color: #2d5a7a; }
+  .lg-mark { color: var(--ink-soft); }
+
+  #open-vacations { margin-inline-start: auto; }
+
+  .cal-wrap { overflow-x: auto; }
+
+  .cal {
+    inline-size: 100%;
+    min-inline-size: 640px;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .cal th {
+    background: var(--paper-soft);
+    padding: 0.6rem 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+  }
+
+  .cal td {
+    border: 1px solid var(--line);
+    vertical-align: top;
+    padding: 0.45rem 0.5rem;
+    block-size: 96px;
+    inline-size: 14.28%;
+    transition: background-color 250ms var(--ease);
+  }
+
+  .cal td.is-out { background: color-mix(in srgb, var(--paper-soft) 60%, #fff); color: var(--ink-faint); }
+  .cal td.is-shabbat { background: color-mix(in srgb, var(--paper-soft) 85%, #fff); }
+  .cal td.is-today { outline: 2px solid var(--sky); outline-offset: -2px; }
+
+  .d-greg { font-weight: 800; font-size: 1.02rem; }
+  .d-heb { font-size: 0.72rem; color: var(--ink-soft); display: block; }
+
+  .d-tag {
+    display: block;
+    margin-block-start: 0.3rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .d-reason { display: block; font-size: 0.66rem; font-weight: 600; opacity: 0.85; }
+
+  td.is-vac { background: var(--vacation-soft); }
+  td.is-vac .d-tag, td.is-vac .d-reason { color: var(--vacation); }
+
+  td.is-open { background: color-mix(in srgb, var(--gold) 20%, #fff); }
+  td.is-open .d-tag { color: var(--gold-deep); }
+
+  td.is-jlm { background: color-mix(in srgb, var(--sky) 14%, #fff); }
+  td.is-jlm .d-tag { color: #2d5a7a; }
+
+  td.is-mark .d-tag { color: var(--ink-soft); }
+
+  .luach-note { color: var(--ink-faint); font-size: 0.85rem; margin-block-start: 1rem; }
+
+  /* דיאלוג החופשות */
+  .vac-dialog {
+    inline-size: min(680px, calc(100vw - 2rem));
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.2rem, 3vw, 1.8rem);
+    box-shadow: var(--shadow-lift);
+  }
+
+  .vac-dialog::backdrop { background: rgb(20 18 14 / 0.45); backdrop-filter: blur(3px); }
+
+  .vac-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-block-end: 1rem; }
+  .vac-head h2 { margin: 0; font-size: 1.3rem; }
+  .vac-close { min-block-size: 40px; padding-inline: 0.9rem; }
+
+  .vac-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+
+  .vac-list li {
+    border-inline-start: 4px solid var(--vacation);
+    background: var(--vacation-soft);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+  }
+
+  .vac-name { font-weight: 800; color: var(--vacation); }
+  .vac-range { display: block; font-size: 0.92rem; color: var(--ink); margin-block-start: 0.2rem; }
+  .vac-resume { display: block; font-size: 0.86rem; color: var(--ink-soft); margin-block-start: 0.15rem; }
+
+  @media (max-width: 700px) {
+    .cal td { block-size: 84px; padding: 0.3rem 0.35rem; }
+    .d-tag { font-size: 0.6rem; }
+    .d-reason { display: none; }
+  }
+</style>
+
+<script>
+  // ===== ליבת הלוח העברי — Intl בלבד, מדויק =====
+  const TZ = 'Asia/Jerusalem';
+  const heNames = new Intl.DateTimeFormat('he-u-ca-hebrew', { timeZone: TZ, month: 'long' });
+  const heNums = new Intl.DateTimeFormat('en-u-ca-hebrew', { timeZone: TZ, day: 'numeric', year: 'numeric' });
+  const wdFmt = new Intl.DateTimeFormat('he', { timeZone: TZ, weekday: 'long' });
+  const gregFmt = new Intl.DateTimeFormat('he', { timeZone: TZ, day: 'numeric', month: 'long', year: 'numeric' });
+
+  const G: readonly (readonly [number, string])[] = [
+    [400, 'ת'], [300, 'ש'], [200, 'ר'], [100, 'ק'], [90, 'צ'], [80, 'פ'], [70, 'ע'],
+    [60, 'ס'], [50, 'נ'], [40, 'מ'], [30, 'ל'], [20, 'כ'], [10, 'י'], [9, 'ט'],
+    [8, 'ח'], [7, 'ז'], [6, 'ו'], [5, 'ה'], [4, 'ד'], [3, 'ג'], [2, 'ב'], [1, 'א'],
+  ];
+  const gem = (n: number): string => {
+    let s = '', r = n;
+    while (r > 0) {
+      if (r === 15) { s += 'טו'; break; }
+      if (r === 16) { s += 'טז'; break; }
+      const p = G.find(([v]) => v <= r)!; s += p[1]; r -= p[0];
+    }
+    return s.length === 1 ? s + '׳' : s.slice(0, -1) + '״' + s.slice(-1);
+  };
+
+  interface HebInfo { hd: number; hm: string; hy: number; }
+  const hebOf = (d: Date): HebInfo => {
+    const m = heNames.formatToParts(d).find((p) => p.type === 'month')!.value;
+    const parts = Object.fromEntries(heNums.formatToParts(d).map((p) => [p.type, p.value]));
+    return { hd: Number(parts.day), hm: m, hy: Number(parts.year) };
+  };
+
+  // אינדקס שנת תשפ״ז: תאריך עברי → Date (סריקה חד-פעמית, מדויקת)
+  const DAY = 86_400_000;
+  const START = Date.UTC(2026, 7, 1);
+  const END = Date.UTC(2027, 7, 31);
+  const hebIndex = new Map<string, number>();
+  const hebByTime = new Map<number, HebInfo>();
+  for (let t = START; t <= END; t += DAY) {
+    const d = new Date(t);
+    const h = hebOf(d);
+    hebByTime.set(t, h);
+    hebIndex.set(`${h.hm}|${h.hd}`, t);
+  }
+  const hebToTime = (hm: string, hd: number): number | undefined => {
+    if (hebIndex.has(`${hm}|${hd}`)) return hebIndex.get(`${hm}|${hd}`);
+    for (const [k, v] of hebIndex) if (k.startsWith(hm.replace('׳', '')) && k.endsWith(`|${hd}`)) return v;
+    return undefined;
+  };
+  const adarB = [...hebIndex.keys()].find((k) => k.includes('אדר ב'))?.split('|')[0] ?? 'אדר ב׳';
+
+  // ===== חופשות מוסדות החינוך (ימי החג הקבועים) =====
+  interface Vac { name: string; startT: number; endT: number; jlm?: boolean; }
+  const between = (hm1: string, d1: number, hm2: string, d2: number) =>
+    [hebToTime(hm1, d1)!, hebToTime(hm2, d2)!] as const;
+
+  const hanukkaStart = hebToTime('כסלו', 25)!;
+  const atzmaut = (() => {
+    let t = hebToTime('אייר', 5)!;
+    const wd = new Date(t).getUTCDay(); // 5=שישי 6=שבת 1=שני
+    if (wd === 5) t -= DAY;
+    else if (wd === 6) t -= 2 * DAY;
+    else if (wd === 1) t += DAY;
+    return t;
+  })();
+
+  const vacations: Vac[] = [
+    { name: 'ראש השנה', startT: hebToTime('אלול', 29)!, endT: hebToTime('תשרי', 2)! },
+    { name: 'יום כיפור', startT: hebToTime('תשרי', 9)!, endT: hebToTime('תשרי', 10)! },
+    { name: 'סוכות ושמחת תורה', startT: hebToTime('תשרי', 14)!, endT: hebToTime('תשרי', 22)! },
+    { name: 'חנוכה', startT: hanukkaStart, endT: hanukkaStart + 7 * DAY },
+    { name: 'פורים', startT: hebToTime(adarB, 14)!, endT: hebToTime(adarB, 14)! },
+    { name: 'שושן פורים — חופשה בירושלים', startT: hebToTime(adarB, 15)!, endT: hebToTime(adarB, 15)!, jlm: true },
+    { name: 'פסח', startT: hebToTime('ניסן', 14)!, endT: hebToTime('ניסן', 21)! },
+    { name: 'יום העצמאות', startT: atzmaut, endT: atzmaut },
+    { name: 'ל״ג בעומר', startT: hebToTime('אייר', 18)!, endT: hebToTime('אייר', 18)! },
+    { name: 'שבועות', startT: hebToTime('סיוון', 5)!, endT: hebToTime('סיוון', 6)! },
+  ];
+
+  const specials = new Map<number, { cls: string; tag: string; reason?: string }>();
+  specials.set(Date.UTC(2026, 8, 1), { cls: 'is-open', tag: 'פתיחת שנת הלימודים', reason: 'תשפ״ז — בהצלחה!' });
+  specials.set(Date.UTC(2026, 10, 25), { cls: 'is-mark', tag: 'מבחן תנופה ט׳' });
+  specials.set(hebToTime('ניסן', 27) ?? 0, { cls: 'is-mark', tag: 'יום הזיכרון לשואה ולגבורה' });
+  specials.set(atzmaut - DAY, { cls: 'is-mark', tag: 'יום הזיכרון' });
+  specials.set(hebToTime('אייר', 28) ?? 0, { cls: 'is-jlm', tag: 'יום ירושלים', reason: 'החג של העיר שלנו' });
+  specials.set(Date.UTC(2027, 5, 20), { cls: 'is-mark', tag: 'סיום שנה״ל בחט״ע' });
+  specials.set(Date.UTC(2027, 5, 30), { cls: 'is-mark', tag: 'סיום שנת הלימודים' });
+
+  const vacOf = (t: number): Vac | undefined => vacations.find((v) => t >= v.startT && t <= v.endT);
+
+  // ===== רינדור הלוח =====
+  const head = document.getElementById('cal-head')!;
+  const body = document.getElementById('cal-body')!;
+  const title = document.getElementById('month-title')!;
+  ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'].forEach((w) => {
+    const th = document.createElement('th'); th.textContent = w; head.appendChild(th);
+  });
+
+  const todayT = (() => {
+    const p = Object.fromEntries(
+      new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' })
+        .formatToParts(new Date()).map((x) => [x.type, x.value])
+    );
+    return Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day));
+  })();
+
+  let ym = todayT >= START && todayT <= END
+    ? [new Date(todayT).getUTCFullYear(), new Date(todayT).getUTCMonth()]
+    : [2026, 8];
+
+  const monthName = new Intl.DateTimeFormat('he', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+  const render = () => {
+    const [y, m] = ym;
+    const first = Date.UTC(y, m, 1);
+    const last = Date.UTC(y, m + 1, 0);
+    const hFirst = hebByTime.get(first)!;
+    const hLast = hebByTime.get(last)!;
+    title.textContent = `${monthName.format(new Date(first))} · ${hFirst.hm}–${hLast.hm} ${gem(hLast.hy % 1000)}`;
+
+    body.innerHTML = '';
+    let t = first - new Date(first).getUTCDay() * DAY;
+    for (let w = 0; w < 6; w++) {
+      const tr = document.createElement('tr');
+      for (let i = 0; i < 7; i++, t += DAY) {
+        const td = document.createElement('td');
+        const d = new Date(t);
+        const inMonth = d.getUTCMonth() === m;
+        if (!inMonth) td.classList.add('is-out');
+        if (d.getUTCDay() === 6) td.classList.add('is-shabbat');
+        if (t === todayT) td.classList.add('is-today');
+
+        const h = hebByTime.get(t);
+        td.innerHTML = `<span class="d-greg">${d.getUTCDate()}</span>` +
+          (h ? `<span class="d-heb">${gem(h.hd)} ${h.hm}</span>` : '');
+
+        const vac = vacOf(t);
+        if (vac) {
+          td.classList.add(vac.jlm ? 'is-jlm' : 'is-vac');
+          td.innerHTML += `<span class="d-tag">חופשה במוסדות החינוך</span><span class="d-reason">${vac.name}</span>`;
+        }
+        const sp = specials.get(t);
+        if (sp && !vac) {
+          td.classList.add(sp.cls);
+          td.innerHTML += `<span class="d-tag">${sp.tag}</span>` + (sp.reason ? `<span class="d-reason">${sp.reason}</span>` : '');
+        }
+        tr.appendChild(td);
+      }
+      body.appendChild(tr);
+      if (t > last && new Date(t).getUTCDay() === 0) break;
+    }
+  };
+
+  document.getElementById('prev-month')!.addEventListener('click', () => {
+    if (Date.UTC(ym[0], ym[1], 1) > START) { ym = ym[1] === 0 ? [ym[0] - 1, 11] : [ym[0], ym[1] - 1]; render(); }
+  });
+  document.getElementById('next-month')!.addEventListener('click', () => {
+    if (Date.UTC(ym[0], ym[1] + 1, 1) < END) { ym = ym[1] === 11 ? [ym[0] + 1, 0] : [ym[0], ym[1] + 1]; render(); }
+  });
+
+  render();
+
+  // ===== דיאלוג לוח החופשות =====
+  const dialog = document.getElementById('vac-dialog') as HTMLDialogElement;
+  const list = document.getElementById('vac-list')!;
+
+  const fmtDay = (t: number) => {
+    const d = new Date(t);
+    const h = hebByTime.get(t)!;
+    return `יום ${wdFmt.format(d)}, ${gem(h.hd)} ב${h.hm} (${gregFmt.format(d)})`;
+  };
+
+  const resumeAfter = (endT: number) => {
+    let t = endT + DAY;
+    if (new Date(t).getUTCDay() === 6) t += DAY; // שבת → ראשון
+    return t;
+  };
+
+  list.innerHTML = vacations
+    .filter((v) => !v.jlm)
+    .sort((a, b) => a.startT - b.startT)
+    .map((v) => {
+      const single = v.startT === v.endT;
+      const range = single
+        ? `ב${fmtDay(v.startT)}`
+        : `מ${fmtDay(v.startT)} עד ${fmtDay(v.endT)}`;
+      return `<li><span class="vac-name">${v.name}</span>
+        <span class="vac-range">${range}</span>
+        <span class="vac-resume">הלימודים יתחדשו ב${fmtDay(resumeAfter(v.endT))}</span></li>`;
+    })
+    .join('');
+
+  document.getElementById('open-vacations')!.addEventListener('click', () => dialog.showModal());
+  document.getElementById('vac-close')!.addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+</script>

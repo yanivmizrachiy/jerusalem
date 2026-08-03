@@ -47,6 +47,17 @@ test('נגן יחידה: החלפת משאב, hash עמוק ותווית סוג 
   await expect(page.locator('[data-open]')).toHaveAttribute('href', /youtube\.com\/watch/);
 });
 
+test('אחרי הסרטון מופיע צוות ההדרכה — לא תוכן אחר (6.5)', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' }); // מדלג ישר למצב הסיום
+  await page.goto('/');
+  const after = page.locator('#hero-after');
+  await expect(after.locator('h1')).toHaveText('צוות ההדרכה המחוזי');
+  for (const name of ['איילת קריספין', 'ויקטוריה צורי', 'אורלי לוין', 'יניב רז']) {
+    await expect(after.locator('.hero-name', { hasText: name })).toBeVisible();
+  }
+  await expect(after.locator('img.hero-avatar')).toHaveCount(4);
+});
+
 test('כרטיסי צוות: קישורי WhatsApp ודוא״ל תקינים ונפרדים (7.16–7.18)', async ({ page }) => {
   await page.goto('/');
   const ayelet = page.locator('article', { hasText: 'איילת קריספין' });
