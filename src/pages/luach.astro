@@ -286,7 +286,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   @media (max-width: 700px) {
     .cal td { height: 84px; padding: 0.3rem 0.35rem; }
     .cal .d-tag { font-size: 0.6rem; }
-    .cal .d-reason { display: none; }
+    .cal .d-reason { font-size: 0.56rem; }
   }
 </style>
 
@@ -360,7 +360,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     { name: 'סוכות ושמחת תורה', startT: hebToTime('תשרי', 14)!, endT: hebToTime('תשרי', 22)! },
     { name: 'חנוכה', startT: hanukkaStart, endT: hanukkaStart + 7 * DAY },
     { name: 'פורים', startT: hebToTime(adarB, 14)!, endT: hebToTime(adarB, 14)! },
-    { name: 'שושן פורים — חופשה בירושלים', startT: hebToTime(adarB, 15)!, endT: hebToTime(adarB, 15)!, jlm: true },
+    { name: 'שושן פורים', startT: hebToTime(adarB, 15)!, endT: hebToTime(adarB, 15)!, jlm: true },
     { name: 'פסח', startT: hebToTime('ניסן', 14)!, endT: hebToTime('ניסן', 21)! },
     { name: 'יום העצמאות', startT: atzmaut, endT: atzmaut },
     { name: 'ל״ג בעומר', startT: hebToTime('אייר', 18)!, endT: hebToTime('אייר', 18)! },
@@ -427,8 +427,9 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
         const vac = vacOf(t);
         if (vac) {
-          td.classList.add(vac.jlm ? 'is-jlm' : 'is-vac');
-          td.innerHTML += `<span class="d-tag">חופשה במוסדות החינוך</span><span class="d-reason">${vac.name}</span>`;
+          td.classList.add('is-vac');
+          const tag = vac.jlm ? 'חופשה בירושלים' : 'חופשה במוסדות החינוך';
+          td.innerHTML += `<span class="d-tag">${tag}</span><span class="d-reason">${vac.name}</span>`;
         }
         const sp = specials.get(t);
         if (sp && !vac) {
@@ -468,14 +469,13 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   };
 
   list.innerHTML = vacations
-    .filter((v) => !v.jlm)
     .sort((a, b) => a.startT - b.startT)
     .map((v) => {
       const single = v.startT === v.endT;
       const range = single
         ? `ב${fmtDay(v.startT)}`
         : `מ${fmtDay(v.startT)} עד ${fmtDay(v.endT)}`;
-      return `<li><span class="vac-name">${v.name}</span>
+      return `<li><span class="vac-name">${v.name}${v.jlm ? ' — חופשה בירושלים' : ''}</span>
         <span class="vac-range">${range}</span>
         <span class="vac-resume">הלימודים יתחדשו ב${fmtDay(resumeAfter(v.endT))}</span></li>`;
     })
