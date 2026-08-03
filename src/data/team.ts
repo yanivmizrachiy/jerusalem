@@ -47,13 +47,14 @@ export const team: TeamMember[] = [
     photo: '/media/team/victoria.jpg',
   },
   {
-    name: 'אורלי',
+    name: 'אורלי לוין',
     role: 'מדריכה מחוזית חט״ע מחוז ירושלים',
     phoneDisplay: '050-639-5257',
     phoneIntl: '972506395257',
     email: 'Olevin0809@gmail.com',
     initial: 'א',
     accent: 'var(--rose)',
+    photo: '/media/team/orly.jpg',
   },
   {
     name: 'יניב רז',
@@ -63,5 +64,6 @@ export const team: TeamMember[] = [
     email: 'yanivmiz77@gmail.com',
     initial: 'י',
     accent: 'var(--olive)',
+    photo: '/media/team/yaniv.jpg',
   },
 ];
