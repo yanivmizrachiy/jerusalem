@@ -3,6 +3,9 @@ import '@fontsource-variable/heebo';
 import '@fontsource/frank-ruhl-libre/400.css';
 import '@fontsource/frank-ruhl-libre/500.css';
 import '@fontsource/frank-ruhl-libre/700.css';
+// preload לפונטים העבריים הקריטיים — מבטל את קפיצת ה-reflow של טעינת הפונט (CLS)
+import heeboHebrewUrl from '@fontsource-variable/heebo/files/heebo-hebrew-wght-normal.woff2?url';
+import frankHebrew500Url from '@fontsource/frank-ruhl-libre/files/frank-ruhl-libre-hebrew-500-normal.woff2?url';
 import '../styles/global.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
@@ -34,8 +37,11 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="theme-color" content="#fbf9f5" />
     <meta property="og:image" content="/logo.png" />
+    <link rel="preload" as="font" type="font/woff2" href={heeboHebrewUrl} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={frankHebrew500Url} crossorigin />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
     <link rel="apple-touch-icon" href="/apple-touch-180.png" />
+    <slot name="head" />
   </head>
   <body>
     <a class="skip-link" href="#main">דילוג לתוכן המרכזי</a>
