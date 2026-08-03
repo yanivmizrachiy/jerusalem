@@ -388,7 +388,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   const fmtDay = (t: number) => {
     const d = new Date(t);
     const h = hebByTime.get(t)!;
-    return `יום ${wdFmt.format(d)}, ${gem(h.hd)} ב${h.hm} (${gregFmt.format(d)})`;
+    return `${wdFmt.format(d)}, ${gem(h.hd)} ב${h.hm} (${gregFmt.format(d)})`;
   };
 
   const resumeAfter = (endT: number) => {
