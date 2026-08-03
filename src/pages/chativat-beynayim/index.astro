@@ -24,7 +24,7 @@ const updatedLine = `מאגר הקבצים עודכן ב${stamp.weekday}, ${Numb
 
 <Base
   title="מתמטיקה לחטיבת הביניים — מחוז ירושלים"
-  description="החוברת הדיגיטלית של חטיבת הביניים במחוז ירושלים: כל הקבצים, הקישורים והפעילויות של כיתות ז׳–ט׳ בספר מדפדף אחד."
+  description="מתמטיקה לחטיבת הביניים במחוז ירושלים: כל הקבצים, הקישורים והפעילויות של כיתות ז׳–ט׳ בספר מדפדף אחד."
 >
   <div class="container page">
     <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'חטיבת ביניים' }]} />
@@ -34,13 +34,13 @@ const updatedLine = `מאגר הקבצים עודכן ב${stamp.weekday}, ${Numb
       <p class="updated-line">{updatedLine}</p>
     </header>
 
+    <Booklet initial="rashi" />
+
     <ArtBanner
       art="festival"
       alt="איור אמנותי: פסטיבל מתמטיקה צבעוני ברחבת שער יפו בירושלים — קהל לומדים סביב דודקהדרון ענק"
       position="center 42%"
     />
-
-    <Booklet initial="cover" />
 
     <section class="section-block" data-reveal>
       <div class="wa-row">

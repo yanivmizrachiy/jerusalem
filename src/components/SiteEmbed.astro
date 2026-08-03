@@ -19,7 +19,12 @@ const { id, title, url, embedSrc, tall = false } = Astro.props;
 
 <div class="semb" id={id}>
   <div class:list={['semb-frame', { 'is-tall': tall }]}>
-    <iframe src={embedSrc ?? url} title={`${title} — גלישה חיה בתוך האתר`} loading="lazy" allow="fullscreen"
+    <iframe
+      src={embedSrc ?? url}
+      title={`${title} — גלישה חיה בתוך האתר`}
+      loading="lazy"
+      allow="fullscreen"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
     ></iframe>
   </div>
   <div class="semb-actions">

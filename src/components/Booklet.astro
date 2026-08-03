@@ -1,21 +1,21 @@
 ---
 /**
- * החוברת הדיגיטלית — ספר אחד אמיתי (RULES 3.29, הוראת יניב 03/08/2026):
- * כל החומרים בספר מדפדף אחד — כריכה, תוכן עניינים צבעוני לכל שכבה, ועמוד
- * לכל משאב (מימין ההטמעה, משמאל מידע ופעולות). דפדוף בהיפוך-דף תלת-ממדי
- * בכיוון ספר עברי (השדרה מימין), כפתורי ניווט מיוחדים, מונה עמודים ופס
- * התקדמות, חיצי מקלדת והחלקת מגע, וקישור עומק לכל עמוד (hash). הטמעה
- * נטענת רק כשהעמוד נפתח; רגישי תנועה מקבלים החלפה מיידית.
+ * הספר המדפדף של חטיבת הביניים (RULES 3.26, 3.29 — הוראות יניב 03/08/2026):
+ * העמוד הראשי נקי עם שורות הכיתות בלבד; ברגע שמתחילים לעבוד על הספר הוא
+ * משתלט על כל שטח המסך, עם כפתור זהב קבוע לחזרה לאתר; במסך רחב הוא נפתח
+ * באוטומט כשני עמודים זה לצד זה (מתג נוח לעמוד אחד); היפוך-דף תלת-ממדי
+ * בכיוון ספר עברי מעל השדרה, מספור מודפס, לשוניות, מקלדת, מגע וקישור
+ * עומק. הטמעה נטענת רק כשהעמוד נפתח; רגישי תנועה מקבלים החלפה מיידית.
  */
 import MafmarRange from './MafmarRange.astro';
 import { choveret } from '../data/choveret';
 
 interface Props {
-  /** מזהה העמוד הפותח: cover / toc-z / it-z-maf-02 ... */
+  /** מזהה העמוד הפותח: rashi / toc-z / it-z-maf-02 ... */
   initial?: string;
 }
 
-const { initial = 'cover' } = Astro.props;
+const { initial = 'rashi' } = Astro.props;
 
 const kindLabel: Record<string, string> = {
   site: 'אתר חי',
@@ -32,9 +32,9 @@ interface PageDef {
   id: string;
   label: string;
 }
-const pages: PageDef[] = [{ id: 'cover', label: 'כריכה' }];
+const pages: PageDef[] = [{ id: 'rashi', label: 'ראשי' }];
 for (const g of choveret) {
-  pages.push({ id: `toc-${g.slug}`, label: `תוכן — כיתה ${g.letter}` });
+  pages.push({ id: `toc-${g.slug}`, label: `תוכן — ${g.letter}` });
   for (const ch of g.chapters)
     for (const it of ch.items)
       if (!it.pageHref) pages.push({ id: `it-${g.slug}-${it.id}`, label: it.title });
@@ -46,216 +46,362 @@ const site = 'https://jerusalem-virid.vercel.app';
 ---
 
 <div class="book-shell" data-book data-initial={initial} data-total={total}>
-  <div class="book" role="region" aria-roledescription="חוברת" aria-label="החוברת הדיגיטלית — מתמטיקה לחטיבת הביניים">
-    <button class="book-edge book-edge-next" type="button" data-nav-next tabindex="-1" aria-hidden="true"><span>‹</span></button>
-    <button class="book-edge book-edge-prev" type="button" data-nav-prev tabindex="-1" aria-hidden="true"><span>›</span></button>
-    <!-- כריכה -->
-    <section class="bpage bp-cover" data-page="cover" data-n="1" hidden>
-      <div class="cover-inner">
-        <p class="cover-kicker">מחוז ירושלים · הדרכת מתמטיקה</p>
-        <h1 class="cover-title">החוברת הדיגיטלית</h1>
-        <p class="cover-sub">מתמטיקה לחטיבת הביניים — כל הקבצים, הקישורים והפעילויות בספר אחד</p>
-        <div class="cover-grades">
-          {
-            choveret.map((g) => (
-              <button class="cover-grade" type="button" data-jump={`toc-${g.slug}`}>
-                <span class="cover-grade-letter">{g.letter}</span>
-                <span class="cover-grade-name">כיתה {g.letter}</span>
-                <span class="cover-grade-count">
-                  {g.chapters.reduce((n, c) => n + c.items.length, 0)} קבצים, קישורים ופעילויות
-                </span>
-              </button>
-            ))
-          }
-        </div>
-        <p class="cover-hint">דפדפו עם הכפתורים, עם חיצי המקלדת או בהחלקה — כמו בחוברת אמיתית</p>
+  <!-- פס עליון קבוע: חזרה לאתר, לשוניות קפיצה, מתג תצוגה ומסך מלא -->
+  <div class="book-bar">
+    <a class="book-exit" href="/chativat-beynayim/" data-exit>
+      <span class="book-exit-ico" aria-hidden="true">→</span>
+      חזרה לאתר
+    </a>
+    <div class="book-tabs" role="group" aria-label="קפיצה מהירה">
+      <button class="btab" type="button" data-jump="rashi">ראשי</button>
+      {
+        choveret.map((g) => (
+          <button class="btab" type="button" data-jump={`toc-${g.slug}`}>
+            {g.letter}
+          </button>
+        ))
+      }
+    </div>
+    <div class="book-tools">
+      <div class="bview" role="group" aria-label="מספר עמודים בתצוגה">
+        <button class="bview-b" type="button" data-view="2" aria-pressed="true">שני עמודים</button>
+        <button class="bview-b" type="button" data-view="1" aria-pressed="false">עמוד אחד</button>
       </div>
-    </section>
-
-    {
-      choveret.map((g) => (
-        <>
-          <section class="bpage bp-toc" data-page={`toc-${g.slug}`} data-n={pageNum(`toc-${g.slug}`)} hidden>
-            <header class="toc-head">
-              <h2 class="toc-title">{g.title}</h2>
-              <p class="toc-intro">{g.intro}</p>
-            </header>
-            {g.chapters.map((ch) => (
-              <div class="toc-chapter" style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}>
-                <h3 class="toc-chapter-title">{ch.title}</h3>
-                <ol class="toc-list">
-                  {ch.items.map((item) => (
-                    <li>
-                      {item.pageHref ? (
-                        <a class="toc-item" href={item.pageHref}>
-                          <span class="toc-num" aria-hidden="true">◆</span>
-                          <span class="toc-text">
-                            <span class="toc-item-title">{item.title}</span>
-                            {item.note && <span class="toc-item-note">{item.note}</span>}
-                          </span>
-                          <span class="toc-arrow" aria-hidden="true">↗</span>
-                        </a>
-                      ) : (
-                        <button class="toc-item" type="button" data-jump={`it-${g.slug}-${item.id}`}>
-                          <span class="toc-num">{pageNum(`it-${g.slug}-${item.id}`)}</span>
-                          <span class="toc-text">
-                            <span class="toc-item-title">{item.title}</span>
-                            {item.note && <span class="toc-item-note">{item.note}</span>}
-                          </span>
-                          <span class="toc-arrow" aria-hidden="true">←</span>
-                        </button>
-                      )}
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            ))}
-          </section>
-
-          {g.chapters.map((ch) =>
-            ch.items
-              .filter((it) => !it.pageHref)
-              .map((item) => (
-                <section
-                  class="bpage bp-item"
-                  data-page={`it-${g.slug}-${item.id}`}
-                  data-n={pageNum(`it-${g.slug}-${item.id}`)}
-                  style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}
-                  hidden
-                >
-                  <div class="item-grid">
-                    <div class="item-embed">
-                      {item.kind === 'maf' && item.maf ? (
-                        <MafmarRange sectionId={item.maf} accent={ch.color} />
-                      ) : item.embed ? (
-                        <div class="item-frame">
-                          <iframe
-                            data-esrc={item.embed}
-                            title={`${item.title} — תצוגה חיה`}
-                            allow="fullscreen"
-                          />
-                        </div>
-                      ) : (
-                        <div class="item-frame item-open-card">
-                          <p>המשאב הזה נפתח באתר המקור:</p>
-                          <a class="btn btn-primary" href={item.url} target="_blank" rel="noopener">
-                            פתיחת {item.title} ↗
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                    <aside class="item-info">
-                      <p class="item-chapter">{ch.title} · כיתה {g.letter}</p>
-                      <h2 class="item-title">{item.title}</h2>
-                      {item.note && <p class="item-note">{item.note}</p>}
-                      <p class="item-kind">{kindLabel[item.kind]}</p>
-                      <div class="item-actions" role="group" aria-label="פעולות">
-                        {item.download && (
-                          <a class="btn btn-primary" href={item.download} target="_blank" rel="noopener" download>
-                            הורדה ⬇
-                          </a>
-                        )}
-                        <a
-                          class="btn btn-whatsapp"
-                          href={`https://wa.me/?text=${encodeURIComponent(`${item.title} — ${g.title} — ${site}/chativat-beynayim/reader/${g.slug}/${item.id}/`)}`}
-                          target="_blank"
-                          rel="noopener"
-                          aria-label={`שיתוף ${item.title} ב־WhatsApp`}
-                        >
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                        </a>
-                        <a
-                          class="btn btn-gmail"
-                          href={`mailto:?subject=${encodeURIComponent(item.title)}&body=${encodeURIComponent(`${item.title} — ${site}/chativat-beynayim/reader/${g.slug}/${item.id}/`)}`}
-                          aria-label={`שליחת ${item.title} בדוא״ל`}
-                        >
-                          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-                            <path fill="#4285F4" d="M1.636 20.5h3.819V11.73L0 7.64v11.223c0 .904.732 1.636 1.636 1.636Z" />
-                            <path fill="#34A853" d="M18.545 20.5h3.819c.904 0 1.636-.732 1.636-1.636V7.64l-5.455 4.09Z" />
-                            <path fill="#FBBC04" d="M18.545 5.457v6.273L24 7.64V6.275c0-2.023-2.309-3.178-3.927-1.964Z" />
-                            <path fill="#EA4335" d="M5.455 11.73V5.457L12 10.366l6.545-4.909v6.273L12 16.639Z" />
-                            <path fill="#C5221F" d="M0 6.275v1.365l5.455 4.09V5.457L4.073 4.42C2.309 3.098 0 4.252 0 6.275Z" />
-                          </svg>
-                        </a>
-                        <button class="btn btn-ghost" type="button" data-copy={item.url.startsWith('/') ? `${site}${item.url}` : item.url}>
-                          העתקת קישור
-                        </button>
-                        <a
-                          class="btn btn-ghost"
-                          href={item.url}
-                          target={item.url.startsWith('/') ? undefined : '_blank'}
-                          rel="noopener"
-                        >
-                          פתיחה במקור ↗
-                        </a>
-                      </div>
-                      <p class="item-status" data-status role="status" aria-live="polite"></p>
-                    </aside>
-                  </div>
-                </section>
-              ))
-          )}
-        </>
-      ))
-    }
+      <button class="bfs" type="button" data-fullscreen aria-label="מסך מלא">⛶</button>
+    </div>
   </div>
 
-  <!-- סרגל הדפדוף — כפתורי הניווט המיוחדים של החוברת -->
-  <div class="book-nav" role="group" aria-label="דפדוף בחוברת">
-    <button class="bnav bnav-prev" type="button" data-nav-prev>
-      <span class="bnav-arrow" aria-hidden="true">→</span> עמוד קודם
+  <div class="book-stage">
+    <div class="book" role="region" aria-roledescription="חוברת" aria-label="מתמטיקה לחטיבת הביניים — ספר מדפדף">
+      <button class="book-edge book-edge-next" type="button" data-dir="next" tabindex="-1" aria-hidden="true"><span>‹</span></button>
+      <button class="book-edge book-edge-prev" type="button" data-dir="prev" tabindex="-1" aria-hidden="true"><span>›</span></button>
+      <div class="book-spine" aria-hidden="true"></div>
+
+      <!-- העמוד הראשי — נקי, עם קווים דקים ושורות הכיתות בלבד (3.29) -->
+      <section class="bpage bp-rashi" data-page="rashi" data-n="1" hidden>
+        <div class="rashi-inner">
+          <h2 class="rashi-title">מתמטיקה לחטיבת הביניים</h2>
+          <div class="rashi-rows">
+            {
+              choveret.map((g) => (
+                <button class="rashi-row" type="button" data-jump={`toc-${g.slug}`}>
+                  <span class:list={['rashi-letter', { 'is-wide': g.slug === 'klali' }]}>{g.letter}</span>
+                  <span class="rashi-text">
+                    <span class="rashi-name">{g.slug === 'klali' ? 'משותף לכל השכבות' : `כיתה ${g.letter}`}</span>
+                    <span class="rashi-count">
+                      {g.chapters.reduce((n, c) => n + c.items.length, 0)} קבצים, קישורים ופעילויות
+                    </span>
+                  </span>
+                  <span class="rashi-arrow" aria-hidden="true">←</span>
+                </button>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      {
+        choveret.map((g) => (
+          <>
+            <section class="bpage bp-toc" data-page={`toc-${g.slug}`} data-n={pageNum(`toc-${g.slug}`)} hidden>
+              <header class="toc-head">
+                <h2 class="toc-title">{g.title}</h2>
+                <p class="toc-intro">{g.intro}</p>
+              </header>
+              {g.chapters.map((ch) => (
+                <div class="toc-chapter" style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}>
+                  <h3 class="toc-chapter-title">{ch.title}</h3>
+                  <ol class="toc-list">
+                    {ch.items.map((item) => (
+                      <li>
+                        {item.pageHref ? (
+                          <a class="toc-item" href={item.pageHref}>
+                            <span class="toc-num" aria-hidden="true">◆</span>
+                            <span class="toc-text">
+                              <span class="toc-item-title">{item.title}</span>
+                              {item.note && <span class="toc-item-note">{item.note}</span>}
+                            </span>
+                            <span class="toc-arrow" aria-hidden="true">↗</span>
+                          </a>
+                        ) : (
+                          <button class="toc-item" type="button" data-jump={`it-${g.slug}-${item.id}`}>
+                            <span class="toc-num">{pageNum(`it-${g.slug}-${item.id}`)}</span>
+                            <span class="toc-text">
+                              <span class="toc-item-title">{item.title}</span>
+                              {item.note && <span class="toc-item-note">{item.note}</span>}
+                            </span>
+                            <span class="toc-arrow" aria-hidden="true">←</span>
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ))}
+            </section>
+
+            {g.chapters.map((ch) =>
+              ch.items
+                .filter((it) => !it.pageHref)
+                .map((item) => (
+                  <section
+                    class="bpage bp-item"
+                    data-page={`it-${g.slug}-${item.id}`}
+                    data-n={pageNum(`it-${g.slug}-${item.id}`)}
+                    style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}
+                    hidden
+                  >
+                    <div class="item-grid">
+                      <div class="item-embed">
+                        {item.kind === 'maf' && item.maf ? (
+                          <MafmarRange sectionId={item.maf} accent={ch.color} />
+                        ) : item.embed ? (
+                          <div class="item-frame">
+                            <iframe
+                              data-esrc={item.embed}
+                              title={`${item.title} — תצוגה חיה`}
+                              allow="fullscreen"
+                            />
+                          </div>
+                        ) : (
+                          <div class="item-frame item-open-card">
+                            <p>המשאב הזה נפתח באתר המקור:</p>
+                            <a class="btn btn-primary" href={item.url} target="_blank" rel="noopener">
+                              פתיחת {item.title} ↗
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                      <aside class="item-info">
+                        <p class="item-chapter">{ch.title} · {g.slug === 'klali' ? 'כללי' : `כיתה ${g.letter}`}</p>
+                        <h2 class="item-title">{item.title}</h2>
+                        {item.note && <p class="item-note">{item.note}</p>}
+                        <p class="item-kind">{kindLabel[item.kind]}</p>
+                        <div class="item-actions" role="group" aria-label="פעולות">
+                          {item.download && (
+                            <a class="btn btn-primary" href={item.download} target="_blank" rel="noopener" download>
+                              הורדה ⬇
+                            </a>
+                          )}
+                          <a
+                            class="btn btn-whatsapp"
+                            href={`https://wa.me/?text=${encodeURIComponent(`${item.title} — ${g.title} — ${site}/chativat-beynayim/reader/${g.slug}/${item.id}/`)}`}
+                            target="_blank"
+                            rel="noopener"
+                            aria-label={`שיתוף ${item.title} ב־WhatsApp`}
+                          >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                          </a>
+                          <a
+                            class="btn btn-gmail"
+                            href={`mailto:?subject=${encodeURIComponent(item.title)}&body=${encodeURIComponent(`${item.title} — ${site}/chativat-beynayim/reader/${g.slug}/${item.id}/`)}`}
+                            aria-label={`שליחת ${item.title} בדוא״ל`}
+                          >
+                            <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                              <path fill="#4285F4" d="M1.636 20.5h3.819V11.73L0 7.64v11.223c0 .904.732 1.636 1.636 1.636Z" />
+                              <path fill="#34A853" d="M18.545 20.5h3.819c.904 0 1.636-.732 1.636-1.636V7.64l-5.455 4.09Z" />
+                              <path fill="#FBBC04" d="M18.545 5.457v6.273L24 7.64V6.275c0-2.023-2.309-3.178-3.927-1.964Z" />
+                              <path fill="#EA4335" d="M5.455 11.73V5.457L12 10.366l6.545-4.909v6.273L12 16.639Z" />
+                              <path fill="#C5221F" d="M0 6.275v1.365l5.455 4.09V5.457L4.073 4.42C2.309 3.098 0 4.252 0 6.275Z" />
+                            </svg>
+                          </a>
+                          <button class="btn btn-ghost" type="button" data-copy={item.url.startsWith('/') ? `${site}${item.url}` : item.url}>
+                            העתקת קישור
+                          </button>
+                          <a
+                            class="btn btn-ghost"
+                            href={item.url}
+                            target={item.url.startsWith('/') ? undefined : '_blank'}
+                            rel="noopener"
+                          >
+                            פתיחה במקור ↗
+                          </a>
+                        </div>
+                        <p class="item-status" data-status role="status" aria-live="polite"></p>
+                      </aside>
+                    </div>
+                  </section>
+                ))
+            )}
+          </>
+        ))
+      }
+    </div>
+  </div>
+
+  <!-- סרגל הדפדוף -->
+  <div class="book-nav" role="group" aria-label="דפדוף בספר">
+    <button class="bnav bnav-prev" type="button">
+      <span class="bnav-arrow" aria-hidden="true">→</span> דף קודם
     </button>
     <div class="book-meter">
       <span class="book-counter" data-counter aria-live="polite">עמוד 1 מתוך {total}</span>
       <span class="book-progress"><span class="book-progress-fill" data-progress></span></span>
-      <div class="book-tabs" role="group" aria-label="קפיצה מהירה">
-        <button class="btab" type="button" data-jump="cover">כריכה</button>
-        {
-          choveret.map((g) => (
-            <button class="btab" type="button" data-jump={`toc-${g.slug}`}>
-              {g.letter}
-            </button>
-          ))
-        }
-      </div>
     </div>
-    <button class="bnav bnav-next" type="button" data-nav-next>
-      עמוד הבא <span class="bnav-arrow" aria-hidden="true">←</span>
+    <button class="bnav bnav-next" type="button">
+      דף הבא <span class="bnav-arrow" aria-hidden="true">←</span>
     </button>
-    <button class="bfs" type="button" data-fullscreen aria-label="חוברת במסך מלא">⛶</button>
   </div>
 </div>
 
+<style is:global>
+  /* בזמן ההשתלטות על המסך — האתר שמאחור לא נגלל ואין מסילת גלילה */
+  html.book-lock,
+  html.book-lock body {
+    overflow: hidden;
+    scrollbar-gutter: auto;
+  }
+</style>
+
 <style>
-  /* הספר משתלט על רוחב המסך — full-bleed מתוך המיכל (3.29) */
+  /* הספר פרוס לרוחב מלא מתוך המיכל (3.29) */
   .book-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
     margin-block: 1.2rem 2rem;
     inline-size: min(100vw - clamp(0.8rem, 3vw, 3rem) * 2, 1680px);
     margin-inline: calc((100% - min(100vw - clamp(0.8rem, 3vw, 3rem) * 2, 1680px)) / 2);
   }
 
-  .book-shell:fullscreen {
-    inline-size: 100%;
+  /* השתלטות על כל שטח המסך (3.29): שכבה קבועה מעל כל האתר */
+  .book-shell.is-full {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
     margin: 0;
-    padding: clamp(0.6rem, 2vh, 1.4rem) clamp(0.8rem, 2vw, 2rem);
-    background: var(--paper);
-    overflow: auto;
+    inline-size: auto;
+    padding: clamp(0.5rem, 1.6vh, 1rem) clamp(0.7rem, 2vw, 1.6rem);
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-soft) 100%);
+    gap: 0.7rem;
+    overflow: hidden;
   }
 
-  .book-shell:fullscreen .book { block-size: calc(100vh - 120px); }
+  /* ===== הפס העליון ===== */
+  .book-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
 
-  /* הספר לאורך (הוראת יניב, 03/08/2026): דף עומד ביחס A4 — הרוחב נגזר
-     מהגובה; ממלא את גובה המסך וממורכז, כמו חוברת אמיתית מונחת מולך */
-  .book {
-    position: relative;
-    perspective: 2600px;
-    block-size: max(600px, calc(100dvh - var(--header-h) - 225px));
-    aspect-ratio: 210 / 280;
-    max-inline-size: min(100%, 96vw);
+  /* כפתור הזהב הקבוע לחזרה לאתר — גלוי כל זמן ההשתלטות */
+  .book-exit {
+    display: none;
+    align-items: center;
+    gap: 0.55rem;
+    min-block-size: 50px;
+    padding: 0.55rem 1.35rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #f3d68b 0%, #d4af5c 100%);
+    color: #3c2f12;
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    font-weight: 800;
+    box-shadow: 0 12px 26px -12px rgb(176 141 62 / 0.85);
+    transition: transform 300ms var(--ease-lift), box-shadow 300ms var(--ease);
+  }
+
+  .book-exit:hover { transform: translateY(-3px); color: #241b08; box-shadow: 0 16px 32px -12px rgb(176 141 62 / 0.95); }
+
+  .book-exit-ico { font-size: 1.25em; line-height: 1; }
+
+  .is-full .book-exit { display: inline-flex; }
+
+  .book-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
     margin-inline: auto;
   }
 
-  /* אזורי דפדוף שקטים בשולי הדף — לחיצה על הקצה מדפדפת */
+  .btab {
+    min-block-size: 40px;
+    min-inline-size: 46px;
+    padding: 0.25rem 0.85rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 250ms var(--ease), color 250ms var(--ease);
+  }
+
+  .btab.is-current {
+    background: linear-gradient(180deg, #16273f 0%, #0e1c31 100%);
+    border-color: var(--gold);
+    color: #f3d68b;
+  }
+
+  .book-tools { display: flex; align-items: center; gap: 0.6rem; }
+
+  /* מתג שני עמודים / עמוד אחד (3.29) */
+  .bview {
+    display: inline-flex;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .bview-b {
+    min-block-size: 44px;
+    padding: 0.3rem 1rem;
+    border: 0;
+    background: none;
+    color: var(--ink-soft);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 250ms var(--ease), color 250ms var(--ease);
+  }
+
+  .bview-b[aria-pressed='true'] {
+    background: linear-gradient(180deg, #16273f 0%, #0e1c31 100%);
+    color: #f3d68b;
+  }
+
+  .bfs {
+    flex: none;
+    inline-size: 50px;
+    block-size: 50px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    color: var(--gold-deep);
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: transform 300ms var(--ease-lift), box-shadow 300ms var(--ease);
+  }
+
+  .bfs:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
+
+  /* ===== במת הספר — הדפים ממלאים את הגובה הפנוי ===== */
+  .book-stage {
+    position: relative;
+    container-type: size;
+    block-size: max(540px, calc(100dvh - var(--header-h) - 260px));
+    display: grid;
+    place-items: center;
+  }
+
+  .is-full .book-stage { flex: 1; min-block-size: 0; block-size: auto; }
+
+  /* כל עמוד ביחס A4 לאורך (3.29): עמוד אחד — 210/280; שניים — 420/280 */
+  .book { position: relative; perspective: 2600px; }
+
+  .mode-1 .book {
+    block-size: min(100cqb, calc(100cqi * 280 / 210));
+    aspect-ratio: 210 / 280;
+  }
+
+  .mode-2 .book {
+    block-size: min(100cqb, calc(100cqi * 280 / 420));
+    aspect-ratio: 420 / 280;
+  }
+
+  /* אזורי דפדוף שקטים בשולי הדף */
   .book-edge {
     position: absolute;
     inset-block: 0;
@@ -271,7 +417,7 @@ const site = 'https://jerusalem-virid.vercel.app';
     font-weight: 700;
   }
 
-  .book-edge-next { left: 0; border-radius: 6px 0 0 6px; }
+  .book-edge-next { left: 0; border-radius: 18px 0 0 18px; }
   .book-edge-prev { right: 0; border-radius: 0 18px 18px 0; }
 
   .book-edge:hover {
@@ -281,11 +427,33 @@ const site = 'https://jerusalem-virid.vercel.app';
 
   .book-edge-prev:hover { background: linear-gradient(270deg, rgb(212 175 92 / 0.18), transparent); }
 
-  /* מספר עמוד מודפס בפינת הדף */
+  /* השדרה באמצע הספר הפתוח */
+  .book-spine { display: none; }
+
+  .mode-2 .book-spine {
+    display: block;
+    position: absolute;
+    inset-block: 0;
+    left: calc(50% - 28px);
+    inline-size: 56px;
+    z-index: 3;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(31 25 12 / 0.1) 38%,
+      rgb(31 25 12 / 0.2) 50%,
+      rgb(31 25 12 / 0.1) 62%,
+      transparent
+    );
+  }
+
+  /* מספר עמוד מודפס בפינה החיצונית (3.29) */
   .book :global(.bp-num) {
     position: absolute;
     inset-block-end: 10px;
-    inset-inline-start: 18px;
+    left: 18px;
+    right: auto;
     font-family: var(--font-display);
     font-size: 0.8rem;
     font-weight: 600;
@@ -293,9 +461,12 @@ const site = 'https://jerusalem-virid.vercel.app';
     pointer-events: none;
   }
 
+  .mode-2 .bpage.pg-right :global(.bp-num) { left: auto; right: 18px; }
+
   .bpage {
     position: absolute;
     inset: 0;
+    z-index: 1;
     overflow-y: auto;
     background: linear-gradient(180deg, #fffdf9 0%, #fbf7ee 100%);
     border: 1px solid var(--line);
@@ -312,6 +483,61 @@ const site = 'https://jerusalem-virid.vercel.app';
 
   .bpage[hidden] { display: none; }
 
+  /* פריסה כפולה: העמוד הימני והשמאלי משני צידי השדרה */
+  .mode-2 .bpage.pg-right {
+    inset: 0 0 0 50%;
+    border-radius: 4px 18px 18px 4px;
+    box-shadow:
+      1px 0 0 #e7ddc8,
+      3px 0 0 #f2ead8,
+      5px 0 0 #e7ddc8,
+      0 26px 60px -28px rgb(31 41 61 / 0.45);
+    transform-origin: 0% 50%; /* השדרה בקצה השמאלי של העמוד הימני */
+  }
+
+  .mode-2 .bpage.pg-left {
+    inset: 0 50% 0 0;
+    border-radius: 18px 4px 4px 18px;
+    box-shadow:
+      -1px 0 0 #e7ddc8,
+      -3px 0 0 #f2ead8,
+      -5px 0 0 #e7ddc8,
+      0 26px 60px -28px rgb(31 41 61 / 0.45);
+    transform-origin: 100% 50%; /* השדרה בקצה הימני של העמוד השמאלי */
+  }
+
+  /* עמוד משאב בתצוגה כפולה: נפרס על שני עמודי הספר — המסך נחלק ימין/שמאל */
+  .mode-2 .bpage.pg-wide {
+    inset: 0;
+    border-radius: 18px;
+    box-shadow:
+      -1px 0 0 #e7ddc8,
+      -3px 0 0 #f2ead8,
+      -5px 0 0 #e7ddc8,
+      1px 0 0 #e7ddc8,
+      3px 0 0 #f2ead8,
+      5px 0 0 #e7ddc8,
+      0 26px 60px -28px rgb(31 41 61 / 0.45);
+    transform-origin: 100% 50%;
+  }
+
+  .mode-2 .bpage.pg-wide .item-grid { column-gap: 56px; }
+
+  /* עמוד חלק מול עמוד בודד — כמו בספר אמיתי */
+  .mode-2 .book::before,
+  .mode-2 .book::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inline-size: 50%;
+    z-index: 0;
+    background: linear-gradient(180deg, #fdfaf3 0%, #f7f1e3 100%);
+    border: 1px solid var(--line);
+  }
+
+  .mode-2 .book::before { left: 0; border-radius: 18px 4px 4px 18px; }
+  .mode-2 .book::after { right: 0; border-radius: 4px 18px 18px 4px; }
+
   /* צל נייר בזמן ההיפוך */
   .bpage::after {
     content: '';
@@ -323,118 +549,130 @@ const site = 'https://jerusalem-virid.vercel.app';
     transition: opacity 200ms linear;
   }
 
-  .bpage.turn-out {
-    animation: page-out 420ms cubic-bezier(0.55, 0, 0.85, 0.4) forwards;
-    z-index: 3;
-  }
-
+  .bpage.turn-out { animation: page-out 420ms cubic-bezier(0.55, 0, 0.85, 0.4) forwards; z-index: 3; }
   .bpage.turn-out::after { opacity: 1; }
+  .bpage.turn-in { animation: page-in 460ms cubic-bezier(0.16, 0.6, 0.25, 1) backwards; z-index: 2; }
+  .bpage.turn-out-back { animation: page-out-back 420ms cubic-bezier(0.55, 0, 0.85, 0.4) forwards; z-index: 3; }
+  .bpage.turn-in-back { animation: page-in-back 460ms cubic-bezier(0.16, 0.6, 0.25, 1) backwards; z-index: 2; }
 
-  .bpage.turn-in {
-    animation: page-in 460ms cubic-bezier(0.16, 0.6, 0.25, 1) backwards;
-    z-index: 2;
-  }
+  @keyframes page-out { to { transform: rotateY(88deg); } }
+  @keyframes page-in { from { transform: rotateY(-70deg); } to { transform: rotateY(0); } }
+  @keyframes page-out-back { to { transform: rotateY(-70deg); } }
+  @keyframes page-in-back { from { transform: rotateY(88deg); } to { transform: rotateY(0); } }
 
-  .bpage.turn-out-back {
-    animation: page-out-back 420ms cubic-bezier(0.55, 0, 0.85, 0.4) forwards;
-    z-index: 3;
-  }
+  /* היפוך העלה מעל השדרה בפריסה הכפולה */
+  .bpage.sp-out-l { animation: sp-out-l 240ms cubic-bezier(0.5, 0, 0.9, 0.6) forwards; }
+  .bpage.sp-in-r { animation: sp-in-r 280ms cubic-bezier(0.16, 0.6, 0.25, 1) backwards; }
+  .bpage.sp-out-r { animation: sp-out-r 240ms cubic-bezier(0.5, 0, 0.9, 0.6) forwards; }
+  .bpage.sp-in-l { animation: sp-in-l 280ms cubic-bezier(0.16, 0.6, 0.25, 1) backwards; }
+  .bpage.sp-out-l::after,
+  .bpage.sp-out-r::after { opacity: 1; }
 
-  .bpage.turn-in-back {
-    animation: page-in-back 460ms cubic-bezier(0.16, 0.6, 0.25, 1) backwards;
-    z-index: 2;
-  }
-
-  @keyframes page-out {
-    to { transform: rotateY(88deg); }
-  }
-  @keyframes page-in {
-    from { transform: rotateY(-70deg); }
-    to { transform: rotateY(0); }
-  }
-  @keyframes page-out-back {
-    to { transform: rotateY(-70deg); }
-  }
-  @keyframes page-in-back {
-    from { transform: rotateY(88deg); }
-    to { transform: rotateY(0); }
-  }
+  @keyframes sp-out-l { to { transform: rotateY(90deg); } }
+  @keyframes sp-in-r { from { transform: rotateY(-90deg); } to { transform: rotateY(0); } }
+  @keyframes sp-out-r { to { transform: rotateY(-90deg); } }
+  @keyframes sp-in-l { from { transform: rotateY(90deg); } to { transform: rotateY(0); } }
 
   @media (prefers-reduced-motion: reduce) {
     .bpage.turn-out,
     .bpage.turn-in,
     .bpage.turn-out-back,
-    .bpage.turn-in-back {
+    .bpage.turn-in-back,
+    .bpage.sp-out-l,
+    .bpage.sp-in-r,
+    .bpage.sp-out-r,
+    .bpage.sp-in-l {
       animation: none;
     }
   }
 
-  /* ===== כריכה ===== */
-  .bp-cover {
+  /* ===== העמוד הראשי — מודרני, נקי, קווים דקים לכל האורך (3.29) ===== */
+  .bp-rashi { display: grid; place-items: center; }
+
+  .bp-rashi::before {
+    content: '';
+    position: absolute;
+    inset: 14px;
+    border: 1px solid rgb(176 141 62 / 0.38);
+    border-radius: 12px;
+    pointer-events: none;
+  }
+
+  .rashi-inner {
+    inline-size: 100%;
+    max-inline-size: 520px;
+    padding-inline: clamp(0.4rem, 2cqi, 1.4rem);
+  }
+
+  .rashi-title {
+    margin: 0 0 1.6rem;
+    text-align: center;
+    font-size: clamp(1.5rem, 6.5cqi, 2.5rem);
+    color: var(--ink);
+  }
+
+  .rashi-title::after {
+    content: '';
+    display: block;
+    inline-size: 100%;
+    block-size: 2px;
+    margin-block-start: 1rem;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .rashi-rows { border-block-end: 1px solid var(--line); }
+
+  .rashi-row {
+    inline-size: 100%;
+    display: flex;
+    align-items: center;
+    gap: clamp(0.7rem, 2.4cqi, 1.1rem);
+    padding: clamp(0.7rem, 2.2cqb, 1.1rem) 0.4rem;
+    border: 0;
+    border-block-start: 1px solid var(--line);
+    background: none;
+    color: var(--ink);
+    text-align: start;
+    font: inherit;
+    cursor: pointer;
+    transition: background-color 250ms var(--ease), transform 250ms var(--ease);
+  }
+
+  .rashi-row:hover {
+    background: rgb(212 175 92 / 0.09);
+    transform: translateX(-4px);
+  }
+
+  .rashi-letter {
+    flex: none;
+    min-inline-size: 3.1em;
+    block-size: 3.1em;
     display: grid;
     place-items: center;
-    text-align: center;
-    background:
-      radial-gradient(120% 90% at 50% 0%, rgb(201 155 63 / 0.16), transparent 60%),
-      linear-gradient(180deg, #16273f 0%, #0e1c31 100%);
-    color: #f6efdd;
-    border-color: #24406b;
-  }
-
-  .cover-kicker { margin: 0 0 0.5rem; color: #d4af5c; font-weight: 700; letter-spacing: 0.08em; }
-
-  .cover-title {
-    margin: 0 0 0.4rem;
-    font-size: clamp(2.2rem, 5.5vw, 3.6rem);
-    background: linear-gradient(175deg, #f3d68b 20%, #d4af5c 80%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .cover-sub { margin: 0 0 1.8rem; color: #cfd9ea; font-size: clamp(1rem, 2vw, 1.15rem); }
-
-  .cover-grades {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
-  }
-
-  .cover-grade {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-    min-inline-size: 168px;
-    padding: 1.1rem 1.2rem;
-    border-radius: var(--radius-lg);
-    border: 1.5px solid rgb(212 175 92 / 0.55);
-    background: rgb(255 255 255 / 0.05);
-    color: #f6efdd;
-    cursor: pointer;
-    transition: transform 350ms var(--ease-lift), background-color 300ms var(--ease), box-shadow 300ms var(--ease);
-  }
-
-  .cover-grade:hover {
-    transform: translateY(-4px);
-    background: rgb(255 255 255 / 0.1);
-    box-shadow: 0 0 26px rgb(212 175 92 / 0.35);
-  }
-
-  .cover-grade-letter {
+    padding-inline: 0.45em;
+    border: 1.5px solid var(--gold);
+    border-radius: 12px;
     font-family: var(--font-display);
-    font-size: 2.4rem;
+    font-size: clamp(1.05rem, 3.4cqi, 1.45rem);
     font-weight: 700;
-    color: #f3d68b;
+    color: var(--gold-deep);
     line-height: 1;
   }
 
-  .cover-grade-name { font-weight: 800; font-size: 1.05rem; }
+  .rashi-letter.is-wide { font-size: clamp(0.85rem, 2.6cqi, 1.05rem); }
 
-  .cover-grade-count { font-size: 0.8rem; color: #cfd9ea; }
+  .rashi-text { display: flex; flex-direction: column; gap: 0.15rem; min-inline-size: 0; }
 
-  .cover-hint { margin: 2rem 0 0; font-size: 0.88rem; color: #9fb3cd; }
+  .rashi-name { font-weight: 800; font-size: clamp(1.02rem, 3cqi, 1.25rem); }
+
+  .rashi-count { font-size: clamp(0.78rem, 2.2cqi, 0.9rem); color: var(--ink-soft); }
+
+  .rashi-arrow {
+    margin-inline-start: auto;
+    color: var(--gold-deep);
+    font-weight: 800;
+    font-size: 1.2em;
+  }
 
   /* ===== תוכן עניינים ===== */
   .toc-head { margin-block-end: 1.2rem; }
@@ -511,12 +749,11 @@ const site = 'https://jerusalem-virid.vercel.app';
 
   .bp-item .item-grid { flex: 1; }
 
-  /* חצייה מדויקת חצי-חצי — בדף לאורך החצייה היא לגובה (הוראת יניב, 03/08/2026) */
+  /* חצייה מדויקת חצי-חצי: חצי ימין — הטמעה, חצי שמאל — מידע (3.29, 8.2) */
   .item-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
-    gap: clamp(0.7rem, 1.6vh, 1.1rem);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(0.8rem, 2vw, 1.4rem);
     block-size: 100%;
   }
 
@@ -583,7 +820,6 @@ const site = 'https://jerusalem-virid.vercel.app';
     display: flex;
     align-items: center;
     gap: 0.9rem;
-    margin-block-start: 1rem;
   }
 
   .bnav {
@@ -619,22 +855,6 @@ const site = 'https://jerusalem-virid.vercel.app';
 
   .bnav-arrow { font-size: 1.2em; }
 
-  /* מסך מלא — כפתור עדין בקצה הסרגל */
-  .bfs {
-    flex: none;
-    inline-size: 54px;
-    block-size: 54px;
-    border-radius: 50%;
-    border: 1.5px solid var(--line);
-    background: #fff;
-    color: var(--gold-deep);
-    font-size: 1.3rem;
-    cursor: pointer;
-    transition: transform 300ms var(--ease-lift), box-shadow 300ms var(--ease);
-  }
-
-  .bfs:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
-
   .book-meter {
     flex: 1;
     display: flex;
@@ -663,41 +883,38 @@ const site = 'https://jerusalem-virid.vercel.app';
     transition: inline-size 400ms var(--ease);
   }
 
-  .book-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; }
-
-  .btab {
-    min-block-size: 36px;
-    min-inline-size: 44px;
-    padding: 0.25rem 0.8rem;
-    border-radius: 999px;
-    border: 1.5px solid var(--line);
-    background: #fff;
-    color: var(--ink);
-    font-weight: 800;
-    cursor: pointer;
-    transition: background-color 250ms var(--ease), color 250ms var(--ease);
-  }
-
-  .btab.is-current {
-    background: linear-gradient(180deg, #16273f 0%, #0e1c31 100%);
-    border-color: var(--gold);
-    color: #f3d68b;
-  }
-
-  /* נייד: עמוד המשאב נערם — מידע קודם; סרגל נגיש */
+  /* נייד: עמוד אחד, זרימה טבעית, סרגלים נגישים לאגודל */
   @media (max-width: 880px) {
-    .item-grid { grid-template-columns: 1fr; }
-    .item-info { order: -1; }
-    .item-frame { block-size: clamp(420px, 62vh, 680px); }
-    .book { block-size: auto; min-block-size: calc(100dvh - var(--header-h) - 220px); aspect-ratio: auto; }
+    .book-stage { container-type: normal; block-size: auto; display: block; }
+    .mode-1 .book,
+    .mode-2 .book { block-size: auto; aspect-ratio: auto; min-block-size: 62vh; }
+    .bpage { position: relative; inset: auto; }
+    .bp-rashi { min-block-size: 62vh; }
     .book-edge { display: none; }
+    .bview { display: none; }
     .bp-item { display: block; overflow-y: auto; }
-    .item-grid { grid-template-rows: none; block-size: auto; }
+    /* בנייד הדף זורם טבעי — ההטמעה תחילה (8.6) */
+    .item-grid { grid-template-columns: 1fr; block-size: auto; }
     .item-frame { block-size: clamp(420px, 60vh, 680px); }
-    .bpage { position: relative; inset: auto; max-block-size: none; overflow: visible; }
     .book-nav { flex-wrap: wrap; justify-content: center; }
     .bnav { flex: 1; justify-content: center; min-inline-size: 140px; }
     .book-meter { order: 3; inline-size: 100%; }
+    .book-shell.is-full { overflow: auto; }
+    .is-full .book-stage { flex: none; }
+    .is-full .book-bar {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 7;
+      background: var(--paper);
+      padding-block: 0.4rem;
+    }
+    .is-full .book-nav {
+      position: sticky;
+      inset-block-end: 0;
+      z-index: 7;
+      background: var(--paper);
+      padding-block: 0.5rem;
+    }
   }
 </style>
 
@@ -706,19 +923,29 @@ const site = 'https://jerusalem-virid.vercel.app';
     const pages = [...shell.querySelectorAll<HTMLElement>('.bpage')];
     const ids = pages.map((p) => p.dataset.page!);
     const total = pages.length;
-    const prevBtn = shell.querySelector<HTMLButtonElement>('[data-nav-prev]')!;
-    const nextBtn = shell.querySelector<HTMLButtonElement>('[data-nav-next]')!;
+    const navPrev = shell.querySelector<HTMLButtonElement>('.bnav-prev')!;
+    const navNext = shell.querySelector<HTMLButtonElement>('.bnav-next')!;
     const counter = shell.querySelector<HTMLElement>('[data-counter]')!;
     const progress = shell.querySelector<HTMLElement>('[data-progress]')!;
     const tabs = [...shell.querySelectorAll<HTMLButtonElement>('.btab')];
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const viewBtns = [...shell.querySelectorAll<HTMLButtonElement>('[data-view]')];
+    const exitBtn = shell.querySelector<HTMLAnchorElement>('[data-exit]')!;
+    const fsBtn = shell.querySelector<HTMLButtonElement>('[data-fullscreen]');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const narrow = matchMedia('(max-width: 880px)');
 
     let cur = -1;
     let busy = false;
+    let engaged = false;
+    let savedY = 0;
+    let mode: 1 | 2 = 2;
 
-    // מספר עמוד מודפס בפינת כל דף — כמו בחוברת אמיתית (הכריכה בלי מספר)
+    const prefMode = (): 1 | 2 =>
+      narrow.matches ? 1 : localStorage.getItem('jm-book-view') === '1' ? 1 : 2;
+
+    // מספר עמוד מודפס בפינה החיצונית של כל דף — העמוד הראשי בלי מספר
     pages.forEach((p) => {
-      if (p.dataset.page !== 'cover') {
+      if (p.dataset.page !== 'rashi') {
         const n = document.createElement('span');
         n.className = 'bp-num';
         n.textContent = `עמוד ${p.dataset.n}`;
@@ -726,7 +953,7 @@ const site = 'https://jerusalem-virid.vercel.app';
       }
     });
 
-    // ההטמעה נטענת רק כשהעמוד נפתח (3.29) — לא 20 iframes בבת אחת
+    // ההטמעה נטענת רק כשהעמוד נפתח (3.29)
     const mount = (p: HTMLElement) => {
       p.querySelectorAll<HTMLIFrameElement>('iframe[data-esrc]').forEach((f) => {
         f.src = f.dataset.esrc!;
@@ -734,79 +961,325 @@ const site = 'https://jerusalem-virid.vercel.app';
       });
     };
 
-    const paint = (i: number) => {
-      counter.textContent = `עמוד ${i + 1} מתוך ${total}`;
-      progress.style.inlineSize = `${((i + 1) / total) * 100}%`;
-      prevBtn.disabled = i === 0;
-      nextBtn.disabled = i === total - 1;
-      const id = ids[i];
-      tabs.forEach((t) => t.classList.toggle('is-current', t.dataset.jump === id || (id.startsWith('toc-') && t.dataset.jump === id) || (id.startsWith('it-') && t.dataset.jump === `toc-${id.split('-')[1]}`)));
-      history.replaceState(null, '', `#${id}`);
+    const ANIM = [
+      'pg-left', 'pg-right', 'pg-wide',
+      'sp-out-l', 'sp-out-r', 'sp-in-l', 'sp-in-r',
+      'turn-out', 'turn-in', 'turn-out-back', 'turn-in-back',
+    ];
+
+    // תצוגת שני עמודים (3.29): עמוד משאב נפרס על שני חצאי המסך — ההטמעה
+    // מימין והמידע משמאל; עמודי שער ותוכן סמוכים מזדווגים, ועמוד בודד
+    // נפתח מימין מול עמוד חלק
+    const isItem = (k: number) => ids[k].startsWith('it-');
+    const views2: number[][] = [];
+    {
+      let k = 0;
+      while (k < total) {
+        if (!isItem(k) && k + 1 < total && !isItem(k + 1)) {
+          views2.push([k, k + 1]);
+          k += 2;
+        } else {
+          views2.push([k]);
+          k += 1;
+        }
+      }
+    }
+    const view2Of: number[] = [];
+    views2.forEach((v, vi) => v.forEach((k) => (view2Of[k] = vi)));
+
+    const visOf = (i: number): number[] => (mode === 1 ? [i] : views2[view2Of[i]]);
+
+    const paint = () => {
+      const vis = visOf(cur);
+      const lo = vis[0] + 1;
+      const hi = vis[vis.length - 1] + 1;
+      counter.textContent = vis.length > 1 ? `עמודים ${lo}–${hi} מתוך ${total}` : `עמוד ${lo} מתוך ${total}`;
+      progress.style.inlineSize = `${(hi / total) * 100}%`;
+      navPrev.disabled = lo <= 1;
+      navNext.disabled = hi >= total;
+      const visIds = vis.map((k) => ids[k]);
+      tabs.forEach((t) => {
+        const j = t.dataset.jump!;
+        t.classList.toggle(
+          'is-current',
+          visIds.some((id) => id === j || (id.startsWith('it-') && j === `toc-${id.split('-')[1]}`))
+        );
+      });
+      history.replaceState(null, '', `#${ids[cur]}`);
+    };
+
+    const applySides = (v: number[]) => {
+      if (mode !== 2) return;
+      if (v.length === 2) {
+        pages[v[0]].classList.add('pg-right');
+        pages[v[1]].classList.add('pg-left');
+      } else pages[v[0]].classList.add(isItem(v[0]) ? 'pg-wide' : 'pg-right');
+    };
+
+    const layout = () => {
+      const view = visOf(cur);
+      const vis = new Set(view);
+      pages.forEach((p, k) => {
+        p.classList.remove(...ANIM);
+        p.style.zIndex = '';
+        if (vis.has(k)) {
+          if (p.hidden) {
+            p.hidden = false;
+            p.scrollTop = 0;
+          }
+          mount(p);
+        } else p.hidden = true;
+      });
+      applySides(view);
+      shell.classList.toggle('mode-2', mode === 2);
+      shell.classList.toggle('mode-1', mode === 1);
+      paint();
     };
 
     const show = (i: number, dir: 1 | -1 | 0) => {
-      if (i < 0 || i >= total || i === cur || busy) return;
-      const from = cur >= 0 ? pages[cur] : null;
-      const to = pages[i];
+      if (i < 0 || i >= total || busy) return;
+      if (cur >= 0 && (i === cur || (mode === 2 && view2Of[i] === view2Of[cur]))) {
+        if (i !== cur) {
+          cur = i;
+          paint();
+        }
+        return;
+      }
+      const prev = cur;
       cur = i;
-      mount(to);
-      paint(i);
-      if (!from || dir === 0 || reduced) {
-        pages.forEach((p, k) => (p.hidden = k !== i));
-        to.scrollTop = 0;
+      if (prev < 0 || dir === 0 || reduced.matches) {
+        layout();
         return;
       }
       busy = true;
-      to.hidden = false;
-      to.scrollTop = 0;
-      from.classList.add(dir === 1 ? 'turn-out' : 'turn-out-back');
-      to.classList.add(dir === 1 ? 'turn-in' : 'turn-in-back');
-      setTimeout(() => {
-        from.hidden = true;
-        from.classList.remove('turn-out', 'turn-out-back');
-        to.classList.remove('turn-in', 'turn-in-back');
-        busy = false;
-      }, 480);
+      if (mode === 1) {
+        const from = pages[prev];
+        const to = pages[cur];
+        to.classList.remove(...ANIM);
+        to.hidden = false;
+        mount(to);
+        to.scrollTop = 0;
+        from.classList.add(dir === 1 ? 'turn-out' : 'turn-out-back');
+        to.classList.add(dir === 1 ? 'turn-in' : 'turn-in-back');
+        paint();
+        setTimeout(() => {
+          from.hidden = true;
+          from.classList.remove(...ANIM);
+          to.classList.remove(...ANIM);
+          busy = false;
+        }, 480);
+        return;
+      }
+      const ov = views2[view2Of[prev]];
+      const nv = views2[view2Of[cur]];
+      const oldPages = ov.map((k) => pages[k]);
+      const newPages = nv.map((k) => pages[k]);
+      [...oldPages, ...newPages].forEach((p) => {
+        p.classList.remove(...ANIM);
+        p.style.zIndex = '';
+      });
+      applySides(ov);
+      applySides(nv);
+      newPages.forEach((p) => {
+        mount(p);
+        p.scrollTop = 0;
+      });
+      paint();
+      if (ov.length === 2 && nv.length === 2) {
+        // זוג מול זוג: העלה מתהפך מעל השדרה בשני שלבים רציפים
+        const [oldR, oldL] = oldPages;
+        const [newR, newL] = newPages;
+        const done = () => {
+          oldPages.forEach((p) => {
+            if (!newPages.includes(p)) p.hidden = true;
+          });
+          [...oldPages, ...newPages].forEach((p) => {
+            p.classList.remove('sp-out-l', 'sp-out-r', 'sp-in-l', 'sp-in-r');
+            p.style.zIndex = '';
+          });
+          busy = false;
+        };
+        if (dir === 1) {
+          newL.hidden = false;
+          newL.style.zIndex = '1';
+          oldL.style.zIndex = '6';
+          oldL.classList.add('sp-out-l');
+          setTimeout(() => {
+            newR.hidden = false;
+            newR.style.zIndex = '6';
+            newR.classList.add('sp-in-r');
+            oldR.style.zIndex = '1';
+            setTimeout(done, 300);
+          }, 240);
+        } else {
+          newR.hidden = false;
+          newR.style.zIndex = '1';
+          oldR.style.zIndex = '6';
+          oldR.classList.add('sp-out-r');
+          setTimeout(() => {
+            newL.hidden = false;
+            newL.style.zIndex = '6';
+            newL.classList.add('sp-in-l');
+            oldL.style.zIndex = '1';
+            setTimeout(done, 300);
+          }, 240);
+        }
+      } else {
+        // מעבר שמערב עמוד רוחבי — היפוך דף יחיד גדול
+        newPages.forEach((p) => {
+          p.hidden = false;
+          p.style.zIndex = '6';
+          p.classList.add(dir === 1 ? 'turn-in' : 'turn-in-back');
+        });
+        oldPages.forEach((p) => {
+          p.style.zIndex = '5';
+          p.classList.add(dir === 1 ? 'turn-out' : 'turn-out-back');
+        });
+        setTimeout(() => {
+          oldPages.forEach((p) => {
+            if (!newPages.includes(p)) p.hidden = true;
+          });
+          [...oldPages, ...newPages].forEach((p) => {
+            p.classList.remove(...ANIM);
+            p.style.zIndex = '';
+          });
+          applySides(nv);
+          busy = false;
+        }, 480);
+      }
     };
 
+    const step = (d: 1 | -1) => {
+      if (mode === 1) {
+        show(cur + d, d);
+        return;
+      }
+      const nv = view2Of[cur] + d;
+      if (nv < 0 || nv >= views2.length) return;
+      show(views2[nv][0], d);
+    };
+
+    const norm = (h: string) => (h === 'cover' ? 'rashi' : h);
     const goto = (id: string) => {
       const i = ids.indexOf(id);
       if (i >= 0) show(i, i >= cur ? 1 : -1);
     };
 
-    prevBtn.addEventListener('click', () => show(cur - 1, -1));
-    nextBtn.addEventListener('click', () => show(cur + 1, 1));
-    shell.querySelectorAll<HTMLButtonElement>('[data-jump]').forEach((b) =>
-      b.addEventListener('click', () => goto(b.dataset.jump!))
-    );
+    // ההשתלטות על כל שטח המסך (3.29): מתחילים לעבוד — הספר הופך למסך כולו
+    const engage = () => {
+      if (engaged) return;
+      engaged = true;
+      savedY = scrollY;
+      shell.classList.add('is-full');
+      document.documentElement.classList.add('book-lock');
+    };
 
-    // מקלדת: בעברית "קדימה" הוא שמאלה; Home לכריכה, End לעמוד האחרון
-    addEventListener('keydown', (e) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === 'ArrowLeft' || e.key === 'PageDown') show(cur + 1, 1);
-      if (e.key === 'ArrowRight' || e.key === 'PageUp') show(cur - 1, -1);
-      if (e.key === 'Home') show(0, -1);
-      if (e.key === 'End') show(total - 1, 1);
+    const disengage = () => {
+      if (!engaged) return;
+      engaged = false;
+      shell.classList.remove('is-full');
+      document.documentElement.classList.remove('book-lock');
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      scrollTo(0, savedY);
+    };
+
+    exitBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      disengage();
     });
 
-    // מסך מלא אמיתי — הספר משתלט על כל המסך (3.29)
-    const fsBtn = shell.querySelector<HTMLButtonElement>('[data-fullscreen]');
+    navPrev.addEventListener('click', () => {
+      engage();
+      step(-1);
+    });
+    navNext.addEventListener('click', () => {
+      engage();
+      step(1);
+    });
+    shell.querySelectorAll<HTMLButtonElement>('.book-edge').forEach((b) =>
+      b.addEventListener('click', () => {
+        engage();
+        step(b.dataset.dir === 'next' ? 1 : -1);
+      })
+    );
+    shell.querySelectorAll<HTMLButtonElement>('button[data-jump]').forEach((b) =>
+      b.addEventListener('click', () => {
+        engage();
+        goto(b.dataset.jump!);
+      })
+    );
+
+    // מתג שני עמודים / עמוד אחד — הבחירה נשמרת למכשיר (3.29)
+    const setViewUI = () =>
+      viewBtns.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.view) === mode)));
+    viewBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        const m = (Number(b.dataset.view) === 1 ? 1 : 2) as 1 | 2;
+        if (!narrow.matches) localStorage.setItem('jm-book-view', String(m));
+        if (m === mode) return;
+        engage();
+        mode = m;
+        layout();
+        setViewUI();
+      })
+    );
+
+    narrow.addEventListener('change', () => {
+      const m = prefMode();
+      if (m !== mode) {
+        mode = m;
+        layout();
+        setViewUI();
+      }
+    });
+
+    // מקלדת: בעברית "קדימה" הוא שמאלה; Home לעמוד הראשי, End לסוף; Escape יוצא
+    addEventListener('keydown', (e) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'Escape') {
+        disengage();
+        return;
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'PageDown') {
+        e.preventDefault();
+        engage();
+        step(1);
+      } else if (e.key === 'ArrowRight' || e.key === 'PageUp') {
+        e.preventDefault();
+        engage();
+        step(-1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        engage();
+        show(0, -1);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        engage();
+        show(total - 1, 1);
+      }
+    });
+
+    // מסך מלא אמיתי — בנוסף להשתלטות על החלון
     fsBtn?.addEventListener('click', () => {
-      if (document.fullscreenElement) document.exitFullscreen();
-      else shell.requestFullscreen?.();
+      engage();
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      else shell.requestFullscreen?.().catch(() => {});
     });
     document.addEventListener('fullscreenchange', () => {
       if (fsBtn) fsBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
     });
 
-    // החלקת מגע
+    // החלקת מגע על הספר עצמו
+    const bookEl = shell.querySelector<HTMLElement>('.book')!;
     let x0 = 0;
-    shell.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
-    shell.addEventListener('touchend', (e) => {
+    bookEl.addEventListener('touchstart', (e) => {
+      x0 = e.touches[0].clientX;
+    }, { passive: true });
+    bookEl.addEventListener('touchend', (e) => {
       const dx = e.changedTouches[0].clientX - x0;
       if (Math.abs(dx) < 60) return;
-      if (dx < 0) show(cur + 1, 1);
-      else show(cur - 1, -1);
+      engage();
+      step(dx < 0 ? 1 : -1);
     }, { passive: true });
 
     // העתקת קישור בעמודי המשאבים
@@ -823,11 +1296,13 @@ const site = 'https://jerusalem-virid.vercel.app';
     });
 
     // עמוד פתיחה: hash עמוק גובר על ברירת המחדל של העמוד
-    const fromHash = location.hash.slice(1);
-    const start = ids.includes(fromHash) ? fromHash : shell.dataset.initial ?? 'cover';
+    mode = prefMode();
+    setViewUI();
+    const fromHash = norm(location.hash.slice(1));
+    const start = ids.includes(fromHash) ? fromHash : norm(shell.dataset.initial ?? 'rashi');
     show(Math.max(0, ids.indexOf(start)), 0);
     addEventListener('hashchange', () => {
-      const h = location.hash.slice(1);
+      const h = norm(location.hash.slice(1));
       if (ids.includes(h) && h !== ids[cur]) goto(h);
     });
   });
