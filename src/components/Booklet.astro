@@ -2,12 +2,16 @@
 /**
  * הספר המדפדף של חטיבת הביניים (RULES 3.26, 3.29 — הוראות יניב 03/08/2026):
  * העמוד הראשי נקי עם שורות הכיתות בלבד; ברגע שמתחילים לעבוד על הספר הוא
- * משתלט על כל שטח המסך, עם כפתור זהב קבוע לחזרה לאתר; במסך רחב הוא נפתח
- * באוטומט כשני עמודים זה לצד זה (מתג נוח לעמוד אחד); היפוך-דף תלת-ממדי
- * בכיוון ספר עברי מעל השדרה, מספור מודפס, לשוניות, מקלדת, מגע וקישור
- * עומק. הטמעה חכמה (3.29): preconnect למקורות, העמוד הפתוח נטען מיד,
- * שכנים מתחממים ברגעי סרק ועמוד שנטען נשאר חם; כל מה שלחיץ במקור לחיץ
- * גם בפנים — בלי שכבות מעל ההטמעה ובלי sandbox; רגישי תנועה — החלפה מיידית.
+ * משתלט על כל שטח המסך, עם כפתור זהב קבוע לחזרה לאתר; במסך רחב פריסה
+ * כפולה תמיד. הדפדוף — עלה אחד רציף מעל השדרה בכיוון ספר עברי, מונע
+ * פריים-אחר-פריים בלי תפר בין ההרמה לנחיתה, עם הצללת נייר על העלה וצל
+ * מוטל נודד על העמודים הנייחים; גרירת דף אמיתית מאזורי השוליים משלימה או
+ * מחזירה לפי מרחק ותנופה, ולחיצות מהירות מדפדפות ברצף. הדפים תופסים את
+ * מרב שטח המסך — יחס עמוד גמיש בין A4 לאורך (210/297) ל־210/260 וסרגלים
+ * מצומצמים בהשתלטות. מספור מודפס, לשוניות, מקלדת, מגע וקישור עומק.
+ * הטמעה חכמה (3.29): preconnect למקורות, העמוד הפתוח נטען מיד, שכנים
+ * מתחממים ברגעי סרק ועמוד שנטען נשאר חם; כל מה שלחיץ במקור לחיץ גם
+ * בפנים — בלי שכבות מעל ההטמעה ובלי sandbox; רגישי תנועה — החלפה מיידית.
  */
 import MafmarRange from './MafmarRange.astro';
 import { choveret } from '../data/choveret';
@@ -94,15 +98,22 @@ const embedOrigins = [
           <div class="rashi-rows">
             {
               choveret.map((g) => (
-                <button class="rashi-row" type="button" data-jump={`toc-${g.slug}`}>
+                <button
+                  class="rashi-row"
+                  type="button"
+                  data-jump={`toc-${g.slug}`}
+                  style={`--g-color:${g.color}; --g-dark:${g.dark}`}
+                >
                   <span class:list={['rashi-letter', { 'is-wide': g.slug === 'klali' }]}>{g.letter}</span>
                   <span class="rashi-text">
                     <span class="rashi-name">{g.slug === 'klali' ? 'משותף לכל השכבות' : `כיתה ${g.letter}`}</span>
                     <span class="rashi-count">
-                      {g.chapters.reduce((n, c) => n + c.items.length, 0)} קבצים, קישורים ופעילויות
+                      <b class="rashi-count-num">{g.chapters.reduce((n, c) => n + c.items.length, 0)}</b>
+                      קבצים, קישורים ופעילויות
                     </span>
                   </span>
-                  <span class="rashi-arrow" aria-hidden="true">←</span>
+                  <span class="rashi-dots" aria-hidden="true"></span>
+                  <span class="rashi-pnum">עמוד {pageNum(`toc-${g.slug}`)}</span>
                 </button>
               ))
             }
@@ -292,9 +303,9 @@ const embedOrigins = [
     z-index: 90;
     margin: 0;
     inline-size: auto;
-    padding: clamp(0.5rem, 1.6vh, 1rem) clamp(0.7rem, 2vw, 1.6rem);
+    padding: clamp(0.35rem, 1.2vh, 0.7rem) clamp(0.5rem, 1.4vw, 1.1rem);
     background: linear-gradient(180deg, var(--paper) 0%, var(--paper-soft) 100%);
-    gap: 0.7rem;
+    gap: 0.55rem;
     overflow: hidden;
     overscroll-behavior: contain;
   }
@@ -372,46 +383,56 @@ const embedOrigins = [
 
   .bfs:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
 
+  /* בהשתלטות הסרגלים מצטמצמים — הדפים מקבלים את מרב הגובה (3.29) */
+  .is-full .book-bar { gap: 0.55rem; }
+  .is-full .book-exit { min-block-size: 44px; padding: 0.4rem 1.1rem; font-size: 0.95rem; }
+  .is-full .btab { min-block-size: 34px; min-inline-size: 40px; padding: 0.15rem 0.7rem; font-size: 0.92rem; }
+  .is-full .bfs { inline-size: 44px; block-size: 44px; font-size: 1.15rem; }
+  .is-full .book-nav { gap: 0.7rem; }
+  .is-full .bnav { min-block-size: 44px; padding: 0.45rem 1.15rem; font-size: 0.95rem; }
+  .is-full .book-meter { gap: 0.2rem; }
+  .is-full .book-counter { font-size: 0.8rem; }
+  .is-full .book-progress { block-size: 5px; }
+
   /* ===== במת הספר — הדפים ממלאים את הגובה הפנוי ===== */
   .book-stage {
     position: relative;
     container-type: size;
-    block-size: max(560px, calc(100dvh - var(--header-h) - 200px));
+    block-size: max(560px, calc(100dvh - var(--header-h) - 176px));
     display: grid;
     place-items: center;
   }
 
   .is-full .book-stage { flex: 1; min-block-size: 0; block-size: auto; }
 
-  /* כל עמוד ביחס A4 לאורך (3.29): עמוד אחד — 210/280; שניים — 420/280.
+  /* הדפים תופסים את מרב שטח המסך (3.29, הוראת יניב 03/08/2026): יחס
+     העמוד גמיש בין A4 לאורך (210/297) לגבול מעט רחב יותר (210/260) —
+     כשהבמה בתוך הטווח הספר ממלא אותה במלואה, ומעבר לו נצמד לגבול הקרוב.
      touch-action: גלילה אנכית חופשית — החלקה אופקית שמורה לדפדוף */
-  .book { position: relative; perspective: 2600px; touch-action: pan-y pinch-zoom; }
+  .book { position: relative; perspective: 2200px; touch-action: pan-y pinch-zoom; }
 
   .mode-1 .book {
-    block-size: min(100cqb, calc(100cqi * 280 / 210));
-    aspect-ratio: 210 / 280;
+    block-size: min(100cqb, calc(100cqi * 297 / 210));
+    inline-size: min(100cqi, calc(100cqb * 210 / 260));
   }
 
-  .mode-2 .book {
-    block-size: min(100cqb, calc(100cqi * 280 / 420));
-    aspect-ratio: 420 / 280;
-  }
-
-  /* עמוד משאב נפרס על כל המסך גם בתצוגת עמוד אחד (3.29) */
+  /* פריסה כפולה ועמוד משאב רחב — אותן מידות ספר-פתוח, בלי קפיצות בדפדוף */
+  .mode-2 .book,
   .book-shell.has-wide .book {
-    block-size: min(100cqb, calc(100cqi * 280 / 420));
-    aspect-ratio: 420 / 280;
+    block-size: min(100cqb, calc(100cqi * 297 / 420));
+    inline-size: min(100cqi, calc(100cqb * 420 / 260));
   }
 
-  /* אזורי דפדוף שקטים בשולי הדף */
+  /* אזורי דפדוף שקטים בשולי הדף — הקשה מדפדפת, גרירה אוחזת את העלה */
   .book-edge {
     position: absolute;
     inset-block: 0;
-    inline-size: 30px;
+    inline-size: 34px;
     z-index: 4;
     border: 0;
     background: none;
-    cursor: pointer;
+    cursor: grab;
+    touch-action: none;
     display: grid;
     place-items: center;
     color: transparent;
@@ -419,12 +440,16 @@ const embedOrigins = [
     font-weight: 700;
   }
 
+  .book-edge:active { cursor: grabbing; }
+
   .book-edge-next { left: 0; border-radius: 18px 0 0 18px; }
   .book-edge-prev { right: 0; border-radius: 0 18px 18px 0; }
 
   /* בעמוד משאב שום שכבה של החוברת לא יושבת מעל ההטמעה — הקישורים
-     שבפנים לחיצים תמיד, עד הפיקסל האחרון (3.29) */
-  .book-shell.on-embed .book-edge { display: none; }
+     שבפנים לחיצים תמיד, עד הפיקסל האחרון (3.29). ההטמעה היא החצי הימני,
+     ולכן רק אזור הקצה הימני כבוי; הקצה השמאלי (מעל חצי המידע) ממשיך
+     לדפדף ולגרור */
+  .book-shell.on-embed .book-edge-prev { display: none; }
 
   .book-edge:hover {
     color: var(--gold-deep);
@@ -435,6 +460,26 @@ const embedOrigins = [
 
   /* השדרה באמצע הספר הפתוח */
   .book-spine { display: none; }
+
+  /* השער: דף יחיד ענק לאורך — בלי שדרה, בלי ערימת דפים, בלי מראה של ספר פתוח
+     (3.29, הוראת יניב 03/08/2026) */
+  .book-shell.on-rashi .book-spine,
+  .book-shell.on-rashi .book::before,
+  .book-shell.on-rashi .book::after {
+    display: none !important;
+  }
+
+  .book-shell.on-rashi .book {
+    aspect-ratio: 210 / 280;
+    inline-size: auto;
+    max-inline-size: min(96vw, 100%);
+    margin-inline: auto;
+  }
+
+  .book-shell.on-rashi .bpage {
+    border-radius: 18px;
+    box-shadow: 0 26px 60px -28px rgb(31 41 61 / 0.45);
+  }
 
   .mode-2 .book-spine,
   .book-shell.has-wide .book-spine {
@@ -487,7 +532,7 @@ const embedOrigins = [
       -3px 0 0 #f2ead8,
       -5px 0 0 #e7ddc8,
       0 26px 60px -28px rgb(31 41 61 / 0.45);
-    padding: clamp(1.1rem, 2.6vw, 2rem);
+    padding: clamp(1rem, 2.2vw, 1.7rem);
     transform-origin: 100% 50%; /* השדרה מימין — ספר עברי */
     backface-visibility: hidden;
   }
@@ -549,68 +594,80 @@ const embedOrigins = [
   .mode-2 .book::before { left: 0; border-radius: 18px 4px 4px 18px; }
   .mode-2 .book::after { right: 0; border-radius: 4px 18px 18px 4px; }
 
-  /* צל נייר בזמן ההיפוך */
+  /* הצללת הנייר על העלה המתהפך — המנוע קובע עומק (--shade) וכיוון
+     (--shade-dir: הצד הכהה פונה לשדרה) פריים-אחר-פריים */
   .bpage::after {
     content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
+    opacity: var(--shade, 0);
+    background: linear-gradient(
+      var(--shade-dir, 270deg),
+      rgb(31 25 12 / 0.5),
+      rgb(31 25 12 / 0.12) 55%,
+      transparent 85%
+    );
+  }
+
+  /* הצל שהעלה מטיל על העמודים הנייחים — מתעבה לקראת האנך ונמוג בנחיתה */
+  .book :global(.book-cast) {
+    position: absolute;
+    inset-block: 0;
+    inline-size: 50%;
+    z-index: 5;
+    pointer-events: none;
     opacity: 0;
-    background: linear-gradient(270deg, rgb(31 25 12 / 0.28), transparent 55%);
-    transition: opacity 200ms linear;
   }
 
-  .bpage.turn-out { animation: page-out 420ms cubic-bezier(0.55, 0, 0.85, 0.4) forwards; z-index: 3; }
-  .bpage.turn-out::after { opacity: 1; }
-  .bpage.turn-in { animation: page-in 460ms cubic-bezier(0.16, 0.6, 0.25, 1) backwards; z-index: 2; }
-  .bpage.turn-out-back { animation: page-out-back 420ms cubic-bezier(0.55, 0, 0.85, 0.4) forwards; z-index: 3; }
-  .bpage.turn-in-back { animation: page-in-back 460ms cubic-bezier(0.16, 0.6, 0.25, 1) backwards; z-index: 2; }
-
-  @keyframes page-out { to { transform: rotateY(88deg); } }
-  @keyframes page-in { from { transform: rotateY(-70deg); } to { transform: rotateY(0); } }
-  @keyframes page-out-back { to { transform: rotateY(-70deg); } }
-  @keyframes page-in-back { from { transform: rotateY(88deg); } to { transform: rotateY(0); } }
-
-  /* היפוך העלה מעל השדרה — שני שלבים רציפים של אותו עלה, עם הצללות נייר */
-  .bpage.sp-out-l { animation: sp-out-l 260ms cubic-bezier(0.45, 0, 0.9, 0.5) forwards; }
-  .bpage.sp-in-r { animation: sp-in-r 320ms cubic-bezier(0.15, 0.55, 0.25, 1) backwards; }
-  .bpage.sp-out-r { animation: sp-out-r 260ms cubic-bezier(0.45, 0, 0.9, 0.5) forwards; }
-  .bpage.sp-in-l { animation: sp-in-l 320ms cubic-bezier(0.15, 0.55, 0.25, 1) backwards; }
-  .bpage.sp-out-l::after,
-  .bpage.sp-out-r::after { opacity: 1; }
-
-  /* בעמוד שמאלי צל השדרה יושב בצד הימני שלו */
-  .mode-2 .bpage.pg-left::after {
-    background: linear-gradient(90deg, rgb(31 25 12 / 0.28), transparent 55%);
+  .book :global(.book-cast-l) {
+    left: 0;
+    background: linear-gradient(270deg, rgb(28 22 10 / 0.5), rgb(28 22 10 / 0.1) 60%, transparent 88%);
   }
 
-  /* דף נכנס מוצל ליד השדרה ומתבהר בנחיתה — תחושת נייר אמיתית */
-  .bpage.sp-in-r::after,
-  .bpage.sp-in-l::after,
-  .bpage.turn-in::after,
-  .bpage.turn-in-back::after {
-    animation: page-lighten 320ms linear forwards;
+  .book :global(.book-cast-r) {
+    right: 0;
+    background: linear-gradient(90deg, rgb(28 22 10 / 0.5), rgb(28 22 10 / 0.1) 60%, transparent 88%);
   }
 
-  @keyframes page-lighten {
-    from { opacity: 0.75; }
-    to { opacity: 0; }
+  /* עלה חלק — כשמול דף בודד אין בן-זוג, מתהפך עמוד ריק כמו בספר אמיתי */
+  .book :global(.bleaf) {
+    position: absolute;
+    inset: 0 50% 0 0;
+    z-index: 1;
+    background: linear-gradient(180deg, #fdfaf3 0%, #f7f1e3 100%);
+    border: 1px solid var(--line);
+    border-radius: 18px 4px 4px 18px;
+    transform-origin: 100% 50%;
+    backface-visibility: hidden;
   }
 
-  @keyframes sp-out-l { to { transform: rotateY(90deg); } }
-  @keyframes sp-in-r { from { transform: rotateY(-90deg); } to { transform: rotateY(0); } }
-  @keyframes sp-out-r { to { transform: rotateY(-90deg); } }
-  @keyframes sp-in-l { from { transform: rotateY(90deg); } to { transform: rotateY(0); } }
+  .book :global(.bleaf[hidden]) { display: none; }
+
+  .book :global(.bleaf)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--shade, 0);
+    background: linear-gradient(
+      var(--shade-dir, 270deg),
+      rgb(31 25 12 / 0.5),
+      rgb(31 25 12 / 0.12) 55%,
+      transparent 85%
+    );
+  }
+
+  /* מסך צר: מעבר עמעום עדין בין עמודים — בלי ערימת דפים בזרימה */
+  .bpage.fade-out { animation: bk-fade-out 150ms var(--ease) forwards; }
+  .bpage.fade-in { animation: bk-fade-in 300ms var(--ease) backwards; }
+
+  @keyframes bk-fade-out { to { opacity: 0; } }
+  @keyframes bk-fade-in { from { opacity: 0; } }
 
   @media (prefers-reduced-motion: reduce) {
-    .bpage.turn-out,
-    .bpage.turn-in,
-    .bpage.turn-out-back,
-    .bpage.turn-in-back,
-    .bpage.sp-out-l,
-    .bpage.sp-in-r,
-    .bpage.sp-out-r,
-    .bpage.sp-in-l {
+    .bpage.fade-out,
+    .bpage.fade-in {
       animation: none;
     }
   }
@@ -668,7 +725,7 @@ const embedOrigins = [
   }
 
   .rashi-row:hover {
-    background: rgb(212 175 92 / 0.09);
+    background: color-mix(in srgb, var(--g-color, var(--gold)) 9%, #fff);
     transform: translateX(-4px);
   }
 
@@ -679,13 +736,14 @@ const embedOrigins = [
     display: grid;
     place-items: center;
     padding-inline: 0.45em;
-    border: 1.5px solid var(--gold);
+    border: 2px solid var(--g-color, var(--gold));
     border-radius: 12px;
     font-family: var(--font-display);
     font-size: clamp(1.05rem, 3.4cqi, 1.45rem);
     font-weight: 700;
-    color: var(--gold-deep);
+    color: var(--g-dark, var(--gold-deep));
     line-height: 1;
+    background: color-mix(in srgb, var(--g-color, var(--gold)) 8%, #fff);
   }
 
   .rashi-letter.is-wide { font-size: clamp(0.85rem, 2.6cqi, 1.05rem); }
@@ -694,14 +752,46 @@ const embedOrigins = [
 
   .rashi-name { font-weight: 800; font-size: clamp(1.02rem, 3cqi, 1.25rem); }
 
-  .rashi-count { font-size: clamp(0.78rem, 2.2cqi, 0.9rem); color: var(--ink-soft); }
-
-  .rashi-arrow {
-    margin-inline-start: auto;
-    color: var(--gold-deep);
-    font-weight: 800;
-    font-size: 1.2em;
+  .rashi-count {
+    font-size: clamp(0.78rem, 2.2cqi, 0.9rem);
+    color: var(--ink-soft);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35em;
   }
+
+  /* מספר הקבצים — גופן תלת-ממד ברור ובולט (3.29, הוראת יניב 03/08/2026) */
+  .rashi-count-num {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 4cqi, 1.8rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--g-color, var(--gold));
+    text-shadow:
+      1px 1px 0 var(--g-dark, var(--gold-deep)),
+      2px 2px 0 var(--g-dark, var(--gold-deep)),
+      3px 3px 0 color-mix(in srgb, var(--g-dark, var(--gold-deep)) 55%, transparent),
+      4px 5px 8px rgb(31 25 12 / 0.35);
+  }
+
+  /* מוביל נקודות עד מספר העמוד — כמו בתוכן עניינים של חוברת אמיתית */
+  .rashi-dots {
+    flex: 1;
+    min-inline-size: 24px;
+    border-block-end: 2px dotted color-mix(in srgb, var(--g-color, var(--gold)) 55%, transparent);
+    margin-inline: 0.5rem;
+    transform: translateY(-0.35em);
+  }
+
+  .rashi-pnum {
+    flex: none;
+    font-family: var(--font-display);
+    font-size: clamp(0.85rem, 2.4cqi, 1rem);
+    font-weight: 700;
+    color: var(--g-dark, var(--gold-deep));
+    font-variant-numeric: tabular-nums;
+  }
+
 
   /* ===== תוכן עניינים ===== */
   .toc-head { margin-block-end: 1.2rem; }
@@ -1027,11 +1117,7 @@ const embedOrigins = [
       );
     };
 
-    const ANIM = [
-      'pg-left', 'pg-right', 'pg-wide',
-      'sp-out-l', 'sp-out-r', 'sp-in-l', 'sp-in-r',
-      'turn-out', 'turn-in', 'turn-out-back', 'turn-in-back',
-    ];
+    const ANIM = ['pg-left', 'pg-right', 'pg-wide', 'fade-out', 'fade-in'];
 
     // תצוגת שני עמודים (3.29): עמוד משאב נפרס על שני חצאי המסך — ההטמעה
     // מימין והמידע משמאל; עמודי שער ותוכן סמוכים מזדווגים, ועמוד בודד
@@ -1116,6 +1202,7 @@ const embedOrigins = [
       applySides(view);
       shell.classList.toggle('mode-2', mode === 2);
       shell.classList.toggle('mode-1', mode === 1);
+      shell.classList.toggle('on-rashi', ids[cur] === 'rashi');
       paint();
     };
 

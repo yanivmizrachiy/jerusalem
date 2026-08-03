@@ -40,6 +40,10 @@ export interface ChoveretChapter {
 export interface ChoveretGrade {
   slug: string;
   letter: string;
+  /** צבע השכבה — ייחודי לכל שכבה (3.29) */
+  color: string;
+  /** גוון כהה לטקסט קטן על לבן (AA) */
+  dark: string;
   title: string;
   intro: string;
   chapters: ChoveretChapter[];
@@ -121,6 +125,8 @@ const siteItems: ChoveretItem[] = [...grade7Resources]
 export const choveret: ChoveretGrade[] = [
   {
     slug: 'z',
+    color: '#1d7ed8',
+    dark: '#155fa8',
     letter: 'ז׳',
     title: 'מתמטיקה לכיתה ז׳',
     intro: 'השכבה הראשונה בתוכנית המעודכנת — Moodle מחייבת, ספרים חדשים ופרויקט 720.',
@@ -184,6 +190,8 @@ export const choveret: ChoveretGrade[] = [
   },
   {
     slug: 'h',
+    color: '#059669',
+    dark: '#047857',
     letter: 'ח׳',
     title: 'מתמטיקה לכיתה ח׳',
     intro: 'שנת התאמה: פריסה ארצית מיוחדת, Moodle מחייבת ומשימות הערכה — והנושאים יופיעו בתנופה ט׳ של תשפ״ח.',
@@ -256,6 +264,8 @@ export const choveret: ChoveretGrade[] = [
   },
   {
     slug: 't',
+    color: '#ea580c',
+    dark: '#b45309',
     letter: 'ט׳',
     title: 'מתמטיקה לכיתה ט׳',
     intro: 'שתי פריסות — רגילה ומצומצמת, קדם־אנליזה, מבחן תנופה 25.11.26 והשיבוץ לרמות 3/4/5.',
@@ -325,6 +335,8 @@ export const choveret: ChoveretGrade[] = [
   },
   {
     slug: 'klali',
+    color: '#7c3aed',
+    dark: '#6d28d9',
     letter: 'כללי',
     title: 'משותף לכל השכבות',
     intro: 'מבחנים והערכה, משחקים והעשרה ומשאבי הרוחב הדיגיטליים — לכל כיתות ז׳–ט׳.',
