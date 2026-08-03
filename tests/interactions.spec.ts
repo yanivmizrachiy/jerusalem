@@ -84,8 +84,11 @@ test('כפתורי WhatsApp אמיתיים: כל כפתור מוביל ישיר�
       `כפתור WhatsApp של ${m.name}`
     ).toHaveCount(1);
   }
-  // הקישור הירוק המהיר בפס "מה צפוי?" — לקבוצה הקנונית בדיוק (7.20)
-  await expect(page.locator(`.rail a[href="${whatsappCommunity.url}"]`)).toHaveCount(1);
+  // "מה צפוי?": הלוגו העגול + שני הכיתובים הירוקים — שלושתם ישירות לקבוצה (7.20)
+  await expect(page.locator(`.rail a[href="${whatsappCommunity.url}"]`)).toHaveCount(3);
+  // כפתור הפייסבוק של יניב רז — לדף האמיתי (7.25)
+  const yaniv = team.find((m) => m.facebook)!;
+  await expect(page.locator(`#tzevet a.btn-facebook[href="${yaniv.facebook}"]`)).toHaveCount(1);
 
   await page.goto('/chativat-beynayim/');
   await expect(page.locator(`a[href="${whatsappCommunity.url}"]`)).toHaveCount(1);

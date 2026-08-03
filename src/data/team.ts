@@ -16,6 +16,8 @@ export interface TeamMember {
   initial: string;
   /** גוון מזהה מתוך הפלטה (5.19) */
   accent: string;
+  /** דף פייסבוק אישי — רק כאשר נמסר (7.25) */
+  facebook?: string;
   /**
    * נגזרת תצוגה ממוטבת של תמונת המקור (7.6–7.7).
    * איילת וויקטוריה: התמונות המקוריות מהאתר הקודם, חולצו ממקור-השורש
@@ -62,6 +64,7 @@ export const team: TeamMember[] = [
     phoneDisplay: '052-374-8115',
     phoneIntl: '972523748115',
     email: 'yanivmiz77@gmail.com',
+    facebook: 'https://www.facebook.com/people/%D7%94%D7%93%D7%A4%D7%99%D7%9D-%D7%A9%D7%9C-%D7%99%D7%A0%D7%99%D7%91/61562668603240/',
     initial: 'י',
     accent: 'var(--olive)',
     photo: '/media/team/yaniv.jpg',
