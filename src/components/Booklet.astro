@@ -978,7 +978,8 @@ const site = 'https://jerusalem-virid.vercel.app';
     {
       let k = 0;
       while (k < total) {
-        if (!isItem(k) && k + 1 < total && !isItem(k + 1)) {
+        // עמוד השער תמיד לבדו — נפתח כעמוד יחיד רחב (הוראת יניב, 03/08/2026)
+        if (k !== 0 && !isItem(k) && k + 1 < total && !isItem(k + 1)) {
           views2.push([k, k + 1]);
           k += 2;
         } else {
@@ -1023,12 +1024,15 @@ const site = 'https://jerusalem-virid.vercel.app';
       if (v.length === 2) {
         pages[v[0]].classList.add('pg-right');
         pages[v[1]].classList.add('pg-left');
-      } else pages[v[0]].classList.add(isItem(v[0]) ? 'pg-wide' : 'pg-right');
+      } else pages[v[0]].classList.add(isItem(v[0]) || ids[v[0]] === 'rashi' ? 'pg-wide' : 'pg-right');
     };
 
     const layout = () => {
       const view = visOf(cur);
-      shell.classList.toggle('has-wide', !narrow.matches && view.length === 1 && isItem(view[0]));
+      shell.classList.toggle(
+        'has-wide',
+        !narrow.matches && view.length === 1 && (isItem(view[0]) || ids[view[0]] === 'rashi')
+      );
       const vis = new Set(view);
       pages.forEach((p, k) => {
         p.classList.remove(...ANIM);
@@ -1044,6 +1048,8 @@ const site = 'https://jerusalem-virid.vercel.app';
       applySides(view);
       shell.classList.toggle('mode-2', mode === 2);
       shell.classList.toggle('mode-1', mode === 1);
+      // בשער — האתר חוזר: עמוד יחיד רחב בלי השתלטות (הוראת יניב, 03/08/2026)
+      if (ids[cur] === 'rashi') disengage();
       paint();
     };
 
@@ -1224,7 +1230,8 @@ const site = 'https://jerusalem-virid.vercel.app';
     );
     shell.querySelectorAll<HTMLButtonElement>('button[data-jump]').forEach((b) =>
       b.addEventListener('click', () => {
-        engage();
+        // ההשתלטות מתחילה רק בבחירת שכבה/תוכן — לא בחזרה לשער
+        if (b.dataset.jump !== 'rashi') engage();
         goto(b.dataset.jump!);
       })
     );
