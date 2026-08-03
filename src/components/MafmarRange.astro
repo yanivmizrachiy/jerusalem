@@ -34,7 +34,6 @@ const anchorId = s.id.toLowerCase();
     <p class="mrange-badge">מתוך חוזר מפמ״ר תשפ״ז · עמודים {s.startPage}–{s.endPage}</p>
     <h3 class="mrange-title">{s.title}</h3>
     {s.note && <p class="mrange-note">{s.note}</p>}
-    <p class="mrange-replaces">מחליף את המידע הישן: {s.replaces}</p>
   </header>
 
   <div class="mrange-shell" data-shell>
@@ -93,14 +92,6 @@ const anchorId = s.id.toLowerCase();
 
   .mrange-note { margin: 0 0 0.4rem; color: var(--ink-soft); font-size: 0.92rem; }
 
-  .mrange-replaces {
-    margin: 0;
-    color: var(--ink-faint);
-    font-size: 0.84rem;
-    border-inline-start: 2px solid var(--card-accent, var(--line));
-    padding-inline-start: 0.6rem;
-  }
-
   .mrange-shell {
     position: relative;
     padding: 14px;
@@ -125,7 +116,8 @@ const anchorId = s.id.toLowerCase();
     inset: 0;
     border-radius: 28px;
     pointer-events: none;
-    background: linear-gradient(115deg, transparent 32%, rgb(255 255 255 / 0.42) 45%, transparent 57%);
+    background: linear-gradient(115deg, transparent 36%, rgb(255 255 255 / 0.22) 46%, transparent 55%);
+    pointer-events: none;
   }
 
   .mrange.is-tall .mrange-shell { block-size: clamp(520px, 72vh, 820px); }

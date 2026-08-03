@@ -349,6 +349,27 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
   .cal td.is-jlm .d-tag { color: #2d5a7a; }
 
   .cal td.is-exam { background: color-mix(in srgb, var(--terracotta) 13%, #fff); }
+
+  /* מבחן ארצי — הכיתוב בתוך עיגול (23.7, הוראת יניב 03/08/2026) */
+  .cal .d-circ {
+    position: absolute;
+    left: 50%;
+    top: 56%;
+    transform: translate(-50%, -50%);
+    inline-size: 4.9em;
+    block-size: 4.9em;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    border-radius: 50%;
+    border: 2px solid #8a3f28;
+    background: rgb(255 255 255 / 0.82);
+    color: #8a3f28;
+    font-size: 0.66rem;
+    font-weight: 800;
+    line-height: 1.25;
+    padding: 0.25rem;
+  }
   .cal td.is-exam .d-tag { color: #8a3f28; }
   .cal td.is-exam .d-greg { color: #8a3f28; }
 
@@ -524,10 +545,10 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
     { name: 'שבועות', startT: hebToTime('סיוון', 5)!, endT: hebToTime('סיוון', 6)! },
   ];
 
-  const specials = new Map<number, { cls: string; tag: string; reason?: string }>();
+  const specials = new Map<number, { cls: string; tag: string; reason?: string; circle?: boolean }>();
   specials.set(Date.UTC(2026, 8, 1), { cls: 'is-open', tag: 'פתיחת שנת הלימודים', reason: 'תשפ״ז — בהצלחה!' });
   specials.set(Date.UTC(2026, 8, 16), { cls: 'is-mark', tag: 'מפגש מובילי קהילה ראשון' });
-  specials.set(Date.UTC(2026, 10, 25), { cls: 'is-exam', tag: 'מבחן תנופה — כיתות ט׳', reason: 'מתוך חוזר מפמ״ר תשפ״ז' });
+  specials.set(Date.UTC(2026, 10, 25), { cls: 'is-exam', tag: 'מבחן תנופה ט׳', circle: true });
   specials.set(hebToTime('ניסן', 27) ?? 0, { cls: 'is-mark', tag: 'יום הזיכרון לשואה ולגבורה' });
   specials.set(atzmaut - DAY, { cls: 'is-mark', tag: 'יום הזיכרון' });
   specials.set(hebToTime('אייר', 28) ?? 0, { cls: 'is-jlm', tag: 'יום ירושלים', reason: 'החג של העיר שלנו' });
@@ -588,7 +609,9 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
         const sp = specials.get(t);
         if (sp && !vac) {
           td.classList.add(sp.cls);
-          td.innerHTML += `<span class="d-tag">${sp.tag}</span>` + (sp.reason ? `<span class="d-reason">${sp.reason}</span>` : '');
+          td.innerHTML += sp.circle
+            ? `<span class="d-circ">${sp.tag}</span>`
+            : `<span class="d-tag">${sp.tag}</span>` + (sp.reason ? `<span class="d-reason">${sp.reason}</span>` : '');
         }
         tr.appendChild(td);
       }
