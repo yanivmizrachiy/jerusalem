@@ -94,7 +94,8 @@ export const feedStanding: FeedItem[] = [
     category: 'קהילה',
     accent: 'var(--whatsapp)',
     title: 'קבוצת ה־WhatsApp המחוזית פעילה',
-    desc: 'הערוץ השוטף של מורי חטיבות הביניים בעיר ובמחוז.',
-    href: '/chativat-beynayim/kehilat-morim/',
+    desc: 'קבוצה של מורים למתמטיקה בחטיבת הביניים — הצטרפות ישירה.',
+    href: 'https://chat.whatsapp.com/L9P0Z6BFevZHzgdURMmfIK',
+    external: true,
   },
 ];

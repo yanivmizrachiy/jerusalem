@@ -70,9 +70,7 @@ export const grade7Resources: CanonicalResource[] = [
 
 /** קבוצת ה־WhatsApp — קהילת מורים ותקשורת (9.2, 3.4) */
 export const whatsappCommunity = {
-  title: 'קבוצת WhatsApp למורי חטיבות הביניים בעיר ירושלים ובמחוז ירושלים',
   url: 'https://chat.whatsapp.com/L9P0Z6BFevZHzgdURMmfIK',
-  path: '/chativat-beynayim/kehilat-morim/',
 } as const;
 
 /** אתר ההמחשות של איילת — משבצת מרכזית בעמוד הראשי (9.1, 3.3) */

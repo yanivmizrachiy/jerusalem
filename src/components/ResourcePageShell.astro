@@ -4,7 +4,7 @@
  * קודם/הבא + חזרה לקטגוריה ולעמוד הראשי (5.3–5.4, 5.12).
  */
 import Breadcrumbs from './Breadcrumbs.astro';
-import ResourceFrame from './ResourceFrame.astro';
+import SiteEmbed from './SiteEmbed.astro';
 import type { CanonicalResource } from '../data/resources';
 
 interface NavTarget {
@@ -41,18 +41,7 @@ const { resource, prev, next } = Astro.props;
   </header>
 
   <div data-reveal>
-    <ResourceFrame
-      id={resource.id}
-      title={resource.title}
-      sourceUrl={resource.url}
-      audience="מורות ומורים"
-      grade={resource.grade}
-      domain={resource.domain}
-      topic={resource.topic}
-      purpose={resource.purpose}
-      usage={resource.usage}
-      accent={resource.accent}
-    />
+    <SiteEmbed id={resource.id} title={resource.title} url={resource.url} tall />
   </div>
 
   <nav class="pager" aria-label="ניווט בין נושאים">

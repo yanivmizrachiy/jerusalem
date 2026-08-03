@@ -1,0 +1,89 @@
+---
+/**
+ * הטמעת אתר חי בגדול (הוראת יניב, 03/08/2026): המסגרת הכחולה־כהה של
+ * הבית — האתר עצמו גלישה חופשית בפנים, וכפתור עגול ועדין להעתקת הקישור
+ * הקנוני המדויק. בלי כרטיסים, בלי כפתורי כניסה.
+ */
+interface Props {
+  id: string;
+  title: string;
+  url: string;
+  /** גובה מלא במיוחד */
+  tall?: boolean;
+}
+
+const { id, title, url, tall = false } = Astro.props;
+---
+
+<div class="semb" id={id}>
+  <div class:list={['semb-frame', { 'is-tall': tall }]}>
+    <iframe src={url} title={`${title} — גלישה חיה בתוך האתר`} loading="lazy" allow="fullscreen"
+    ></iframe>
+  </div>
+  <div class="semb-actions">
+    <button class="semb-copy" type="button" data-copy={url} aria-label={`העתקת קישור אל ${title}`}>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+        <path d="M10.5 13.5a4.2 4.2 0 0 0 6 0l3-3a4.24 4.24 0 0 0-6-6l-1.6 1.6" />
+        <path d="M13.5 10.5a4.2 4.2 0 0 0-6 0l-3 3a4.24 4.24 0 0 0 6 6l1.6-1.6" />
+      </svg>
+    </button>
+    <span class="semb-note" data-note role="status">העתקת קישור אל {title}</span>
+  </div>
+</div>
+
+<style>
+  .semb-frame {
+    background: #fff;
+    border: 10px solid #0e1c31;
+    outline: 1px solid #24406b;
+    border-radius: calc(var(--radius-lg) + 6px);
+    box-shadow:
+      0 0 0 1px rgb(126 210 255 / 0.18),
+      0 34px 80px -30px rgb(11 21 36 / 0.55);
+    overflow: hidden;
+    block-size: clamp(540px, 74vh, 880px);
+  }
+
+  .semb-frame.is-tall { block-size: clamp(620px, 86vh, 1020px); }
+
+  .semb-frame iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; }
+
+  .semb-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-block-start: 0.9rem;
+  }
+
+  .semb-copy {
+    inline-size: 46px;
+    block-size: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--gold-deep);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: var(--shadow-soft);
+    transition: transform 400ms var(--ease-lift), box-shadow 300ms var(--ease), color 300ms var(--ease);
+  }
+
+  .semb-copy:hover { transform: translateY(-3px) scale(1.05); color: var(--ink); box-shadow: var(--shadow-lift); }
+
+  .semb-note { color: var(--ink-soft); font-size: 0.92rem; font-weight: 600; }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.semb-copy').forEach((btn) => {
+    const note = btn.parentElement?.querySelector<HTMLElement>('[data-note]');
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy!);
+        if (note) note.textContent = 'הקישור הועתק';
+      } catch {
+        if (note) note.textContent = 'ההעתקה נכשלה';
+      }
+    });
+  });
+</script>

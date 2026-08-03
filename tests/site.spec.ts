@@ -14,7 +14,6 @@ const routes = [
   '/chativat-beynayim/mishvaot/',
   '/chativat-beynayim/hafifat-meshulashim/',
   '/chativat-beynayim/mivchanim/',
-  '/chativat-beynayim/kehilat-morim/',
   '/chativa-elyona/',
   '/chativa-elyona/3-yahal/',
   '/chativa-elyona/4-yahal/',
