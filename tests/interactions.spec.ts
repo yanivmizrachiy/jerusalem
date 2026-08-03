@@ -89,6 +89,11 @@ test('כפתורי WhatsApp אמיתיים: כל כפתור מוביל ישיר�
   }
   // "מה צפוי?": הלוגו העגול + שני הכיתובים הירוקים — שלושתם ישירות לקבוצה (7.20)
   await expect(page.locator(`.rail a[href="${whatsappCommunity.url}"]`)).toHaveCount(3);
+  // רצועת ההצטרפות בתחתית העמוד — כולה קישור אחד ישירות לקבוצה, עם הכיתובים (7.27)
+  const band = page.locator(`a.wa-band[href="${whatsappCommunity.url}"]`);
+  await expect(band).toHaveCount(1);
+  await expect(band.locator('.wa-band-title')).toHaveText('הצטרפו לקבוצת המורים בווטסאפ');
+  await expect(band.locator('.wa-band-sub')).toContainText('קבוצה של מורים למתמטיקה בחטיבת הביניים');
   // הכפתורים האישיים של יניב רז — פייסבוק והאתר האישי (7.25–7.26)
   const yaniv = team.find((m) => m.facebook)!;
   await expect(page.locator(`#tzevet a.btn-facebook[href="${yaniv.facebook}"]`)).toHaveCount(1);
