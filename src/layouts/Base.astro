@@ -67,6 +67,32 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
         { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
       );
       document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+
+      // מעבר עוגן פנימי בעמעום מהיר — בלי גלילה נראית (5.25, הוראת יניב 03/08/2026)
+      document.addEventListener(
+        'click',
+        (e) => {
+          const a = (e.target as Element).closest?.('a[href^="#"]');
+          if (!a) return;
+          const sel = a.getAttribute('href')!;
+          const target = sel.length > 1 ? document.querySelector(sel) : null;
+          if (!target) return;
+          e.preventDefault();
+          if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            location.hash = sel;
+            return;
+          }
+          const body = document.body;
+          body.style.transition = 'opacity 150ms ease';
+          body.style.opacity = '0';
+          setTimeout(() => {
+            location.hash = sel; // קפיצה מיידית בזמן שהמסך חשוך; :target נשמר
+            body.style.transition = 'opacity 280ms ease';
+            body.style.opacity = '1';
+          }, 160);
+        },
+        true
+      );
     </script>
   </body>
 </html>

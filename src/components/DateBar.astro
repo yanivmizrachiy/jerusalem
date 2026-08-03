@@ -42,11 +42,22 @@
     color: #eaf4ff;
   }
 
+  /* הסמל מסתובב לאט ובקצב קבוע (17.4, הוראת יניב 03/08/2026);
+     ההשהיה מניחה ל-splash לנחות על סמל נייח */
   .datebar-brand img {
     inline-size: 44px;
     block-size: 44px;
     border-radius: 50%;
     box-shadow: 0 0 0 2px rgb(126 210 255 / 0.35), 0 2px 12px rgb(0 0 0 / 0.45);
+    animation: logo-spin 26s linear 2.5s infinite;
+  }
+
+  @keyframes logo-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .datebar-brand img { animation: none; }
   }
 
   .datebar-title {

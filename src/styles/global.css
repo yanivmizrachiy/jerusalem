@@ -77,7 +77,6 @@
 *::after { box-sizing: border-box; }
 
 html {
-  scroll-behavior: smooth;
   scrollbar-gutter: stable; /* אפס קפיצות layout כשמופיע פס גלילה */
   -webkit-text-size-adjust: 100%;
   overflow-x: clip; /* אפס גלילה אופקית — בכל מכשיר */
