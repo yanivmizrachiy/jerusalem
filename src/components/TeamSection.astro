@@ -25,9 +25,23 @@ const waPath =
             style={`--card-accent:${m.accent}; --reveal-delay:${i * 90}ms`}
             data-reveal
           >
-            <div class="avatar" style={`--accent:${m.accent}`} aria-hidden="true">
-              <span>{m.initial}</span>
-            </div>
+            {
+              m.photo ? (
+                <img
+                  class="avatar avatar-photo"
+                  style={`--accent:${m.accent}`}
+                  src={m.photo}
+                  alt={`תמונתה של ${m.name}`}
+                  width="118"
+                  height="118"
+                  loading="lazy"
+                />
+              ) : (
+                <div class="avatar" style={`--accent:${m.accent}`} aria-hidden="true">
+                  <span>{m.initial}</span>
+                </div>
+              )
+            }
             <h3 class="member-name">{m.name}</h3>
             <p class="member-role">{m.role}</p>
             <a class="member-phone" href={`tel:+${m.phoneIntl}`} aria-label={`חיוג אל ${m.name}`}>
@@ -97,6 +111,12 @@ const waPath =
 
   @media (min-width: 1200px) {
     .team-grid { grid-template-columns: 1.35fr 1fr 1fr 1fr; }
+  }
+
+  /* תמונה אמיתית: חיתוך תצוגה ב-CSS בלבד — המקור אינו נחתך (7.10) */
+  .avatar-photo {
+    object-fit: cover;
+    object-position: top center;
   }
 
   .avatar {

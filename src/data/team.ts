@@ -16,6 +16,12 @@ export interface TeamMember {
   initial: string;
   /** גוון מזהה מתוך הפלטה (5.19) */
   accent: string;
+  /**
+   * נגזרת תצוגה ממוטבת של תמונת המקור (7.6–7.7).
+   * איילת וויקטוריה: התמונות המקוריות מהאתר הקודם, חולצו ממקור-השורש
+   * ב-03/08/2026 (7.4); המקורות שמורים ללא שינוי מחוץ לריפו.
+   */
+  photo?: string;
 }
 
 export const team: TeamMember[] = [
@@ -28,6 +34,7 @@ export const team: TeamMember[] = [
     featured: true,
     initial: 'א',
     accent: 'var(--gold)',
+    photo: '/media/team/ayelet.jpg',
   },
   {
     name: 'ויקטוריה צורי',
@@ -37,6 +44,7 @@ export const team: TeamMember[] = [
     email: 'vikazury@gmail.com',
     initial: 'ו',
     accent: 'var(--sky)',
+    photo: '/media/team/victoria.jpg',
   },
   {
     name: 'אורלי',
