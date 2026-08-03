@@ -14,7 +14,6 @@ const waPath =
     <div class="section-head" data-reveal>
       <p class="eyebrow">כאן בשבילכם</p>
       <h2>צוות ההדרכה המחוזי</h2>
-      <p class="lede">מדריכות ומדריכי המתמטיקה של מחוז ירושלים — בלחיצה אחת ל־WhatsApp או לדוא״ל.</p>
     </div>
 
     <div class="team-grid">
@@ -226,25 +225,31 @@ const waPath =
     background: linear-gradient(180deg, #fff 0%, #fdf7ea 100%);
   }
 
-  /* חץ עדין אחד לחזרה (6.5, הוראת יניב 03/08/2026) */
+  /* חץ עדין ומוקפד לחזרה — טבעת זהב בשפת האתר (6.5, הוראת יניב 03/08/2026) */
   .team-arrow {
     display: grid;
     place-items: center;
-    inline-size: 46px;
-    block-size: 46px;
-    margin-block-start: 1.6rem;
+    inline-size: 56px;
+    block-size: 56px;
+    margin-block-start: 1.8rem;
     margin-inline: auto;
     border-radius: 50%;
-    border: 1px solid var(--line);
-    background: #fff;
+    border: 3px solid transparent;
+    background:
+      linear-gradient(#fff, #fff) padding-box,
+      conic-gradient(from 210deg, var(--gold), #f3d68b, var(--gold-deep), var(--gold)) border-box;
     color: var(--gold-deep);
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    box-shadow: var(--shadow-soft);
-    transition: transform 300ms var(--ease-lift), box-shadow 300ms var(--ease);
+    line-height: 1;
+    box-shadow: 0 10px 26px -12px rgb(176 141 62 / 0.6);
+    transition: transform 350ms var(--ease-lift), box-shadow 300ms var(--ease);
   }
 
-  .team-arrow:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+  .team-arrow:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 22px rgb(212 175 92 / 0.5), 0 14px 30px -12px rgb(176 141 62 / 0.7);
+  }
 
   /* מצב כרטיס-יחיד: לחיצה על חבר צוות מציגה רק אותו (6.5) */
   .team-card[hidden] { display: none; }

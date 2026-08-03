@@ -15,7 +15,8 @@ export interface UnitResource {
   url: string;
   kind: UnitKind;
   /** true = נפתח במקור בלבד (עורכי Canva, כלים חיצוניים) — לא מוטמע */
-  external?: boolean;
+  external?: boolean;  /** מקור הטמעה מדויק (למשל עותק מקומי חתוך לעמודים הנדרשים) — גובר על toEmbed */
+  embedOverride?: string;
 }
 
 export interface Unit {
@@ -43,6 +44,7 @@ export const kindLabels: Record<UnitKind, string> = {
 
 /** המרת קישור מקור לקישור הטמעה מתאים */
 export const toEmbed = (r: UnitResource): string => {
+  if (r.embedOverride) return r.embedOverride;
   if (r.kind === 'youtube') {
     const m = r.url.match(/(?:youtu\.be\/|v=)([\w-]{6,})/);
     return m ? `https://www.youtube-nocookie.com/embed/${m[1]}` : r.url;
@@ -126,7 +128,12 @@ export const hafifaUnit: Unit = {
   intro:
     'יחידת הדגל של גאומטריית כיתה ח׳: מהתוכנית והדגשים, דרך שלושת משפטי החפיפה, תרגול מדורג, הוכחות ואוריינות — ועד הקטעים המיוחדים במשולש והבוחן המסכם.',
   resources: [
-    R('TRI-001', 'תוכנית ומהלך', 'דגשים ותוכנית לימודים עמ׳ 65–67', 'https://drive.google.com/file/d/1XnfhK0QDM6zJ3gNjFwlejbytlp83m1yL/view'),
+    {
+      ...R('TRI-001', 'תוכנית ומהלך', 'דגשים ותוכנית לימודים עמ׳ 65–67', 'https://drive.google.com/file/d/1XnfhK0QDM6zJ3gNjFwlejbytlp83m1yL/view'),
+      // המסמך המלא הוא 158 עמודים — מוטמעים בדיוק שלושת העמודים הנדרשים,
+      // מעותק מקומי שנחתך מהמקור (הוראת יניב, 03/08/2026)
+      embedOverride: '/docs/hafifa-tochnit-65-67.pdf#view=FitH',
+    },
     R('TRI-014', 'תוכנית ומהלך', 'מהלך יחידת הלימוד', 'https://docs.google.com/document/d/1vpVmsEgidK5XITyJn4m8RNfstdBqxGYC1GUE5w0g6eQ/edit'),
     R('TRI-005', 'שלושת משפטי החפיפה', 'משולשים חופפים — סרטון', 'https://www.youtube.com/watch?v=qcrpQtXeoNk'),
     R('TRI-008', 'שלושת משפטי החפיפה', 'שלושת משפטי החפיפה', 'https://drive.google.com/file/d/1FnNw0qBvpSNtSZOAWOliltb_y2qVMobo/view'),

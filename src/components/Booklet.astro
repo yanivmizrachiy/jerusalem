@@ -89,7 +89,7 @@ const site = 'https://jerusalem-virid.vercel.app';
                           <span class="toc-num" aria-hidden="true">◆</span>
                           <span class="toc-text">
                             <span class="toc-item-title">{item.title}</span>
-                            <span class="toc-item-note">{item.note}</span>
+                            {item.note && <span class="toc-item-note">{item.note}</span>}
                           </span>
                           <span class="toc-arrow" aria-hidden="true">↗</span>
                         </a>
@@ -98,7 +98,7 @@ const site = 'https://jerusalem-virid.vercel.app';
                           <span class="toc-num">{pageNum(`it-${g.slug}-${item.id}`)}</span>
                           <span class="toc-text">
                             <span class="toc-item-title">{item.title}</span>
-                            <span class="toc-item-note">{item.note}</span>
+                            {item.note && <span class="toc-item-note">{item.note}</span>}
                           </span>
                           <span class="toc-arrow" aria-hidden="true">←</span>
                         </button>
@@ -145,7 +145,7 @@ const site = 'https://jerusalem-virid.vercel.app';
                     <aside class="item-info">
                       <p class="item-chapter">{ch.title} · כיתה {g.letter}</p>
                       <h2 class="item-title">{item.title}</h2>
-                      <p class="item-note">{item.note}</p>
+                      {item.note && <p class="item-note">{item.note}</p>}
                       <p class="item-kind">{kindLabel[item.kind]}</p>
                       <div class="item-actions" role="group" aria-label="פעולות">
                         {item.download && (

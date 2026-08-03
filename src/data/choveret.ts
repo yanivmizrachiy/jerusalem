@@ -115,7 +115,7 @@ export const choveret: ChoveretGrade[] = [
         title: 'מהחוזר הרשמי',
         color: '#d90429',
         dark: '#b3001b',
-        items: [maf('maf-02', 'MAF-02', 'הדגשים המחייבים לכיתה ז׳ — ישירות מהעותק המאומת של החוזר.')],
+        items: [maf('maf-02', 'MAF-02', '')],
       },
       {
         id: 'sites',
@@ -179,7 +179,7 @@ export const choveret: ChoveretGrade[] = [
         title: 'מהחוזר הרשמי',
         color: '#d90429',
         dark: '#b3001b',
-        items: [maf('maf-03', 'MAF-03', 'הדגשים המחייבים לכיתה ח׳ — ישירות מהעותק המאומת של החוזר.')],
+        items: [maf('maf-03', 'MAF-03', '')],
       },
       {
         id: 'unit',
@@ -253,8 +253,8 @@ export const choveret: ChoveretGrade[] = [
         color: '#d90429',
         dark: '#b3001b',
         items: [
-          maf('maf-04', 'MAF-04', 'הדגשים המחייבים לכיתה ט׳ — ישירות מהעותק המאומת של החוזר.'),
-          maf('maf-10', 'MAF-10', 'השיבוץ לרמות במעבר לחט״ע: כמה שיותר תלמידים ב-4–5, ובספק — לרמה הגבוהה.'),
+          maf('maf-04', 'MAF-04', ''),
+          maf('maf-10', 'MAF-10', ''),
         ],
       },
       {
