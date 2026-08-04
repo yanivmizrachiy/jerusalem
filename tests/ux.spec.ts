@@ -111,8 +111,15 @@ test('לחיצה על שכבה פותחת תוכן עניינים — בלי is-
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
   await expect(page.locator('[data-exit]')).toBeHidden();
   await expect(page.locator('header nav').first()).toBeVisible();
+  // נחיתה מיידית בפריסת שני עמודים — כמו חוברת אמיתית
+  await expect(page.locator('.bpage:not([hidden])')).toHaveCount(2);
   // כותרת מלאה: כיתה + נושא
   await expect(page.locator('.bp-toc:not([hidden]) h2.toc-title').first()).toContainText('מתמטיקה לכיתה ז׳ —');
+  // שורת פרקי השכבה הלחיצה: פרק לכל צ'יפ, קפיצה ישירה לפרק אחר
+  const chips = page.locator('.bp-toc:not([hidden])').first().locator('.toc-nav-chip');
+  await expect(chips).toHaveCount(5);
+  await chips.filter({ hasText: 'תכנון והוראה' }).click();
+  await expect(page).toHaveURL(/#toc-z-tichnun$/);
 });
 
 test('תוכן העניינים מחולק לעמודים אמיתיים עם כותרות כיתה ונושא (3.29)', async ({ page }) => {
