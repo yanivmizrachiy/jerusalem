@@ -1,0 +1,124 @@
+---
+/**
+ * אתר ההמחשות של איילת קריספין (RULES 3.3, 9.1): מוצג בעמוד חטיבת הביניים
+ * מתחת לחוברת המרכזית — הטמעה גדולה ודומיננטית דרך הפרוקסי המחוזי (/api/mam/),
+ * במסגרת הזכוכית האחידה (8.26), עם כפתור עגול להעתקת הקישור הקנוני.
+ * הועבר לכאן מהעמוד הראשי בהוראת יניב (04/08/2026). הרכיב חי בתוך
+ * ה-.container של העמוד — אין לו מיכל משלו, כדי להתיישר עם רוחב החוברת.
+ */
+---
+
+<section class="hamchashot-section" id="hamchashot" data-reveal>
+  <div class="section-head">
+    <h2>אתר ההמחשות של איילת קריספין</h2>
+    <p class="lede">
+      המחשות דינמיות למושגי המתמטיקה — לצפייה ולשימוש ישירות מכאן, או במקור בכרטיסייה
+      נפרדת.
+    </p>
+  </div>
+  <div class="mam-frame card-accent" style="--card-accent:var(--gold)">
+    <iframe
+      src="/api/mam/"
+      title="אתר ההמחשות של איילת קריספין — גלישה חיה בתוך האתר"
+      loading="lazy"
+      allow="fullscreen"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+    ></iframe>
+  </div>
+  <div class="mam-actions">
+    <button class="mam-copy" type="button" id="mam-copy" aria-label="העתקת הקישור לאתר ההמחשות">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+        <path d="M10.5 13.5a4.2 4.2 0 0 0 6 0l3-3a4.24 4.24 0 0 0-6-6l-1.6 1.6" />
+        <path d="M13.5 10.5a4.2 4.2 0 0 0-6 0l-3 3a4.24 4.24 0 0 0 6 6l1.6-1.6" />
+      </svg>
+    </button>
+    <button class="mam-note" type="button" id="mam-note" aria-live="polite">העתקת הקישור לאתר ההמחשות</button>
+  </div>
+</section>
+
+<style>
+  .hamchashot-section { margin-block-start: clamp(2.4rem, 5vw, 3.6rem); }
+
+  .hamchashot-section .section-head { max-width: 640px; margin-block-end: clamp(1.2rem, 3vw, 1.8rem); }
+
+  /* הדפדפן הפנימי של ההמחשות (9.1) — מסגרת זכוכית יוקרתית אחידה (8.26) */
+  .mam-frame {
+    position: relative;
+    padding: 14px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, rgb(250 246 236 / 0.95) 0%, rgb(240 233 216 / 0.78) 45%, rgb(252 249 242 / 0.92) 100%);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.9),
+      inset 0 0 0 2.5px rgb(176 141 62 / 0.4),
+      inset 0 -1px 0 rgb(176 141 62 / 0.55),
+      0 0 55px -14px rgb(126 210 255 / 0.35),
+      0 24px 70px -28px rgb(176 141 62 / 0.45),
+      0 34px 80px -34px rgb(31 41 61 / 0.35);
+    block-size: clamp(560px, 82vh, 1000px);
+  }
+
+  /* קו-אור אלכסוני על הזכוכית — ספקולר עדין; אינו חוסם אינטראקציה (8.26) */
+  .mam-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 28px;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 36%, rgb(255 255 255 / 0.22) 46%, transparent 55%);
+  }
+
+  .mam-frame iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; border-radius: 16px; background: #fff; }
+
+  .mam-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-block-start: 0.9rem;
+  }
+
+  .mam-copy {
+    inline-size: 46px;
+    block-size: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--gold-deep);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: var(--shadow-soft);
+    transition: transform 400ms var(--ease-lift), box-shadow 300ms var(--ease), color 300ms var(--ease);
+  }
+
+  .mam-copy:hover { transform: translateY(-3px) scale(1.05); color: var(--ink); box-shadow: var(--shadow-lift); }
+
+  .mam-note {
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    font-weight: 600;
+    min-block-size: 44px;
+  }
+
+  .mam-note:hover { color: var(--gold-deep); text-decoration: underline; }
+</style>
+
+<script>
+  import { hamchashot } from '../data/resources';
+  const note = document.getElementById('mam-note');
+  for (const el of [document.getElementById('mam-copy'), note]) {
+    el?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(hamchashot.url);
+        note!.textContent = 'הקישור הועתק';
+      } catch {
+        note!.textContent = 'ההעתקה נכשלה';
+      }
+    });
+  }
+</script>
