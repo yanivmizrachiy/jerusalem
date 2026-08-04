@@ -95,6 +95,9 @@ const sections = [...new Set(unit.resources.map((r) => r.section))];
 <style>
   .uplay-wrap { container-type: inline-size; }
 
+  /* קישור בתוך משפט חייב הבחנה שאינה צבע בלבד (WCAG link-in-text-block) */
+  [data-fallback-link] { text-decoration: underline; text-underline-offset: 3px; }
+
   .uplay {
     display: grid;
     grid-template-columns: 1fr;
