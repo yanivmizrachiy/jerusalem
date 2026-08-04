@@ -77,7 +77,7 @@ export const whatsappCommunity = {
   url: 'https://chat.whatsapp.com/L9P0Z6BFevZHzgdURMmfIK',
 } as const;
 
-/** אתר ההמחשות של איילת — משבצת מרכזית בעמוד הראשי (9.1, 3.3) */
+/** אתר ההמחשות של איילת — בעמוד חטיבת הביניים, מתחת לחוברת המרכזית (9.1, 3.3) */
 export const hamchashot = {
   title: 'איילת קריספין — אתר המחשות',
   url: 'https://mamhishim.my.canva.site/',
