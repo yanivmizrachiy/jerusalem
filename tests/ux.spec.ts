@@ -97,7 +97,7 @@ const openToc = async (page: Page) => {
   await page.goto('/chativat-beynayim/');
   await expect(page.locator('[data-book].is-ready')).toHaveCount(1);
   await page.locator('.rashi-row').first().click();
-  await expect(page).toHaveURL(/#toc-z-/);
+  await expect(page).toHaveURL(/#toc-z/);
   await settle(page);
 };
 
@@ -145,13 +145,15 @@ test('לחיצה על שכבה פותחת תוכן עניינים — בלי is-
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
   await expect(page.locator('[data-exit]')).toBeHidden();
   await expect(page.locator('header nav').first()).toBeVisible();
-  // כותרת מלאה: כיתה + נושא
+  // הנחיתה: עמוד תוכן העניינים של השכבה — הכותרת היא שם השכבה
+  await expect(shown(page).locator('h2.gtoc-title')).toHaveText('מתמטיקה לכיתה ז׳');
+  // מולו עמוד הפרק הראשון עם כותרת כיתה+נושא
   await expect(shown(page).locator('h2.toc-title').first()).toContainText('מתמטיקה לכיתה ז׳ —');
-  // שורת פרקי השכבה הלחיצה: פרק לכל צ'יפ, קפיצה ישירה לפרק אחר
-  const chips = shown(page).locator('.toc-nav-chip');
-  await expect(chips).toHaveCount(10); // שני עמודי הפריסה — 5 פרקים בכל אחד
-  await chips.filter({ hasText: 'תכנון והוראה' }).first().click();
+  // שורת פרק בתוכן השכבה קופצת ישירות לעמוד הפרק
+  await shown(page).locator('.gtoc-row').filter({ hasText: 'תכנון והוראה' }).click();
+  await settle(page);
   await expect(page).toHaveURL(/#toc-z-tichnun$/);
+  await expect(shown(page).locator('.toc-nav-chip.is-here').filter({ hasText: 'תכנון והוראה' })).toHaveCount(1);
 });
 
 test('דפדוף: מקלדת וכפתורים מעדכנים מונה ו-hash — בלי עמוד ריק (3.29)', async ({ page }) => {
@@ -194,10 +196,10 @@ test('פתיחת משאב: is-full, הטמעה בדף הימני, Escape וחז�
   expect(embed.width).toBeGreaterThan(500);
   expect(info.width).toBeGreaterThan(500);
   expect(embed.x, 'ההטמעה בדף הימני (RTL)').toBeGreaterThan(info.x);
-  // חזרה: לאותו עמוד תוכן עניינים, בלי is-full
+  // חזרה: לתוכן העניינים של השכבה, בלי is-full
   await exit.click();
   await settle(page);
-  await expect(page).toHaveURL(/#toc-z-/);
+  await expect(page).toHaveURL(/#toc-z/);
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
   await expect(exit).toBeHidden();
   // Escape יוצא גם הוא

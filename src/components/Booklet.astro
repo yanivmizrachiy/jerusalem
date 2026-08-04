@@ -50,8 +50,10 @@ interface PageDef {
  */
 const pages: PageDef[] = [{ id: 'rashi', label: 'ראשי' }];
 for (const g of choveret) {
+  // עמוד תוכן העניינים של השכבה — הכותרת היא שם השכבה (הוראת יניב, 04/08/2026)
+  pages.push({ id: `toc-${g.slug}`, label: g.title });
   for (const ch of g.chapters) pages.push({ id: `toc-${g.slug}-${ch.id}`, label: `${g.title} — ${ch.title}` });
-  if (g.chapters.length % 2 === 1) pages.push({ id: `blank-${g.slug}`, label: '' });
+  if (g.chapters.length % 2 === 0) pages.push({ id: `blank-${g.slug}`, label: '' });
   for (const ch of g.chapters)
     for (const it of ch.items)
       if (!it.pageHref) {
@@ -63,8 +65,8 @@ pages.push({ id: 'back', label: '' });
 
 const total = pages.length;
 const pageNum = (id: string) => pages.findIndex((p) => p.id === id) + 1;
-/** עמוד התוכן הראשון של שכבה — היעד של שורות השער ולשוניות הקפיצה */
-const firstToc = (slug: string) => `toc-${slug}-${choveret.find((g) => g.slug === slug)!.chapters[0].id}`;
+/** תוכן העניינים של השכבה — היעד של שורות השער ולשוניות הקפיצה */
+const firstToc = (slug: string) => `toc-${slug}`;
 /** צד הדף בפריסה: אינדקס אי-זוגי = דף ימין, זוגי = דף שמאל (השער והכריכה בודדים) */
 const folioSide = (id: string) => (pageNum(id) % 2 === 0 ? 'folio-r' : 'folio-l');
 
@@ -146,6 +148,39 @@ const embedOrigins = [
       {
         choveret.map((g) => (
           <>
+            <!-- תוכן העניינים של השכבה — הכותרת היא שם השכבה (הוראת יניב, 04/08/2026) -->
+            <section
+              class:list={['bpage', 'bp-gtoc', folioSide(`toc-${g.slug}`)]}
+              data-page={`toc-${g.slug}`}
+              data-n={pageNum(`toc-${g.slug}`)}
+            >
+              <div class="page-face" style={`--g-color:${g.color}; --g-dark:${g.dark}`}>
+                <header class="gtoc-head">
+                  <h2 class="gtoc-title">{g.title}</h2>
+                  <p class="gtoc-sub">תוכן העניינים</p>
+                  <p class="toc-intro">{g.intro}</p>
+                </header>
+                <ol class="gtoc-rows">
+                  {g.chapters.map((ch) => (
+                    <li>
+                      <button
+                        class="gtoc-row"
+                        type="button"
+                        data-jump={`toc-${g.slug}-${ch.id}`}
+                        style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}
+                      >
+                        <span class="gtoc-name">{ch.title}</span>
+                        <span class="gtoc-count">{ch.items.length} קבצים</span>
+                        <span class="gtoc-dots" aria-hidden="true"></span>
+                        <span class="gtoc-pnum">עמוד {pageNum(`toc-${g.slug}-${ch.id}`)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+                <span class="folio" aria-hidden="true">{pageNum(`toc-${g.slug}`)}</span>
+              </div>
+            </section>
+
             {g.chapters.map((ch, ci) => (
               <section
                 class:list={['bpage', 'bp-toc', folioSide(`toc-${g.slug}-${ch.id}`)]}
@@ -206,7 +241,7 @@ const embedOrigins = [
               </section>
             ))}
 
-            {g.chapters.length % 2 === 1 && (
+            {g.chapters.length % 2 === 0 && (
               <section
                 class:list={['bpage', 'bp-blank', folioSide(`blank-${g.slug}`)]}
                 data-page={`blank-${g.slug}`}
@@ -715,6 +750,82 @@ const embedOrigins = [
 
   .folio-r .folio { right: 16px; }
   .folio-l .folio { left: 16px; }
+
+  /* ===== תוכן העניינים של השכבה — כותרת השכבה ושורות הפרקים ===== */
+  .bp-gtoc .page-face { padding: clamp(1rem, 2.2vw, 1.8rem); }
+
+  .gtoc-head { text-align: center; margin-block-end: 0.9rem; }
+
+  .gtoc-title {
+    margin: 0;
+    font-size: clamp(1.5rem, 2.8vw, 2.3rem);
+    color: var(--g-dark, var(--ink));
+  }
+
+  .gtoc-sub {
+    margin: 0.15rem 0 0.5rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--gold-deep);
+  }
+
+  .gtoc-head::after {
+    content: '';
+    display: block;
+    inline-size: 100%;
+    block-size: 2px;
+    margin-block-start: 0.8rem;
+    background: linear-gradient(90deg, transparent, var(--g-color, var(--gold)), transparent);
+  }
+
+  .gtoc-rows { list-style: none; margin: 0; padding: 0 0 1.4rem; }
+
+  .gtoc-row {
+    inline-size: 100%;
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    padding: clamp(0.65rem, 1.6vh, 1rem) 0.4rem;
+    border: 0;
+    border-block-end: 1px solid var(--line);
+    background: none;
+    color: var(--ink);
+    text-align: start;
+    font: inherit;
+    cursor: pointer;
+    transition: background-color 250ms var(--ease), transform 250ms var(--ease);
+  }
+
+  .gtoc-row:hover {
+    background: color-mix(in srgb, var(--ch-color) 8%, #fff);
+    transform: translateX(-4px);
+  }
+
+  .gtoc-name {
+    font-weight: 800;
+    font-size: clamp(1.02rem, 1.7vw, 1.25rem);
+    color: var(--ch-dark);
+  }
+
+  .gtoc-count { font-size: 0.85rem; color: var(--ink-soft); white-space: nowrap; }
+
+  .gtoc-dots {
+    flex: 1;
+    min-inline-size: 24px;
+    border-block-end: 2px dotted color-mix(in srgb, var(--ch-color) 55%, transparent);
+    margin-inline: 0.4rem;
+    transform: translateY(-0.2em);
+  }
+
+  .gtoc-pnum {
+    font-family: var(--font-display);
+    font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+    font-weight: 700;
+    color: var(--ch-dark);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
 
   /* ===== תוכן עניינים — עמוד לפרק ===== */
   .bp-toc .page-face { gap: 0.75rem; }
