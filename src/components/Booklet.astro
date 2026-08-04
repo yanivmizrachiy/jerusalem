@@ -203,7 +203,6 @@ const embedOrigins = [
                 <header class="gtoc-head">
                   <h2 class="gtoc-title">{g.title}</h2>
                   <p class="gtoc-sub">תוכן העניינים</p>
-                  <p class="toc-intro">{g.intro}</p>
                 </header>
                 <ol class="gtoc-rows">
                   {g.chapters.map((ch) => (
@@ -226,7 +225,7 @@ const embedOrigins = [
               </div>
             </section>
 
-            {g.chapters.map((ch, ci) => (
+            {g.chapters.map((ch) => (
               <section
                 class:list={['bpage', 'bp-toc', folioSide(`toc-${g.slug}-${ch.id}`)]}
                 data-page={`toc-${g.slug}-${ch.id}`}
@@ -238,7 +237,6 @@ const embedOrigins = [
                     <h2 class="toc-title">
                       {g.title} — {ch.title}
                     </h2>
-                    {ci === 0 && <p class="toc-intro">{g.intro}</p>}
                   </header>
                   {g.chapters.length > 1 && (
                     <nav class="toc-nav" aria-label={`תוכן העניינים של ${g.title}`}>
@@ -256,26 +254,20 @@ const embedOrigins = [
                       ))}
                     </nav>
                   )}
-                  <ol class="toc-list">
+                  <ol class="toc-list gtoc-rows">
                     {ch.items.map((item) => (
                       <li>
                         {item.pageHref ? (
-                          <a class="toc-item" href={item.pageHref}>
-                            <span class="toc-num" aria-hidden="true">◆</span>
-                            <span class="toc-text">
-                              <span class="toc-item-title">{item.title}</span>
-                              {item.note && <span class="toc-item-note">{item.note}</span>}
-                            </span>
-                            <span class="toc-arrow" aria-hidden="true">↗</span>
+                          <a class="toc-item gtoc-row" href={item.pageHref}>
+                            <span class="gtoc-name">{item.title}</span>
+                            <span class="gtoc-dots" aria-hidden="true"></span>
+                            <span class="gtoc-pnum gtoc-pnum-ext" aria-hidden="true">↗</span>
                           </a>
                         ) : (
-                          <button class="toc-item" type="button" data-jump={`it-${g.slug}-${item.id}`}>
-                            <span class="toc-num">{pageNum(`it-${g.slug}-${item.id}`)}</span>
-                            <span class="toc-text">
-                              <span class="toc-item-title">{item.title}</span>
-                              {item.note && <span class="toc-item-note">{item.note}</span>}
-                            </span>
-                            <span class="toc-arrow" aria-hidden="true">←</span>
+                          <button class="toc-item gtoc-row" type="button" data-jump={`it-${g.slug}-${item.id}`}>
+                            <span class="gtoc-name">{item.title}</span>
+                            <span class="gtoc-dots" aria-hidden="true"></span>
+                            <span class="gtoc-pnum">עמוד {pageNum(`it-${g.slug}-${item.id}`)}</span>
                           </button>
                         )}
                       </li>
@@ -892,19 +884,25 @@ const embedOrigins = [
   /* ===== תוכן עניינים — עמוד לפרק ===== */
   .bp-toc .page-face { gap: 0.75rem; }
 
-  .toc-head { flex: none; }
+  .toc-head { flex: none; text-align: center; }
 
+  /* כותרת הפרק — אותו עיצוב אלגנטי של עמוד השכבה: כותרת ממורכזת בצבע
+     הפרק וקו-הדגשה מתחתיה (במקום באנר מלא) */
   .toc-title {
-    margin: 0 0 0.5rem;
-    padding: 0.6rem 1rem;
-    border-radius: 10px;
-    background: linear-gradient(120deg, var(--ch-color), color-mix(in srgb, var(--ch-color) 72%, #000));
-    color: #fff;
-    font-size: clamp(1.15rem, 1.9vw, 1.55rem);
-    line-height: 1.3;
+    margin: 0;
+    font-size: clamp(1.35rem, 2.4vw, 2rem);
+    line-height: 1.25;
+    color: var(--ch-dark);
   }
 
-  .toc-intro { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+  .toc-head::after {
+    content: '';
+    display: block;
+    inline-size: 100%;
+    block-size: 2px;
+    margin-block-start: 0.7rem;
+    background: linear-gradient(90deg, transparent, var(--ch-color, var(--gold)), transparent);
+  }
 
   .toc-nav {
     flex: none;
@@ -954,48 +952,10 @@ const embedOrigins = [
   /* גלילה פנימית רק כשהתוכן באמת אינו נכנס — המנוע מסמן בזמן ריצה */
   .bp-toc.can-scroll .toc-list { overflow-y: auto; overscroll-behavior: contain; }
 
-  .toc-item {
-    inline-size: 100%;
-    text-align: start;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0.55rem;
-    border: 0;
-    border-block-end: 1px solid color-mix(in srgb, var(--ch-color) 16%, transparent);
-    background: none;
-    color: var(--ink);
-    min-block-size: 52px;
-    cursor: pointer;
-    font: inherit;
-    transition: background-color 250ms var(--ease), transform 250ms var(--ease);
-  }
-
-  li:last-child .toc-item { border-block-end: 0; }
-
-  .toc-item:hover {
-    background: color-mix(in srgb, var(--ch-color) 8%, #fff);
-    transform: translateX(-4px);
-  }
-
-  .toc-num {
-    flex: none;
-    inline-size: 2.2em;
-    block-size: 2.2em;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    border: 2px solid var(--ch-color);
-    color: var(--ch-dark);
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    font-size: 1rem;
-  }
-
-  .toc-text { display: flex; flex-direction: column; gap: 0.05rem; min-inline-size: 0; }
-  .toc-item-title { font-weight: 700; font-size: 1.02rem; }
-  .toc-item-note { font-size: 0.86rem; color: var(--ink-soft); }
-  .toc-arrow { margin-inline-start: auto; color: var(--ch-dark); font-weight: 800; }
+  /* שורות הפריטים משתמשות בעיצוב שורות עמוד-השכבה (.gtoc-row/.gtoc-name/
+     .gtoc-dots/.gtoc-pnum) — שם צבעוני, מובילי נקודות ומספר עמוד; כך כל
+     עמודי התוכן אחידים כמו עמוד השכבה (הוראת יניב, 05/08/2026) */
+  .gtoc-pnum-ext { font-size: 1.15em; line-height: 1; }
 
   /* ===== עמודי משאב — זוג אמיתי: הטמעה מימין, מידע משמאל ===== */
   .bp-item .page-face { border-block-start: 6px solid var(--ch-color); }
