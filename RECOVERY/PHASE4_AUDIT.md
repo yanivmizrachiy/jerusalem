@@ -32,8 +32,10 @@
 1. **`package-lock.json` סונכרן מחדש** — הלוקפייל סטה מ־package.json עד ש־`npm ci` נכשל; ה־CI השתמש ב־`npm install` שהסתיר זאת (התקנה לא דטרמיניסטית).
 2. **CI עבר ל־`npm ci`** — התקנה קשיחה לפי הלוקפייל + ‏`concurrency` לביטול ריצות מיושנות.
 3. **`npm test`** — נוסף סקריפט סטנדרטי (מריץ `playwright test`, כמו ב־CI).
-4. ניקוי ייבוא ללא שימוש: `MAFMAR_URL` בסקריפט של `hozer-mafmar.astro`, ‏`hamchashot` ב־frontmatter של `index.astro`.
+4. ניקוי כל ההצהרות ללא שימוש: `MAFMAR_URL` ‏(hozer-mafmar), ‏`hamchashot` ‏(index), ‏`between` ‏(luach), ‏`chapter` ‏(reader) — ‏`astro check` נקי לחלוטין.
 5. הסרת כפילות `.vercel` ב־`.gitignore`.
+6. **נוסף `README.md`** — לא היה כלל: תיאור הפרויקט, הסטאק, הפקודות, מפת המבנה ועקרונות העבודה.
+7. נוסף `engines.node >= 22.12.0` ל־package.json (דרישת Astro 7, תואם ל־CI).
 
 ## 4. נותר לביצוע ידני (מחיקת ענפים חסומה מסשן זה)
 

@@ -9,7 +9,7 @@ import Booklet from '../../../../components/Booklet.astro';
 import { choveret, readerItems } from '../../../../data/choveret';
 
 export function getStaticPaths() {
-  return readerItems.map(({ grade, chapter, item }) => ({
+  return readerItems.map(({ grade, item }) => ({
     params: { grade: grade.slug, item: item.id },
     props: { gradeSlug: grade.slug, itemId: item.id },
   }));
