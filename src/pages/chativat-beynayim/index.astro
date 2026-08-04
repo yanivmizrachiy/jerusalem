@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import ArtBanner from '../../components/ArtBanner.astro';
 import Booklet from '../../components/Booklet.astro';
+import HamchashotEmbed from '../../components/HamchashotEmbed.astro';
 import { whatsappCommunity } from '../../data/resources';
 
 // חותמת עדכון אמת (3.25): זמן הבנייה בפועל — מתחדשת אוטומטית בכל פריסה
@@ -35,6 +36,8 @@ const updatedLine = `מאגר הקבצים עודכן ב${stamp.weekday}, ${Numb
     </header>
 
     <Booklet initial="rashi" />
+
+    <HamchashotEmbed />
 
     <ArtBanner
       art="festival"
