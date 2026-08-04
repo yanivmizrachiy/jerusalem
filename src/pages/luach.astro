@@ -562,8 +562,6 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
   // ===== חופשות מוסדות החינוך (ימי החג הקבועים) =====
   interface Vac { name: string; startT: number; endT: number; jlm?: boolean; }
-  const between = (hm1: string, d1: number, hm2: string, d2: number) =>
-    [hebToTime(hm1, d1)!, hebToTime(hm2, d2)!] as const;
 
   const hanukkaStart = hebToTime('כסלו', 25)!;
   const atzmaut = (() => {
