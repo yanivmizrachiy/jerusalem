@@ -70,7 +70,8 @@ const pdf = (id: string, url: string, title: string, note: string): ChoveretItem
   title,
   note,
   url,
-  embed: url,
+  // #view=FitH — פותח את ה-PDF ברוחב מלא כמו gov()/maf(), לא בזום ברירת המחדל
+  embed: `${url}#view=FitH`,
   download: url,
   kind: 'pdf',
 });

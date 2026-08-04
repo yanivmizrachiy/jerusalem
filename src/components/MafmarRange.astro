@@ -13,16 +13,18 @@ interface Props {
   sectionId: string;
   accent?: string;
   tall?: boolean;
+  /** בתוך החוברת: ממלא את דף ההטמעה — בלי כרטיס מקונן ובלי גובה קבוע (RULES 3.29) */
+  fill?: boolean;
 }
 
-const { sectionId, accent = 'var(--gold)', tall = false } = Astro.props;
+const { sectionId, accent = 'var(--gold)', tall = false, fill = false } = Astro.props;
 const s = mafmarSections.find((x) => x.id === sectionId);
 if (!s) throw new Error(`MafmarRange: מזהה לא קיים ב-manifest — ${sectionId}`);
 const anchorId = s.id.toLowerCase();
 ---
 
 <section
-  class:list={['mrange', 'card-accent', { 'is-tall': tall }]}
+  class:list={['mrange', 'card-accent', { 'is-tall': tall, 'is-fill': fill }]}
   style={`--card-accent:${accent}`}
   id={anchorId}
   data-mafrange
@@ -106,7 +108,7 @@ const anchorId = s.id.toLowerCase();
       0 0 55px -14px rgb(126 210 255 / 0.35),
       0 24px 70px -28px rgb(176 141 62 / 0.45),
       0 34px 80px -34px rgb(31 41 61 / 0.35);
-    block-size: clamp(460px, 62vh, 680px);
+    block-size: clamp(360px, 60dvh, 680px);
   }
 
   /* קו-אור אלכסוני על הזכוכית — ספקולר עדין */
@@ -120,15 +122,104 @@ const anchorId = s.id.toLowerCase();
     pointer-events: none;
   }
 
-  .mrange.is-tall .mrange-shell { block-size: clamp(520px, 72vh, 820px); }
+  .mrange.is-tall .mrange-shell { block-size: clamp(520px, 72dvh, 820px); }
 
-  .mrange-shell iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; border-radius: 16px; background: #fff; }
+  .mrange-shell iframe {
+    inline-size: 100%;
+    block-size: 100%;
+    border: 0;
+    display: block;
+    border-radius: 16px;
+    background: #fff;
+    /* חשיפה בעדינות כשה-PDF חי — במקום הבזק לבן (RULES 8.9) */
+    opacity: 0;
+    transition: opacity 480ms var(--ease);
+  }
+
+  .mrange-shell.is-loaded iframe { opacity: 1; }
 
   /* display:block היה גובר על hidden — הכלל הזה סוגר את הפרצה */
   .mrange-shell iframe[hidden] { display: none; }
 
   /* בלי מציג PDF — ה-shell מתכווץ לגובה התוכן, בלי שכבה סמויה */
   .mrange-shell.no-viewer { block-size: auto; }
+
+  /* שלד טעינה יוקרתי — זהה לחוברת; תמיד pointer-events:none (3.29) */
+  .mrange-skel {
+    position: absolute;
+    inset: 14px;
+    border-radius: 16px;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    overflow: hidden;
+    background: linear-gradient(180deg, #fffdf9 0%, #fbf6ec 100%);
+    opacity: 1;
+    transition: opacity 420ms var(--ease);
+  }
+
+  .mrange-skel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgb(212 175 92 / 0.16) 48%, rgb(255 255 255 / 0.55) 50%, rgb(212 175 92 / 0.16) 52%, transparent 70%);
+    background-size: 220% 100%;
+    animation: mrange-shimmer 1.5s ease-in-out infinite;
+  }
+
+  .mrange-shell.is-loaded .mrange-skel { opacity: 0; }
+
+  .mrange-skel-spin {
+    position: relative;
+    z-index: 1;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: 50%;
+    border: 3px solid rgb(212 175 92 / 0.26);
+    border-block-start-color: var(--gold-deep);
+    animation: mrange-spin 0.9s linear infinite;
+  }
+
+  .mrange-skel-txt {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+    color: var(--gold-deep);
+  }
+
+  @keyframes mrange-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+  @keyframes mrange-spin { to { transform: rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mrange-shell iframe { opacity: 1; transition: none; }
+    .mrange-skel { transition: none; }
+    .mrange-skel::before { animation: none; background: none; }
+    .mrange-skel-spin { animation: none; border-block-start-color: rgb(212 175 92 / 0.26); }
+  }
+
+  /* ===== מצב fill: בתוך החוברת דף ההטמעה ממלא את כל גובה הדף =====
+     בלי כרטיס לבן מקונן ובלי גובה קבוע — ה-PDF מקבל את מרב השטח (3.29) */
+  .mrange.is-fill {
+    display: flex;
+    flex-direction: column;
+    block-size: 100%;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .mrange.is-fill .mrange-head { padding: 0 0 0.5rem; }
+  .mrange.is-fill .mrange-shell { flex: 1; block-size: auto; min-block-size: 0; }
+  .mrange.is-fill .mrange-pager { padding: 0.5rem 0 0; }
+  .mrange.is-fill .mrange-actions { padding: 0.55rem 0 0; }
+  .mrange.is-fill .mrange-status { padding: 0.3rem 0 0.2rem; }
 
   /* דפדפן בלי מציג PDF מובנה (navigator.pdfViewerEnabled=false) — חלופה אמיתית */
   .mrange-fallback {
@@ -197,10 +288,33 @@ const anchorId = s.id.toLowerCase();
     const fallback = root.querySelector<HTMLElement>('[data-fallback]')!;
     const fbOpen = root.querySelector<HTMLAnchorElement>('[data-fb-open]')!;
     const noViewer = 'pdfViewerEnabled' in navigator && !navigator.pdfViewerEnabled;
+    const shell = frame.closest<HTMLElement>('[data-shell]');
     if (noViewer) {
       frame.hidden = true;
       fallback.hidden = false;
-      frame.closest('[data-shell]')?.classList.add('no-viewer');
+      shell?.classList.add('no-viewer');
+    } else if (shell) {
+      // שלד טעינה + חשיפה בעדינות של ה-PDF (כמו החוברת; RULES 8.9)
+      const skel = document.createElement('div');
+      skel.className = 'mrange-skel';
+      skel.setAttribute('aria-hidden', 'true');
+      const spin = document.createElement('span');
+      spin.className = 'mrange-skel-spin';
+      const txt = document.createElement('span');
+      txt.className = 'mrange-skel-txt';
+      txt.textContent = 'טוען תצוגה חיה…';
+      skel.append(spin, txt);
+      shell.appendChild(skel);
+      shell.setAttribute('aria-busy', 'true');
+      let revealed = false;
+      const reveal = () => {
+        if (revealed) return;
+        revealed = true;
+        shell.classList.add('is-loaded');
+        shell.setAttribute('aria-busy', 'false');
+      };
+      frame.addEventListener('load', reveal, { once: true });
+      window.setTimeout(reveal, 8000);
     }
 
     const pageUrl = () => `${location.origin}${location.pathname}#${root.id}`;
