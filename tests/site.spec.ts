@@ -70,6 +70,7 @@ for (const old of ['/chativat-beynayim/mivchanim/', '/chativat-beynayim/mischaki
   test(`הפניה לחוברת: ${old}`, async ({ page }) => {
     await page.goto(old);
     await page.waitForURL((u) => u.pathname === '/chativat-beynayim/', { timeout: 10_000 });
-    expect(new URL(page.url()).hash).toBe('#toc-klali');
+    // החוברת מנרמלת מיד את המזהה המקוצר לעמוד הפרק הראשון של "כללי"
+    expect(new URL(page.url()).hash).toMatch(/^#toc-klali/);
   });
 }
