@@ -1,7 +1,9 @@
 /**
- * יחידות הוראה — המלאי הקנוני מ־RULES §10, §14, §15.
- * כל 52 הקישורים נבדקו בפועל ב־03/08/2026 (RULES 1.12):
+ * יחידות הוראה — המלאי הקנוני מ־RULES §10, §13, §15 ו־§11.
+ * כל הקישורים נבדקו בפועל ב־03/08/2026 (RULES 1.12):
  * YouTube דרך oEmbed (סרטון קיים), Drive/Docs ללא הפניית התחברות, השאר HTTP 200.
+ * פריטי EXAM (§14) ו־MZ של משחקים והעשרה עברו לעמודי-קובץ בחוברת —
+ * `choveret.ts`, לשונית "כללי" (הוראת יניב, 03/08/2026).
  */
 
 export const LINKS_VERIFIED_ON = '3/8/26';
@@ -165,28 +167,6 @@ export const hafifaUnit: Unit = {
   ],
 };
 
-/** הנחיות מבחנים ונוסחאות לחטיבת הביניים (RULES §14, מיקום לפי 3.13) */
-export const mivchanimUnit: Unit = {
-  slug: 'mivchanim',
-  title: 'בחינות והערכה — נוסחאות והנחיות',
-  grade: 'כיתות ז׳–ט׳',
-  domain: 'בחינות והערכה',
-  topic: 'נוסחאות והנחיות מבחנים',
-  path: '/chativat-beynayim/mivchanim/',
-  accent: 'var(--lilac)',
-  intro:
-    'דפי הנוסחאות הרשמיים לכל שכבה, מבחן דמוי מיצ״ב עם מחוון, והנחיות לכתיבת מבחנים — מרוכזים במקום אחד.',
-  resources: [
-    R('EXAM-002', 'נוסחאות — כיתה ז׳', 'דף נוסחאות כיתה ז׳', 'https://drive.google.com/file/d/1nJdVkTlZvnulYiabkeVZG0BT6ek1lU0c/view'),
-    R('EXAM-003', 'נוסחאות — כיתה ח׳', 'דף נוסחאות כיתה ח׳', 'https://drive.google.com/file/d/1hf30qH4SbS7UxRlkmrFiitDhdoDFt90B/view'),
-    R('EXAM-005', 'נוסחאות — כיתה ח׳', 'יצירת עותק נוסחאות ז׳–ח׳', 'https://docs.google.com/document/d/1PS4B4VwdZQk5S5BfjUzC2RtQ-9WEexRp/edit'),
-    R('EXAM-004', 'נוסחאות — כיתה ט׳', 'דף נוסחאות כיתה ט׳', 'https://drive.google.com/file/d/1UJJeoCAomVPNp4PN3FsBhCbfaqcSxL1G/view'),
-    R('EXAM-006', 'מבחן דמוי מיצ״ב', 'מבחן דמוי מיצ״ב', 'https://docs.google.com/document/d/1-F8gCF7V9X1afsr2D5vOLdgq8DC1OzlH/edit'),
-    R('EXAM-007', 'מבחן דמוי מיצ״ב', 'מחוון למבחן דמוי מיצ״ב', 'https://docs.google.com/document/d/10eruHhJRK6HX3nvD17tAypCTqNoC83WD/edit'),
-    R('EXAM-001', 'הנחיות', 'מסמך הנחיות לכתיבת מבחנים', 'https://drive.google.com/file/d/19edSXZCMSSnFVFvD6B4I-VKRqyGVNwcK/view'),
-  ],
-};
-
 /**
  * מיזם AI וגאומטריה (RULES §13) — מיקום קנוני: פיתוח מקצועי (3.14).
  * 17 קישורים נבדקו לעומק ב־03/08/2026: 16 תקינים ומפורסמים.
@@ -220,32 +200,6 @@ export const aiUnit: Unit = {
     R('AI-017', 'כלים ואתרים', 'אתר המקפצה', 'https://homework.lnet.org.il'),
     R('AI-015', 'כלים ואתרים', 'Copilot — מחולל תמונות', 'https://copilot.microsoft.com/images/create?cc=by&setlang=he', true),
     R('AI-016', 'כלים ואתרים', 'Canva', 'https://www.canva.com', true),
-  ],
-};
-
-/**
- * משחקים והעשרה לחט״ב — נכרה מהאתר הישן, סווג במערך רב-סוכני ואומת
- * ב-03/08/2026 (פריטי MZ; שנתיים/קורונה הוחזקו להכרעת יניב).
- */
-export const mischakimUnit: Unit = {
-  slug: 'mischakim',
-  title: 'משחקים והעשרה',
-  grade: 'כיתות ז׳–ט׳',
-  domain: 'משחקים והעשרה',
-  path: '/chativat-beynayim/mischakim/',
-  topic: 'משחקים, חגים והעשרה מתמטית',
-  accent: 'var(--rose)',
-  intro:
-    'הצד המהנה של המתמטיקה: משחקים הצמודים לפריסות ההוראה, משחקי חנוכה, מתמטיקה בפרשת השבוע — ואתרי העשרה מחוזיים.',
-  resources: [
-    R('MZ-25', 'משחקים לפי הפריסות', 'משחקים הצמודים לפריסות ההוראה', 'https://docs.google.com/document/d/1AQNue5voom-CuO3opIJMjQoIzy5Ryl1dXPLd-c8IW-M/edit'),
-    R('MZ-19', 'העשרה', 'מתמטיקה בפרשה שלי', 'https://www.canva.com/design/DAGa9tq_uLQ/WtXuSJ80nCM8Ow9p7Gd9Eg/view'),
-    R('MZ-39', 'חגים', 'משחקי חנוכה — חוברת', 'https://drive.google.com/file/d/1DBXCKHarZAuBCQreKrvxKUwDLa3k4IHF/view'),
-    R('MZ-38', 'חגים', 'משחקי חנוכה לכיתה ז׳ — תיקייה', 'https://drive.google.com/drive/folders/1CO-6MbihZaNkHT34kbYuB3YKliuOitgV', true),
-    R('MZ-40', 'חגים', 'משחקי חנוכה לכיתה ח׳ — תיקייה', 'https://drive.google.com/drive/folders/1Sv2iLXVFe_QYhe_3hEIAqCuN_YrlLM7A', true),
-    R('MZ-32', 'העשרה', 'משחקים לכיתות ז׳–ח׳ — תבנית Canva', 'https://www.canva.com/design/DAF3dEaqSG8/TPgg_h9hz37GX09p6A4rWQ/edit', true),
-    R('MZ-23', 'אתרי העשרה', 'אתר החינוך המיוחד המחוזי', 'https://view.genially.com/652ba55030c0f100115d551e/interactive-content-'),
-    R('MZ-26', 'אתרי העשרה', 'מתמטיקה על הרצף — מיכל דוד', 'https://mathonthespectrum.my.canva.site/', true),
   ],
 };
 

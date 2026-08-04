@@ -1,54 +1,30 @@
 ---
-import Base from '../../layouts/Base.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import UnitPlaylist from '../../components/UnitPlaylist.astro';
-import { mivchanimUnit } from '../../data/units';
+/**
+ * העמוד המרוכז של המבחנים הוחלף בעמודי-קובץ בתוך החוברת — פרקי
+ * "דפי הנוסחאות הרשמיים" ו"מבחן דמוי מיצ״ב והנחיות" בלשונית "כללי"
+ * (RULES 1.10, 3.13, 3.29 — הוראת יניב, 03/08/2026). הכתובת הישנה
+ * נשארת חיה לקישורים ששותפו, ומפנה מיידית לחוברת.
+ */
+const target = '/chativat-beynayim/#toc-klali';
 ---
 
-<Base
-  title="בחינות והערכה — חטיבת ביניים — מחוז ירושלים"
-  description="נוסחאות רשמיות לכיתות ז׳–ט׳, מבחן דמוי מיצ״ב עם מחוון והנחיות לכתיבת מבחנים — כל הקבצים בדוקים וזמינים לצפייה ישירה."
->
-  <div class="container page">
-    <Breadcrumbs
-      items={[
-        { label: 'ראשי', href: '/' },
-        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
-        { label: 'בחינות והערכה' },
-      ]}
-    />
-
-    <header class="page-head" data-reveal>
-      <p class="eyebrow">חטיבת ביניים · {mivchanimUnit.grade}</p>
-      <h1>{mivchanimUnit.title}</h1>
-      <p class="lede">{mivchanimUnit.intro}</p>
-    </header>
-
-    <div data-reveal>
-      <UnitPlaylist unit={mivchanimUnit} />
-    </div>
-
-    <section class="section-block" data-reveal>
-      <h2>ההקשר הרשמי בחוזר מפמ״ר</h2>
-      <div class="chip-links">
-        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-05">אירועי הערכה ומבחנים בחט״ב</a>
-        <a class="btn btn-ghost" href="/chativat-beynayim/kita-t/#maf-04">מבחן תנופה ט׳ — 25.11.26</a>
-        <a class="btn btn-ghost" href="https://drive.google.com/file/d/1SX6ta5BpyhlZhxjFMPPcVuQgLJXgxsMH/view" target="_blank" rel="noopener">סדנת הכנה למבחן ↗</a>
-      </div>
-    </section>
-
-    <nav class="pager-nav" aria-label="ניווט חזרה">
-      <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
-      <a class="btn btn-ghost" href="/">לעמוד הראשי</a>
-    </nav>
-  </div>
-</Base>
-
-<style>
-  .page { padding-block-start: 1.6rem; }
-  .page-head { max-width: 680px; margin-block: 1.6rem 2rem; }
-  .section-block { margin-block-start: clamp(2.4rem, 5vw, 3.4rem); }
-  .section-block h2 { margin-block-end: 1.2rem; }
-  .chip-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-  .pager-nav { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-block-start: clamp(2.2rem, 5vw, 3rem); }
-</style>
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>החומרים עברו לחוברת — מחוז ירושלים</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://jerusalem-virid.vercel.app/chativat-beynayim/" />
+    <meta http-equiv="refresh" content={`0;url=${target}`} />
+    <script is:inline define:vars={{ target }}>
+      location.replace(target);
+    </script>
+  </head>
+  <body>
+    <p style="font-family: system-ui, sans-serif; padding: 2rem; text-align: center;">
+      חומרי הבחינות וההערכה עברו אל החוברת המדפדפת —
+      <a href={target}>מעבר מיידי</a>
+    </p>
+  </body>
+</html>

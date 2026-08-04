@@ -74,6 +74,24 @@ const pdf = (id: string, url: string, title: string, note: string): ChoveretItem
   download: url,
   kind: 'pdf',
 });
+const drive = (id: string, fileId: string, title: string, note: string): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url: `https://drive.google.com/file/d/${fileId}/view`,
+  embed: `https://drive.google.com/file/d/${fileId}/preview`,
+  download: `https://drive.google.com/uc?export=download&id=${fileId}`,
+  kind: 'drive',
+});
+/** תיקיית Drive — מוטמעת חיה דרך embeddedfolderview (אומת: אין חסימת מסגרת) */
+const folder = (id: string, folderId: string, title: string, note: string): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url: `https://drive.google.com/drive/folders/${folderId}`,
+  embed: `https://drive.google.com/embeddedfolderview?id=${folderId}#list`,
+  kind: 'drive',
+});
 /**
  * תוכניות ופריסות תשפ״ז — הקובץ הרשמי plan&prisa.pdf (החוזר, עמ׳ 3) הוא המקור:
  * הקישור החי של משרד החינוך נשאר הקנוני (מועתק, משותף ונפתח במקור), וההטמעה
@@ -339,37 +357,74 @@ export const choveret: ChoveretGrade[] = [
     dark: '#6d28d9',
     letter: 'כללי',
     title: 'משותף לכל השכבות',
-    intro: 'מבחנים והערכה, משחקים והעשרה ומשאבי הרוחב הדיגיטליים — לכל כיתות ז׳–ט׳.',
+    intro: 'דפי הנוסחאות, מבחן דמוי מיצ״ב והנחיות, משחקים, העשרה ומשאבי הרוחב — עמוד לכל קובץ, לכל כיתות ז׳–ט׳.',
     chapters: [
       {
-        id: 'mivchanim',
-        title: 'מבחנים והערכה',
+        id: 'noschaot',
+        title: 'דפי הנוסחאות הרשמיים',
         color: '#be185d',
         dark: '#9d174d',
         items: [
-          {
-            id: 'mivchanim',
-            title: 'בחינות והערכה — נוסחאות והנחיות',
-            note: '7 קבצים — דפי הנוסחאות לכל שכבה, מבחן דמוי מיצ״ב עם מחוון והנחיות.',
-            url: '/chativat-beynayim/mivchanim/',
-            kind: 'link',
-            pageHref: '/chativat-beynayim/mivchanim/',
-          },
+          drive('noschaot-z', '1nJdVkTlZvnulYiabkeVZG0BT6ek1lU0c', 'דף נוסחאות כיתה ז׳', 'דף הנוסחאות הרשמי לכיתה ז׳ — לצפייה, להורדה ולהדפסה.'),
+          drive('noschaot-h', '1hf30qH4SbS7UxRlkmrFiitDhdoDFt90B', 'דף נוסחאות כיתה ח׳', 'דף הנוסחאות הרשמי לכיתה ח׳ — לצפייה, להורדה ולהדפסה.'),
+          drive('noschaot-t', '1UJJeoCAomVPNp4PN3FsBhCbfaqcSxL1G', 'דף נוסחאות כיתה ט׳', 'דף הנוסחאות הרשמי לכיתה ט׳ — לצפייה, להורדה ולהדפסה.'),
+          doc('noschaot-copy', '1PS4B4VwdZQk5S5BfjUzC2RtQ-9WEexRp', 'נוסחאות ז׳–ח׳ — עותק לעריכה', 'גרסת מסמך של דפי הנוסחאות — פתיחה במקור מאפשרת ליצור עותק אישי לעריכה.'),
+        ],
+      },
+      {
+        id: 'meitzav',
+        title: 'מבחן דמוי מיצ״ב והנחיות',
+        color: '#c2410c',
+        dark: '#9a3412',
+        items: [
+          doc('meitzav-demo', '1-F8gCF7V9X1afsr2D5vOLdgq8DC1OzlH', 'מבחן דמוי מיצ״ב', 'מבחן מלא במתכונת מיצ״ב — מוכן להדפסה ולהעברה בכיתה.'),
+          doc('meitzav-machvan', '10eruHhJRK6HX3nvD17tAypCTqNoC83WD', 'מחוון למבחן דמוי מיצ״ב', 'המחוון המלא של המבחן — ניקוד מפורט לכל שאלה.'),
+          drive('mivchanim-hanchayot', '19edSXZCMSSnFVFvD6B4I-VKRqyGVNwcK', 'הנחיות לכתיבת מבחנים', 'מסמך ההנחיות המחוזי לכתיבת מבחן תקין והוגן.'),
+          drive('sadnat-hachana', '1SX6ta5BpyhlZhxjFMPPcVuQgLJXgxsMH', 'סדנת הכנה למבחן', 'סדנה מוכנה להכנת התלמידים לקראת מבחן.'),
+          hozerAnchor('maf-05-klali', 'MAF-05', 'אירועי הערכה ומבחנים בחוזר'),
         ],
       },
       {
         id: 'mischakim',
-        title: 'משחקים והעשרה',
+        title: 'משחקים לאורך השנה',
         color: '#059669',
         dark: '#047857',
         items: [
+          doc('mischakim-prisot', '1AQNue5voom-CuO3opIJMjQoIzy5Ryl1dXPLd-c8IW-M', 'משחקים הצמודים לפריסות ההוראה', 'לכל שלב בפריסת ההוראה — המשחק המתאים, מוכן לשיעור.'),
           {
-            id: 'mischakim',
-            title: 'משחקים והעשרה',
-            note: '8 קבצים — משחקים לפי הפריסות, חנוכה, מתמטיקה בפרשה ואתרי העשרה.',
-            url: '/chativat-beynayim/mischakim/',
-            kind: 'link',
-            pageHref: '/chativat-beynayim/mischakim/',
+            id: 'mischakim-tavnit',
+            title: 'משחקים לכיתות ז׳–ח׳ — תבנית',
+            note: 'מאגר משחקים לפי נושאים — זוויות, מלבן, חפיפה, משוואות ופונקציות — מאת שילת דדשי, מדריכה אזורית במחוז. פתיחה במקור מאפשרת ליצור עותק לעריכה.',
+            url: 'https://www.canva.com/design/DAF3dEaqSG8/TPgg_h9hz37GX09p6A4rWQ/edit',
+            embed: 'https://www.canva.com/design/DAF3dEaqSG8/TPgg_h9hz37GX09p6A4rWQ/view?embed',
+            kind: 'canva',
+          },
+          drive('hanukka-choveret', '1DBXCKHarZAuBCQreKrvxKUwDLa3k4IHF', 'משחקי חנוכה — חוברת', 'חוברת משחקי חנוכה מרוכזת — להדפסה ולמשחק מיידי.'),
+          folder('hanukka-z', '1CO-6MbihZaNkHT34kbYuB3YKliuOitgV', 'משחקי חנוכה לכיתה ז׳ — תיקייה', 'תיקיית Drive עם משחקי חנוכה לכיתה ז׳ — כל קובץ נפתח בלחיצה.'),
+          folder('hanukka-h', '1Sv2iLXVFe_QYhe_3hEIAqCuN_YrlLM7A', 'משחקי חנוכה לכיתה ח׳ — תיקייה', 'תיקיית Drive עם משחקי חנוכה לכיתה ח׳ — כל קובץ נפתח בלחיצה.'),
+        ],
+      },
+      {
+        id: 'haashara',
+        title: 'העשרה ואתרים',
+        color: '#7c3aed',
+        dark: '#6d28d9',
+        items: [
+          canva('parasha', 'https://www.canva.com/design/DAGa9tq_uLQ/WtXuSJ80nCM8Ow9p7Gd9Eg/view', 'מתמטיקה בפרשה שלי', 'חיבור שבועי בין פרשת השבוע לחשיבה מתמטית.'),
+          {
+            id: 'chinuch-meyuchad',
+            title: 'אתר החינוך המיוחד המחוזי',
+            note: 'סביבת ההעשרה האינטראקטיבית של החינוך המיוחד במחוז.',
+            url: 'https://view.genially.com/652ba55030c0f100115d551e/interactive-content-',
+            embed: 'https://view.genially.com/652ba55030c0f100115d551e',
+            kind: 'site',
+          },
+          {
+            id: 'al-haretzef',
+            title: 'מתמטיקה על הרצף — מיכל דוד',
+            note: 'אתר ההעשרה של מיכל דוד למתמטיקה על הרצף.',
+            url: 'https://mathonthespectrum.my.canva.site/',
+            kind: 'site',
           },
         ],
       },
