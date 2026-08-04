@@ -1244,10 +1244,17 @@ const embedOrigins = [
       'sp-out-r',
     ];
 
-    // מצב "עלה באוויר" — חשוף כ-attribute לצורכי CSS ובדיקות דטרמיניסטיות
+    // מצב "עלה באוויר" — חשוף כ-attribute לצורכי CSS ובדיקות דטרמיניסטיות.
+    // יציאה (Escape / "חזרה לאתר") שנלחצה באמצע היפוך אינה נבלעת — היא
+    // נדחית ומבוצעת מיד בנחיתת העלה.
+    let pendingExit = false;
     const setBusy = (b: boolean) => {
       busy = b;
       shell.toggleAttribute('data-turning', b);
+      if (!b && pendingExit) {
+        pendingExit = false;
+        exitFull();
+      }
     };
 
     // תצוגת שני עמודים (3.29): עמוד משאב נפרס על שני חצאי המסך — ההטמעה
@@ -1507,6 +1514,10 @@ const embedOrigins = [
     // המשאב; ב-deep link — לעמוד התוכן של הפרק שאליו שייך המשאב
     const exitFull = () => {
       if (!engaged) return;
+      if (busy) {
+        pendingExit = true;
+        return;
+      }
       goto(lastToc || pages[cur].dataset.toc || 'rashi');
     };
 
