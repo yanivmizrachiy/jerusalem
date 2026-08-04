@@ -240,3 +240,53 @@ test('הכותרת שלמה ורספונסיבית — בלי חיתוך ב-390 
     expect(Math.abs(box.width / box.height - 1584 / 672), 'יחס הנכס נשמר').toBeLessThan(0.02);
   }
 });
+
+/* ===== לוח השנה — שליחה לטלפון בלחיצה אחת (23.5) ===== */
+
+test('שליחה לטלפון מוסרת תמונת PNG אמיתית לחלון השיתוף (23.5)', async ({ page }) => {
+  await page.addInitScript(() => {
+    (window as unknown as { __shared: unknown }).__shared = null;
+    navigator.canShare = (d?: ShareData) => !!d?.files?.length;
+    navigator.share = async (d?: ShareData) => {
+      const files = await Promise.all(
+        [...(d?.files ?? [])].map(async (f) => ({
+          name: f.name,
+          type: f.type,
+          size: f.size,
+          head: [...new Uint8Array((await f.arrayBuffer()).slice(0, 8))],
+        }))
+      );
+      (window as unknown as { __shared: unknown }).__shared = { files, title: d?.title, text: d?.text };
+    };
+  });
+  await page.goto('/luach/');
+  await page.click('#open-vacations');
+  await page.click('#vac-send');
+  await page.waitForFunction(() => (window as unknown as { __shared: unknown }).__shared !== null);
+  const shared = (await page.evaluate(() => (window as unknown as { __shared: unknown }).__shared)) as {
+    files: { name: string; type: string; size: number; head: number[] }[];
+    text: string;
+  };
+  expect(shared.files).toHaveLength(1);
+  expect(shared.files[0].type).toBe('image/png');
+  expect(shared.files[0].name).toBe('לוח-החופשות-תשפז.png');
+  // חתימת PNG אמיתית — לא קובץ ריק ולא דמה
+  expect(shared.files[0].head).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+  expect(shared.files[0].size).toBeGreaterThan(20_000);
+  expect(shared.text).toContain('https://jerusalem-virid.vercel.app/luach/');
+  await expect(page.locator('#vac-send-status')).toContainText('הועברה לחלון השיתוף');
+});
+
+test('בלי Web Share — הלחיצה מורידה את תמונת הלוח כקובץ אמיתי (23.5)', async ({ page }) => {
+  await page.addInitScript(() => {
+    delete (Navigator.prototype as unknown as Record<string, unknown>).share;
+    delete (Navigator.prototype as unknown as Record<string, unknown>).canShare;
+  });
+  await page.goto('/luach/');
+  await page.click('#open-vacations');
+  const waitDownload = page.waitForEvent('download');
+  await page.click('#vac-send');
+  const download = await waitDownload;
+  expect(download.suggestedFilename()).toBe('לוח-החופשות-תשפז.png');
+  await expect(page.locator('#vac-send-status')).toContainText('הורדה');
+});
