@@ -22,9 +22,10 @@ export function guardScript(base: string): string {
     // כתובת מוחלטת של המקור הנוכחי (same-origin) — מיושרת דרך ה-pathname
     'var abs=function(u){try{var x=new URL(u,location.href);if(x.origin===location.origin)return x.origin+fix(x.pathname)+x.search+x.hash;}catch(e){}return u;};',
     'var fs=function(v){return typeof v==="string"?fix(v):v;};',
-    // srcset הוא רשימה מופרדת בפסיקים — כל מקור מיושר בנפרד
-    'var fixset=function(v){return typeof v==="string"?v.replace(/(^|,\\s*)\\/(?!\\/)/g,"$1"+B+"/"):v;};',
-    'var fixcss=function(v){return typeof v==="string"?v.replace(/url\\((["\']?)\\/(?!\\/)/g,"url($1"+B+"/"):v;};',
+    // srcset הוא רשימה מופרדת בפסיקים — כל מקור עובר דרך fix (אידמפוטנטי:
+    // ערך שכבר יושר, למשל מ-"/_next/" ששוכתב בטקסט ה-chunk, לא מוכפל)
+    'var fixset=function(v){return typeof v==="string"?v.replace(/(^|,\\s*)(\\/[^\\s,]*)/g,function(m,a,u){return a+fix(u);}):v;};',
+    'var fixcss=function(v){return typeof v==="string"?v.replace(/url\\((["\']?)(\\/[^)"\']*)/g,function(m,q,u){return "url("+q+fix(u);}):v;};',
     // fetch — כולל pdf.js, בקשות ה-RSC של Next והסתעפויות דינמיות
     'var F=window.fetch;if(F)window.fetch=function(i,o){try{if(typeof i==="string")i=abs(fix(i));else if(typeof Request!=="undefined"&&i instanceof Request){var n=abs(i.url);if(n!==i.url)i=new Request(n,i);}else if(typeof URL!=="undefined"&&i instanceof URL)i=abs(i.href);}catch(e){}return F.call(this,i,o);};',
     'var XO=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){try{arguments[1]=abs(fix(u));}catch(e){}return XO.apply(this,arguments);};',

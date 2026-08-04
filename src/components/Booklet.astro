@@ -9,12 +9,15 @@
  * מחזירה לפי מרחק ותנופה, ולחיצות מהירות מדפדפות ברצף. הדפים תופסים את
  * מרב שטח המסך — יחס עמוד גמיש בין A4 לאורך (210/297) ל־210/260 וסרגלים
  * מצומצמים בהשתלטות. מספור מודפס, לשוניות, מקלדת, מגע וקישור עומק.
+ * חלוקה חכמה לעמודים (הוראת יניב 03/08/2026): כל שכבה נפתחת בשער-שכבה
+ * אוורירי — תוכן עניינים של הפרקים — ואחריו עמודי פרקים בתקציב שורות;
+ * אף עמוד אינו עמוס, והשערים והפרקים מזדווגים לכפולות בפריסה הרחבה.
  * הטמעה חכמה (3.29): preconnect למקורות, העמוד הפתוח נטען מיד, שכנים
  * מתחממים ברגעי סרק ועמוד שנטען נשאר חם; כל מה שלחיץ במקור לחיץ גם
  * בפנים — בלי שכבות מעל ההטמעה ובלי sandbox; רגישי תנועה — החלפה מיידית.
  */
 import MafmarRange from './MafmarRange.astro';
-import { choveret } from '../data/choveret';
+import { choveret, type ChoveretChapter, type ChoveretGrade, type ChoveretItem } from '../data/choveret';
 
 interface Props {
   /** מזהה העמוד הפותח: rashi / toc-z / it-z-maf-02 ... */
@@ -34,19 +37,77 @@ const kindLabel: Record<string, string> = {
   link: 'קישור',
 };
 
+/**
+ * חלוקה חכמה לעמודים (3.29, הוראת יניב 03/08/2026): שום שכבה אינה נדחסת
+ * לעמוד אחד. כל שכבה נפתחת בשער-שכבה אווירירי (תוכן עניינים של הפרקים),
+ * ואחריו עמודי פרקים בתקציב שורות — כותרת פרק = שורה, פריט = שורה, עד
+ * CAP שורות לעמוד, כך שהעמוד לעולם אינו עמוס ואינו נגלל. פרקים נשארים
+ * שלמים; פרק גדול מעמוד נפרס על כמה עמודים עם כותרת "המשך". החלוקה
+ * נגזרת מהתוכן בכל build — אסורה חלוקה ידנית.
+ */
+interface ChapterSlice {
+  chapter: ChoveretChapter;
+  items: ChoveretItem[];
+  cont: boolean;
+}
+const CAP = 10;
+const paginateGrade = (g: ChoveretGrade): ChapterSlice[][] => {
+  const out: ChapterSlice[][] = [];
+  let page: ChapterSlice[] = [];
+  let used = 0;
+  const close = () => {
+    if (page.length) out.push(page);
+    page = [];
+    used = 0;
+  };
+  for (const ch of g.chapters) {
+    const w = 1 + ch.items.length;
+    if (w <= CAP) {
+      if (used + w > CAP) close();
+      page.push({ chapter: ch, items: ch.items, cont: false });
+      used += w;
+    } else {
+      let rest = ch.items;
+      let first = true;
+      while (rest.length) {
+        if (used >= CAP - 2) close();
+        const take = Math.min(rest.length, CAP - used - 1);
+        page.push({ chapter: ch, items: rest.slice(0, take), cont: !first });
+        used += 1 + take;
+        rest = rest.slice(take);
+        first = false;
+      }
+    }
+  }
+  close();
+  return out;
+};
+
 interface PageDef {
   id: string;
   label: string;
 }
 const pages: PageDef[] = [{ id: 'rashi', label: 'ראשי' }];
+const gradeToc = new Map(choveret.map((g): [string, ChapterSlice[][]] => [g.slug, paginateGrade(g)]));
 for (const g of choveret) {
-  pages.push({ id: `toc-${g.slug}`, label: `תוכן — ${g.letter}` });
+  pages.push({ id: `toc-${g.slug}`, label: `שער — ${g.letter}` });
+  gradeToc.get(g.slug)!.forEach((_, i) => pages.push({ id: `toc-${g.slug}-${i + 2}`, label: `תוכן — ${g.letter}` }));
   for (const ch of g.chapters)
     for (const it of ch.items)
       if (!it.pageHref) pages.push({ id: `it-${g.slug}-${it.id}`, label: it.title });
 }
 const total = pages.length;
 const pageNum = (id: string) => pages.findIndex((p) => p.id === id) + 1;
+/** העמוד שבו נפתח כל פרק — יעד הקפיצה מתוכן העניינים שבשער השכבה */
+const chapterPage = (slug: string, chId: string) =>
+  `toc-${slug}-${gradeToc.get(slug)!.findIndex((pg) => pg.some((s) => s.chapter.id === chId)) + 2}`;
+/** טווח העמודים המלא של השכבה — לשורת הסיכום שבשער השכבה */
+const gradeSpan = (slug: string) => {
+  const mine = pages.flatMap((p, i) =>
+    p.id === `toc-${slug}` || p.id.startsWith(`toc-${slug}-`) || p.id.startsWith(`it-${slug}-`) ? [i + 1] : []
+  );
+  return { from: mine[0], to: mine[mine.length - 1] };
+};
 
 const site = 'https://jerusalem-virid.vercel.app';
 
@@ -124,42 +185,86 @@ const embedOrigins = [
       {
         choveret.map((g) => (
           <>
-            <section class="bpage bp-toc" data-page={`toc-${g.slug}`} data-n={pageNum(`toc-${g.slug}`)} hidden>
-              <header class="toc-head">
-                <h2 class="toc-title">{g.title}</h2>
-                <p class="toc-intro">{g.intro}</p>
-              </header>
-              {g.chapters.map((ch) => (
-                <div class="toc-chapter" style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}>
-                  <h3 class="toc-chapter-title">{ch.title}</h3>
-                  <ol class="toc-list">
-                    {ch.items.map((item) => (
-                      <li>
-                        {item.pageHref ? (
-                          <a class="toc-item" href={item.pageHref}>
-                            <span class="toc-num" aria-hidden="true">◆</span>
-                            <span class="toc-text">
-                              <span class="toc-item-title">{item.title}</span>
-                              {item.note && <span class="toc-item-note">{item.note}</span>}
-                            </span>
-                            <span class="toc-arrow" aria-hidden="true">↗</span>
-                          </a>
-                        ) : (
-                          <button class="toc-item" type="button" data-jump={`it-${g.slug}-${item.id}`}>
-                            <span class="toc-num">{pageNum(`it-${g.slug}-${item.id}`)}</span>
-                            <span class="toc-text">
-                              <span class="toc-item-title">{item.title}</span>
-                              {item.note && <span class="toc-item-note">{item.note}</span>}
-                            </span>
-                            <span class="toc-arrow" aria-hidden="true">←</span>
-                          </button>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
+            <!-- שער השכבה — עמוד פתיחה אוורירי: תוכן עניינים של הפרקים בלבד (3.29) -->
+            <section
+              class="bpage bp-shaar"
+              data-page={`toc-${g.slug}`}
+              data-n={pageNum(`toc-${g.slug}`)}
+              style={`--g-color:${g.color}; --g-dark:${g.dark}`}
+              hidden
+            >
+              <div class="shaar-inner">
+                <span class:list={['shaar-letter', { 'is-wide': g.slug === 'klali' }]}>{g.letter}</span>
+                <h2 class="shaar-title">{g.title}</h2>
+                <p class="shaar-intro">{g.intro}</p>
+                <p class="shaar-label">תוכן העניינים</p>
+                <div class="shaar-rows">
+                  {g.chapters.map((ch) => (
+                    <button
+                      class="shaar-row"
+                      type="button"
+                      data-jump={chapterPage(g.slug, ch.id)}
+                      style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}
+                    >
+                      <span class="shaar-chip" aria-hidden="true"></span>
+                      <span class="shaar-name">{ch.title}</span>
+                      <span class="shaar-dots" aria-hidden="true"></span>
+                      <span class="shaar-pnum">עמוד {pageNum(chapterPage(g.slug, ch.id))}</span>
+                    </button>
+                  ))}
                 </div>
-              ))}
+                <p class="shaar-meta">
+                  <b>{g.chapters.reduce((n, c) => n + c.items.length, 0)}</b> קבצים, קישורים ופעילויות ·
+                  עמודים {gradeSpan(g.slug).from}–{gradeSpan(g.slug).to}
+                </p>
+              </div>
             </section>
+
+            <!-- עמודי הפרקים — מנה נוחה לעמוד, כמו בחוברת מודפסת (3.29) -->
+            {gradeToc.get(g.slug)!.map((slices, pi) => (
+              <section
+                class="bpage bp-toc"
+                data-page={`toc-${g.slug}-${pi + 2}`}
+                data-n={pageNum(`toc-${g.slug}-${pi + 2}`)}
+                style={`--g-color:${g.color}; --g-dark:${g.dark}`}
+                hidden
+              >
+                <p class="toc-running">{g.title}</p>
+                {slices.map((s) => (
+                  <div class="toc-chapter" style={`--ch-color:${s.chapter.color}; --ch-dark:${s.chapter.dark}`}>
+                    <h3 class="toc-chapter-title">
+                      {s.chapter.title}
+                      {s.cont && <span class="toc-cont"> · המשך</span>}
+                    </h3>
+                    <ol class="toc-list">
+                      {s.items.map((item) => (
+                        <li>
+                          {item.pageHref ? (
+                            <a class="toc-item" href={item.pageHref}>
+                              <span class="toc-text">
+                                <span class="toc-item-title">{item.title}</span>
+                                {item.note && <span class="toc-item-note">{item.note}</span>}
+                              </span>
+                              <span class="toc-dots" aria-hidden="true"></span>
+                              <span class="toc-pnum toc-ext" aria-label="נפתח בעמוד משלו">↗</span>
+                            </a>
+                          ) : (
+                            <button class="toc-item" type="button" data-jump={`it-${g.slug}-${item.id}`}>
+                              <span class="toc-text">
+                                <span class="toc-item-title">{item.title}</span>
+                                {item.note && <span class="toc-item-note">{item.note}</span>}
+                              </span>
+                              <span class="toc-dots" aria-hidden="true"></span>
+                              <span class="toc-pnum">עמ׳ {pageNum(`it-${g.slug}-${item.id}`)}</span>
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
+              </section>
+            ))}
 
             {g.chapters.map((ch) =>
               ch.items
@@ -795,10 +900,158 @@ const embedOrigins = [
   }
 
 
-  /* ===== תוכן עניינים ===== */
-  .toc-head { margin-block-end: 1.2rem; }
-  .toc-title { margin: 0 0 0.3rem; font-size: clamp(1.6rem, 3.4vw, 2.2rem); }
-  .toc-intro { margin: 0; color: var(--ink-soft); }
+  /* ===== שער השכבה — עמוד פתיחה אוורירי עם תוכן עניינים של הפרקים (3.29) ===== */
+  .bp-shaar { display: grid; }
+
+  .bp-shaar::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 1px solid color-mix(in srgb, var(--g-color) 45%, transparent);
+    border-radius: 12px;
+    pointer-events: none;
+  }
+
+  .shaar-inner {
+    margin: auto;
+    inline-size: 100%;
+    max-inline-size: 480px;
+    padding-inline: clamp(0.5rem, 2cqi, 1.3rem);
+    text-align: center;
+  }
+
+  .shaar-letter {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 2.3em;
+    block-size: 2.3em;
+    padding-inline: 0.4em;
+    margin-block-end: 0.85rem;
+    border: 2.5px solid var(--g-color);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--g-color) 9%, #fff);
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 4.6cqi, 2.1rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--g-dark);
+  }
+
+  .shaar-letter.is-wide { font-size: clamp(1rem, 3cqi, 1.35rem); }
+
+  .shaar-title { margin: 0 0 0.5rem; font-size: clamp(1.4rem, 5cqi, 2rem); }
+
+  .shaar-intro {
+    margin: 0 auto 1.4rem;
+    max-inline-size: 42ch;
+    color: var(--ink-soft);
+    font-size: clamp(0.86rem, 2.3cqi, 0.98rem);
+    line-height: 1.6;
+  }
+
+  .shaar-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 0.15rem;
+    font-family: var(--font-display);
+    font-size: clamp(0.95rem, 2.6cqi, 1.1rem);
+    font-weight: 700;
+    color: var(--g-dark);
+  }
+
+  .shaar-label::before,
+  .shaar-label::after {
+    content: '';
+    flex: 1;
+    block-size: 2px;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--g-color) 55%, transparent), transparent);
+  }
+
+  .shaar-rows { text-align: start; }
+
+  .shaar-row {
+    inline-size: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-block-size: 52px;
+    padding: 0.55rem 0.4rem;
+    border: 0;
+    border-block-end: 1px solid var(--line);
+    background: none;
+    color: var(--ink);
+    text-align: start;
+    font: inherit;
+    cursor: pointer;
+    transition: background-color 250ms var(--ease), transform 250ms var(--ease);
+  }
+
+  .shaar-row:hover {
+    background: color-mix(in srgb, var(--ch-color) 8%, #fff);
+    transform: translateX(-4px);
+  }
+
+  .shaar-chip {
+    flex: none;
+    inline-size: 15px;
+    block-size: 15px;
+    border-radius: 5px;
+    background: var(--ch-color);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+  }
+
+  .shaar-name { font-weight: 700; font-size: clamp(0.95rem, 2.6cqi, 1.08rem); }
+
+  .shaar-dots {
+    flex: 1;
+    min-inline-size: 24px;
+    border-block-end: 2px dotted color-mix(in srgb, var(--ch-color) 55%, transparent);
+    margin-inline: 0.45rem;
+    transform: translateY(-0.3em);
+  }
+
+  .shaar-pnum {
+    flex: none;
+    font-family: var(--font-display);
+    font-size: clamp(0.85rem, 2.3cqi, 0.98rem);
+    font-weight: 700;
+    color: var(--ch-dark);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .shaar-meta {
+    margin: 1.1rem 0 0;
+    font-size: clamp(0.78rem, 2.1cqi, 0.88rem);
+    color: var(--ink-soft);
+  }
+
+  .shaar-meta b {
+    font-family: var(--font-display);
+    font-size: 1.3em;
+    color: var(--g-dark);
+  }
+
+  /* ===== עמודי הפרקים — תוכן עניינים במנות נוחות (3.29) ===== */
+
+  /* כותרת רצה בראש העמוד, כמו בספר מודפס */
+  .toc-running {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0 0 0.85rem;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--g-dark);
+  }
+
+  .toc-running::after {
+    content: '';
+    flex: 1;
+    block-size: 1.5px;
+    background: linear-gradient(to left, color-mix(in srgb, var(--g-color) 50%, transparent), transparent);
+  }
 
   .toc-chapter {
     border-radius: var(--radius);
@@ -806,31 +1059,35 @@ const embedOrigins = [
     border: 1.5px solid color-mix(in srgb, var(--ch-color) 45%, #fff);
     box-shadow: 0 14px 34px -22px color-mix(in srgb, var(--ch-color) 55%, transparent);
     background: #fff;
-    margin-block-end: 1.1rem;
+    margin-block-end: 0.85rem;
   }
+
+  .toc-chapter:last-child { margin-block-end: 0; }
 
   .toc-chapter-title {
     margin: 0;
-    padding: 0.65rem 1.1rem;
+    padding: 0.5rem 1rem;
     background: linear-gradient(120deg, var(--ch-color), color-mix(in srgb, var(--ch-color) 72%, #000));
     color: #fff;
-    font-size: clamp(1.15rem, 2.2vw, 1.35rem);
+    font-size: clamp(1.05rem, 2.1vw, 1.25rem);
   }
 
-  .toc-list { list-style: none; margin: 0; padding: 0.35rem 0.45rem 0.45rem; }
+  .toc-cont { font-weight: 400; font-size: 0.78em; opacity: 0.9; }
+
+  .toc-list { list-style: none; margin: 0; padding: 0.3rem 0.4rem 0.35rem; }
 
   .toc-item {
     inline-size: 100%;
     text-align: start;
     display: flex;
     align-items: center;
-    gap: 0.8rem;
-    padding: 0.55rem 0.7rem;
+    gap: 0.55rem;
+    padding: 0.4rem 0.55rem;
     border: 0;
     background: none;
-    border-radius: var(--radius);
+    border-radius: calc(var(--radius) - 4px);
     color: var(--ink);
-    min-block-size: 50px;
+    min-block-size: 46px;
     cursor: pointer;
     font: inherit;
     transition: background-color 250ms var(--ease), transform 250ms var(--ease);
@@ -841,24 +1098,31 @@ const embedOrigins = [
     transform: translateX(-4px);
   }
 
-  .toc-num {
-    flex: none;
-    inline-size: 2em;
-    block-size: 2em;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    border: 2px solid var(--ch-color);
-    color: var(--ch-dark);
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    font-size: 0.9rem;
+  .toc-text { display: flex; flex-direction: column; gap: 0.1rem; min-inline-size: 0; }
+  .toc-item-title { font-weight: 700; font-size: clamp(0.9rem, 2.3cqi, 1rem); line-height: 1.3; }
+  .toc-item-note { font-size: clamp(0.74rem, 2cqi, 0.82rem); color: var(--ink-soft); line-height: 1.35; }
+
+  /* מוביל נקודות עד מספר העמוד — שורת תוכן-עניינים אמיתית */
+  .toc-dots {
+    flex: 1;
+    min-inline-size: 20px;
+    border-block-end: 2px dotted color-mix(in srgb, var(--ch-color) 50%, transparent);
+    margin-inline: 0.35rem;
+    transform: translateY(-0.3em);
   }
 
-  .toc-text { display: flex; flex-direction: column; gap: 0.05rem; min-inline-size: 0; }
-  .toc-item-title { font-weight: 700; }
-  .toc-item-note { font-size: 0.83rem; color: var(--ink-soft); }
-  .toc-arrow { margin-inline-start: auto; color: var(--ch-dark); font-weight: 800; }
+  .toc-pnum {
+    flex: none;
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--ch-dark);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* פריט שנפתח מחוץ לחוברת — ↗ במקום מספר עמוד */
+  .toc-ext { font-size: 1.05rem; }
 
   /* ===== עמוד משאב ===== */
   .bp-item {
@@ -1189,9 +1453,12 @@ const embedOrigins = [
       const visIds = vis.map((k) => ids[k]);
       tabs.forEach((t) => {
         const j = t.dataset.jump!;
+        // הלשונית דולקת על שער השכבה, על עמודי הפרקים שלה ועל עמודי המשאבים שלה
         t.classList.toggle(
           'is-current',
-          visIds.some((id) => id === j || (id.startsWith('it-') && j === `toc-${id.split('-')[1]}`))
+          visIds.some(
+            (id) => id === j || id.startsWith(`${j}-`) || (id.startsWith('it-') && j === `toc-${id.split('-')[1]}`)
+          )
         );
       });
       history.replaceState(null, '', `#${ids[cur]}`);
@@ -1242,8 +1509,198 @@ const embedOrigins = [
       paint();
     };
 
+    // ===== מנוע ההיפוך (3.29, הוראת יניב 03/08/2026): עלה אחד רציף מעל
+    // השדרה, מונע פריים-אחר-פריים — בלי תפר בין ההרמה לנחיתה. עד 90°
+    // מתרומם הדף הישן (פני העלה), ומ-90° נוחת הדף החדש (גב העלה) באותה
+    // תנועה עצמה; עמוד רחב מסתובב סביב השדרה כגיליון שלם. הצללת נייר על
+    // העלה (--shade) וצל מוטל נודד על העמודים הנייחים (.book-cast). אותו
+    // מנוע משרת גם דפדוף מתוזמן וגם אחיזת דף בגרירה מהשוליים.
+    const bookEl = shell.querySelector<HTMLElement>('.book')!;
+    const castL = document.createElement('div');
+    castL.className = 'book-cast book-cast-l';
+    const castR = document.createElement('div');
+    castR.className = 'book-cast book-cast-r';
+    const bleaf = document.createElement('div');
+    bleaf.className = 'bleaf';
+    bleaf.hidden = true;
+    bookEl.append(castL, castR, bleaf);
+
+    interface FlipCtl {
+      seek: (deg: number) => void;
+      settle: (target: 0 | 180, fullMs?: number) => void;
+      finish: () => void;
+      deg: () => number;
+    }
+    let anim: FlipCtl | null = null;
+    let fadeCtl: { finish: () => void } | null = null;
+    let dragging = false;
+    let lastFlipEnd = 0;
+
+    // הרמה מאיצה, שיא מהירות באנך, נחיתה מתרככת — כמו דף נייר אמיתי
+    const easeFlip = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const easeLand = (t: number) => 1 - Math.pow(1 - t, 3);
+
+    const flipStart = (
+      ov: number[],
+      nv: number[],
+      dir: 1 | -1,
+      onDone: (committed: boolean) => void
+    ): FlipCtl => {
+      const wideOf = (v: number[]) =>
+        v.length === 1 && (isItem(v[0]) || ids[v[0]] === 'rashi') ? pages[v[0]] : null;
+      const oldWide = wideOf(ov);
+      const newWide = wideOf(nv);
+      const oldR = oldWide ? null : pages[ov[0]];
+      const oldL = oldWide ? null : ov.length === 2 ? pages[ov[1]] : null;
+      const newR = newWide ? null : pages[nv[0]];
+      const newL = newWide ? null : nv.length === 2 ? pages[nv[1]] : null;
+
+      // פני העלה = הדף הישן שמתרומם; גב העלה = הדף החדש שנוחת.
+      // קדימה בספר עברי העלה עובר משמאל לימין; אחורה — להפך
+      const front = dir === 1 ? oldL ?? oldWide ?? bleaf : (oldR ?? oldWide)!;
+      const back = dir === 1 ? (newWide ?? newR)! : newL ?? newWide ?? bleaf;
+
+      applySides(nv);
+      nv.forEach((k) => {
+        mount(pages[k]);
+        pages[k].scrollTop = 0;
+      });
+
+      const touched = new Set<HTMLElement>([front, back, bleaf]);
+      ov.forEach((k) => touched.add(pages[k]));
+      nv.forEach((k) => touched.add(pages[k]));
+
+      // מתחת לעלה המתרומם נחשף הדף החדש; הדף הנייח של הצד השני נשאר
+      // גלוי עד שגב העלה מכסה אותו — בדיוק כמו בספר אמיתי
+      const under = dir === 1 ? newL : newR;
+      const stay = dir === 1 ? oldR : oldL;
+      if (under && under !== back) {
+        under.hidden = false;
+        under.style.zIndex = '1';
+      }
+      if (stay && stay !== front) stay.style.zIndex = '2';
+      if (back !== front) back.hidden = true;
+      if (front === bleaf) bleaf.hidden = false;
+      front.style.zIndex = '6';
+      front.style.willChange = 'transform';
+      back.style.willChange = 'transform';
+      if (front === oldWide) front.style.transformOrigin = '50% 50%';
+      if (back === newWide) back.style.transformOrigin = '50% 50%';
+      // הצד הכהה של ההצללה פונה תמיד לשדרה
+      front.style.setProperty('--shade-dir', dir === 1 ? '270deg' : '90deg');
+      back.style.setProperty('--shade-dir', dir === 1 ? '90deg' : '270deg');
+
+      const setShade = (el: HTMLElement, v: string) => {
+        if (v) el.style.setProperty('--shade', v);
+        else el.style.removeProperty('--shade');
+      };
+
+      let crossed = false;
+      const cross = () => {
+        crossed = true;
+        front.style.transform = '';
+        setShade(front, '');
+        front.hidden = true;
+        back.hidden = false;
+        back.style.zIndex = '6';
+      };
+      const uncross = () => {
+        crossed = false;
+        back.style.transform = '';
+        setShade(back, '');
+        back.hidden = true;
+        front.hidden = false;
+      };
+
+      let curDeg = 0;
+      const seek = (degRaw: number) => {
+        const deg = Math.max(0, Math.min(180, degRaw));
+        curDeg = deg;
+        const lift = Math.min(deg, 90) / 90;
+        const land = Math.max(deg - 90, 0) / 90;
+        const dest = dir === 1 ? castR : castL;
+        const src = dir === 1 ? castL : castR;
+        dest.style.opacity = String(deg <= 90 ? 0.36 * Math.sin((lift * Math.PI) / 2) : 0.36 * (1 - land));
+        src.style.opacity = String(deg <= 90 ? 0.2 * (1 - lift) : 0);
+        if (deg < 90) {
+          if (crossed) uncross();
+          front.style.transform = `rotateY(${dir * deg}deg)`;
+          setShade(front, (0.5 * Math.sin((lift * Math.PI) / 2)).toFixed(3));
+        } else {
+          if (!crossed) cross();
+          back.style.transform = `rotateY(${dir === 1 ? deg - 180 : 180 - deg}deg)`;
+          setShade(back, (0.55 * (1 - land)).toFixed(3));
+        }
+      };
+
+      let raf = 0;
+      let guard = 0;
+      let ended = false;
+      const cleanup = (committed: boolean) => {
+        if (ended) return;
+        ended = true;
+        cancelAnimationFrame(raf);
+        clearTimeout(guard);
+        anim = null;
+        touched.forEach((el) => {
+          el.style.transform = '';
+          el.style.transformOrigin = '';
+          el.style.willChange = '';
+          el.style.removeProperty('--shade');
+          el.style.removeProperty('--shade-dir');
+        });
+        bleaf.hidden = true;
+        castL.style.opacity = '0';
+        castR.style.opacity = '0';
+        busy = false;
+        lastFlipEnd = performance.now();
+        onDone(committed);
+      };
+
+      let lastTarget: 0 | 180 = 180;
+      const settle = (target: 0 | 180, fullMs = 640) => {
+        lastTarget = target;
+        const from = curDeg;
+        if (Math.abs(target - from) < 0.5) {
+          seek(target);
+          cleanup(target === 180);
+          return;
+        }
+        // היפוך מלא — קצב דף שלם; השלמה מגרירה — נחיתה לפי הדרך שנותרה
+        const fullRun = from <= 1 && target === 180;
+        const ease = fullRun ? easeFlip : easeLand;
+        const dur = fullRun ? fullMs : Math.max(160, Math.min(460, (Math.abs(target - from) / 180) * 540));
+        const t0 = performance.now();
+        const tick = (now: number) => {
+          const t = Math.min(1, (now - t0) / dur);
+          seek(from + (target - from) * ease(t));
+          if (t < 1) raf = requestAnimationFrame(tick);
+          else cleanup(target === 180);
+        };
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(tick);
+        // שעון-שמירה: אם הדפדפן מקפיא פריימים (כרטיסייה ברקע) —
+        // ההיפוך מושלם בכל זאת והספר לעולם לא נתקע באמצע תנועה
+        clearTimeout(guard);
+        guard = window.setTimeout(finish, dur + 450);
+      };
+
+      const finish = () => {
+        if (ended) return;
+        seek(lastTarget);
+        cleanup(lastTarget === 180);
+      };
+
+      seek(0);
+      return { seek, settle, finish, deg: () => curDeg };
+    };
+
     const show = (i: number, dir: 1 | -1 | 0) => {
-      if (i < 0 || i >= total || busy) return;
+      if (i < 0 || i >= total || dragging) return;
+      // לחיצות מהירות מדפדפות ברצף: היפוך פעיל מושלם מיידית והבא נכנס אחריו
+      if (anim) anim.finish();
+      if (fadeCtl) fadeCtl.finish();
+      if (busy) return;
       if (cur >= 0 && (i === cur || (mode === 2 && view2Of[i] === view2Of[cur]))) {
         if (i !== cur) {
           cur = i;
@@ -1257,109 +1714,54 @@ const embedOrigins = [
         layout();
         return;
       }
-      // מעבר בין עמוד רגיל לעמוד משאב רחב משנה את מידות הספר — החלפה נקייה
-      if (mode === 1 && isItem(cur) !== isItem(prev)) {
-        layout();
-        return;
-      }
       busy = true;
       if (mode === 1) {
+        // מסך צר: מעבר עמעום עדין — הדפים זורמים בגובה טבעי, בלי ערימה
         const from = pages[prev];
         const to = pages[cur];
-        to.classList.remove(...ANIM);
-        applySides([cur]);
-        to.hidden = false;
-        mount(to);
-        to.scrollTop = 0;
-        from.classList.add(dir === 1 ? 'turn-out' : 'turn-out-back');
-        to.classList.add(dir === 1 ? 'turn-in' : 'turn-in-back');
-        paint();
-        setTimeout(() => {
+        const swap = () => {
           from.hidden = true;
-          from.classList.remove(...ANIM);
+          from.classList.remove('fade-out');
           to.classList.remove(...ANIM);
           applySides([cur]);
-          busy = false;
-        }, 480);
+          to.hidden = false;
+          mount(to);
+          to.scrollTop = 0;
+          to.classList.add('fade-in');
+        };
+        from.classList.add('fade-out');
+        const t1 = setTimeout(() => {
+          swap();
+          const t2 = setTimeout(() => {
+            fadeCtl = null;
+            busy = false;
+            layout();
+          }, 300);
+          fadeCtl = {
+            finish: () => {
+              clearTimeout(t2);
+              fadeCtl = null;
+              busy = false;
+              layout();
+            },
+          };
+        }, 150);
+        fadeCtl = {
+          finish: () => {
+            clearTimeout(t1);
+            swap();
+            fadeCtl = null;
+            busy = false;
+            layout();
+          },
+        };
+        paint();
         return;
       }
-      const ov = views2[view2Of[prev]];
-      const nv = views2[view2Of[cur]];
-      const oldPages = ov.map((k) => pages[k]);
-      const newPages = nv.map((k) => pages[k]);
-      [...oldPages, ...newPages].forEach((p) => {
-        p.classList.remove(...ANIM);
-        p.style.zIndex = '';
-      });
-      applySides(ov);
-      applySides(nv);
-      newPages.forEach((p) => {
-        mount(p);
-        p.scrollTop = 0;
-      });
+      // פריסה כפולה: היפוך העלה הרציף של המנוע
+      anim = flipStart(views2[view2Of[prev]], views2[view2Of[cur]], dir, () => layout());
       paint();
-      if (ov.length === 2 && nv.length === 2) {
-        // זוג מול זוג: העלה מתהפך מעל השדרה בשני שלבים רציפים
-        const [oldR, oldL] = oldPages;
-        const [newR, newL] = newPages;
-        const done = () => {
-          oldPages.forEach((p) => {
-            if (!newPages.includes(p)) p.hidden = true;
-          });
-          [...oldPages, ...newPages].forEach((p) => {
-            p.classList.remove('sp-out-l', 'sp-out-r', 'sp-in-l', 'sp-in-r');
-            p.style.zIndex = '';
-          });
-          busy = false;
-        };
-        if (dir === 1) {
-          newL.hidden = false;
-          newL.style.zIndex = '1';
-          oldL.style.zIndex = '6';
-          oldL.classList.add('sp-out-l');
-          setTimeout(() => {
-            newR.hidden = false;
-            newR.style.zIndex = '6';
-            newR.classList.add('sp-in-r');
-            oldR.style.zIndex = '1';
-            setTimeout(done, 330);
-          }, 260);
-        } else {
-          newR.hidden = false;
-          newR.style.zIndex = '1';
-          oldR.style.zIndex = '6';
-          oldR.classList.add('sp-out-r');
-          setTimeout(() => {
-            newL.hidden = false;
-            newL.style.zIndex = '6';
-            newL.classList.add('sp-in-l');
-            oldL.style.zIndex = '1';
-            setTimeout(done, 330);
-          }, 260);
-        }
-      } else {
-        // מעבר שמערב עמוד רוחבי — היפוך דף יחיד גדול
-        newPages.forEach((p) => {
-          p.hidden = false;
-          p.style.zIndex = '6';
-          p.classList.add(dir === 1 ? 'turn-in' : 'turn-in-back');
-        });
-        oldPages.forEach((p) => {
-          p.style.zIndex = '5';
-          p.classList.add(dir === 1 ? 'turn-out' : 'turn-out-back');
-        });
-        setTimeout(() => {
-          oldPages.forEach((p) => {
-            if (!newPages.includes(p)) p.hidden = true;
-          });
-          [...oldPages, ...newPages].forEach((p) => {
-            p.classList.remove(...ANIM);
-            p.style.zIndex = '';
-          });
-          applySides(nv);
-          busy = false;
-        }, 480);
-      }
+      anim.settle(180);
     };
 
     const step = (d: 1 | -1) => {
@@ -1411,12 +1813,81 @@ const embedOrigins = [
       engage();
       step(1);
     });
-    shell.querySelectorAll<HTMLButtonElement>('.book-edge').forEach((b) =>
-      b.addEventListener('click', () => {
+    // אזורי הקצה (3.29): הקשה הופכת דף שלם; גרירה אוחזת את העלה ומדפדפת
+    // עם היד — שחרור משלים או מחזיר את הדף לפי המרחק והתנופה
+    shell.querySelectorAll<HTMLButtonElement>('.book-edge').forEach((b) => {
+      const dir: 1 | -1 = b.dataset.dir === 'next' ? 1 : -1;
+      let pid = -1;
+      let sx = 0;
+      let lastX = 0;
+      let lastT = 0;
+      let vx = 0;
+      let moved = false;
+      let ctl: FlipCtl | null = null;
+      b.addEventListener('pointerdown', (e) => {
+        if (busy || dragging || anim || mode !== 2 || reduced.matches) return;
+        const ni = view2Of[cur] + dir;
+        if (ni < 0 || ni >= views2.length) return;
         engage();
-        step(b.dataset.dir === 'next' ? 1 : -1);
-      })
-    );
+        pid = e.pointerId;
+        sx = lastX = e.clientX;
+        lastT = performance.now();
+        vx = 0;
+        moved = false;
+        dragging = true;
+        busy = true;
+        try {
+          b.setPointerCapture(pid);
+        } catch {
+          /* מצביע שכבר שוחרר — הגרירה תלווה באירועי החלון */
+        }
+        const target = views2[ni];
+        ctl = anim = flipStart(views2[view2Of[cur]], target, dir, (committed) => {
+          dragging = false;
+          if (committed) cur = target[0];
+          layout();
+        });
+      });
+      b.addEventListener('pointermove', (e) => {
+        if (e.pointerId !== pid || !ctl) return;
+        const now = performance.now();
+        vx = 0.7 * vx + (0.3 * (e.clientX - lastX)) / Math.max(1, now - lastT);
+        lastX = e.clientX;
+        lastT = now;
+        const dx = e.clientX - sx;
+        if (Math.abs(dx) > 6) moved = true;
+        const w = bookEl.getBoundingClientRect().width || 1;
+        // קדימה בספר עברי: העלה נגרר מהשמאל ימינה מעל השדרה
+        ctl.seek(Math.max(0, ((dir === 1 ? dx : -dx) / w) * 205));
+      });
+      b.addEventListener('pointerup', (e) => {
+        if (e.pointerId !== pid || !ctl) return;
+        pid = -1;
+        const c = ctl;
+        ctl = null;
+        if (!moved) {
+          c.settle(180);
+          return;
+        }
+        const deg = c.deg();
+        const toward = dir === 1 ? vx : -vx;
+        const commit = deg > 160 || (toward > -0.35 && (deg > 68 || (deg > 10 && toward > 0.45)));
+        c.settle(commit ? 180 : 0);
+      });
+      b.addEventListener('pointercancel', (e) => {
+        if (e.pointerId !== pid || !ctl) return;
+        pid = -1;
+        const c = ctl;
+        ctl = null;
+        c.settle(0);
+      });
+      // רגישי תנועה: הקשה פשוטה מחליפה עמוד מיידית
+      b.addEventListener('click', () => {
+        if (!reduced.matches || mode !== 2) return;
+        engage();
+        step(dir);
+      });
+    });
     shell.querySelectorAll<HTMLButtonElement>('button[data-jump]').forEach((b) =>
       b.addEventListener('click', () => {
         // ההשתלטות מתחילה רק בבחירת שכבה/תוכן — לא בחזרה לשער
@@ -1469,8 +1940,8 @@ const embedOrigins = [
       if (fsBtn) fsBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
     });
 
-    // החלקת מגע: דפדוף רק בתנועה אופקית מובהקת — גלילה אנכית לא מזיזה דף
-    const bookEl = shell.querySelector<HTMLElement>('.book')!;
+    // החלקת מגע: דפדוף רק בתנועה אופקית מובהקת — גלילה אנכית לא מזיזה דף;
+    // גרירת עלה מהשוליים לא מפעילה גם החלקה
     let x0 = 0;
     let y0 = 0;
     bookEl.addEventListener('touchstart', (e) => {
@@ -1478,6 +1949,7 @@ const embedOrigins = [
       y0 = e.touches[0].clientY;
     }, { passive: true });
     bookEl.addEventListener('touchend', (e) => {
+      if (busy || dragging || performance.now() - lastFlipEnd < 350) return;
       const dx = e.changedTouches[0].clientX - x0;
       const dy = e.changedTouches[0].clientY - y0;
       if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.8) return;

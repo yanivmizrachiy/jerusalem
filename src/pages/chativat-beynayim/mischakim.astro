@@ -1,42 +1,30 @@
 ---
-import Base from '../../layouts/Base.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import UnitPlaylist from '../../components/UnitPlaylist.astro';
-import { mischakimUnit } from '../../data/units';
+/**
+ * העמוד המרוכז של המשחקים הוחלף בעמודי-קובץ בתוך החוברת — פרקי
+ * "משחקים לאורך השנה" ו"העשרה ואתרים" בלשונית "כללי"
+ * (RULES 1.10, 3.29 — הוראת יניב, 03/08/2026). הכתובת הישנה
+ * נשארת חיה לקישורים ששותפו, ומפנה מיידית לחוברת.
+ */
+const target = '/chativat-beynayim/#toc-klali';
 ---
 
-<Base
-  title="משחקים והעשרה — חטיבת ביניים — מחוז ירושלים"
-  description="משחקים מתמטיים לפי פריסות ההוראה, משחקי חנוכה, מתמטיקה בפרשת השבוע ואתרי העשרה מחוזיים — כל קישור בדוק."
->
-  <div class="container page">
-    <Breadcrumbs
-      items={[
-        { label: 'ראשי', href: '/' },
-        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
-        { label: 'משחקים והעשרה' },
-      ]}
-    />
-
-    <header class="page-head" data-reveal>
-      <p class="eyebrow">{mischakimUnit.grade} · הצד המהנה</p>
-      <h1>{mischakimUnit.title}</h1>
-      <p class="lede">{mischakimUnit.intro}</p>
-    </header>
-
-    <div data-reveal>
-      <UnitPlaylist unit={mischakimUnit} />
-    </div>
-
-    <nav class="pager-nav" aria-label="ניווט חזרה">
-      <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
-      <a class="btn btn-ghost" href="/">לעמוד הראשי</a>
-    </nav>
-  </div>
-</Base>
-
-<style>
-  .page { padding-block-start: 1.6rem; }
-  .page-head { max-width: 680px; margin-block: 1.6rem 2rem; }
-  .pager-nav { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-block-start: clamp(2.2rem, 5vw, 3rem); }
-</style>
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>החומרים עברו לחוברת — מחוז ירושלים</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://jerusalem-virid.vercel.app/chativat-beynayim/" />
+    <meta http-equiv="refresh" content={`0;url=${target}`} />
+    <script is:inline define:vars={{ target }}>
+      location.replace(target);
+    </script>
+  </head>
+  <body>
+    <p style="font-family: system-ui, sans-serif; padding: 2rem; text-align: center;">
+      המשחקים וההעשרה עברו אל החוברת המדפדפת —
+      <a href={target}>מעבר מיידי</a>
+    </p>
+  </body>
+</html>

@@ -21,12 +21,15 @@ const year = new Date().getFullYear();
         <li><a href="/#tzevet">צוות ההדרכה</a></li>
       </ul>
     </nav>
-    <a class="to-top btn btn-ghost" href="#main">חזרה לראש העמוד ↑</a>
+    <a class="to-top btn btn-ghost" href="#main">חזרה לראש העמוד</a>
   </div>
-  <div class="container footer-line">
-    <span>© {year} מחוז ירושלים — הדרכת מתמטיקה</span>
-    <span class="footer-managed">האתר מנוהל על ידי <strong>יניב רז</strong></span>
+  <div class="footer-bottom">
+    <div class="container footer-line">
+      <span>© {year} מחוז ירושלים — הדרכת מתמטיקה</span>
+      <span class="footer-managed">האתר מנוהל על ידי <strong>יניב רז</strong></span>
+    </div>
   </div>
+  <div class="footer-navy" aria-hidden="true"></div>
 </footer>
 
 <style>
@@ -74,11 +77,14 @@ const year = new Date().getFullYear();
 
   .footer-nav a:hover { color: var(--gold-deep); }
 
+  /* קו עדין קבוע על מלוא רוחב העמוד (100%) — מעל כיתובי התחתית (7.24) */
+  .footer-bottom { border-block-start: 1px solid var(--line); }
+
   .footer-line {
-    border-block-start: 1px solid var(--line);
     padding-block: 1.1rem;
-    color: var(--ink-faint);
+    color: var(--ink);
     font-size: 0.85rem;
+    font-weight: 600;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -86,4 +92,7 @@ const year = new Date().getFullYear();
   }
 
   .footer-managed strong { color: var(--gold-deep); font-weight: 700; }
+
+  /* בתחתית העמוד ממש — פס כחול־כהה על מלוא הרוחב, עבה מהקו העדין שמעליו (7.24) */
+  .footer-navy { block-size: 7px; background: var(--navy); }
 </style>

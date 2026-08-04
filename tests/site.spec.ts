@@ -13,7 +13,6 @@ const routes = [
   '/chativat-beynayim/maarechet-tzirim/',
   '/chativat-beynayim/mishvaot/',
   '/chativat-beynayim/hafifat-meshulashim/',
-  '/chativat-beynayim/mivchanim/',
   '/chativa-elyona/',
   '/chativa-elyona/3-yahal/',
   '/chativa-elyona/4-yahal/',
@@ -62,5 +61,15 @@ for (const route of routes) {
         )
     );
     expect(hard, `שגיאות console: ${hard.join(' | ')}`).toHaveLength(0);
+  });
+}
+
+// העמודים המרוכזים של מבחנים ומשחקים הוחלפו בעמודי-קובץ בתוך החוברת (1.10, 3.29);
+// הכתובות הישנות נשארות חיות ומפנות מיידית לחוברת — קישורים ששותפו לא נשברים
+for (const old of ['/chativat-beynayim/mivchanim/', '/chativat-beynayim/mischakim/']) {
+  test(`הפניה לחוברת: ${old}`, async ({ page }) => {
+    await page.goto(old);
+    await page.waitForURL((u) => u.pathname === '/chativat-beynayim/', { timeout: 10_000 });
+    expect(new URL(page.url()).hash).toBe('#toc-klali');
   });
 }
