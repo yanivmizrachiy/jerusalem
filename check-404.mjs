@@ -1,0 +1,11 @@
+import { chromium } from '@playwright/test';
+const b = await chromium.launch({ headless: true });
+const p = await b.newPage();
+const errs: string[] = [];
+const r404: string[] = [];
+p.on('console', m => { if (m.type() === 'error') errs.push('[console.error] ' + m.text()); });
+p.on('response', r => { if (r.status() === 404) r404.push('[404] ' + r.url()); });
+await p.goto('http://127.0.0.1:4321/', { waitUntil: 'networkidle' });
+console.log('Console errors:', JSON.stringify(errs));
+console.log('404s:', JSON.stringify(r404));
+await b.close();

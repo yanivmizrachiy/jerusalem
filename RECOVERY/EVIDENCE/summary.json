@@ -1,0 +1,12 @@
+{
+  "rtl": {
+    "lang": "he",
+    "dir": "rtl"
+  },
+  "footerNavy": true,
+  "footerLine": true,
+  "footerBottom": true,
+  "consoleErrors": 1,
+  "splashAtT0": "1",
+  "splashAtT3": "0"
+}
