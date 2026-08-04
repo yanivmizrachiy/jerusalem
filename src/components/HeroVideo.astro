@@ -10,6 +10,7 @@ import { team } from '../data/team';
 
 <section class="hero" aria-label="פתיחת האתר">
   <div class="hero-media" id="hero-media">
+    <div class="hero-bg" aria-hidden="true"></div>
     <video
       id="hero-video"
       poster="/media/hero-poster-880.avif"
@@ -89,20 +90,44 @@ import { team } from '../data/team';
     margin-block-start: calc(-1 * var(--header-h));
   }
 
-  /* הסרטון המקורי ריבועי (1440×1440) — מוצג בשלמותו, ללא חיתוך פוגעני (6.8) */
+  /* הסרטון המקורי ריבועי (1440×1440) — מוצג בשלמותו, ללא חיתוך פוגעני (6.8).
+     כל אזור ה-hero מתמלא (הוראת יניב, 04/08/2026): שכבת רקע מלאה מאותו
+     poster — cover עם טשטוש ועומק עדינים — ומעליה הסרטון החד במרכז; אין
+     רצועות שחורות בצדדים ואין video כפול. */
   .hero-media {
     position: relative;
     inline-size: 100%;
     block-size: min(70vh, 100vw);
     overflow: hidden;
     display: grid;
+    /* שורה מפורשת בגובה המיכל — כך block-size:100% של הווידאו נפתר באמת
+       והריבוע ממלא את הגובה בדיוק, בלי חיתוך ובלי גלישה */
+    grid-template-rows: 100%;
     place-items: center;
-    background:
-      radial-gradient(90% 120% at 50% 10%, #1a2030 0%, #0d0f16 55%, #090a0f 100%);
+    background: #10141d;
+  }
+
+  .hero-bg {
+    position: absolute;
+    /* חורג מעט מהמסגרת כדי שהטשטוש לא יחשוף קצוות שקופים */
+    inset: -4%;
+    background: url('/media/hero-poster-880.avif') center 32% / cover no-repeat;
+    filter: blur(26px) saturate(1.15) brightness(0.62);
+    transform: scale(1.06);
+    transition: opacity 1400ms var(--ease);
+  }
+
+  /* עומק עדין מעל הרקע — הסרטון החד נשאר המוקד */
+  .hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(85% 100% at 50% 45%, transparent 40%, rgb(9 10 15 / 0.5) 100%);
   }
 
   video {
     /* גובה נעול לגובה המיכל — אפס קפיצת layout בטעינה (CLS) */
+    position: relative;
     block-size: 100%;
     inline-size: auto;
     max-inline-size: 100%;
@@ -231,8 +256,13 @@ import { team } from '../data/team';
   }
 
   @media (max-width: 700px) {
-    .hero-media { block-size: auto; min-block-size: 54vh; padding-block: calc(var(--header-h) + 0.5rem) 1rem; }
-    video { inline-size: 100%; }
+    .hero-media {
+      block-size: auto;
+      min-block-size: 54vh;
+      grid-template-rows: none;
+      padding-block: calc(var(--header-h) + 0.5rem) 1rem;
+    }
+    video { inline-size: 100%; block-size: auto; }
   }
 </style>
 

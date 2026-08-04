@@ -10,12 +10,20 @@ interface Props {
   alt: string;
   /** מוקד החיתוך הרספונסיבי */
   position?: string;
+  /**
+   * תמונה מלאה (הוראת יניב, 04/08/2026): object-fit: contain, יחס טבעי,
+   * בלי scale חותך ובלי גובה קבוע — שום קצה אינו נחתך. לבאנרים נבחרים בלבד.
+   */
+  fullImage?: boolean;
+  /** מידות הקובץ האמיתיות — יחס מדויק מונע קפיצת layout במצב תמונה מלאה */
+  width?: number;
+  height?: number;
 }
 
-const { art, alt, position = 'center 30%' } = Astro.props;
+const { art, alt, position = 'center 30%', fullImage = false, width = 1600, height = 900 } = Astro.props;
 ---
 
-<figure class="art-banner" data-reveal>
+<figure class:list={['art-banner', { 'is-full-image': fullImage }]} data-reveal>
   <picture>
     <source srcset={`/media/art/${art}.avif`} type="image/avif" />
     <img
@@ -23,8 +31,8 @@ const { art, alt, position = 'center 30%' } = Astro.props;
       alt={alt}
       loading="lazy"
       decoding="async"
-      width="1600"
-      height="900"
+      width={width}
+      height={height}
       style={`object-position: ${position}`}
     />
   </picture>
@@ -82,4 +90,22 @@ const { art, alt, position = 'center 30%' } = Astro.props;
   @media (prefers-reduced-motion: reduce) {
     .art-banner img { animation: none !important; scale: 1; translate: 0 0; }
   }
+
+  /* מצב תמונה מלאה: הגובה נגזר מיחס התמונה, אין חיתוך ואין תנועה חותכת;
+     מסגרת בגוון הנייר של האתר סביב התמונה */
+  .art-banner.is-full-image {
+    block-size: auto;
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-soft) 100%);
+  }
+
+  .art-banner.is-full-image img {
+    block-size: auto;
+    object-fit: contain;
+    object-position: center !important;
+    scale: 1;
+    translate: 0 0;
+    animation: none !important;
+  }
+
+  .art-banner.is-full-image .art-scrim { display: none; }
 </style>

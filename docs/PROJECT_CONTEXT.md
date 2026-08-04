@@ -68,6 +68,9 @@
 | שינוי סרטון הפתיחה | `src/components/HeroVideo.astro` + `public/media/` | desktop/mobile, poster, preload, משקל, autoplay ו־reduced motion |
 | שינוי הספר והאנימציה | `src/components/Booklet.astro` | מקלדת, מגע, גרירה, deep link, iframe, fullscreen ו־reduced motion |
 | שינוי צבעים/טיפוגרפיה | `src/styles/global.css` | ניגודיות, focus, RTL, כל רוחבי המסך ורגרסיה גלובלית |
+| שינוי כותרת לוח השנה | `src/pages/luach.astro` + `public/media/art/calendar/` | הנכס המקורי מ-Lovable בלבד (RULES 23.14, hash מתועד); נגזרות מהמקור בלבד |
+| באנר שדורש תמונה מלאה | `ArtBanner` עם `fullImage` + `width`/`height` אמיתיים | יחס טבעי, בלי חיתוך תחתית, בלי Ken Burns (RULES 5.24) |
+| התנהגות חזרה מכרטיס צוות | `src/components/TeamSection.astro` | כפתור "חזרה לתצוגה הקודמת" משחזר hash וגלילה (RULES 6.5) |
 | שינוי SEO | `src/layouts/Base.astro`, `astro.config.mjs`, `public/robots.txt` | canonical, sitemap, metadata ו־Open Graph |
 | שינוי proxy | `src/lib/proxyGuard.ts` ומסלולי API | allowlist, headers, SSR, 502 והגבלת יעד |
 
@@ -85,7 +88,9 @@
 
 ### 5.3 הספר המדפדף
 
-`src/data/choveret.ts` מגדיר שכבות, פרקים ופריטים. `Booklet.astro` בונה ממנו כריכה, תוכני עניינים, עמודי משאב, קישורי עומק, שיתוף והורדה. מסלולי `reader/[grade]/[item]` מאפשרים פתיחה ישירה של פריט.
+`src/data/choveret.ts` מגדיר שכבות, פרקים ופריטים. `Booklet.astro` בונה ממנו שער, עמודי תוכן עניינים (עמוד לכל פרק, מזהה `toc-{slug}-{chapterId}`), עמודי משאב, קישורי עומק, שיתוף והורדה. מסלולי `reader/[grade]/[item]` מאפשרים פתיחה ישירה של פריט.
+
+**מכונת המצבים (04/08/2026):** שער ותוכן עניינים חיים בתוך זרימת האתר הרגילה — בלי השתלטות ובלי כפתור "חזרה לאתר"; מצב `is-full` (השתלטות על החלון + נעילת גלילה + כפתור "חזרה לאתר") נגזר אך ורק מהעמוד הנוכחי — עמוד משאב (`it-*`) משתלט, וכל עמוד אחר משחרר. "חזרה לאתר"/Escape חוזרים לעמוד תוכן העניינים האחרון (`lastToc`, וב-deep link — `data-toc` של הפריט) ולמיקום הגלילה השמור. במסך רחב עמוד משאב הוא spread של שני דפי ספר נפרדים (ימין הטמעה, שמאל מידע ופעולות) עם שדרה באמצע.
 
 ### 5.4 יחידות הוראה
 
