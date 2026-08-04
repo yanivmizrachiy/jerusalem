@@ -76,11 +76,20 @@
 
 ## 5. זרימות מידע מרכזיות
 
-### 5.1 פרסום
+### 5.1 פרסום — הצינור המחייב (הוקשח 05/08/2026)
 
-`main` → GitHub Actions → build ובדיקות → Vercel → אתר חי.
+```
+worktree מבודד מ-origin/main → PR → quality (CI) ירוק → squash merge →
+Vercel בונה מ-main → verify-production מוכיח שהקומיט חי → מחיקת הענף
+```
 
-אין להסתמך על הצלחת commit בלבד. יש לאמת בנפרד CI ופריסת Vercel.
+הכללים שנגזרים מזה:
+
+- **`main` מוגן**: ‏`quality` הוא status check מחייב, היסטוריה ליניארית (squash בלבד), בלי force-push ובלי מחיקת ענף. ‏`enforce_admins=false` — ליניב נשארת דלת חירום.
+- **לעולם לא לעבוד בעץ המשותף** (`Desktop\jerusalem`) — סשנים מקבילים מזיזים בו את ה-HEAD בין פקודה לפקודה. ‏`git worktree add -b <ענף> <path> origin/main` מהצעד הראשון.
+- **אימות פריסה הוא הוכחה, לא הנחה**: `Base.astro` מזריק `<meta name="build-commit">` מ-`VERCEL_GIT_COMMIT_SHA`, ו-`scripts/verify-deploy.mjs` ממתין עד שהפרודקשן מגיש בדיוק את הקומיט שנמזג, ואז בודק 200 בכל המסלולים הקנוניים וסמנים מחייבים (מנוע החוברת, תוכן העניינים של השכבה, כותרת הלוח, רצועת ה-WhatsApp). רץ אוטומטית ב-CI אחרי מיזוג, וידנית: `npm run verify:deploy`.
+- **לוקפייל**: ה-CI מריץ `npm i -g npm@11` לפני `npm ci` כדי להתאים לגרסה שמייצרת את הלוקפייל בסביבת העבודה; אחרת `npm ci` נכשל ב-EUSAGE.
+- ‏`gh` כאן איטי ולעיתים נתקע ב-TLS timeout — לאמת מיזוג דרך `gh pr view --json state`, ופריסה דרך `verify:deploy`, לא דרך fetch בודד.
 
 ### 5.2 תוכן
 
