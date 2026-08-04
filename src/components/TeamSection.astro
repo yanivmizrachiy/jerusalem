@@ -103,15 +103,18 @@ const waPath =
       }
     </div>
 
-    <a class="team-arrow" href="#main" aria-label="חזרה לראש העמוד">↑</a>
+    <button class="team-back" type="button" data-team-back aria-label="חזרה לתצוגה הקודמת">
+      <span class="team-back-chev" aria-hidden="true">›</span>
+      חזרה לתצוגה הקודמת
+    </button>
   </div>
 </section>
 
 <script>
-  // מצב כרטיס-יחיד (6.5, הוראת יניב 03/08/2026): הגעה בעוגן אישי מציגה
-  // אך ורק את הכרטיס של אותו חבר צוות; חץ עדין אחד מחזיר לראש העמוד.
-  // אין כפילות עם צוות ראש העמוד (הוראת יניב, 03/08/2026): המקטע מוסתר
-  // דרך קבע ונחשף רק במצב כרטיס-יחיד.
+  // מצב כרטיס-יחיד (6.5, הוראת יניב 04/08/2026): הגעה בעוגן אישי מציגה
+  // אך ורק את הכרטיס של אותו חבר צוות; כפתור טקסטואלי "חזרה לתצוגה
+  // הקודמת" משחזר את המצב המדויק שקדם לפתיחה — הסרת ה-hash האישי
+  // והחזרת הגלילה למיקום הקודם, בלי קפיצה לראש העמוד.
   const section = document.querySelector<HTMLElement>('[data-team-details]');
   const grid = document.querySelector<HTMLElement>('#tzevet .team-grid');
   if (section && grid) {
@@ -124,7 +127,41 @@ const waPath =
         c.hidden = !!solo && c !== solo;
       });
     };
-    addEventListener('hashchange', apply);
+
+    // המיקום שממנו נפתח הכרטיס — נלכד ברגע הלחיצה על עוגן אישי
+    let prevY = -1;
+    let cameFromPage = false;
+    document.querySelectorAll<HTMLAnchorElement>('a[href^="#tzevet-"]').forEach((a) =>
+      a.addEventListener('click', () => {
+        prevY = scrollY;
+        cameFromPage = true;
+      })
+    );
+
+    let restoring = false;
+    const back = () => {
+      const y = prevY;
+      if (cameFromPage) {
+        // הכרטיס נפתח מתוך העמוד — history.back מחזיר לרשומה הקודמת
+        restoring = true;
+        history.back();
+      } else {
+        // fallback פנימי (הגעה בקישור ישיר): הסרת ה-hash בלי רשומה חדשה
+        history.replaceState(null, '', location.pathname + location.search);
+        apply();
+      }
+      if (y >= 0) requestAnimationFrame(() => scrollTo(0, y));
+    };
+
+    section.querySelector<HTMLButtonElement>('[data-team-back]')?.addEventListener('click', back);
+
+    addEventListener('hashchange', () => {
+      apply();
+      if (restoring) {
+        restoring = false;
+        if (prevY >= 0) scrollTo(0, prevY);
+      }
+    });
     apply();
   }
 </script>
@@ -225,31 +262,37 @@ const waPath =
     background: linear-gradient(180deg, #fff 0%, #fdf7ea 100%);
   }
 
-  /* חץ עדין ומוקפד לחזרה — טבעת זהב בשפת האתר (6.5, הוראת יניב 03/08/2026) */
-  .team-arrow {
-    display: grid;
-    place-items: center;
-    inline-size: 56px;
-    block-size: 56px;
+  /* כפתור חזרה טקסטואלי בסגנון breadcrumb יוקרתי — מסגרת זהב עדינה
+     (6.5, הוראת יניב 04/08/2026; מחליף את החץ העגול) */
+  .team-back {
+    display: flex;
+    inline-size: fit-content;
+    align-items: center;
+    gap: 0.6rem;
+    min-block-size: 48px;
     margin-block-start: 1.8rem;
     margin-inline: auto;
-    border-radius: 50%;
-    border: 3px solid transparent;
-    background:
-      linear-gradient(#fff, #fff) padding-box,
-      conic-gradient(from 210deg, var(--gold), #f3d68b, var(--gold-deep), var(--gold)) border-box;
+    padding: 0.6rem 1.5rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--gold);
+    background: linear-gradient(180deg, #fff 0%, #fdf8ec 100%);
     color: var(--gold-deep);
-    font-size: 1.5rem;
+    font: inherit;
+    font-family: var(--font-display);
+    font-size: 1.02rem;
     font-weight: 700;
-    line-height: 1;
-    box-shadow: 0 10px 26px -12px rgb(176 141 62 / 0.6);
-    transition: transform 350ms var(--ease-lift), box-shadow 300ms var(--ease);
+    cursor: pointer;
+    box-shadow: 0 10px 26px -14px rgb(176 141 62 / 0.55);
+    transition: transform 350ms var(--ease-lift), box-shadow 300ms var(--ease), color 300ms var(--ease);
   }
 
-  .team-arrow:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 0 22px rgb(212 175 92 / 0.5), 0 14px 30px -12px rgb(176 141 62 / 0.7);
+  .team-back:hover {
+    transform: translateY(-3px);
+    color: var(--ink);
+    box-shadow: 0 0 20px rgb(212 175 92 / 0.4), 0 14px 30px -14px rgb(176 141 62 / 0.65);
   }
+
+  .team-back-chev { font-size: 1.35em; line-height: 1; }
 
   /* מצב כרטיס-יחיד: לחיצה על חבר צוות מציגה רק אותו (6.5) */
   .team-card[hidden] { display: none; }
