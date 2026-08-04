@@ -85,41 +85,86 @@ test('תמונת חטיבת הביניים מוצגת במלואה — יחס ט
   expect(Math.abs(naturalRatio - shownRatio) / naturalRatio, 'היחס הטבעי נשמר — אין חיתוך').toBeLessThan(0.02);
 });
 
-/** לחיצה בזמן היפוך-דף נבלעת בכוונה (busy) — ממתינים לסיום האנימציה */
+/* עמוד גלוי במנוע הדפדוף (StPageFlip): מקבל display:block מוזרק inline */
+const shown = (page: Page) => page.locator('.stf__item[style*="display: block"]');
+
+/** ממתינים לנחיתת העלה — המנוע מסמן data-turning בזמן היפוך */
 const settle = async (page: Page) => {
   await expect(page.locator('[data-book][data-turning]')).toHaveCount(0);
 };
 
 const openToc = async (page: Page) => {
   await page.goto('/chativat-beynayim/');
+  await expect(page.locator('[data-book].is-ready')).toHaveCount(1);
   await page.locator('.rashi-row').first().click();
   await expect(page).toHaveURL(/#toc-z-/);
   await settle(page);
 };
 
-test('שער החוברת: עמוד יחיד גדול, בלי book-exit ובלי השתלטות (3.29)', async ({ page }) => {
+test('שער: דף בודד גדול — ≥70% מגובה החלון, בלי גלילה פנימית ובלי exit (3.29)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/chativat-beynayim/');
+  await expect(page.locator('[data-book].is-ready')).toHaveCount(1);
   await expect(page.locator('.book-shell.on-rashi')).toHaveCount(1);
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
   await expect(page.locator('[data-exit]')).toBeHidden();
-  await expect(page.locator('.bpage:not([hidden])')).toHaveCount(1);
-  await expect(page.locator('.bp-rashi')).toBeVisible();
+  const vis = shown(page);
+  await expect(vis).toHaveCount(1);
+  await expect(vis).toHaveAttribute('data-page', 'rashi');
+  const box = (await vis.boundingBox())!;
+  expect(box.height, 'השער גבוה — לפחות 70% מגובה החלון').toBeGreaterThanOrEqual(900 * 0.7);
+  expect(box.width, 'השער אינו צר בצורה חריגה').toBeGreaterThanOrEqual(560);
+  const scrolls = await vis.evaluate((el) => {
+    const f = el.querySelector('.page-face')!;
+    return f.scrollHeight - f.clientHeight;
+  });
+  expect(scrolls, 'אין scrollbar פנימי בשער').toBeLessThanOrEqual(4);
 });
+
+for (const width of [1440, 1920]) {
+  test(`ספר פתוח ב-${width}: ≥88% מהבמה, דפים שווים, שדרה דקה (3.29)`, async ({ page }) => {
+    await page.setViewportSize({ width, height: width === 1920 ? 1080 : 900 });
+    await openToc(page);
+    const vis = shown(page);
+    await expect(vis).toHaveCount(2);
+    const boxes = [(await vis.nth(0).boundingBox())!, (await vis.nth(1).boundingBox())!].sort((a, b) => a.x - b.x);
+    const [left, right] = boxes;
+    expect(Math.abs(left.width - right.width), 'רוחב שני הדפים דומה').toBeLessThanOrEqual(2);
+    const stage = (await page.locator('[data-stage]').boundingBox())!;
+    const spreadW = right.x + right.width - left.x;
+    expect(spreadW / stage.width, 'הספר תופס לפחות 88% מהבמה').toBeGreaterThanOrEqual(0.88);
+    expect(right.x - (left.x + left.width), 'השדרה אינה רחבה מ-24px').toBeLessThanOrEqual(24);
+    expect(left.height, 'דפים בגובה משמעותי').toBeGreaterThanOrEqual(560);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, 'אין גלילה אופקית').toBeLessThanOrEqual(1);
+  });
+}
 
 test('לחיצה על שכבה פותחת תוכן עניינים — בלי is-full, הניווט גלוי (3.29)', async ({ page }) => {
   await openToc(page);
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
   await expect(page.locator('[data-exit]')).toBeHidden();
   await expect(page.locator('header nav').first()).toBeVisible();
-  // נחיתה מיידית בפריסת שני עמודים — כמו חוברת אמיתית
-  await expect(page.locator('.bpage:not([hidden])')).toHaveCount(2);
   // כותרת מלאה: כיתה + נושא
-  await expect(page.locator('.bp-toc:not([hidden]) h2.toc-title').first()).toContainText('מתמטיקה לכיתה ז׳ —');
+  await expect(shown(page).locator('h2.toc-title').first()).toContainText('מתמטיקה לכיתה ז׳ —');
   // שורת פרקי השכבה הלחיצה: פרק לכל צ'יפ, קפיצה ישירה לפרק אחר
-  const chips = page.locator('.bp-toc:not([hidden])').first().locator('.toc-nav-chip');
-  await expect(chips).toHaveCount(5);
-  await chips.filter({ hasText: 'תכנון והוראה' }).click();
+  const chips = shown(page).locator('.toc-nav-chip');
+  await expect(chips).toHaveCount(10); // שני עמודי הפריסה — 5 פרקים בכל אחד
+  await chips.filter({ hasText: 'תכנון והוראה' }).first().click();
   await expect(page).toHaveURL(/#toc-z-tichnun$/);
+});
+
+test('דפדוף: מקלדת וכפתורים מעדכנים מונה ו-hash — בלי עמוד ריק (3.29)', async ({ page }) => {
+  await openToc(page);
+  const counter = page.locator('[data-counter]');
+  const before = await counter.textContent();
+  await page.keyboard.press('ArrowLeft');
+  await settle(page);
+  expect(await counter.textContent(), 'חץ שמאלה מדפדף קדימה').not.toBe(before);
+  await expect(shown(page).first()).not.toBeEmpty();
+  await page.locator('.bnav-prev').click();
+  await settle(page);
+  expect(await counter.textContent(), 'דף קודם חוזר').toBe(before);
 });
 
 test('תוכן העניינים מחולק לעמודים אמיתיים עם כותרות כיתה ונושא (3.29)', async ({ page }) => {
@@ -134,30 +179,32 @@ test('תוכן העניינים מחולק לעמודים אמיתיים עם כ
   }
 });
 
-test('פתיחת משאב: is-full, book-exit, שני דפים, Escape וחזרה למיקום (3.29)', async ({ page }) => {
+test('פתיחת משאב: is-full, הטמעה בדף הימני, Escape וחזרה לפרק (3.29)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await openToc(page);
-  await page.locator('.bp-toc:not([hidden]) button.toc-item').first().click();
+  await shown(page).locator('button.toc-item').first().click();
+  await settle(page);
   // מצב עבודה מלא
   await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
   const exit = page.locator('[data-exit]');
   await expect(exit).toBeVisible();
-  // spread אמיתי: דף הטמעה ודף מידע, כל אחד כמחצית הרוחב
-  const embed = (await page.locator('.bp-item:not([hidden]) .item-embed').boundingBox())!;
-  const info = (await page.locator('.bp-item:not([hidden]) .item-info').boundingBox())!;
+  // spread אמיתי: דף ההטמעה מימין, דף המידע משמאל, כל אחד דף ספר שלם
+  const embed = (await page.locator('.stf__item[style*="display: block"].bp-item-embed').boundingBox())!;
+  const info = (await page.locator('.stf__item[style*="display: block"].bp-item-info').boundingBox())!;
   expect(embed.width).toBeGreaterThan(500);
   expect(info.width).toBeGreaterThan(500);
   expect(embed.x, 'ההטמעה בדף הימני (RTL)').toBeGreaterThan(info.x);
   // חזרה: לאותו עמוד תוכן עניינים, בלי is-full
   await exit.click();
+  await settle(page);
   await expect(page).toHaveURL(/#toc-z-/);
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
   await expect(exit).toBeHidden();
-  await settle(page);
   // Escape יוצא גם הוא
-  await page.locator('.bp-toc:not([hidden]) button.toc-item').first().click();
+  await shown(page).locator('button.toc-item').first().click();
   await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
   await page.keyboard.press('Escape');
+  await settle(page);
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
 });
 
@@ -167,25 +214,28 @@ test('deep link לעמוד reader נפתח ישירות במצב העבודה ה
   const exit = page.locator('[data-exit]');
   await expect(exit).toBeVisible();
   await exit.click();
+  await settle(page);
   await expect(page).toHaveURL(/#toc-z-tichnun$/);
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
 });
 
-test('במסך צר מוצג דף אחד (3.29)', async ({ page }) => {
+test('במסך צר מוצג דף אחד וכפתורי מגע תקינים (3.29)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/chativat-beynayim/#toc-z-hozer');
-  await expect(page.locator('.book-shell.mode-1')).toHaveCount(1);
-  await expect(page.locator('.bpage:not([hidden])')).toHaveCount(1);
+  await expect(page.locator('[data-book].is-ready')).toHaveCount(1);
+  await expect(shown(page)).toHaveCount(1);
+  const nav = (await page.locator('.bnav-next').boundingBox())!;
+  expect(nav.height, 'מטרת מגע ≥44px').toBeGreaterThanOrEqual(44);
 });
 
 test('ה-iframe בעמוד משאב לחיץ — אין שכבה מעליו (19.33)', async ({ page }) => {
   // פריט doc (לא PDF): ב-headless אין מציג PDF מובנה ומוצג בצדק כרטיס
   // הפתיחה (8.8) — הבדיקה הזאת בודקת שההטמעה עצמה אינה חסומה בשכבות
   await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
-  const frame = page.locator('.bp-item:not([hidden]) iframe');
+  const frame = page.locator('.stf__item[style*="display: block"] iframe');
   await expect(frame).toBeVisible();
   const hit = await page.evaluate(() => {
-    const f = document.querySelector('.bp-item:not([hidden]) iframe');
+    const f = document.querySelector('.stf__item[style*="display: block"] iframe');
     if (!f) return 'no-iframe';
     const r = f.getBoundingClientRect();
     const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
@@ -198,6 +248,7 @@ test('החוברת בלי גלילה אופקית — רחב וצר (3.29)', asy
   for (const width of [1920, 1440, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/chativat-beynayim/#toc-z-hozer');
+    await expect(page.locator('[data-book].is-ready')).toHaveCount(1);
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
     );
