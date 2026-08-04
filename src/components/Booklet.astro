@@ -421,8 +421,8 @@ const embedOrigins = [
   /* השער והכריכה — דף בודד ממורכז בבמה, לא חצי-במה ריקה; הפתיחה עצמה
      מחליקה את הספר למרכז בזמן שהעלה מתהפך */
   [data-book] .stf__block { transition: translate 460ms cubic-bezier(0.22, 0.8, 0.3, 1); }
-  [data-book].on-rashi .stf__block { translate: 25% 0; }
-  [data-book].on-back .stf__block { translate: -25% 0; }
+  [data-book].on-rashi:not(.is-portrait) .stf__block { translate: 25% 0; }
+  [data-book].on-back:not(.is-portrait) .stf__block { translate: -25% 0; }
 
   @media (prefers-reduced-motion: reduce) {
     [data-book] .stf__block { transition: none; }
@@ -1202,6 +1202,7 @@ const embedOrigins = [
       // ה-host צמוד בדיוק למידות הספר — גאומטריית המנוע קנונית בכל מסך
       host.style.inlineSize = `${portrait ? W : W * 2}px`;
       host.style.blockSize = `${H}px`;
+      shell.classList.toggle('is-portrait', portrait);
       pf?.destroy();
       // destroy() של המנוע מסיר גם את ה-host מה-DOM — מחזירים אותו לבמה
       if (!host.isConnected) stage.appendChild(host);
