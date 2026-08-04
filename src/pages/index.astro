@@ -6,55 +6,27 @@ import NewsRail from '../components/NewsRail.astro';
 import TeamSection from '../components/TeamSection.astro';
 import WhatsAppBand from '../components/WhatsAppBand.astro';
 
+// שני שערי-הענק של העמוד הראשי (הוראת יניב, 04/08/2026): מתחת לצוות
+// ההדרכה — כפתורי ענק לחטיבת הביניים ולחטיבה העליונה בלבד.
 const gates = [
   {
     href: '/chativat-beynayim/',
     title: 'חטיבת ביניים',
-    desc: 'משאבים קנוניים לכיתה ז׳, קהילת מורים ותקשורת — והיד עוד נטויה.',
+    desc: 'החוברת המרכזית של החטיבה, אתר ההמחשות של איילת קריספין וכל הקבצים לכיתות ז׳–ט׳.',
     accent: 'var(--olive)',
-    cta: 'כניסה לשער',
-  },
-  {
-    href: '#hamchashot',
-    title: 'אתר ההמחשות',
-    desc: 'סביבת ההמחשות של איילת קריספין — המחשות דינמיות למושגי המתמטיקה.',
-    accent: 'var(--gold)',
-    cta: 'לצפייה בהמחשות',
   },
   {
     href: '/chativa-elyona/',
     title: 'חטיבה עליונה',
-    desc: 'התוכנית החדשה, רמות 3/4/5 יח״ל, בחינות בגרות ומידע מנהלי לתשפ״ז.',
+    desc: 'התוכנית החדשה, רמות 3/4/5 יח״ל, בחינות הבגרות והמידע המנהלי לתשפ״ז.',
     accent: 'var(--terracotta)',
-    cta: 'כניסה לשער',
-  },
-  {
-    href: '/hozer-mafmar/',
-    title: 'חוזר מפמ״ר תשפ״ז',
-    desc: 'המסמך הרשמי של השנה — ניווט מדויק ל־23 מקטעים מאומתים בארבעת חלקי החוזר.',
-    accent: 'var(--sky)',
-    cta: 'לצפייה בחוזר',
-  },
-  {
-    href: '/pituach-miktzoi/',
-    title: 'פיתוח מקצועי',
-    desc: 'קהילות, השתלמויות וימי עיון — ומיזם ה־AI והגאומטריה של המחוז.',
-    accent: 'var(--lilac)',
-    cta: 'כניסה לשער',
-  },
-  {
-    href: '#tzevet',
-    title: 'צוות ההדרכה',
-    desc: 'המדריכות והמדריכים המחוזיים — זמינים ב־WhatsApp ובדוא״ל.',
-    accent: 'var(--rose)',
-    cta: 'להכרת הצוות',
   },
 ];
 ---
 
 <Base
   title="מחוז ירושלים — הדרכת מתמטיקה"
-  description="המרכז המחוזי להוראת מתמטיקה במחוז ירושלים: סביבות המחשה, משאבים קנוניים לחטיבת הביניים, צוות ההדרכה ועדכונים שוטפים."
+  description="המרכז המחוזי להוראת מתמטיקה במחוז ירושלים: סרטון הפתיחה, צוות ההדרכה, שערי חטיבת הביניים והחטיבה העליונה ועדכונים שוטפים."
   transparentHeader
 >
   <link slot="head" rel="preload" as="image" href="/media/hero-poster-880.avif" fetchpriority="high" />
@@ -68,24 +40,22 @@ const gates = [
   </div>
 
   <div class="rail-offset">
+    <TeamSection />
+
     <section class="section" id="shearim">
       <div class="container">
-        <div class="section-head" data-reveal>
-          <p class="eyebrow">מתחילים כאן</p>
-          <h2>שערי הכניסה המרכזיים</h2>
-        </div>
         <div class="gates-grid">
           {
             gates.map((g, i) => (
               <a
                 class="card card-accent gate-card"
-                style={`--card-accent:${g.accent}; --reveal-delay:${i * 110}ms`}
+                style={`--card-accent:${g.accent}; --reveal-delay:${i * 120}ms`}
                 href={g.href}
                 data-reveal
               >
-                <h3>{g.title}</h3>
+                <h2>{g.title}</h2>
                 <p>{g.desc}</p>
-                <span class="gate-cta">{g.cta} ←</span>
+                <span class="gate-cta">כניסה לשער ←</span>
               </a>
             ))
           }
@@ -93,46 +63,12 @@ const gates = [
       </div>
     </section>
 
-    <section class="section" id="hamchashot-section">
-      <div class="container container-wide">
-        <div class="section-head" data-reveal>
-          <h2>אתר ההמחשות של איילת קריספין</h2>
-          <p class="lede">
-            המחשות דינמיות למושגי המתמטיקה — לצפייה ולשימוש ישירות מכאן, או במקור בכרטיסייה
-            נפרדת.
-          </p>
-        </div>
-        <div data-reveal>
-          <div class="mam-frame card-accent" style="--card-accent:var(--gold)" id="hamchashot">
-            <iframe
-              src="/api/mam/"
-              title="אתר ההמחשות של איילת קריספין — גלישה חיה בתוך האתר"
-              loading="lazy"
-              allow="fullscreen"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
-            ></iframe>
-          </div>
-          <div class="mam-actions">
-            <button class="mam-copy" type="button" id="mam-copy" aria-label="העתקת קישור לאתר ההמחשות">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
-                <path d="M10.5 13.5a4.2 4.2 0 0 0 6 0l3-3a4.24 4.24 0 0 0-6-6l-1.6 1.6" />
-                <path d="M13.5 10.5a4.2 4.2 0 0 0-6 0l-3 3a4.24 4.24 0 0 0 6 6l1.6-1.6" />
-              </svg>
-            </button>
-            <button class="mam-note" type="button" id="mam-note" aria-live="polite">העתקת קישור לאתר ההמחשות</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <TeamSection />
-
     <WhatsAppBand />
   </div>
 </Base>
 
 <style>
-  /* פינוי מקום לפס "מה חדש?" הקבוע במסכים רחבים (7.20) */
+  /* פינוי מקום לפס "מה צפוי?" הקבוע במסכים רחבים (7.20) */
   @media (min-width: 1280px) {
     .rail-offset { padding-inline-end: calc(var(--rail-w) + 2.2rem); }
     .rail-slot .container { display: contents; } /* הפס עצמו הופך קבוע; אין רווח מיותר */
@@ -140,116 +76,44 @@ const gates = [
 
   .rail-slot { margin-block-start: clamp(1.6rem, 4vw, 2.8rem); }
 
+  /* שני כפתורי-ענק בלבד — חטיבת ביניים וחטיבה עליונה (הוראת יניב, 04/08/2026) */
   .gates-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
-    gap: clamp(1rem, 2.4vw, 1.6rem);
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+    gap: clamp(1.2rem, 3vw, 2rem);
   }
 
   .gate-card {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 1.8rem 1.6rem 1.5rem;
+    gap: 0.7rem;
+    min-block-size: clamp(200px, 26vw, 260px);
+    padding: clamp(2rem, 4vw, 3rem) clamp(1.8rem, 3.4vw, 2.6rem);
     color: var(--ink);
+    text-align: start;
   }
 
-  .gate-card h3 { margin: 0; }
+  .gate-card h2 {
+    margin: 0;
+    font-size: clamp(1.9rem, 4.4vw, 2.8rem);
+    line-height: 1.1;
+  }
 
-  .gate-card p { margin: 0; color: var(--ink-soft); font-size: 0.98rem; }
+  .gate-card p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: clamp(1rem, 1.5vw, 1.12rem);
+    max-inline-size: 34ch;
+  }
 
   .gate-card .gate-cta {
     margin-block-start: auto;
-    padding-block-start: 0.9rem;
-    font-weight: 700;
+    padding-block-start: 1rem;
+    font-weight: 800;
+    font-size: 1.1rem;
     color: var(--gold-deep);
     transition: translate 300ms var(--ease);
   }
 
-  .gate-card:hover .gate-cta { translate: -6px 0; }
-
-  /* מיכל רחב במיוחד להטמעה הדומיננטית */
-  .container-wide { width: min(1520px, 100% - 2 * clamp(1rem, 3vw, 2rem)); }
-
-  /* הדפדפן הפנימי של ההמחשות (9.1) — מסגרת כחול כהה בולטת */
-  .mam-frame {
-    position: relative;
-    padding: 14px;
-    border-radius: 28px;
-    background: linear-gradient(135deg, rgb(250 246 236 / 0.95) 0%, rgb(240 233 216 / 0.78) 45%, rgb(252 249 242 / 0.92) 100%);
-    backdrop-filter: blur(16px) saturate(1.4);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    box-shadow:
-      inset 0 0 0 1px rgb(255 255 255 / 0.9),
-      inset 0 0 0 2.5px rgb(176 141 62 / 0.4),
-      inset 0 -1px 0 rgb(176 141 62 / 0.55),
-      0 0 55px -14px rgb(126 210 255 / 0.35),
-      0 24px 70px -28px rgb(176 141 62 / 0.45),
-      0 34px 80px -34px rgb(31 41 61 / 0.35);
-    block-size: clamp(620px, 86vh, 1020px);
-  }
-
-  /* קו-אור אלכסוני על הזכוכית — ספקולר עדין */
-  .mam-frame::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 28px;
-    pointer-events: none;
-    background: linear-gradient(115deg, transparent 36%, rgb(255 255 255 / 0.22) 46%, transparent 55%);
-    pointer-events: none;
-  }
-
-  .mam-frame iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; border-radius: 16px; background: #fff; }
-
-  .mam-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    margin-block-start: 0.9rem;
-  }
-
-  .mam-copy {
-    inline-size: 46px;
-    block-size: 46px;
-    border-radius: 50%;
-    border: 1px solid var(--line);
-    background: #fff;
-    color: var(--gold-deep);
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-    box-shadow: var(--shadow-soft);
-    transition: transform 400ms var(--ease-lift), box-shadow 300ms var(--ease), color 300ms var(--ease);
-  }
-
-  .mam-copy:hover { transform: translateY(-3px) scale(1.05); color: var(--ink); box-shadow: var(--shadow-lift); }
-
-  .mam-note {
-    border: 0;
-    background: none;
-    padding: 0;
-    cursor: pointer;
-    color: var(--ink-soft);
-    font-size: 0.92rem;
-    font-weight: 600;
-    min-block-size: 44px;
-  }
-
-  .mam-note:hover { color: var(--gold-deep); text-decoration: underline; }
+  .gate-card:hover .gate-cta { translate: -8px 0; }
 </style>
-
-<script>
-  import { hamchashot } from '../data/resources';
-  const note = document.getElementById('mam-note');
-  for (const el of [document.getElementById('mam-copy'), note]) {
-    el?.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(hamchashot.url);
-        note!.textContent = 'הקישור הועתק';
-      } catch {
-        note!.textContent = 'ההעתקה נכשלה';
-      }
-    });
-  }
-</script>

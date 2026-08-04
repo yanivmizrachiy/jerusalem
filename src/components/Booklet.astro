@@ -12,8 +12,11 @@
  * זוגות כשמספר הפרקים אי-זוגי) ← עמודי משאב (זוג אמיתי: דף הטמעה מימין,
  * דף מידע משמאל) ← כריכה אחורית (דף קשיח). סה"כ זוגי — כל spread מיושר.
  *
- * מכונת המצבים נשמרת: שער ותוכן עניינים בזרימת האתר; רק עמוד משאב משתלט
- * על המסך (is-full) עם "חזרה לאתר"/Escape שחוזרים לפרק ולמיקום המדויקים.
+ * מכונת המצבים (הוראת יניב 05/08/2026): רק שער החוברת נשאר בזרימת האתר.
+ * ברגע שנפתחת שכבה — תוכן העניינים והמשאבים כאחד משתלטים על מלוא המסך
+ * (is-full): הניווט העליון של האתר מכוסה, החוברת עולה למקסימום הגובה,
+ * ולשוניות השכבות עוברות לסרגל צד שמאלי יוקרתי. כפתור הזהב "חזרה לאתר"
+ * ו-Escape יוצאים מההשתלטות אל השער שבזרימת האתר.
  * הטמעות נטענות רק כשהעמוד נפתח, שכנים מתחממים ברגעי סרק, ודפדפן בלי
  * מציג PDF מקבל כרטיס פתיחה (8.8).
  */
@@ -72,6 +75,51 @@ const folioSide = (id: string) => (pageNum(id) % 2 === 0 ? 'folio-r' : 'folio-l'
 
 const site = 'https://jerusalem-virid.vercel.app';
 
+/**
+ * ניווט למקומות אחרים באתר — מחוץ לחוברת (הוראת יניב, 05/08/2026):
+ * מתחת לסרגל הדפדוף (שנשאר צמוד לספר) מוצגת שורת מעבר מהירה לשערים
+ * ולאזורים אחרים בפרויקט. מוסתרת במצב העבודה המלא (is-full) כדי לא
+ * להעמיס על קריאת המשאב. כל כפתור הוא קישור פנימי אמיתי בפלטת האתר.
+ */
+const siteLinks: { href: string; label: string; accent: string; icon: string }[] = [
+  {
+    href: '/chativa-elyona/',
+    label: 'חטיבה עליונה',
+    accent: 'var(--terracotta)',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11.4V16c0 1.3 2.7 2.4 6 2.4s6-1.1 6-2.4v-4.6"/><path d="M22 9v5"/></svg>',
+  },
+  {
+    href: '/hozer-mafmar/',
+    label: 'חוזר מפמ״ר',
+    accent: 'var(--sky)',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>',
+  },
+  {
+    href: '/luach/',
+    label: 'לוח שנה',
+    accent: 'var(--olive)',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>',
+  },
+  {
+    href: '/hodaot/',
+    label: 'הודעות',
+    accent: 'var(--rose)',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.5a6 6 0 1 0-12 0c0 6-3 7.5-3 7.5h18s-3-1.5-3-7.5"/><path d="M13.7 20.5a2 2 0 0 1-3.4 0"/></svg>',
+  },
+  {
+    href: '/pituach-miktzoi/',
+    label: 'פיתוח מקצועי',
+    accent: 'var(--lilac)',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 18h5M10.5 21.5h3"/><path d="M12 2.5a6.5 6.5 0 0 0-4 11.6c.7.6 1 1.4 1 2.2V17h6v-.7c0-.8.4-1.6 1-2.2A6.5 6.5 0 0 0 12 2.5Z"/></svg>',
+  },
+  {
+    href: '/',
+    label: 'לעמוד הראשי',
+    accent: 'var(--gold)',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/></svg>',
+  },
+];
+
 // חיבור-מראש לכל מקורות ההטמעה החיצוניים — העמוד הפתוח נטען מהר (3.29)
 const embedOrigins = [
   ...new Set(
@@ -87,7 +135,8 @@ const embedOrigins = [
 <div class="book-shell" data-book data-initial={initial} data-total={total}>
   {embedOrigins.map((o) => <link rel="preconnect" href={o} />)}
 
-  <!-- פס עליון קומפקטי: לשוניות קפיצה ומסך מלא; "חזרה לאתר" רק במצב מלא -->
+  <!-- פס לשוניות: בשער — פס עליון קומפקטי; במצב פתוח (is-full) הופך לסרגל
+       צד שמאלי יוקרתי עם "חזרה לאתר" ולשוניות השכבות (הוראת יניב 05/08/2026) -->
   <div class="book-bar">
     <button class="book-exit" type="button" data-exit hidden>
       <span class="book-exit-ico" aria-hidden="true">→</span>
@@ -158,7 +207,6 @@ const embedOrigins = [
                 <header class="gtoc-head">
                   <h2 class="gtoc-title">{g.title}</h2>
                   <p class="gtoc-sub">תוכן העניינים</p>
-                  <p class="toc-intro">{g.intro}</p>
                 </header>
                 <ol class="gtoc-rows">
                   {g.chapters.map((ch) => (
@@ -181,7 +229,7 @@ const embedOrigins = [
               </div>
             </section>
 
-            {g.chapters.map((ch, ci) => (
+            {g.chapters.map((ch) => (
               <section
                 class:list={['bpage', 'bp-toc', folioSide(`toc-${g.slug}-${ch.id}`)]}
                 data-page={`toc-${g.slug}-${ch.id}`}
@@ -193,7 +241,6 @@ const embedOrigins = [
                     <h2 class="toc-title">
                       {g.title} — {ch.title}
                     </h2>
-                    {ci === 0 && <p class="toc-intro">{g.intro}</p>}
                   </header>
                   {g.chapters.length > 1 && (
                     <nav class="toc-nav" aria-label={`תוכן העניינים של ${g.title}`}>
@@ -211,26 +258,20 @@ const embedOrigins = [
                       ))}
                     </nav>
                   )}
-                  <ol class="toc-list">
+                  <ol class="toc-list gtoc-rows">
                     {ch.items.map((item) => (
                       <li>
                         {item.pageHref ? (
-                          <a class="toc-item" href={item.pageHref}>
-                            <span class="toc-num" aria-hidden="true">◆</span>
-                            <span class="toc-text">
-                              <span class="toc-item-title">{item.title}</span>
-                              {item.note && <span class="toc-item-note">{item.note}</span>}
-                            </span>
-                            <span class="toc-arrow" aria-hidden="true">↗</span>
+                          <a class="toc-item gtoc-row" href={item.pageHref}>
+                            <span class="gtoc-name">{item.title}</span>
+                            <span class="gtoc-dots" aria-hidden="true"></span>
+                            <span class="gtoc-pnum gtoc-pnum-ext" aria-hidden="true">↗</span>
                           </a>
                         ) : (
-                          <button class="toc-item" type="button" data-jump={`it-${g.slug}-${item.id}`}>
-                            <span class="toc-num">{pageNum(`it-${g.slug}-${item.id}`)}</span>
-                            <span class="toc-text">
-                              <span class="toc-item-title">{item.title}</span>
-                              {item.note && <span class="toc-item-note">{item.note}</span>}
-                            </span>
-                            <span class="toc-arrow" aria-hidden="true">←</span>
+                          <button class="toc-item gtoc-row" type="button" data-jump={`it-${g.slug}-${item.id}`}>
+                            <span class="gtoc-name">{item.title}</span>
+                            <span class="gtoc-dots" aria-hidden="true"></span>
+                            <span class="gtoc-pnum">עמוד {pageNum(`it-${g.slug}-${item.id}`)}</span>
                           </button>
                         )}
                       </li>
@@ -391,6 +432,23 @@ const embedOrigins = [
       דף הבא <span class="bnav-arrow" aria-hidden="true">←</span>
     </button>
   </div>
+
+  <!-- מעבר מהיר לאזורים אחרים באתר — מחוץ לחוברת (05/08/2026);
+       מוסתר במצב העבודה המלא של משאב -->
+  <nav class="book-links" aria-label="מעבר לאזורים אחרים באתר">
+    <span class="book-links-eyebrow">מעבר מהיר לאזורים נוספים באתר</span>
+    <div class="book-links-row">
+      {
+        siteLinks.map((l) => (
+          <a class="book-link" href={l.href} style={`--lk:${l.accent}`}>
+            <span class="book-link-ico" aria-hidden="true" set:html={l.icon} />
+            <span class="book-link-label">{l.label}</span>
+            <span class="book-link-cta" aria-hidden="true">←</span>
+          </a>
+        ))
+      }
+    </div>
+  </nav>
 </div>
 
 <style is:global>
@@ -840,19 +898,25 @@ const embedOrigins = [
   /* ===== תוכן עניינים — עמוד לפרק ===== */
   .bp-toc .page-face { gap: 0.75rem; }
 
-  .toc-head { flex: none; }
+  .toc-head { flex: none; text-align: center; }
 
+  /* כותרת הפרק — אותו עיצוב אלגנטי של עמוד השכבה: כותרת ממורכזת בצבע
+     הפרק וקו-הדגשה מתחתיה (במקום באנר מלא) */
   .toc-title {
-    margin: 0 0 0.5rem;
-    padding: 0.6rem 1rem;
-    border-radius: 10px;
-    background: linear-gradient(120deg, var(--ch-color), color-mix(in srgb, var(--ch-color) 72%, #000));
-    color: #fff;
-    font-size: clamp(1.15rem, 1.9vw, 1.55rem);
-    line-height: 1.3;
+    margin: 0;
+    font-size: clamp(1.35rem, 2.4vw, 2rem);
+    line-height: 1.25;
+    color: var(--ch-dark);
   }
 
-  .toc-intro { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+  .toc-head::after {
+    content: '';
+    display: block;
+    inline-size: 100%;
+    block-size: 2px;
+    margin-block-start: 0.7rem;
+    background: linear-gradient(90deg, transparent, var(--ch-color, var(--gold)), transparent);
+  }
 
   .toc-nav {
     flex: none;
@@ -902,48 +966,10 @@ const embedOrigins = [
   /* גלילה פנימית רק כשהתוכן באמת אינו נכנס — המנוע מסמן בזמן ריצה */
   .bp-toc.can-scroll .toc-list { overflow-y: auto; overscroll-behavior: contain; }
 
-  .toc-item {
-    inline-size: 100%;
-    text-align: start;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0.55rem;
-    border: 0;
-    border-block-end: 1px solid color-mix(in srgb, var(--ch-color) 16%, transparent);
-    background: none;
-    color: var(--ink);
-    min-block-size: 52px;
-    cursor: pointer;
-    font: inherit;
-    transition: background-color 250ms var(--ease), transform 250ms var(--ease);
-  }
-
-  li:last-child .toc-item { border-block-end: 0; }
-
-  .toc-item:hover {
-    background: color-mix(in srgb, var(--ch-color) 8%, #fff);
-    transform: translateX(-4px);
-  }
-
-  .toc-num {
-    flex: none;
-    inline-size: 2.2em;
-    block-size: 2.2em;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    border: 2px solid var(--ch-color);
-    color: var(--ch-dark);
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    font-size: 1rem;
-  }
-
-  .toc-text { display: flex; flex-direction: column; gap: 0.05rem; min-inline-size: 0; }
-  .toc-item-title { font-weight: 700; font-size: 1.02rem; }
-  .toc-item-note { font-size: 0.86rem; color: var(--ink-soft); }
-  .toc-arrow { margin-inline-start: auto; color: var(--ch-dark); font-weight: 800; }
+  /* שורות הפריטים משתמשות בעיצוב שורות עמוד-השכבה (.gtoc-row/.gtoc-name/
+     .gtoc-dots/.gtoc-pnum) — שם צבעוני, מובילי נקודות ומספר עמוד; כך כל
+     עמודי התוכן אחידים כמו עמוד השכבה (הוראת יניב, 05/08/2026) */
+  .gtoc-pnum-ext { font-size: 1.15em; line-height: 1; }
 
   /* ===== עמודי משאב — זוג אמיתי: הטמעה מימין, מידע משמאל ===== */
   .bp-item .page-face { border-block-start: 6px solid var(--ch-color); }
@@ -1172,6 +1198,84 @@ const embedOrigins = [
     transition: inline-size 400ms var(--ease);
   }
 
+  /* ===== מעבר לאזורים אחרים באתר — מתחת לסרגל הדפדוף (05/08/2026) =====
+     סרגל הדפדוף נשאר צמוד לספר; שורה זו מפרידה קו-שיער ומובילה החוצה */
+  .book-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    margin-block-start: 0.15rem;
+    padding-block-start: 0.95rem;
+    border-block-start: 1px solid var(--line);
+  }
+
+  /* במצב העבודה המלא של משאב אין ניווט-אתר — הקריאה נשארת נקייה */
+  .is-full .book-links { display: none; }
+
+  .book-links-eyebrow {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+  }
+
+  .book-links-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+
+  .book-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: 46px;
+    padding: 0.5rem 1.15rem;
+    border-radius: 999px;
+    border: 1.5px solid color-mix(in srgb, var(--lk) 42%, var(--line));
+    background: color-mix(in srgb, var(--lk) 7%, #fff);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: transform 300ms var(--ease-lift), box-shadow 300ms var(--ease),
+      background-color 250ms var(--ease), border-color 250ms var(--ease);
+  }
+
+  .book-link:hover {
+    transform: translateY(-2px);
+    background: color-mix(in srgb, var(--lk) 14%, #fff);
+    border-color: var(--lk);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .book-link:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 3px;
+  }
+
+  .book-link-ico {
+    flex: none;
+    display: grid;
+    place-items: center;
+    inline-size: 22px;
+    block-size: 22px;
+    color: color-mix(in srgb, var(--lk) 72%, #000);
+  }
+
+  .book-link-ico :global(svg) { inline-size: 22px; block-size: 22px; }
+
+  .book-link-cta {
+    color: color-mix(in srgb, var(--lk) 72%, #000);
+    font-weight: 800;
+    transition: translate 300ms var(--ease);
+  }
+
+  .book-link:hover .book-link-cta { translate: -4px 0; }
+
   /* ===== נייד: דף אחד, סרגלים נגישים לאגודל ===== */
   @media (max-width: 880px) {
     .book-stage { padding-inline: 0; block-size: max(480px, calc(100dvh - var(--header-h) - 168px)); }
@@ -1183,6 +1287,8 @@ const embedOrigins = [
     .bnav { flex: 1; justify-content: center; min-inline-size: 130px; }
     .book-nav { flex-wrap: wrap; justify-content: center; }
     .book-meter { order: 3; inline-size: 100%; }
+    .book-link { font-size: 0.94rem; padding-inline: 0.95rem; }
+    .book-links-row { gap: 0.5rem; }
     .book-shell.is-full { overflow: auto; }
     /* מצב מלא בנייד: גובה יציב ל-dvh (לא קופץ עם סרגל הכתובת), הספר גדול */
     .is-full .book-stage { flex: none; block-size: calc(100dvh - 132px); }
@@ -1199,6 +1305,101 @@ const embedOrigins = [
       z-index: 7;
       background: var(--paper);
       padding-block: 0.45rem;
+    }
+  }
+
+  /* ===== מצב פתוח במסך רחב: החוברת שולטת בגובה, לשוניות בסרגל שמאלי יוקרתי =====
+     (הוראת יניב 05/08/2026) — הפס העליון הקומפקטי הופך לסרגל אנכי צמוד לשמאל
+     הבמה, והחוברת מנצלת את כל הגובה והרוחב שנותרו. הניווט העליון של האתר מכוסה
+     על ידי ההשתלטות (position:fixed מעל ה-header). */
+  @media (min-width: 881px) {
+    .book-shell.is-full {
+      --rail-w: clamp(96px, 7vw, 120px);
+      --rail-gap: clamp(0.5rem, 1vw, 1rem);
+    }
+
+    /* הפס העליון → סרגל אנכי צמוד לשמאל, מחוץ לזרימה כדי שהבמה תקבל את הגובה */
+    .is-full .book-bar {
+      position: absolute;
+      inset-block: var(--rail-gap);
+      left: var(--rail-gap);
+      inline-size: var(--rail-w);
+      z-index: 8;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 0.5rem;
+      min-block-size: 0;
+      padding: 0.7rem 0.5rem;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #17293f 0%, #0d1a2e 100%);
+      border: 1px solid color-mix(in srgb, var(--gold) 58%, transparent);
+      box-shadow:
+        0 26px 52px -26px rgb(9 17 30 / 0.85),
+        inset 0 1px 0 rgb(255 255 255 / 0.06);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    /* כפתור הזהב "חזרה לאתר" — ראש הסרגל, במלוא הרוחב */
+    .is-full .book-exit {
+      inline-size: 100%;
+      justify-content: center;
+      padding-inline: 0.4rem;
+      font-size: 0.92rem;
+    }
+
+    /* לשוניות השכבות — אנכיות; "ראשי" מיותר לצד כפתור הזהב ולכן מוסתר */
+    .is-full .book-tabs {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.4rem;
+      margin: 0;
+    }
+
+    .is-full .book-tabs .btab:not([data-grade]) { display: none; }
+
+    .is-full .btab {
+      inline-size: 100%;
+      min-block-size: 52px;
+      border-color: color-mix(in srgb, var(--gold) 34%, transparent);
+      background: rgb(255 255 255 / 0.05);
+      color: #f0e6cf;
+      font-size: 1.15rem;
+    }
+
+    .is-full .btab:hover {
+      background: rgb(255 255 255 / 0.11);
+      color: #fff;
+    }
+
+    .is-full .btab.is-current {
+      background: linear-gradient(180deg, #f3d68b 0%, #d4af5c 100%);
+      border-color: var(--gold);
+      color: #2a2008;
+    }
+
+    /* מסך מלא אמיתי — תחתית הסרגל */
+    .is-full .book-tools {
+      margin-block-start: auto;
+      justify-content: center;
+    }
+
+    .is-full .bfs {
+      color: #f3d68b;
+      background: rgb(255 255 255 / 0.06);
+      border-color: color-mix(in srgb, var(--gold) 34%, transparent);
+    }
+
+    /* הבמה והדפדוף מפנים מקום לסרגל השמאלי ומקבלים את שאר הרוחב */
+    .is-full .book-stage {
+      margin-left: calc(var(--rail-w) + var(--rail-gap) + 0.75rem);
+      padding-inline: 24px;
+    }
+
+    .is-full .book-nav {
+      margin-left: calc(var(--rail-w) + var(--rail-gap) + 0.75rem);
     }
   }
 </style>
@@ -1231,11 +1432,9 @@ const embedOrigins = [
     let cur = 0;
     let engaged = false;
     let savedY = 0;
-    let lastToc = '';
     let pendingExit = false;
     let lastTrigger: HTMLElement | null = null; // הכפתור שפתח את המשאב — מחזירים אליו את הפוקוס ביציאה
 
-    const isItem = (k: number) => ids[k].startsWith('it-');
     const isLone = (k: number) => k === 0 || k === total - 1;
     /* הפריסה שלנו: השער והכריכה בודדים; השאר זוגות (אי-זוגי, זוגי) */
     const spreadOf = (k: number): number[] => (isLone(k) ? [k] : k % 2 === 1 ? [k, k + 1] : [k - 1, k]);
@@ -1377,7 +1576,7 @@ const embedOrigins = [
         pendingExit = true;
         return;
       }
-      goto(lastToc || secs[cur].dataset.toc || 'rashi');
+      goto('rashi'); // "חזרה לאתר" — יציאה מלאה מההשתלטות אל שער החוברת בזרימת האתר
     };
 
     /* ===== ציור המצב: מונה, התקדמות, לשוניות, hash, השתלטות ===== */
@@ -1401,18 +1600,12 @@ const embedOrigins = [
       shell.classList.toggle('on-back', ids[cur] === 'back');
       const hid = wantId && s.some((k) => ids[k] === wantId) ? wantId : ids[cur];
       history.replaceState(null, '', `#${hid}`);
-      if (s.some((k) => isItem(k))) engage();
-      else disengage();
-      const t = visIds.find((id) => id.startsWith('toc-'));
-      if (t) lastToc = t;
+      // רק שער החוברת נשאר בזרימת האתר; כל עמוד פתוח (תוכן עניינים או משאב)
+      // משתלט על מלוא המסך — הניווט העליון מכוסה והחוברת שולטת בגובה (הוראת יניב 05/08/2026)
+      if (ids[cur] === 'rashi') disengage();
+      else engage();
       s.forEach((k) => mount(secs[k]));
       if (engaged) shell.scrollTop = 0;
-      // חוויית קריאה: בפתיחת תוכן עניינים הספר מתיישר מתחת לניווט
-      if (!engaged && ids[cur] !== 'rashi') {
-        const top = shell.getBoundingClientRect().top;
-        const want = headerH() + 6;
-        if (Math.abs(top - want) > 60) scrollTo(0, scrollY + top - want);
-      }
       warmNeighbors();
     };
 
@@ -1504,6 +1697,12 @@ const embedOrigins = [
       (shell as HTMLElement & { __pf?: unknown }).__pf = pf; // ידית לבדיקות הקבלה
       paint();
       markScrollable();
+      // בנייה מחדש מאפסת turning ישירות ועוקפת את changeState — לכן משלימים כאן
+      // בקשת יציאה שנרשמה בזמן היפוך/בנייה, כדי ש"חזרה לאתר" לא ייתקע (pendingExit)
+      if (pendingExit) {
+        pendingExit = false;
+        exitFull();
+      }
     };
 
     let rebuildTimer = 0;

@@ -45,7 +45,6 @@ export interface ChoveretGrade {
   /** גוון כהה לטקסט קטן על לבן (AA) */
   dark: string;
   title: string;
-  intro: string;
   chapters: ChoveretChapter[];
 }
 
@@ -148,7 +147,6 @@ export const choveret: ChoveretGrade[] = [
     dark: '#155fa8',
     letter: 'ז׳',
     title: 'מתמטיקה לכיתה ז׳',
-    intro: 'השכבה הראשונה בתוכנית המעודכנת — Moodle מחייבת, ספרים חדשים ופרויקט 720.',
     chapters: [
       {
         id: 'hozer',
@@ -213,7 +211,6 @@ export const choveret: ChoveretGrade[] = [
     dark: '#047857',
     letter: 'ח׳',
     title: 'מתמטיקה לכיתה ח׳',
-    intro: 'שנת התאמה: פריסה ארצית מיוחדת, Moodle מחייבת ומשימות הערכה — והנושאים יופיעו בתנופה ט׳ של תשפ״ח.',
     chapters: [
       {
         id: 'hozer',
@@ -287,7 +284,6 @@ export const choveret: ChoveretGrade[] = [
     dark: '#b45309',
     letter: 'ט׳',
     title: 'מתמטיקה לכיתה ט׳',
-    intro: 'שתי פריסות — רגילה ומצומצמת, קדם־אנליזה, מבחן תנופה 25.11.26 והשיבוץ לרמות 3/4/5.',
     chapters: [
       {
         id: 'hozer',
@@ -358,7 +354,6 @@ export const choveret: ChoveretGrade[] = [
     dark: '#6d28d9',
     letter: 'כללי',
     title: 'משותף לכל השכבות',
-    intro: 'דפי הנוסחאות, מבחן דמוי מיצ״ב והנחיות, משחקים, העשרה ומשאבי הרוחב — עמוד לכל קובץ, לכל כיתות ז׳–ט׳.',
     chapters: [
       {
         id: 'noschaot',
