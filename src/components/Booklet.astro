@@ -946,17 +946,36 @@ const embedOrigins = [
     margin-block-end: 1.2rem;
   }
 
+  /* מסגרת הזכוכית היוקרתית האחידה (8.26) — אותו טיפול בדיוק כמו ההמחשות
+     (mam-frame) והמפמ״ר (mrange-shell): זכוכית שמנתית עם blur, טבעת זהב
+     פנימית, חוט זהב בתחתית והילות רכות של תכלת-זהב */
   .item-frame {
     position: relative;
-    padding: 8px;
-    border-radius: 18px;
+    padding: 10px;
+    border-radius: 22px;
     background: linear-gradient(135deg, rgb(250 246 236 / 0.95) 0%, rgb(240 233 216 / 0.78) 45%, rgb(252 249 242 / 0.92) 100%);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
     box-shadow:
       inset 0 0 0 1px rgb(255 255 255 / 0.9),
-      inset 0 0 0 2px rgb(176 141 62 / 0.4),
-      0 14px 34px -20px rgb(31 41 61 / 0.4);
+      inset 0 0 0 2.5px rgb(176 141 62 / 0.4),
+      inset 0 -1px 0 rgb(176 141 62 / 0.55),
+      0 0 55px -14px rgb(126 210 255 / 0.35),
+      0 24px 70px -28px rgb(176 141 62 / 0.45),
+      0 34px 80px -34px rgb(31 41 61 / 0.35);
     flex: 1;
     min-block-size: 0;
+  }
+
+  /* קו-אור אלכסוני ספקולרי — חובה pointer-events:none כדי לא לחסום את
+     ההטמעה (8.26, 3.29); הבדיקה מוודאת שמרכז ה-iframe לחיץ (19.33) */
+  .item-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 36%, rgb(255 255 255 / 0.22) 46%, transparent 55%);
   }
 
   .item-frame iframe {
@@ -964,8 +983,78 @@ const embedOrigins = [
     block-size: 100%;
     border: 0;
     display: block;
-    border-radius: 12px;
+    border-radius: 14px;
     background: #fff;
+    /* חשיפה בעדינות כשההטמעה חיה — במקום הבזק לבן (איכות Heyzine) */
+    opacity: 0;
+    transition: opacity 480ms var(--ease);
+  }
+
+  .item-frame.is-loaded iframe { opacity: 1; }
+
+  /* שלד טעינה יוקרתי — נייר שמנתי עם ניצוץ זהב, מסתובב עד שההטמעה חיה;
+     לעולם pointer-events:none — לא יושב "מעל" ההטמעה מבחינת לחיצות (3.29) */
+  .frame-skel {
+    position: absolute;
+    inset: 10px;
+    border-radius: 14px;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    overflow: hidden;
+    background: linear-gradient(180deg, #fffdf9 0%, #fbf6ec 100%);
+    opacity: 1;
+    transition: opacity 420ms var(--ease);
+  }
+
+  .frame-skel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgb(212 175 92 / 0.16) 48%, rgb(255 255 255 / 0.55) 50%, rgb(212 175 92 / 0.16) 52%, transparent 70%);
+    background-size: 220% 100%;
+    animation: frame-shimmer 1.5s ease-in-out infinite;
+  }
+
+  .item-frame.is-loaded .frame-skel { opacity: 0; }
+
+  .frame-skel-spin {
+    position: relative;
+    z-index: 1;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: 50%;
+    border: 3px solid rgb(212 175 92 / 0.26);
+    border-block-start-color: var(--gold-deep);
+    animation: frame-spin 0.9s linear infinite;
+  }
+
+  .frame-skel-txt {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+    color: var(--gold-deep);
+  }
+
+  @keyframes frame-shimmer {
+    from { background-position: 150% 0; }
+    to { background-position: -50% 0; }
+  }
+
+  @keyframes frame-spin { to { transform: rotate(360deg); } }
+
+  /* רגישי תנועה — בלי נצנוץ/סיבוב/דהייה; ההטמעה גלויה מיד והשלד סטטי */
+  @media (prefers-reduced-motion: reduce) {
+    .item-frame iframe { opacity: 1; transition: none; }
+    .frame-skel { transition: none; }
+    .frame-skel::before { animation: none; background: none; }
+    .frame-skel-spin { animation: none; border-block-start-color: rgb(212 175 92 / 0.26); }
   }
 
   .item-open-card {
@@ -1146,6 +1235,31 @@ const embedOrigins = [
       }
       p.querySelectorAll<HTMLIFrameElement>('iframe[data-esrc]').forEach((f) => {
         const esrc = f.dataset.esrc!;
+        // שלד טעינה יוקרתי + חשיפה בעדינות (איכות Heyzine) — במקום הבזק לבן
+        const skelFrame = f.closest<HTMLElement>('.item-frame');
+        if (skelFrame && !skelFrame.querySelector('.frame-skel')) {
+          const skel = document.createElement('div');
+          skel.className = 'frame-skel';
+          skel.setAttribute('aria-hidden', 'true');
+          const spin = document.createElement('span');
+          spin.className = 'frame-skel-spin';
+          const txt = document.createElement('span');
+          txt.className = 'frame-skel-txt';
+          txt.textContent = 'טוען תצוגה חיה…';
+          skel.append(spin, txt);
+          skelFrame.appendChild(skel);
+        }
+        let revealed = false;
+        const reveal = () => {
+          if (revealed || !skelFrame) return;
+          revealed = true;
+          skelFrame.classList.add('is-loaded');
+          const s = skelFrame.querySelector('.frame-skel');
+          if (s) window.setTimeout(() => s.remove(), 520);
+        };
+        f.addEventListener('load', reveal, { once: true });
+        // רשת אמת: חושפים גם אם load מתעכב/לא נורה — לעולם לא נשארים על השלד
+        window.setTimeout(reveal, 8000);
         if (esrc.startsWith('/api/')) {
           f.addEventListener('load', () => {
             let dead = false;
