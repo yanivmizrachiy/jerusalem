@@ -47,6 +47,26 @@ export function guardScript(base: string): string {
   return `<script data-em-guard>(function(){${js}})();</scr` + `ipt>`;
 }
 
+/**
+ * פס הגלילה הזהוב של הסביבות המוטמעות (RULES 5.23, 9.1, הוראת יניב
+ * 05/08/2026): רוחב כפול — 60px — בכל ההטמעות שעוברות דרך הפרוקסי
+ * המחוזי, כדי שכולן יהיו זהות. מקור יחיד לשתי נקודות ההזרקה.
+ */
+export const GOLD_SCROLLBAR =
+  '<style>::-webkit-scrollbar{width:60px;height:60px}' +
+  '::-webkit-scrollbar-track{background:#f5f1e8}' +
+  '::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#d4af5c,#b08d3e 45%,#77602a);' +
+  'border-radius:30px;border:10px solid #f5f1e8}' +
+  '::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#b08d3e,#77602a)}' +
+  'html{scrollbar-color:#b08d3e #f5f1e8;scrollbar-width:auto}</style>';
+
+/** הזרקת פס הגלילה הזהוב לתוך <head> של המסמך המוטמע. */
+export function injectGoldScrollbar(html: string): string {
+  return html.includes('</head>')
+    ? html.replace('</head>', GOLD_SCROLLBAR + '</head>')
+    : GOLD_SCROLLBAR + html;
+}
+
 /** הזרקת המשמר מיד אחרי פתיחת <head> — לפני כל סקריפט של האפליקציה. */
 export function injectGuard(html: string, base: string): string {
   const guard = guardScript(base);

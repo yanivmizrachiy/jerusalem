@@ -23,6 +23,7 @@ const routes = [
   '/pituach-miktzoi/',
   '/pituach-miktzoi/ai-geometria/',
   '/hodaot/',
+  '/israel-realit/',
   '/luach/',
   '/chativat-beynayim/reader/z/maf-02/',
   '/chativat-beynayim/reader/t/mifrat-tnufa/',
