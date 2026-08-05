@@ -1,91 +1,70 @@
 <!doctype html>
 <html lang="he" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
-  <title>סטודיו החוברת — ניהול פרטי</title>
-  <link rel="stylesheet" href="/studio.css">
-</head>
-<body>
-  <main id="login" class="login-screen">
-    <section class="login-card" aria-labelledby="login-title">
-      <div class="login-mark" aria-hidden="true">י</div>
-      <h1 id="login-title">סטודיו החוברת הדיגיטלית</h1>
-      <p>מערכת ניהול פרטית ונפרדת מהאתר. הכניסה מאושרת רק לחשבון GitHub של יניב, והשמירה מתבצעת ישירות לריפו רק בלחיצה מפורשת.</p>
-      <button id="login-button" class="primary" type="button">כניסה מאובטחת באמצעות GitHub</button>
-      <p><small>הקישור אינו מופיע באתר הרגיל, ומנועי חיפוש מקבלים הוראת חסימה.</small></p>
-    </section>
-  </main>
-
-  <main id="app" class="studio hidden">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">י</div>
-        <div>
-          <h1>סטודיו החוברת</h1>
-          <small id="repo-label">טוען את הריפו…</small>
-        </div>
-      </div>
-      <div class="actions">
-        <button id="undo" class="secondary desktop-action" type="button" title="Ctrl+Z">בטל</button>
-        <button id="redo" class="secondary desktop-action" type="button" title="Ctrl+Shift+Z">בצע שוב</button>
-        <button id="reload" class="secondary" type="button">טען מחדש</button>
-        <button id="save" class="primary save-button" type="button" title="Ctrl+S">שמור בריפו</button>
-        <button id="logout" class="secondary desktop-action" type="button">יציאה</button>
-      </div>
-    </header>
-
-    <div class="workspace">
-      <aside class="sidebar" aria-label="כלי עיצוב">
-        <h2 class="panel-title">כלי עיצוב</h2>
-        <div class="notice info">השינויים מוצגים מיד בתצוגה. הם אינם נוגעים בריפו עד לחיצה על <strong>שמור בריפו</strong>.</div>
-        <div id="presets" class="presets"></div>
-        <div id="controls"></div>
-        <details>
-          <summary>ייבוא, ייצוא וגיבוי</summary>
-          <div class="fields">
-            <button id="export-json" class="secondary" type="button">ייצא עיצוב לקובץ JSON</button>
-            <label class="secondary file-label">ייבא עיצוב JSON<input id="import-json" type="file" accept="application/json" hidden></label>
-            <button id="reset-default" class="secondary danger" type="button">אפס לברירת המחדל</button>
-          </div>
-        </details>
-      </aside>
-
-      <section class="preview-area" aria-label="תצוגה מקדימה">
-        <div class="preview-toolbar">
-          <div class="device-buttons" role="group" aria-label="רוחב תצוגה">
-            <button class="secondary" data-device="desktop" aria-pressed="true" type="button">מחשב</button>
-            <button class="secondary" data-device="tablet" aria-pressed="false" type="button">טאבלט</button>
-            <button class="secondary" data-device="mobile" aria-pressed="false" type="button">טלפון</button>
-          </div>
-          <div class="actions">
-            <button id="refresh-preview" class="secondary" type="button">רענן תצוגה</button>
-            <a id="live-link" class="secondary" target="_blank" rel="noopener noreferrer">פתח חוברת חיה</a>
-          </div>
-        </div>
-        <div class="preview-wrap">
-          <div id="frame-shell" class="preview-frame-shell desktop">
-            <iframe id="preview" title="תצוגה מקדימה של החוברת" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
-          </div>
-        </div>
-        <footer class="statusbar">
-          <span class="status-pill"><span id="save-dot" class="dot"></span><span id="save-state">טוען…</span></span>
-          <span id="sha-state">גרסה: —</span>
-          <span id="contrast-state">נגישות צבעים: —</span>
-        </footer>
-      </section>
-
-      <aside class="history-panel" aria-label="היסטוריית שמירות">
-        <h2 class="panel-title">היסטוריית החוברת</h2>
-        <div class="notice warn">השמירה נכתבת ישירות ל־main. אם מישהו שינה את הקובץ במקביל, המערכת תחסום את השמירה ולא תדרוס אותו.</div>
-        <div id="history" class="history-list"></div>
-      </aside>
-    </div>
-  </main>
-
-  <div id="busy" class="busy-overlay hidden"><div class="busy-card" id="busy-text">מבצע פעולה…</div></div>
-  <div id="toasts" class="toast-stack" aria-live="polite"></div>
-  <script type="module" src="/studio.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+    <title>סטודיו החוברת — עבר לריפו פרטי</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 1.5rem;
+        background: linear-gradient(180deg, #fffdf9 0%, #f5efe2 100%);
+        color: #1f293d;
+        font-family: system-ui, "Segoe UI", Arial, sans-serif;
+        line-height: 1.7;
+      }
+      .card {
+        max-width: 640px;
+        background: #fff;
+        border: 1px solid #e8e0cd;
+        border-radius: 20px;
+        padding: clamp(1.4rem, 4vw, 2.4rem);
+        box-shadow: 0 24px 60px -30px rgb(31 41 61 / 0.35);
+      }
+      h1 { margin: 0 0 0.6rem; font-size: clamp(1.3rem, 3.5vw, 1.8rem); }
+      p { margin: 0 0 1rem; }
+      ol { margin: 0 0 1rem; padding-inline-start: 1.2rem; }
+      li { margin-block-end: 0.4rem; }
+      code {
+        background: #f5efe2;
+        border: 1px solid #e8e0cd;
+        border-radius: 6px;
+        padding: 0.1rem 0.4rem;
+        font-size: 0.92em;
+        direction: ltr;
+        display: inline-block;
+      }
+      .note { font-size: 0.92rem; color: #5b6478; margin-block-start: 1.2rem; }
+      .gold { height: 3px; background: linear-gradient(90deg, transparent, #d4af5c, transparent); margin: 1.2rem 0; border: 0; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>סטודיו החוברת עבר לריפו פרטי</h1>
+      <hr class="gold" />
+      <p>
+        קוד הסטודיו הועבר מהריפו הציבורי של האתר אל ריפו פרטי, כדי שכלי הניהול
+        האישי לא יהיה גלוי לציבור. הכלי עצמו לא בוטל — הוא ממשיך לעבוד ולפרסם
+        לאתר בדיוק כמו קודם.
+      </p>
+      <p><strong>אם הגעת לעמוד הזה, פרויקט ה-Vercel של הסטודיו עדיין מצביע לריפו הישן.</strong> שני שינויים ותחזור לעבוד:</p>
+      <ol>
+        <li>ב-Vercel, בפרויקט הסטודיו: <code>Settings → Git</code> → החלף את הריפו ל-<code>jerusalem-booklet-studio</code>.</li>
+        <li>באותו מסך: <code>Root Directory</code> → שנה מ-<code>workbook-studio</code> ל-<code>/</code>.</li>
+      </ol>
+      <p>
+        משתני הסביבה, ה-OAuth App וכתובת הפרויקט נשארים כפי שהם — אין צורך לשנות
+        אותם.
+      </p>
+      <p class="note">
+        לאחר ההחלפה אפשר למחוק את התיקייה <code>workbook-studio</code> מהריפו הציבורי;
+        היא נשארה כאן רק כדי שההעברה לא תיפול בשקט.
+      </p>
+    </main>
+  </body>
 </html>
