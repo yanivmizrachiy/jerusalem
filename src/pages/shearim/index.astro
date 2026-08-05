@@ -1,0 +1,270 @@
+---
+/**
+ * שערי הכניסה — מסך מחולק חצי-חצי (הוראת יניב, 05/08/2026).
+ * חצי אחד כחול־כהה עם מלל בהיר, החצי השני בדיוק אותם צבעים הפוכים.
+ * בתחתית העמוד נשמרים רצועת הווטסאפ ופס התחתית הכחול (7.24, 7.27).
+ */
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import WhatsAppBand from '../../components/WhatsAppBand.astro';
+
+const gates = [
+  {
+    href: '/chativat-beynayim/',
+    title: 'חטיבת ביניים',
+    desc: 'החוברת המרכזית של החטיבה, אתר ההמחשות של איילת קריספין וכל הקבצים לכיתות ז׳–ט׳.',
+    tone: 'navy' as const,
+  },
+  {
+    href: '/chativa-elyona/',
+    title: 'חטיבה עליונה',
+    desc: 'התוכנית החדשה, רמות 3/4/5 יח״ל, בחינות הבגרות והמידע המנהלי לתשפ״ז.',
+    tone: 'paper' as const,
+  },
+];
+---
+
+<Base
+  title="שערי הכניסה — מחוז ירושלים"
+  description="בחירת שער הכניסה לאתר הדרכת המתמטיקה של מחוז ירושלים: חטיבת ביניים או חטיבה עליונה."
+>
+  <div class="container crumbs-slot">
+    <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'שערי הכניסה' }]} />
+  </div>
+
+  <h1 class="visually-hidden">שערי הכניסה</h1>
+
+  <section class="split" aria-label="בחירת שער הכניסה">
+    {
+      gates.map((g, i) => (
+        <a class:list={['half', `is-${g.tone}`]} style={`--i:${i}`} href={g.href}>
+          {i > 0 && <span class="split-rule" aria-hidden="true" />}
+          <span class="half-glow" aria-hidden="true" />
+          <span class="half-inner">
+            <span class="half-mark" aria-hidden="true" />
+            <h2 class="half-title">{g.title}</h2>
+            <span class="half-desc">{g.desc}</span>
+            <span class="half-cta">
+              כניסה לשער
+              <span class="half-arrow" aria-hidden="true">
+                ←
+              </span>
+            </span>
+          </span>
+        </a>
+      ))
+    }
+  </section>
+
+  <WhatsAppBand />
+</Base>
+
+<style>
+  .crumbs-slot { padding-block: 1.1rem 0.9rem; }
+
+  /* המסך מחולק חצי-חצי, לכל רוחב העמוד */
+  .split {
+    position: relative;
+    display: flex;
+    min-block-size: clamp(460px, calc(100svh - 250px), 780px);
+    border-block: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .half {
+    position: relative;
+    flex: 1 1 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1.4rem, 4.5vw, 3.4rem);
+    text-decoration: none;
+    isolation: isolate;
+    transition: flex-basis 700ms var(--ease), filter 400ms var(--ease);
+  }
+
+  /* חצי כהה: רקע נייבי, מלל בהיר */
+  .half.is-navy {
+    background:
+      radial-gradient(120% 130% at 80% -10%, rgb(110 159 195 / 0.22) 0%, transparent 58%),
+      radial-gradient(100% 120% at 10% 115%, rgb(176 141 62 / 0.22) 0%, transparent 62%),
+      linear-gradient(200deg, #26324a 0%, var(--navy) 55%, #172033 100%);
+    background-color: var(--navy);
+    --tone-text: var(--paper);
+    --tone-soft: rgb(251 249 245 / 0.82);
+    --tone-cta: #e8c877;
+    --tone-line: rgb(232 200 119 / 0.55);
+  }
+
+  /* חצי בהיר: אותם צבעים בדיוק — הפוך */
+  .half.is-paper {
+    background:
+      radial-gradient(120% 130% at 20% -10%, rgb(31 41 61 / 0.07) 0%, transparent 58%),
+      radial-gradient(100% 120% at 90% 115%, rgb(176 141 62 / 0.16) 0%, transparent 62%),
+      linear-gradient(200deg, var(--paper) 0%, var(--paper-soft) 55%, var(--stone) 100%);
+    background-color: var(--paper-soft);
+    --tone-text: var(--navy);
+    --tone-soft: var(--ink-soft);
+    --tone-cta: var(--gold-deep);
+    --tone-line: rgb(31 41 61 / 0.35);
+  }
+
+  .half-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+    inline-size: min(38ch, 100%);
+    color: var(--tone-text);
+  }
+
+  /* חוט זהב קצר מעל הכותרת — סימן השער */
+  .half-mark {
+    inline-size: 74px;
+    block-size: 2px;
+    background: linear-gradient(90deg, var(--tone-line), transparent);
+    transition: inline-size 600ms var(--ease);
+  }
+
+  .half-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 5.4vw, 3.9rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--tone-text);
+  }
+
+  .half-desc {
+    color: var(--tone-soft);
+    font-size: clamp(1rem, 1.5vw, 1.14rem);
+    line-height: 1.7;
+    text-wrap: pretty;
+  }
+
+  .half-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-block-start: 0.6rem;
+    min-block-size: 48px;
+    padding: 0.6rem 1.6rem;
+    border: 1px solid var(--tone-line);
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 1.06rem;
+    color: var(--tone-cta);
+    transition: background-color 320ms var(--ease), translate 320ms var(--ease);
+  }
+
+  .half-arrow { transition: translate 320ms var(--ease); }
+
+  .half:hover .half-cta,
+  .half:focus-visible .half-cta { background: color-mix(in srgb, var(--tone-cta) 14%, transparent); }
+
+  .half:hover .half-arrow,
+  .half:focus-visible .half-arrow { translate: -7px 0; }
+
+  .half:hover .half-mark,
+  .half:focus-visible .half-mark { inline-size: 128px; }
+
+  .half:focus-visible { outline: 3px solid var(--tone-cta); outline-offset: -8px; }
+
+  /* הילת עומק רכה שנעה עם הריחוף */
+  .half-glow {
+    position: absolute;
+    inset: -20%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(45% 45% at 50% 50%, currentColor 0%, transparent 70%);
+    color: var(--tone-cta);
+    transition: opacity 600ms var(--ease);
+  }
+
+  .half:hover .half-glow { opacity: 0.16; }
+
+  /* קו הזהב שמפריד בין שני החצאים — יושב על הקצה המוביל של החצי השני,
+     ולכן נשאר בדיוק על התפר גם ב-RTL וגם כשהריחוף מזיז אותו */
+  .split-rule {
+    position: absolute;
+    z-index: 3;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: 2px;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      var(--gold) 22%,
+      #e8c877 50%,
+      var(--gold) 78%,
+      transparent 100%
+    );
+  }
+
+  /* ריחוף במחשב: החצי הנבחר גדל, השני נסוג — בלי קפיצות.
+     ההרחבה חייבת להיות על flex-basis: כששני הבסיסים כבר ממלאים את המכל,
+     אין שטח פנוי ו-flex-grow אינו משנה דבר. */
+  @media (min-width: 1000px) and (pointer: fine) {
+    .split:hover .half { flex-basis: 43%; filter: saturate(0.94); }
+    .split .half:hover { flex-basis: 57%; filter: none; }
+  }
+
+  /* פתיחת העמוד: כל חצי נחשף מהמרכז החוצה והתוכן עולה בהדרגה */
+  @media (prefers-reduced-motion: no-preference) {
+    .half { animation: half-in 900ms var(--ease) both; animation-delay: calc(var(--i) * 130ms); }
+    .half-inner {
+      animation: half-content-in 800ms var(--ease) both;
+      animation-delay: calc(320ms + var(--i) * 130ms);
+    }
+    .split-rule { animation: rule-in 1100ms var(--ease) both; animation-delay: 160ms; }
+
+    @keyframes half-in {
+      from { clip-path: inset(0 0 100% 0); opacity: 0; }
+      to { clip-path: inset(0 0 0 0); opacity: 1; }
+    }
+
+    @keyframes half-content-in {
+      from { opacity: 0; translate: 0 22px; }
+      to { opacity: 1; translate: none; }
+    }
+
+    @keyframes rule-in {
+      from { scale: 1 0; opacity: 0; }
+      to { scale: 1 1; opacity: 1; }
+    }
+  }
+
+  /* נייד: החצאים נערמים; אותו קו זהב הופך אופקי — ונשאר בדיוק על התפר */
+  @media (max-width: 860px) {
+    .split { flex-direction: column; min-block-size: 0; }
+    .half { flex: 1 1 auto; min-block-size: clamp(300px, 44svh, 420px); }
+
+    .split-rule {
+      inset-block: 0 auto;
+      inset-inline: 0;
+      inline-size: auto;
+      block-size: 2px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--gold) 22%,
+        #e8c877 50%,
+        var(--gold) 78%,
+        transparent 100%
+      );
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .split-rule { animation-name: rule-in-h; }
+    }
+
+    @keyframes rule-in-h {
+      from { scale: 0 1; opacity: 0; }
+      to { scale: 1 1; opacity: 1; }
+    }
+  }
+</style>

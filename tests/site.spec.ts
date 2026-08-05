@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 /** כל המסלולים החיים — אינווריאנטים מחייבים (1.3, 18, 19.14) */
 const routes = [
   '/',
+  '/shearim/',
   '/hozer-mafmar/',
   '/chativat-beynayim/',
   '/chativat-beynayim/kita-z/',

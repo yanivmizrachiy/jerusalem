@@ -4,6 +4,7 @@ import AxeBuilder from '@axe-core/playwright';
 /** נגישות אוטומטית — WCAG 2.2 AA (RULES 21.18) על העמודים המייצגים */
 const pages = [
   '/',
+  '/shearim/',
   '/hozer-mafmar/',
   '/chativat-beynayim/',
   '/chativat-beynayim/hafifat-meshulashim/',
