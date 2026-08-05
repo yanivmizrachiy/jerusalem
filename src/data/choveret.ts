@@ -69,13 +69,20 @@ const canva = (id: string, url: string, title: string, note: string): ChoveretIt
   const view = url.replace(/\/edit.*$/, '/view');
   return { id, title, note, url: view, embed: `${view}?embed`, kind: 'canva' };
 };
+/**
+ * פרמטרי התצוגה של כל PDF בחוברת (הוראת יניב, 05/08/2026):
+ * `toolbar=0&navpanes=0` מסלקים את סרגל ה-PDF השחור של הדפדפן, כך שהמסגור
+ * הנראה הוא מסגרת הזכוכית נייבי-זהב של האתר (8.26); `view=FitH` פורס את
+ * המסמך על מלוא רוחב הדף.
+ */
+export const PDF_VIEW = '#toolbar=0&navpanes=0&view=FitH';
+
 const pdf = (id: string, url: string, title: string, note: string): ChoveretItem => ({
   id,
   title,
   note,
   url,
-  // #view=FitH — פותח את ה-PDF ברוחב מלא כמו gov()/maf(), לא בזום ברירת המחדל
-  embed: `${url}#view=FitH`,
+  embed: `${url}${PDF_VIEW}`,
   download: url,
   kind: 'pdf',
 });
@@ -115,7 +122,7 @@ const gov = (
   title,
   note,
   url: `${TASHPAZ}/${remote}`,
-  embed: `${local}#view=FitH`,
+  embed: `${local}${PDF_VIEW}`,
   download: local,
   kind: 'pdf',
   source,
@@ -127,7 +134,7 @@ const maf = (id: string, sectionId: string, note: string): ChoveretItem => {
     title: s.title,
     note,
     url: MAFMAR_URL,
-    embed: `${MAFMAR_LOCAL}#page=${s.startPage}&view=FitH`,
+    embed: `${MAFMAR_LOCAL}#page=${s.startPage}&toolbar=0&navpanes=0&view=FitH`,
     download: MAFMAR_LOCAL,
     kind: 'maf',
     maf: sectionId,
@@ -156,8 +163,7 @@ const hozerPdf = (id: string, url: string, title: string, note: string, page: nu
   title,
   note,
   url,
-  // #view=FitH — נפתח ברוחב מלא כמו כל שאר ה-PDF בחוברת (pdf/gov/maf)
-  embed: `${url}#view=FitH`,
+  embed: `${url}${PDF_VIEW}`,
   download: url,
   kind: 'pdf',
   source: hz(page),

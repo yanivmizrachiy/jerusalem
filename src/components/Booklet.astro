@@ -1070,6 +1070,13 @@ const embedOrigins = [
     min-block-size: 220px;
   }
 
+  /* `hidden` חייב לנצח את ה-display של המחלקה (הוראת יניב, 05/08/2026):
+     בלי זה כרטיס הפתיחה של PDF הוצג *מתחת* להטמעה החיה וגנב חצי עמוד.
+     ההטמעה חייבת למלא את כל שטח הדף — כרטיס הפתיחה מופיע רק כשאין
+     מציג PDF בדפדפן, ואז הוא היחיד על הדף (3.29, 8.8) */
+  .item-frame[hidden],
+  .item-open-card[hidden] { display: none !important; }
+
   .item-open-card p { margin: 0; font-weight: 600; color: var(--ink-soft); }
 
   .item-info { flex: 1; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; padding-block-end: 1.2rem; }

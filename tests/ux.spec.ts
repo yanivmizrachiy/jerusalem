@@ -735,3 +735,34 @@ test('תחתית האתר: הפס הכחול סוגר גם עמוד בלי רצ�
   const nb = (await navy.boundingBox())!;
   expect(Math.abs(nb.y + nb.height - 900), 'הפס הכחול סוגר את העמוד').toBeLessThanOrEqual(3);
 });
+
+test('עמוד משאב: ההטמעה ממלאת את הדף — כרטיס הפתיחה מוסתר באמת (8.8, 3.29)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openToc(page);
+  await shown(page).locator('button.idx-row').first().click();
+  await settle(page);
+  // הכרטיס קיים ב-DOM אך חייב להיות מוסתר בפועל כשיש מציג PDF בדפדפן
+  const hiddenCards = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-pdf-fb][hidden], .mrange-fallback[hidden]')].filter(
+      (el) => getComputedStyle(el).display !== 'none'
+    ).length
+  );
+  expect(hiddenCards, 'כרטיס פתיחה עם hidden חייב להיעלם — לא לגנוב חצי עמוד').toBe(0);
+  // ההטמעה ממלאת את דף המשאב לגובה
+  const fill = await page.evaluate(() => {
+    const f = document.querySelector<HTMLElement>('.stf__item[style*="display: block"] .item-frame:not([hidden])');
+    const host = f?.closest<HTMLElement>('.item-embed');
+    return f && host ? f.getBoundingClientRect().height / host.getBoundingClientRect().height : 0;
+  });
+  expect(fill, 'ההטמעה ממלאת כמעט את כל שטח הדף').toBeGreaterThan(0.9);
+});
+
+test('הטמעות PDF בחוברת בלי סרגל השחור של הדפדפן (8.26)', async ({ page }) => {
+  await page.goto('/chativat-beynayim/');
+  const bad = await page.evaluate(() =>
+    [...document.querySelectorAll('iframe[data-esrc]')]
+      .map((f) => (f as HTMLIFrameElement).dataset.esrc || '')
+      .filter((s) => /\.pdf(\?|#|$)/i.test(s) && !s.includes('toolbar=0'))
+  );
+  expect(bad, 'כל PDF נטען עם toolbar=0 — המסגור הוא הזכוכית נייבי-זהב שלנו').toEqual([]);
+});
