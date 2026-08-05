@@ -156,7 +156,8 @@ const hozerPdf = (id: string, url: string, title: string, note: string, page: nu
   title,
   note,
   url,
-  embed: url,
+  // #view=FitH — נפתח ברוחב מלא כמו כל שאר ה-PDF בחוברת (pdf/gov/maf)
+  embed: `${url}#view=FitH`,
   download: url,
   kind: 'pdf',
   source: hz(page),
