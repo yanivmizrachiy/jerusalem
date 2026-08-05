@@ -103,9 +103,12 @@ const waPath =
       }
     </div>
 
+    <!-- חזרה מכרטיס-יחיד: חץ אחד בתוך עיגול, בלי כיתוב (הוראת יניב, 05/08/2026) -->
     <button class="team-back" type="button" data-team-back aria-label="חזרה לתצוגה הקודמת">
-      <span class="team-back-chev" aria-hidden="true">›</span>
-      חזרה לתצוגה הקודמת
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 12h14" />
+        <path d="m12 5 7 7-7 7" />
+      </svg>
     </button>
   </div>
 </section>
@@ -123,6 +126,8 @@ const waPath =
       const solo = m ? document.getElementById(`tzevet-${m[1]}`) : null;
       section.hidden = !solo;
       grid.classList.toggle('is-solo', !!solo);
+      // בתצוגת מורה יחיד מוסתר גם כפתור "התחל" (הוראת יניב, 05/08/2026)
+      document.documentElement.classList.toggle('team-solo', !!solo);
       grid.querySelectorAll<HTMLElement>('.team-card').forEach((c) => {
         c.hidden = !!solo && c !== solo;
       });
@@ -262,37 +267,32 @@ const waPath =
     background: linear-gradient(180deg, #fff 0%, #fdf7ea 100%);
   }
 
-  /* כפתור חזרה טקסטואלי בסגנון breadcrumb יוקרתי — מסגרת זהב עדינה
-     (6.5, הוראת יניב 04/08/2026; מחליף את החץ העגול) */
+  /* חזרה מכרטיס-יחיד — חץ אחד בעיגול, בלי כיתוב (6.5, הוראת יניב 05/08/2026;
+     מבטלת את הכפתור הטקסטואלי מ-04/08). זה חץ אחורה, לא ↑ (5.27 נשמר) */
   .team-back {
-    display: flex;
-    inline-size: fit-content;
-    align-items: center;
-    gap: 0.6rem;
-    min-block-size: 48px;
+    display: grid;
+    place-items: center;
+    inline-size: 56px;
+    block-size: 56px;
     margin-block-start: 1.8rem;
     margin-inline: auto;
-    padding: 0.6rem 1.5rem;
-    border-radius: 999px;
+    padding: 0;
+    border-radius: 50%;
     border: 1.5px solid var(--gold);
     background: linear-gradient(180deg, #fff 0%, #fdf8ec 100%);
     color: var(--gold-deep);
-    font: inherit;
-    font-family: var(--font-display);
-    font-size: 1.02rem;
-    font-weight: 700;
     cursor: pointer;
     box-shadow: 0 10px 26px -14px rgb(176 141 62 / 0.55);
     transition: transform 350ms var(--ease-lift), box-shadow 300ms var(--ease), color 300ms var(--ease);
   }
+
+  .team-back svg { inline-size: 26px; block-size: 26px; }
 
   .team-back:hover {
     transform: translateY(-3px);
     color: var(--ink);
     box-shadow: 0 0 20px rgb(212 175 92 / 0.4), 0 14px 30px -14px rgb(176 141 62 / 0.65);
   }
-
-  .team-back-chev { font-size: 1.35em; line-height: 1; }
 
   /* מצב כרטיס-יחיד: לחיצה על חבר צוות מציגה רק אותו (6.5) */
   .team-card[hidden] { display: none; }

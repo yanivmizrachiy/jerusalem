@@ -93,6 +93,11 @@ import WhatsAppBand from '../components/WhatsAppBand.astro';
     transition-delay: 260ms, 260ms, 0s, 0s, 0s;
   }
 
+  /* בתצוגת מורה יחיד "התחל" נעלם — נשאר רק חץ החזרה (הוראת יניב, 05/08/2026) */
+  :global(html.team-solo) .start-btn {
+    display: none;
+  }
+
   .start-label {
     font-family: var(--font-display);
     font-size: clamp(1.2rem, 2.4vw, 1.55rem);
