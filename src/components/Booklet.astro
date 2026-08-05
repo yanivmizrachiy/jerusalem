@@ -1404,25 +1404,86 @@ const embedOrigins = [
       });
     };
 
-    /* ===== מכונת המצבים: רק עמוד משאב משתלט על המסך (3.29) ===== */
+    /* ===== מכונת המצבים: רק שער החוברת נשאר בזרימת האתר (3.29) ===== */
+
+    /* בזמן ההשתלטות האתר שמאחור מכוסה גם למקלדת ולקורא מסך: כל מה שאינו
+       החוברת מסומן inert (ומתועד ל-AT), אחרת Tab היה נודד לניווט הנסתר.
+       זו אינה מלכודת focus (5.15) — Escape וכפתור "חזרה לאתר" תמיד משחררים. */
+    let inerted: HTMLElement[] = [];
+
+    const coverSite = () => {
+      if (inerted.length) return;
+      for (let node: HTMLElement | null = shell; node && node !== document.body; node = node.parentElement) {
+        for (const sib of Array.from(node.parentElement?.children ?? [])) {
+          if (sib === node || !(sib instanceof HTMLElement)) continue;
+          if (sib.hasAttribute('inert')) continue;
+          sib.setAttribute('inert', '');
+          sib.setAttribute('aria-hidden', 'true');
+          inerted.push(sib);
+        }
+      }
+    };
+
+    const uncoverSite = () => {
+      for (const el of inerted) {
+        el.removeAttribute('inert');
+        el.removeAttribute('aria-hidden');
+      }
+      inerted = [];
+    };
+
+    /** לאן להחזיר את המיקוד ביציאה מההשתלטות, ודגל השלמה אחרי בניית המנוע */
+    let focusReturn: HTMLElement | null = null;
+
+    /** מיקוד חזרה למקום שממנו נכנסו, ואחרת לשורת השכבה הראשונה בשער */
+    const focusHome = () => {
+      const back = focusReturn?.isConnected ? focusReturn : shell.querySelector<HTMLElement>('.rashi-row');
+      back?.focus({ preventScroll: true });
+    };
+
+    /* המנוע בונה את עצמו מחדש אחרי היציאה (לעיתים יותר מפעם אחת) ומאמץ את
+       הדפים, וכל בנייה מאפסת מיקוד ל-body. לכן מחזירים את המיקוד שוב לזמן קצר,
+       אך אך ורק כשהוא באמת אבד — כדי לא לחטוף מיקוד שהמשתמש העביר לאתר. */
+    const focusHomeSoon = () => {
+      let tries = 0;
+      const tick = () => {
+        if (engaged) return; // המשתמש נכנס שוב — אין מה לשחזר
+        if (document.activeElement === document.body || !document.activeElement) focusHome();
+        if (++tries < 5) setTimeout(tick, 200);
+        else focusReturn = null;
+      };
+      tick();
+    };
+
     const engage = () => {
       if (engaged) return;
       engaged = true;
       savedY = scrollY;
+      const active = document.activeElement;
+      focusReturn = active instanceof HTMLElement && !shell.contains(active) ? active : null;
       shell.classList.add('is-full');
       document.documentElement.classList.add('book-lock');
       exitBtn.hidden = false;
+      coverSite();
+      // כניסה דרך קישור עומק: המיקוד עדיין מחוץ לחוברת — מכניסים אותו פנימה
+      if (!shell.contains(document.activeElement)) exitBtn.focus({ preventScroll: true });
       queueRebuild();
     };
 
     const disengage = () => {
+      // נמדד לפני הסתרת כפתור היציאה — הסתרתו לבדה מפילה את המיקוד ל-body
+      const hadFocusInside = shell.contains(document.activeElement);
       exitBtn.hidden = true;
       if (!engaged) return;
       engaged = false;
       shell.classList.remove('is-full');
       document.documentElement.classList.remove('book-lock');
+      uncoverSite();
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
       scrollTo(0, savedY);
+      // המיקוד לא נשאר על כפתור שנעלם: חזרה למקורי, ואחרת לשער עצמו —
+      // ומוחזק גם אחרי הבנייה מחדש שמאפסת מיקוד
+      if (hadFocusInside) focusHomeSoon();
       queueRebuild();
     };
 
@@ -1557,6 +1618,9 @@ const embedOrigins = [
         pendingExit = false;
         exitFull();
       }
+      // המנוע מאמץ מחדש את הדפים, ולכן אלמנט ממוקד שבתוכם מאבד מיקוד ל-body:
+      // משתמש מקלדת היה מתחיל Tab מראש המסמך. מחזירים את המיקוד לתוך החוברת.
+      if (engaged && !shell.contains(document.activeElement)) exitBtn.focus({ preventScroll: true });
     };
 
     let rebuildTimer = 0;

@@ -225,6 +225,41 @@ test('פתיחת משאב: is-full, הטמעה בדף הימני, "חזרה לא
   await expect(page.locator('.book-shell.on-rashi')).toHaveCount(1);
 });
 
+test('בהשתלטות האתר שמאחור אינו נגיש למקלדת ולקורא מסך, והמיקוד חוזר ביציאה (4.7, 5.15)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openToc(page);
+  // הניווט העליון והפוטר מסומנים inert — Tab לא נודד לאתר המכוסה
+  const covered = await page.evaluate(() => {
+    const shell = document.querySelector('.book-shell')!;
+    const outside = ['#site-header', '.datebar', 'footer'];
+    return outside.map((sel) => {
+      const el = document.querySelector(sel);
+      if (!el || shell.contains(el)) return { sel, present: false, inert: true, hidden: true };
+      const blocked = !!el.closest('[inert]');
+      return { sel, present: true, inert: blocked, hidden: !!el.closest('[aria-hidden="true"]') };
+    });
+  });
+  for (const c of covered) {
+    expect(c.inert, `${c.sel} חסום למקלדת בהשתלטות`).toBe(true);
+    expect(c.hidden, `${c.sel} מוסתר מקורא מסך בהשתלטות`).toBe(true);
+  }
+  // המיקוד נמצא בתוך החוברת ולא נשאר על האתר המכוסה
+  expect(await page.evaluate(() => !!document.querySelector('.book-shell')!.contains(document.activeElement))).toBe(true);
+  // ביציאה — האתר חוזר להיות נגיש והמיקוד אינו אבוד
+  await page.locator('[data-exit]').click();
+  await settle(page);
+  const restored = await page.evaluate(() => ({
+    anyInert: !!document.querySelector('#site-header[inert], .datebar[inert], footer[inert]'),
+    anyHidden: !!document.querySelector('#site-header[aria-hidden], .datebar[aria-hidden], footer[aria-hidden]'),
+  }));
+  expect(restored.anyInert, 'האתר אינו נשאר חסום אחרי היציאה').toBe(false);
+  expect(restored.anyHidden, 'האתר אינו נשאר מוסתר מ-AT אחרי היציאה').toBe(false);
+  // המיקוד מוחזר לשער אחרי שהמנוע מסיים להיבנות מחדש (הבנייה מאפסת מיקוד ל-body)
+  await expect
+    .poll(() => page.evaluate(() => document.activeElement?.className ?? ''), { timeout: 5000 })
+    .toContain('rashi-row');
+});
+
 test('deep link לעמוד reader נפתח במצב מלא ו"חזרה לאתר" חוזר לשער (3.29, 05/08)', async ({ page }) => {
   await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
   await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
