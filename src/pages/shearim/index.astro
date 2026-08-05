@@ -1,6 +1,6 @@
 ---
 /**
- * שערי הכניסה — מסך מחולק חצי-חצי (הוראת יניב, 05/08/2026).
+ * בחירת החטיבה — מסך מחולק חצי-חצי (הוראת יניב, 05/08/2026).
  * חצי אחד כחול־כהה עם מלל בהיר, החצי השני בדיוק אותם צבעים הפוכים.
  * בתחתית העמוד נשמרים רצועת הווטסאפ ופס התחתית הכחול (7.24, 7.27).
  */
@@ -12,29 +12,29 @@ const gates = [
   {
     href: '/chativat-beynayim/',
     title: 'חטיבת ביניים',
-    desc: 'החוברת המרכזית של החטיבה, אתר ההמחשות של איילת קריספין וכל הקבצים לכיתות ז׳–ט׳.',
+    desc: 'מתמטיקה לכיתות ז׳–ט׳',
     tone: 'navy' as const,
   },
   {
     href: '/chativa-elyona/',
     title: 'חטיבה עליונה',
-    desc: 'התוכנית החדשה, רמות 3/4/5 יח״ל, בחינות הבגרות והמידע המנהלי לתשפ״ז.',
+    desc: 'מתמטיקה לכיתות י׳–י״ב',
     tone: 'paper' as const,
   },
 ];
 ---
 
 <Base
-  title="שערי הכניסה — מחוז ירושלים"
-  description="בחירת שער הכניסה לאתר הדרכת המתמטיקה של מחוז ירושלים: חטיבת ביניים או חטיבה עליונה."
+  title="בחירת החטיבה — מחוז ירושלים"
+  description="הכניסה לאתר הדרכת המתמטיקה של מחוז ירושלים: חטיבת ביניים או חטיבה עליונה."
 >
   <div class="container crumbs-slot">
-    <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'שערי הכניסה' }]} />
+    <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'בחירת החטיבה' }]} />
   </div>
 
-  <h1 class="visually-hidden">שערי הכניסה</h1>
+  <h1 class="visually-hidden">בחירת החטיבה</h1>
 
-  <section class="split" aria-label="בחירת שער הכניסה">
+  <section class="split" aria-label="בחירת החטיבה">
     {
       gates.map((g, i) => (
         <a class:list={['half', `is-${g.tone}`]} style={`--i:${i}`} href={g.href}>
@@ -44,11 +44,10 @@ const gates = [
             <span class="half-mark" aria-hidden="true" />
             <h2 class="half-title">{g.title}</h2>
             <span class="half-desc">{g.desc}</span>
-            <span class="half-cta">
-              כניסה לשער
-              <span class="half-arrow" aria-hidden="true">
-                ←
-              </span>
+            <span class="half-cta" aria-hidden="true">
+              <svg viewBox="0 0 44 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                <path d="M43 8H2M9 1.5 2 8l7 6.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
             </span>
           </span>
         </a>
@@ -62,11 +61,15 @@ const gates = [
 <style>
   .crumbs-slot { padding-block: 1.1rem 0.9rem; }
 
+  /* הצבע נוגע ברצועת הווטסאפ — בלי רצועה לבנה ביניהם */
+  :global(main .split + .wa-band-wrap) { margin-block-start: 0; }
+
   /* המסך מחולק חצי-חצי, לכל רוחב העמוד */
   .split {
     position: relative;
     display: flex;
-    min-block-size: clamp(460px, calc(100svh - 250px), 780px);
+    /* פרוס עד רצועת הווטסאפ — בלי שטח לבן מתחתיו (הוראת יניב, 05/08/2026) */
+    min-block-size: var(--split-h, calc(100svh - 190px));
     border-block: 1px solid var(--line);
     overflow: hidden;
   }
@@ -120,7 +123,7 @@ const gates = [
     color: var(--tone-text);
   }
 
-  /* חוט זהב קצר מעל הכותרת — סימן השער */
+  /* חוט זהב קצר מעל הכותרת */
   .half-mark {
     inline-size: 74px;
     block-size: 2px;
@@ -144,28 +147,20 @@ const gates = [
     text-wrap: pretty;
   }
 
+  /* חץ עדין — כל שטח החצי לחיץ, החץ רק מסמן את הכניסה */
   .half-cta {
     display: inline-flex;
     align-items: center;
-    gap: 0.55rem;
-    margin-block-start: 0.6rem;
-    min-block-size: 48px;
-    padding: 0.6rem 1.6rem;
-    border: 1px solid var(--tone-line);
-    border-radius: 999px;
-    font-weight: 800;
-    font-size: 1.06rem;
+    margin-block-start: 0.7rem;
     color: var(--tone-cta);
-    transition: background-color 320ms var(--ease), translate 320ms var(--ease);
+    transition: translate 380ms var(--ease), opacity 380ms var(--ease);
+    opacity: 0.85;
   }
 
-  .half-arrow { transition: translate 320ms var(--ease); }
+  .half-cta svg { inline-size: clamp(52px, 6vw, 68px); block-size: auto; display: block; }
 
   .half:hover .half-cta,
-  .half:focus-visible .half-cta { background: color-mix(in srgb, var(--tone-cta) 14%, transparent); }
-
-  .half:hover .half-arrow,
-  .half:focus-visible .half-arrow { translate: -7px 0; }
+  .half:focus-visible .half-cta { translate: -10px 0; opacity: 1; }
 
   .half:hover .half-mark,
   .half:focus-visible .half-mark { inline-size: 128px; }
@@ -240,8 +235,8 @@ const gates = [
 
   /* נייד: החצאים נערמים; אותו קו זהב הופך אופקי — ונשאר בדיוק על התפר */
   @media (max-width: 860px) {
-    .split { flex-direction: column; min-block-size: 0; }
-    .half { flex: 1 1 auto; min-block-size: clamp(300px, 44svh, 420px); }
+    .split { flex-direction: column; min-block-size: var(--split-h, calc(100svh - 210px)); }
+    .half { flex: 1 1 50%; min-block-size: 240px; }
 
     .split-rule {
       inset-block: 0 auto;
@@ -268,3 +263,18 @@ const gates = [
     }
   }
 </style>
+
+<script>
+  // גובה מדויק: הצבע יורד עד תחתית המסך ונוגע ברצועת הווטסאפ
+  const split = document.querySelector<HTMLElement>('.split');
+  if (split) {
+    const fit = () => {
+      const top = split.getBoundingClientRect().top + window.scrollY;
+      split.style.setProperty('--split-h', `${Math.max(420, Math.round(innerHeight - top))}px`);
+    };
+    fit();
+    addEventListener('resize', fit, { passive: true });
+    addEventListener('load', fit, { once: true });
+    document.fonts?.ready.then(fit);
+  }
+</script>

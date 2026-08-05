@@ -39,7 +39,7 @@ const MARKERS = [
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
   { path: '/', needle: 'start-btn', what: 'כפתור ההתחלה בעמוד הראשי (7.28)' },
-  { path: '/shearim/', needle: 'split-rule', what: 'המסך המחולק חצי-חצי בשערי הכניסה (7.29)' },
+  { path: '/shearim/', needle: 'split-rule', what: 'המסך המחולק חצי-חצי בבחירת החטיבה (7.29)' },
 ];
 
 const get = async (path) => {
