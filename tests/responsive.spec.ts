@@ -12,7 +12,7 @@ const viewports = [
   { name: 'desktop-1920', width: 1920, height: 1080 },
 ];
 
-const pages = ['/', '/luach/', '/chativat-beynayim/', '/hozer-mafmar/', '/chativa-elyona/bchinot/'];
+const pages = ['/', '/shearim/', '/luach/', '/chativat-beynayim/', '/hozer-mafmar/', '/chativa-elyona/bchinot/'];
 
 for (const vp of viewports) {
   test.describe(`${vp.name} (${vp.width}px)`, () => {

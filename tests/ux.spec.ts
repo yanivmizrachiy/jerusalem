@@ -429,3 +429,91 @@ test('בלי Web Share — הלחיצה מורידה את תמונת הלוח כ
   expect(download.suggestedFilename()).toBe('לוח-החופשות-תשפז.png');
   await expect(page.locator('#vac-send-status')).toContainText('הורדה');
 });
+
+/* ===== שערי הכניסה — כפתור "התחל" והמסך המחולק (הוראת יניב, 05/08/2026) ===== */
+
+test('העמוד הראשי: כפתור "התחל" יחיד מתחת לצוות, מוביל ל-/shearim/ (7.28)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+
+  const start = page.locator('a.start-btn');
+  await expect(start).toHaveCount(1);
+  await expect(start).toHaveText('התחל');
+  expect(await start.getAttribute('href')).toBe('/shearim/');
+
+  // מטרת מגע גדולה ולחיצה אמיתית שמגיעה לעמוד השערים
+  const box = (await start.boundingBox())!;
+  expect(box.height, 'כפתור גדול ונוח ללחיצה').toBeGreaterThanOrEqual(70);
+
+  // הכפתור נמצא מתחת לתצוגת הצוות ומעל רצועת הווטסאפ
+  const team = (await page.locator('.hero-after').boundingBox())!;
+  const band = (await page.locator('.wa-band').boundingBox())!;
+  expect(box.y).toBeGreaterThan(team.y);
+  expect(box.y).toBeLessThan(band.y);
+
+  // אין שרידים של שני כרטיסי השער הישנים בעמוד הראשי
+  await expect(page.locator('.gate-card')).toHaveCount(0);
+
+  await start.click();
+  await page.waitForURL('**/shearim/');
+});
+
+test('שערי הכניסה: חצי-חצי — כהה עם מלל בהיר מול בהיר עם מלל כהה (05/08)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/shearim/');
+
+  const halves = page.locator('.split .half');
+  await expect(halves).toHaveCount(2);
+
+  const navy = (await halves.nth(0).boundingBox())!;
+  const paper = (await halves.nth(1).boundingBox())!;
+
+  // שני חצאים זה לצד זה, ברוחב שווה, על כל רוחב החלון
+  expect(Math.abs(navy.width - paper.width), 'חצי-חצי').toBeLessThanOrEqual(2);
+  expect(Math.abs(navy.y - paper.y), 'אותה שורה').toBeLessThanOrEqual(2);
+  expect(navy.width + paper.width, 'לכל רוחב העמוד').toBeGreaterThanOrEqual(1400);
+  expect(navy.height, 'המסך מחולק לגובה משמעותי').toBeGreaterThanOrEqual(440);
+
+  // צבעים הפוכים בדיוק: רקע כהה/מלל בהיר מול רקע בהיר/מלל כהה
+  const lum = (rgb: string) => {
+    const [r, g, b] = rgb.match(/\d+/g)!.map(Number);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const read = async (i: number) => {
+    const bg = await halves.nth(i).evaluate((el) => getComputedStyle(el).backgroundColor);
+    const fg = await halves
+      .nth(i)
+      .locator('.half-title')
+      .evaluate((el) => getComputedStyle(el).color);
+    return { bg: lum(bg), fg: lum(fg) };
+  };
+  const a = await read(0);
+  const b = await read(1);
+  expect(a.bg, 'החצי הראשון כהה').toBeLessThan(90);
+  expect(a.fg, 'ומללו בהיר').toBeGreaterThan(200);
+  expect(b.bg, 'החצי השני בהיר').toBeGreaterThan(200);
+  expect(b.fg, 'ומללו כהה').toBeLessThan(90);
+
+  // כל חצי הוא קישור אמיתי לשער שלו
+  expect(await halves.nth(0).getAttribute('href')).toBe('/chativat-beynayim/');
+  expect(await halves.nth(1).getAttribute('href')).toBe('/chativa-elyona/');
+
+  // רצועת הווטסאפ ופס התחתית הכחול נשמרים (7.24, 7.27)
+  await expect(page.locator('.wa-band')).toBeVisible();
+  await expect(page.locator('.footer-navy')).toHaveCount(1);
+});
+
+test('שערי הכניסה בנייד: החצאים נערמים בלי גלילה אופקית (05/08)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/shearim/');
+  const halves = page.locator('.split .half');
+  const a = (await halves.nth(0).boundingBox())!;
+  const b = (await halves.nth(1).boundingBox())!;
+  expect(b.y, 'החצי השני מתחת לראשון').toBeGreaterThan(a.y + a.height - 2);
+  expect(a.height, 'כל חצי נשאר גדול ונוח').toBeGreaterThanOrEqual(280);
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
+});

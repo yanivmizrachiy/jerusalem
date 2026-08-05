@@ -23,6 +23,7 @@ const TIMEOUT_MS = Number(argOf('timeout', '300')) * 1000;
 /** המסלולים שחייבים לחיות אחרי כל פריסה */
 const ROUTES = [
   '/',
+  '/shearim/',
   '/chativat-beynayim/',
   '/chativa-elyona/',
   '/hozer-mafmar/',
@@ -37,6 +38,8 @@ const MARKERS = [
   { path: '/chativat-beynayim/', needle: 'gtoc-title', what: 'תוכן העניינים של השכבה (3.29)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
+  { path: '/', needle: 'start-btn', what: 'כפתור ההתחלה בעמוד הראשי (7.28)' },
+  { path: '/shearim/', needle: 'split-rule', what: 'המסך המחולק חצי-חצי בשערי הכניסה (7.29)' },
 ];
 
 const get = async (path) => {
