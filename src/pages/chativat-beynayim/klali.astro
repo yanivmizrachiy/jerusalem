@@ -1,0 +1,14 @@
+---
+import Base from '../../layouts/Base.astro';
+import GradeIndex from '../../components/GradeIndex.astro';
+import { gradeBySlug } from '../../data/choveret';
+
+const grade = gradeBySlug('klali')!;
+---
+
+<Base
+  title="משותף לכל השכבות — חטיבת הביניים — מחוז ירושלים"
+  description="החומרים המשותפים לכיתות ז׳–ט׳ במחוז ירושלים: דפי נוסחאות, מבחנים והערכה, משחקים, העשרה ומשאבי רוחב."
+>
+  <GradeIndex grade={grade} />
+</Base>

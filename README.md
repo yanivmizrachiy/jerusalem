@@ -1,7 +1,7 @@
 # מחוז ירושלים — הדרכת מתמטיקה
 
 אתר המרכז המחוזי להוראת מתמטיקה במחוז ירושלים: סביבות המחשה, משאבים
-קנוניים לחטיבת הביניים ולחטיבה העליונה, חוזר מפמ״ר, החוברת הדיגיטלית,
+קנוניים לחטיבת הביניים ולחטיבה העליונה, חוזר מפמ״ר,
 לוח שנה חינוכי, צוות ההדרכה ועדכונים שוטפים.
 
 **פרודקשן:** <https://jerusalem-virid.vercel.app> · **עברית, RTL מלא.**
@@ -33,8 +33,8 @@ docs/         מסמכי הקשר תפעוליים שאינם חלק ממסלו�
 src/
   pages/       כל המסלולים — עמוד הבית, חטיבות, חוזר מפמ״ר, לוח, reader/[grade]/[item]
   pages/api/   פרוקסי em/ ו-mam/ להטמעת האתרים הקנוניים (allowlist קשיח בלבד)
-  components/  Booklet, SplashIntro, SiteHeader/Footer, HeroVideo, DateBar ועוד
-  data/        התוכן כ-TypeScript מוקלד: משאבים, צוות, חוברת, יחידות, הודעות
+  components/  GradeIndex, ResourceSplit, SplashIntro, SiteHeader/Footer, HeroVideo, DateBar ועוד
+  data/        התוכן כ-TypeScript מוקלד: משאבים, צוות, שכבות חט״ב, יחידות, הודעות
   layouts/     Base.astro — SEO, canonical, פונטים, RTL
   lib/         proxyGuard — משמר זמן-הריצה של ההטמעות
 tests/         סוללת הקבלה: site, interactions, responsive, a11y

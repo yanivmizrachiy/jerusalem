@@ -7,6 +7,8 @@ const pages = [
   '/shearim/',
   '/hozer-mafmar/',
   '/chativat-beynayim/',
+  '/chativat-beynayim/kita-z/',
+  '/chativat-beynayim/reader/t/sheelot-t/',
   '/chativat-beynayim/hafifat-meshulashim/',
   '/chativa-elyona/bchinot/',
   '/luach/',

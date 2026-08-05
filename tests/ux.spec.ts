@@ -1,9 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 
 /**
- * בדיקות הקבלה של תיקון ה-UX המלא (RULES 19.34, הוראת יניב 04/08/2026):
- * hero מלא, חץ החזרה מכרטיס צוות, רצועת WhatsApp נקייה,
- * באנר תמונה מלאה, מכונת המצבים של החוברת וכותרת ה-Lovable של לוח השנה.
+ * בדיקות הקבלה של תיקון ה-UX המלא (RULES 19.34, הוראת יניב 04–05/08/2026):
+ * hero מלא, חץ החזרה מכרטיס צוות, רצועת WhatsApp נקייה, באנר תמונה מלאה,
+ * עמודי האינטרנט של חטיבת הביניים וכותרת ה-Lovable של לוח השנה.
  */
 
 // מצבי מסך נבדקים במפורש דרך setViewportSize בפרויקט הדסקטופ; אין צורך
@@ -72,7 +72,7 @@ test('כרטיס צוות: חץ אחד בעיגול בלי כיתוב, בלי כ
     .toBeLessThanOrEqual(60);
 });
 
-/* ===== חטיבת ביניים — באנר ומכונת המצבים של החוברת ===== */
+/* ===== חטיבת ביניים ===== */
 
 test('תמונת חטיבת הביניים מוצגת במלואה — יחס טבעי ותחתית גלויה (5.24)', async ({ page }) => {
   await page.goto('/chativat-beynayim/');
@@ -91,703 +91,147 @@ test('תמונת חטיבת הביניים מוצגת במלואה — יחס ט
   expect(Math.abs(naturalRatio - shownRatio) / naturalRatio, 'היחס הטבעי נשמר — אין חיתוך').toBeLessThan(0.02);
 });
 
-/* עמוד גלוי במנוע הדפדוף (StPageFlip): מקבל display:block מוזרק inline */
-const shown = (page: Page) => page.locator('.stf__item[style*="display: block"]');
+/* ===== חטיבת הביניים כעמודי אינטרנט (הוראת יניב, 05/08/2026) =====
+   החוברת המדפדפת בוטלה: שער השלישים, עמוד שכבה לכל כיתה, ועמוד משאב
+   מחולק — הטמעה בצד אחד ולוח הפעולות בצד השני. */
 
-/** ממתינים לנחיתת העלה — המנוע מסמן data-turning בזמן היפוך */
-const settle = async (page: Page) => {
-  await expect(page.locator('[data-book][data-turning]')).toHaveCount(0);
+const noOverflow = async (page: Page, label: string) => {
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+  );
+  expect(overflow, `גלילה אופקית ב-${label}`).toBeLessThanOrEqual(1);
 };
 
-const openToc = async (page: Page) => {
-  await page.goto('/chativat-beynayim/');
-  await expect(page.locator('[data-book].is-ready')).toHaveCount(1);
-  await page.locator('.rashi-row').first().click();
-  await expect(page).toHaveURL(/#toc-z/);
-  // פתיחת שכבה משתלטת על המסך ובונה מחדש את המנוע — ממתינים להתייצבות (05/08)
-  await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
-  await settle(page);
-};
-
-test('שער: דף בודד גדול — ≥70% מגובה החלון, בלי גלילה פנימית ובלי exit (3.29)', async ({ page }) => {
+test('שער חטיבת הביניים: שלושה שלישים שווים, בלי חוברת מדפדפת (3.29, 05/08)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/chativat-beynayim/');
-  await expect(page.locator('[data-book].is-ready')).toHaveCount(1);
-  await expect(page.locator('.book-shell.on-rashi')).toHaveCount(1);
-  await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
-  await expect(page.locator('[data-exit]')).toBeHidden();
-  const vis = shown(page);
-  await expect(vis).toHaveCount(1);
-  await expect(vis).toHaveAttribute('data-page', 'rashi');
-  const box = (await vis.boundingBox())!;
-  expect(box.height, 'השער גבוה — לפחות 70% מגובה החלון').toBeGreaterThanOrEqual(900 * 0.7);
-  expect(box.width, 'השער אינו צר בצורה חריגה').toBeGreaterThanOrEqual(560);
-  const scrolls = await vis.evaluate((el) => {
-    const f = el.querySelector('.page-face')!;
-    return f.scrollHeight - f.clientHeight;
-  });
-  expect(scrolls, 'אין scrollbar פנימי בשער').toBeLessThanOrEqual(4);
-});
 
-for (const width of [1440, 1920]) {
-  test(`ספר פתוח ב-${width}: ≥88% מהבמה, דפים שווים, שדרה דקה (3.29)`, async ({ page }) => {
-    await page.setViewportSize({ width, height: width === 1920 ? 1080 : 900 });
-    await openToc(page);
-    const vis = shown(page);
-    await expect(vis).toHaveCount(2);
-    const boxes = [(await vis.nth(0).boundingBox())!, (await vis.nth(1).boundingBox())!].sort((a, b) => a.x - b.x);
-    const [left, right] = boxes;
-    expect(Math.abs(left.width - right.width), 'רוחב שני הדפים דומה').toBeLessThanOrEqual(2);
-    const stage = (await page.locator('[data-stage]').boundingBox())!;
-    const spreadW = right.x + right.width - left.x;
-    expect(spreadW / stage.width, 'הספר תופס לפחות 88% מהבמה').toBeGreaterThanOrEqual(0.88);
-    expect(right.x - (left.x + left.width), 'השדרה אינה רחבה מ-24px').toBeLessThanOrEqual(24);
-    expect(left.height, 'דפים בגובה משמעותי').toBeGreaterThanOrEqual(560);
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    expect(overflow, 'אין גלילה אופקית').toBeLessThanOrEqual(1);
-  });
-}
+  // החוברת ומנוע הדפדוף נמחקו כליל
+  await expect(page.locator('[data-book], .book-shell, .stf__item')).toHaveCount(0);
 
-test('לחיצה על שכבה: תוכן עניינים במסך מלא, סרגל שמאלי, הניווט העליון מכוסה (3.29, 05/08)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await openToc(page);
-  // תוכן העניינים משתלט על המסך — כפתור "חזרה לאתר" גלוי
-  await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
-  await expect(page.locator('[data-exit]')).toBeVisible();
-  // ההשתלטות מכסה את הניווט העליון של האתר
-  const coversTop = await page.evaluate(() => {
-    const el = document.elementFromPoint(Math.round(window.innerWidth / 2), 12);
-    return !!el?.closest('.book-shell.is-full');
-  });
-  expect(coversTop, 'ההשתלטות מכסה את הניווט העליון').toBe(true);
-  // הסרגל צמוד לשמאל המסך, אנכי וגבוה
-  const bar = (await page.locator('.book-bar').boundingBox())!;
-  expect(bar.x, 'הסרגל צמוד לשמאל').toBeLessThan(60);
-  expect(bar.height, 'הסרגל אנכי וגבוה').toBeGreaterThan(300);
-  // הנחיתה: כפולת המפתח של השכבה — שני העמודים גלויים יחד (סדר ה-DOM של
-  // המנוע אינו מובטח, ולכן ממקדים לפי מזהה העמוד ולא לפי first)
-  const vis = '.stf__item[style*="display: block"]';
-  await expect(page.locator(`${vis}[data-page="toc-z"] h2.gtoc-title`)).toHaveText('מתמטיקה לכיתה ז׳');
-  // מולו העמוד השני של אותו מפתח — "המשך" (הכפולה כולה היא תוכן העניינים)
-  await expect(page.locator(`${vis}[data-page="toc-z-2"] h2.toc-title`)).toContainText('מתמטיקה לכיתה ז׳ —');
-  // כל פרקי השכבה נמצאים על הכפולה עצמה — אין עמוד תוכן-עניינים נוסף (05/08/2026)
-  const heads = shown(page).locator('.idx-ch-name');
-  await expect(heads.filter({ hasText: 'תכנון והוראה' })).toHaveCount(1);
-  await expect(heads.filter({ hasText: 'מהחוזר הרשמי' })).toHaveCount(1);
-  // שורת קובץ במפתח קופצת ישירות לעמוד המשאב
-  await shown(page).locator('button.idx-row').first().click();
-  await settle(page);
-  await expect(page).toHaveURL(/#it-z-/);
-});
+  const thirds = page.locator('.split3 .third');
+  await expect(thirds).toHaveCount(3);
 
-test('דפדוף: מקלדת וכפתורים מעדכנים מונה ו-hash — בלי עמוד ריק (3.29)', async ({ page }) => {
-  await openToc(page);
-  const counter = page.locator('[data-counter]');
-  const before = await counter.textContent();
-  await page.keyboard.press('ArrowLeft');
-  await settle(page);
-  expect(await counter.textContent(), 'חץ שמאלה מדפדף קדימה').not.toBe(before);
-  await expect(shown(page).first()).not.toBeEmpty();
-  await page.locator('.bnav-prev').click();
-  await settle(page);
-  expect(await counter.textContent(), 'דף קודם חוזר').toBe(before);
-});
+  const widths = await thirds.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width));
+  expect(Math.max(...widths) - Math.min(...widths), 'שלושת השלישים שווים ברוחבם').toBeLessThanOrEqual(2);
 
-test('מפתח השכבה מרוכז בכפולה אחת — שני עמודים בדיוק לכל שכבה (3.29)', async ({ page }) => {
-  await page.goto('/chativat-beynayim/');
-  // אין יותר עמוד תוכן-עניינים לכל פרק
-  await expect(page.locator('.bp-toc')).toHaveCount(0);
-  const grades = ['z', 'h', 't', 'klali'];
-  for (const g of grades) {
-    const pair = page.locator(`.bp-gtoc[data-page="toc-${g}"], .bp-gtoc[data-page="toc-${g}-2"]`);
-    await expect(pair, `שכבה ${g}: שני עמודי מפתח בדיוק`).toHaveCount(2);
-    // שני העמודים יחד מכילים את כל הפרקים ואת כל הקבצים של השכבה
-    await expect(pair.locator('.idx-ch'), `שכבה ${g}: יש פרקים במפתח`).not.toHaveCount(0);
-    await expect(pair.locator('.idx-row'), `שכבה ${g}: יש שורות קבצים`).not.toHaveCount(0);
-    // כל עמוד נושא כותרת מזוהה
-    await expect(pair.locator('h2')).toHaveCount(2);
+  // כל שליש הוא קישור לעמוד השכבה שלו, והכיתוב הוא שם השכבה
+  const targets = ['kita-z', 'kita-h', 'kita-t'];
+  const titles = ['מתמטיקה לכיתה ז׳', 'מתמטיקה לכיתה ח׳', 'מתמטיקה לכיתה ט׳'];
+  for (let i = 0; i < 3; i++) {
+    await expect(thirds.nth(i)).toHaveAttribute('href', `/chativat-beynayim/${targets[i]}/`);
+    await expect(thirds.nth(i).locator('.third-title')).toHaveText(titles[i]);
+    const text = (await thirds.nth(i).locator('.third-count').textContent()) ?? '';
+    expect(Number(text.match(/\d+/)?.[0] ?? 0), 'מניין קבצים אמיתי').toBeGreaterThan(0);
   }
-  // סך עמודי המפתח בספר: 2 לכל שכבה
-  await expect(page.locator('.bp-gtoc')).toHaveCount(grades.length * 2);
+
+  // רצועת "כללי" — החומרים המשותפים לא אבדו
+  await expect(page.locator('.klali-band')).toHaveAttribute('href', '/chativat-beynayim/klali/');
+  await noOverflow(page, 'שער 1440');
 });
 
-test('אף עמוד מפתח אינו גולש — הכול נכנס בכפולה (3.29)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  for (const g of ['z', 'h', 't', 'klali']) {
-    await page.goto(`/chativat-beynayim/#toc-${g}`);
-    await settle(page);
-    const overflowing = await page.evaluate(() =>
-      [...document.querySelectorAll('.bp-gtoc')]
-        .map((p) => {
-          const l = p.querySelector<HTMLElement>('.idx');
-          if (!l || l.clientHeight === 0) return null;
-          return l.scrollHeight > l.clientHeight + 4 ? (p as HTMLElement).dataset.page : null;
-        })
-        .filter(Boolean)
-    );
-    expect(overflowing, `שכבה ${g}: אין עמוד מפתח שגולש`).toEqual([]);
-  }
-});
-
-test('פתיחת משאב: is-full, הטמעה בדף הימני, "חזרה לאתר"/Escape חוזרים לשער (3.29, 05/08)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await openToc(page);
-  await shown(page).locator('button.idx-row').first().click();
-  await settle(page);
-  // מצב עבודה מלא נשמר
-  await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
-  const exit = page.locator('[data-exit]');
-  await expect(exit).toBeVisible();
-  // spread אמיתי: דף ההטמעה מימין, דף המידע משמאל, כל אחד דף ספר שלם
-  const embed = (await page.locator('.stf__item[style*="display: block"].bp-item-embed').boundingBox())!;
-  const info = (await page.locator('.stf__item[style*="display: block"].bp-item-info').boundingBox())!;
-  expect(embed.width).toBeGreaterThan(500);
-  expect(info.width).toBeGreaterThan(500);
-  expect(embed.x, 'ההטמעה בדף הימני (RTL)').toBeGreaterThan(info.x);
-  // "חזרה לאתר" — יציאה מלאה מההשתלטות אל השער שבזרימת האתר
-  await exit.click();
-  await settle(page);
-  await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
-  await expect(page.locator('.book-shell.on-rashi')).toHaveCount(1);
-  await expect(exit).toBeHidden();
-  // Escape יוצא גם הוא אל השער
-  await page.locator('.rashi-row').first().click();
-  await settle(page);
-  await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
-  await page.keyboard.press('Escape');
-  await settle(page);
-  await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
-  await expect(page.locator('.book-shell.on-rashi')).toHaveCount(1);
-});
-
-test('בהשתלטות האתר שמאחור אינו נגיש למקלדת ולקורא מסך, והמיקוד חוזר ביציאה (4.7, 5.15)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await openToc(page);
-  // הניווט העליון והפוטר מסומנים inert — Tab לא נודד לאתר המכוסה
-  const covered = await page.evaluate(() => {
-    const shell = document.querySelector('.book-shell')!;
-    const outside = ['#site-header', '.datebar', 'footer'];
-    return outside.map((sel) => {
-      const el = document.querySelector(sel);
-      if (!el || shell.contains(el)) return { sel, present: false, inert: true, hidden: true };
-      const blocked = !!el.closest('[inert]');
-      return { sel, present: true, inert: blocked, hidden: !!el.closest('[aria-hidden="true"]') };
-    });
-  });
-  for (const c of covered) {
-    expect(c.inert, `${c.sel} חסום למקלדת בהשתלטות`).toBe(true);
-    expect(c.hidden, `${c.sel} מוסתר מקורא מסך בהשתלטות`).toBe(true);
-  }
-  // המיקוד נמצא בתוך החוברת ולא נשאר על האתר המכוסה
-  expect(await page.evaluate(() => !!document.querySelector('.book-shell')!.contains(document.activeElement))).toBe(true);
-  // ביציאה — האתר חוזר להיות נגיש והמיקוד אינו אבוד
-  await page.locator('[data-exit]').click();
-  await settle(page);
-  const restored = await page.evaluate(() => ({
-    anyInert: !!document.querySelector('#site-header[inert], .datebar[inert], footer[inert]'),
-    anyHidden: !!document.querySelector('#site-header[aria-hidden], .datebar[aria-hidden], footer[aria-hidden]'),
-  }));
-  expect(restored.anyInert, 'האתר אינו נשאר חסום אחרי היציאה').toBe(false);
-  expect(restored.anyHidden, 'האתר אינו נשאר מוסתר מ-AT אחרי היציאה').toBe(false);
-  // המיקוד מוחזר לשער אחרי שהמנוע מסיים להיבנות מחדש (הבנייה מאפסת מיקוד ל-body)
-  await expect
-    .poll(() => page.evaluate(() => document.activeElement?.className ?? ''), { timeout: 5000 })
-    .toContain('rashi-row');
-});
-
-test('deep link לעמוד reader נפתח במצב מלא ו"חזרה לאתר" חוזר לשער (3.29, 05/08)', async ({ page }) => {
-  await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
-  await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
-  const exit = page.locator('[data-exit]');
-  await expect(exit).toBeVisible();
-  await exit.click();
-  await settle(page);
-  await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
-  await expect(page.locator('.book-shell.on-rashi')).toHaveCount(1);
-});
-
-test('במסך צר מוצג דף אחד וכפתורי מגע תקינים (3.29)', async ({ page }) => {
+test('שער חטיבת הביניים בנייד: השלישים נערמים ונשארים גדולים (19.32)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/chativat-beynayim/#toc-z-hozer');
-  await expect(page.locator('[data-book].is-ready')).toHaveCount(1);
-  await expect(shown(page)).toHaveCount(1);
-  const nav = (await page.locator('.bnav-next').boundingBox())!;
-  expect(nav.height, 'מטרת מגע ≥44px').toBeGreaterThanOrEqual(44);
+  await page.goto('/chativat-beynayim/');
+  const thirds = page.locator('.split3 .third');
+  await expect(thirds).toHaveCount(3);
+  const boxes = await thirds.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON()));
+  expect(boxes[1].y, 'השלישים נערמים זה מתחת לזה').toBeGreaterThan(boxes[0].y + 100);
+  for (const b of boxes) expect(b.height, 'מטרת מגע גדולה').toBeGreaterThanOrEqual(44);
+  await noOverflow(page, 'שער 390');
 });
 
-test('ה-iframe בעמוד משאב לחיץ — אין שכבה מעליו (19.33)', async ({ page }) => {
-  // פריט doc (לא PDF): ב-headless אין מציג PDF מובנה ומוצג בצדק כרטיס
-  // הפתיחה (8.8) — הבדיקה הזאת בודקת שההטמעה עצמה אינה חסומה בשכבות
+test('עמוד שכבה: פרקים, כרטיסי קבצים, סרגל קפיצה ומעבר בין שכבות (5.3–5.4)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/chativat-beynayim/kita-z/');
+
+  await expect(page.locator('h1.grade-title')).toHaveText('מתמטיקה לכיתה ז׳');
+
+  // סרגל הקפיצה דביק ומכיל שבב לכל פרק, כל אחד ≥44px
+  const chips = page.locator('.chapter-bar .chip');
+  await expect(chips).toHaveCount(await page.locator('section.chapter').count());
+  expect(await page.locator('.chapter-bar').evaluate((el) => getComputedStyle(el).position)).toBe('sticky');
+  for (const h of await chips.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))) {
+    expect(h, 'מטרת מגע ≥44px').toBeGreaterThanOrEqual(44);
+  }
+
+  // לחיצה על שבב מגלגלת לפרק הנכון
+  const target = await chips.nth(1).getAttribute('href');
+  await chips.nth(1).click();
+  await expect(page).toHaveURL(new RegExp(`${target?.slice(1)}$`));
+
+  // כל כרטיס מוביל ליעד אמיתי — עמוד משאב או עמוד פנימי
+  const cards = page.locator('.rcard');
+  expect(await cards.count(), 'יש כרטיסי קבצים').toBeGreaterThan(3);
+  const hrefs = await cards.evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')));
+  for (const href of hrefs) expect(href, 'לכל כרטיס יעד').toMatch(/^\/(chativat-beynayim|chativa-elyona|hozer-mafmar)/);
+
+  // מעבר לשכבה הבאה וחזרה לשער
+  await expect(page.locator('.grade-pager a[href="/chativat-beynayim/kita-h/"]')).toHaveCount(1);
+  await expect(page.locator('.grade-pager a[href="/chativat-beynayim/"]')).toHaveCount(1);
+  await noOverflow(page, 'עמוד שכבה 1440');
+});
+
+test('עמוד שכבה "כללי" קיים ומציג את החומרים המשותפים (1.9)', async ({ page }) => {
+  await page.goto('/chativat-beynayim/klali/');
+  await expect(page.locator('h1.grade-title')).toHaveText('משותף לכל השכבות');
+  expect(await page.locator('.rcard').count()).toBeGreaterThan(10);
+});
+
+test('עמוד משאב: חצי-חצי — הטמעה מימין, פעולות משמאל (8.2)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
-  const frame = page.locator('.stf__item[style*="display: block"] iframe');
+
+  const view = (await page.locator('.res-view').boundingBox())!;
+  const panel = (await page.locator('.res-panel').boundingBox())!;
+  expect(view.x, 'ההטמעה בצד ימין (RTL)').toBeGreaterThan(panel.x);
+  const ratio = view.width / (view.width + panel.width);
+  expect(ratio, 'חלוקה מאוזנת בקירוב חצי-חצי').toBeGreaterThan(0.42);
+  expect(ratio, 'חלוקה מאוזנת בקירוב חצי-חצי').toBeLessThan(0.62);
+
+  // לוח הפעולות המלא
+  await expect(page.locator('.res-actions .btn-whatsapp')).toHaveCount(1);
+  await expect(page.locator('.res-actions .btn-gmail')).toHaveCount(1);
+  await expect(page.locator('.res-actions [data-copy]')).toHaveCount(1);
+  await expect(page.locator('.res-actions a[target="_blank"]')).not.toHaveCount(0);
+
+  // ההטמעה נטענת ואינה חסומה בשכבה מעליה (19.33)
+  const frame = page.locator('.res-frame iframe');
   await expect(frame).toBeVisible();
   const hit = await page.evaluate(() => {
-    const f = document.querySelector('.stf__item[style*="display: block"] iframe');
+    const f = document.querySelector('.res-frame iframe');
     if (!f) return 'no-iframe';
     const r = f.getBoundingClientRect();
     const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
     return el === f ? 'ok' : `${el?.tagName}.${(el as HTMLElement)?.className}`;
   });
-  expect(hit, 'הנקודה במרכז ההטמעה פוגעת ב-iframe עצמו').toBe('ok');
+  expect(hit, 'מרכז ההטמעה פוגע ב-iframe עצמו').toBe('ok');
+
+  await noOverflow(page, 'עמוד משאב 1440');
 });
 
-test('החוברת בלי גלילה אופקית — רחב וצר (3.29)', async ({ page }) => {
-  for (const width of [1920, 1440, 390]) {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto('/chativat-beynayim/#toc-z-hozer');
-    await expect(page.locator('[data-book].is-ready')).toHaveCount(1);
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
-    );
-    expect(overflow, `גלילה אופקית ב-${width}px`).toBeLessThanOrEqual(1);
-  }
+test('עמוד משאב: ניווט קודם/הבא בתוך השכבה וחזרה לפרק (5.12)', async ({ page }) => {
+  await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
+  const pager = page.locator('.res-pager a.pager-link');
+  expect(await pager.count(), 'יש שכן אחד לפחות').toBeGreaterThan(0);
+  const href = await pager.first().getAttribute('href');
+  expect(href).toMatch(/^\/chativat-beynayim\/reader\/z\//);
+  // חזרה אל הפרק שממנו הגענו
+  await expect(page.locator('.res-back')).toHaveAttribute('href', /\/chativat-beynayim\/kita-z\/#/);
 });
 
-/* ===== לוח השנה — כותרת ה-Lovable המדויקת ===== */
-
-test('קובץ הכותרת המקורי קיים וה-src מפנה אליו (23.14)', async ({ page }) => {
-  const resp = await page.request.get('/media/art/calendar/jerusalem-calendar-wordmark-original.png');
-  expect(resp.status()).toBe(200);
-  expect((await resp.body()).length, 'הבייטים המקוריים — 1,037,247').toBe(1037247);
-  await page.goto('/luach/');
-  await expect(page.locator('#luach-wordmark')).toHaveAttribute(
-    'src',
-    '/media/art/calendar/jerusalem-calendar-wordmark-original.png'
-  );
-});
-
-test('h1 סמנטי קיים ואין כותרת גרפית כפולה (23.14)', async ({ page }) => {
-  await page.goto('/luach/');
-  const h1 = page.locator('h1');
-  await expect(h1).toHaveCount(1);
-  await expect(h1).toHaveText('לוח שנה ירושלמי');
-  await expect(page.locator('.luach-art')).toHaveCount(0);
-  await expect(page.locator('.luach-wordmark img')).toHaveCount(1);
-});
-
-test('reduced motion מציג את הכותרת מיד — בלי אנימציה (23.14)', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/luach/');
-  const anim = await page
-    .locator('#luach-wordmark')
-    .evaluate((el) => getComputedStyle(el).animationName);
-  expect(anim).toBe('none');
-});
-
-test('הכותרת שלמה ורספונסיבית — בלי חיתוך ב-390 וב-1440 (23.14)', async ({ page }) => {
-  for (const width of [390, 1440]) {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto('/luach/');
-    const img = page.locator('#luach-wordmark');
-    await expect(img).toBeVisible();
-    const box = (await img.boundingBox())!;
-    expect(box.width, `בתוך המסך ב-${width}px`).toBeLessThanOrEqual(width);
-    expect(Math.abs(box.width / box.height - 1584 / 672), 'יחס הנכס נשמר').toBeLessThan(0.02);
-  }
-});
-
-/* ===== לוח השנה — שליחה לטלפון בלחיצה אחת (23.5) ===== */
-
-test('שליחה לטלפון מוסרת תמונת PNG אמיתית לחלון השיתוף (23.5)', async ({ page }) => {
-  await page.addInitScript(() => {
-    (window as unknown as { __shared: unknown }).__shared = null;
-    navigator.canShare = (d?: ShareData) => !!d?.files?.length;
-    navigator.share = async (d?: ShareData) => {
-      const files = await Promise.all(
-        [...(d?.files ?? [])].map(async (f) => ({
-          name: f.name,
-          type: f.type,
-          size: f.size,
-          head: [...new Uint8Array((await f.arrayBuffer()).slice(0, 8))],
-        }))
-      );
-      (window as unknown as { __shared: unknown }).__shared = { files, title: d?.title, text: d?.text };
-    };
-  });
-  await page.goto('/luach/');
-  await page.click('#open-vacations');
-  await page.click('#vac-send');
-  await page.waitForFunction(() => (window as unknown as { __shared: unknown }).__shared !== null);
-  const shared = (await page.evaluate(() => (window as unknown as { __shared: unknown }).__shared)) as {
-    files: { name: string; type: string; size: number; head: number[] }[];
-    text: string;
-  };
-  expect(shared.files).toHaveLength(1);
-  expect(shared.files[0].type).toBe('image/png');
-  expect(shared.files[0].name).toBe('לוח-החופשות-תשפז.png');
-  // חתימת PNG אמיתית — לא קובץ ריק ולא דמה
-  expect(shared.files[0].head).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
-  expect(shared.files[0].size).toBeGreaterThan(20_000);
-  expect(shared.text).toContain('https://jerusalem-virid.vercel.app/luach/');
-  await expect(page.locator('#vac-send-status')).toContainText('הועברה לחלון השיתוף');
-});
-
-test('בלי Web Share — הלחיצה מורידה את תמונת הלוח כקובץ אמיתי (23.5)', async ({ page }) => {
-  await page.addInitScript(() => {
-    delete (Navigator.prototype as unknown as Record<string, unknown>).share;
-    delete (Navigator.prototype as unknown as Record<string, unknown>).canShare;
-  });
-  await page.goto('/luach/');
-  await page.click('#open-vacations');
-  const waitDownload = page.waitForEvent('download');
-  await page.click('#vac-send');
-  const download = await waitDownload;
-  expect(download.suggestedFilename()).toBe('לוח-החופשות-תשפז.png');
-  await expect(page.locator('#vac-send-status')).toContainText('הורדה');
-});
-
-/* ===== בחירת החטיבה — כפתור "התחל" והמסך המחולק (הוראת יניב, 05/08/2026) ===== */
-
-test('העמוד הראשי: כפתור "התחל" יחיד מתחת לצוות, מוביל לעמוד בחירת החטיבה (7.28)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
-  await page.goto('/');
-
-  const start = page.locator('a.start-btn');
-  await expect(start).toHaveCount(1);
-  // לפני שתמונת הפתיחה נעלמה — הכפתור אינו נראה (7.28)
-  await expect(start).toBeHidden();
-  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
-  await expect(start).toBeVisible();
-  await expect(start).toHaveText('התחל');
-  expect(await start.getAttribute('href')).toBe('/shearim/');
-
-  // מטרת מגע גדולה ולחיצה אמיתית שמגיעה לעמוד השערים
-  const box = (await start.boundingBox())!;
-  expect(box.height, 'מטרת מגע תקינה').toBeGreaterThanOrEqual(44);
-
-  // הכפתור חי בתוך מסך הפתיחה — ונראה בלי לגלול בכלל (7.28)
-  const hero = (await page.locator('.hero-after').boundingBox())!;
-  expect(box.y).toBeGreaterThan(hero.y);
-  expect(box.y + box.height, 'נראה בלי גלילה').toBeLessThanOrEqual(900);
-  expect(await page.evaluate(() => window.scrollY), 'בלי גלילה').toBe(0);
-
-  // מדליון עגול בהיקף זהב (7.28)
-  expect(Math.abs(box.width - box.height), 'עיגול מושלם').toBeLessThanOrEqual(1);
-  const ring = await start.evaluate((el) => {
-    const cs = getComputedStyle(el);
-    return { radius: cs.borderRadius, shadow: cs.boxShadow };
-  });
-  expect(ring.radius, 'עגול').toMatch(/50%|\d+px/);
-  expect(ring.shadow, 'טבעת זהב').not.toBe('none');
-  await expect(page.locator('.start-arrow')).toHaveCount(1);
-
-  // אין שרידים של שני כרטיסי השער הישנים בעמוד הראשי
-  await expect(page.locator('.gate-card')).toHaveCount(0);
-
-  await start.click();
-  await page.waitForURL('**/shearim/');
-});
-
-test('בחירת החטיבה: חצי-חצי — כהה עם מלל בהיר מול בהיר עם מלל כהה (05/08)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/shearim/');
-
-  const halves = page.locator('.split .half');
-  await expect(halves).toHaveCount(2);
-
-  const navy = (await halves.nth(0).boundingBox())!;
-  const paper = (await halves.nth(1).boundingBox())!;
-
-  // שני חצאים זה לצד זה, ברוחב שווה, על כל רוחב החלון
-  expect(Math.abs(navy.width - paper.width), 'חצי-חצי').toBeLessThanOrEqual(2);
-  expect(Math.abs(navy.y - paper.y), 'אותה שורה').toBeLessThanOrEqual(2);
-  expect(navy.width + paper.width, 'לכל רוחב העמוד').toBeGreaterThanOrEqual(1400);
-  expect(navy.height, 'המסך מחולק לגובה משמעותי').toBeGreaterThanOrEqual(440);
-
-  // צבעים הפוכים בדיוק: רקע כהה/מלל בהיר מול רקע בהיר/מלל כהה
-  const lum = (rgb: string) => {
-    const [r, g, b] = rgb.match(/\d+/g)!.map(Number);
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  };
-  const read = async (i: number) => {
-    const bg = await halves.nth(i).evaluate((el) => getComputedStyle(el).backgroundColor);
-    const fg = await halves
-      .nth(i)
-      .locator('.half-title')
-      .evaluate((el) => getComputedStyle(el).color);
-    return { bg: lum(bg), fg: lum(fg) };
-  };
-  const a = await read(0);
-  const b = await read(1);
-  expect(a.bg, 'החצי הראשון כהה').toBeLessThan(90);
-  expect(a.fg, 'ומללו בהיר').toBeGreaterThan(200);
-  expect(b.bg, 'החצי השני בהיר').toBeGreaterThan(200);
-  expect(b.fg, 'ומללו כהה').toBeLessThan(90);
-
-  // כל חצי הוא קישור אמיתי לחטיבה
-  expect(await halves.nth(0).getAttribute('href')).toBe('/chativat-beynayim/');
-  expect(await halves.nth(1).getAttribute('href')).toBe('/chativa-elyona/');
-
-  // רצועת הווטסאפ ופס התחתית הכחול נשמרים (7.24, 7.27)
-  await expect(page.locator('.wa-band')).toBeVisible();
-  await expect(page.locator('.footer-navy')).toHaveCount(1);
-});
-
-test('בחירת החטיבה בנייד: החצאים נערמים בלי גלילה אופקית (05/08)', async ({ page }) => {
+test('עמוד משאב בנייד: ההטמעה לפני ההסבר (8.6)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/shearim/');
-  const halves = page.locator('.split .half');
-  const a = (await halves.nth(0).boundingBox())!;
-  const b = (await halves.nth(1).boundingBox())!;
-  expect(b.y, 'החצי השני מתחת לראשון').toBeGreaterThan(a.y + a.height - 2);
-  expect(a.height, 'כל חצי נשאר גדול ונוח').toBeGreaterThanOrEqual(240);
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth
-  );
-  expect(overflow).toBeLessThanOrEqual(1);
+  await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
+  const view = (await page.locator('.res-view').boundingBox())!;
+  const panel = (await page.locator('.res-panel').boundingBox())!;
+  expect(view.y, 'ההטמעה מוצגת ראשונה').toBeLessThan(panel.y);
+  expect(view.height, 'ההטמעה גבוהה ושימושית').toBeGreaterThan(300);
+  await noOverflow(page, 'עמוד משאב 390');
 });
 
-test('בחירת החטיבה: הריחוף באמת מרחיב, וקו הזהב נצמד לתפר (7.29)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/shearim/');
-  const halves = page.locator('.split .half');
-  const rule = page.locator('.split-rule');
-
-  const rest = [(await halves.nth(0).boundingBox())!, (await halves.nth(1).boundingBox())!];
-  const restRule = (await rule.boundingBox())!;
-  // התפר = הקצה בין שני החצאים; הקו יושב עליו (סטייה של פיקסל אחד לכל היותר)
-  expect(Math.abs(restRule.x + restRule.width / 2 - rest[0].x), 'קו הזהב על התפר').toBeLessThanOrEqual(2);
-
-  await halves.nth(0).hover();
-  await page.waitForTimeout(900);
-  const hov = [(await halves.nth(0).boundingBox())!, (await halves.nth(1).boundingBox())!];
-  const hovRule = (await rule.boundingBox())!;
-
-  // החצי שמרחפים עליו מתרחב בפועל, והשני נסוג — לא no-op של flex-grow
-  expect(hov[0].width - rest[0].width, 'החצי הנבחר מתרחב').toBeGreaterThan(40);
-  expect(hov[1].width - rest[1].width, 'החצי השני נסוג').toBeLessThan(-40);
-  // גם בריחוף הקו נשאר על התפר
-  expect(Math.abs(hovRule.x + hovRule.width / 2 - hov[0].x), 'הקו זז עם התפר').toBeLessThanOrEqual(2);
-});
-
-test('כפתור "התחל": נחשף רק אחרי תמונת הפתיחה, וממורכז מול תמונות הצוות (7.28)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
-  await page.goto('/');
-  const btn = page.locator('a.start-btn');
-  await expect(btn).toBeHidden();
-
-  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
-  await expect(btn).toBeVisible();
-  await page.waitForTimeout(1300);
-
-  const b = (await btn.boundingBox())!;
-  const photos = await page.locator('.hero-team .hero-avatar').all();
-  const boxes = await Promise.all(photos.map((p) => p.boundingBox()));
-  const left = Math.min(...boxes.map((x) => x!.x));
-  const right = Math.max(...boxes.map((x) => x!.x + x!.width));
-  expect(Math.abs(b.x + b.width / 2 - (left + right) / 2), 'ממורכז מול התמונות').toBeLessThanOrEqual(4);
-});
-
-test('תמונת הפתיחה פרוסה עד תחתית המסך (6.3)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
-  await page.goto('/');
-  await page.waitForTimeout(900);
-  const media = (await page.locator('#hero-media').boundingBox())!;
-  expect(Math.abs(media.y + media.height - 900), 'אין שטח ריק מתחת לתמונה').toBeLessThanOrEqual(3);
-});
-
-test('בחירת החטיבה: הצבע יורד עד רצועת הווטסאפ, כיתוב הכיתות וחץ עדין (7.29)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/shearim/');
-  await page.waitForTimeout(900);
-
-  await expect(page.locator('.half-desc').nth(0)).toHaveText('מתמטיקה לכיתות ז׳–ט׳');
-  await expect(page.locator('.half-desc').nth(1)).toHaveText('מתמטיקה לכיתות י׳–י״ב');
-  await expect(page.locator('.half-cta svg')).toHaveCount(2);
-
-  const split = (await page.locator('.split').boundingBox())!;
-  expect(Math.abs(split.y + split.height - 900), 'הצבע מגיע לתחתית המסך').toBeLessThanOrEqual(3);
-
-  // אחרי גלילה — רצועת הווטסאפ צמודה לצבע, בלי רצועה לבנה
-  await page.locator('.wa-band').scrollIntoViewIfNeeded();
-  await page.waitForTimeout(900);
-  const s2 = (await page.locator('.split').boundingBox())!;
-  const wa = (await page.locator('.wa-band-wrap').boundingBox())!;
-  expect(Math.abs(wa.y - (s2.y + s2.height)), 'אין שטח לבן בין הצבע לווטסאפ').toBeLessThanOrEqual(2);
-});
-
-for (const [label, w, h] of [
-  ['מחשב', 1440, 900],
-  ['נייד', 390, 844],
-] as const) {
-  test(`בחירת החטיבה (${label}): בלי פירורי לחם — הצבע נוגע בניווט העליון (7.29)`, async ({ page }) => {
-    await page.setViewportSize({ width: w, height: h });
-    await page.goto('/shearim/');
-    await page.waitForTimeout(900);
-
-    // שורת "ראשי › בחירת החטיבה" נמחקה מהעמוד הזה (5.13; חריג מפורש ל-5.3)
-    await expect(page.locator('.crumbs')).toHaveCount(0);
-
-    // הכותרת הסמנטית נשמרת — קיימת, בטקסט הנכון, ומוסתרת חזותית
-    const h1 = page.locator('h1');
-    await expect(h1).toHaveCount(1);
-    await expect(h1).toHaveText('בחירת החטיבה');
-    const hb = (await h1.boundingBox())!;
-    expect(hb.height, 'ה-h1 מוסתר חזותית ואינו תופס שטח').toBeLessThanOrEqual(2);
-
-    // הצבע מתחיל מיד מתחת לניווט — אפס רצועה לבנה ביניהם
-    const header = (await page.locator('#site-header').boundingBox())!;
-    const split = (await page.locator('.split').boundingBox())!;
-    expect(
-      Math.abs(split.y - (header.y + header.height)),
-      'אין רצועה לבנה בין הניווט לצבע'
-    ).toBeLessThanOrEqual(2);
-
-    // והשטח שהתפנה באמת תפוס בחצי צבוע — לא ברקע העמוד
-    const filled = await page.evaluate(([x, y]) => {
-      const el = document.elementFromPoint(x, y);
-      return !!el?.closest('.half');
-    }, [Math.round(w / 2), Math.round(split.y + 6)] as [number, number]);
-    expect(filled, 'החצי הצבוע ממלא את השטח שמתחת לניווט').toBe(true);
-  });
-}
-
-/** בהירות ממוצעת של כל עצירות הצבע בגרדיאנט — לזיהוי "כהה" בלי לנעול הקסה */
-const gradientLuma = (bg: string) =>
-  [...bg.matchAll(/rgba?\((\d+),\s*(\d+),\s*(\d+)/g)].map(
-    (m) => 0.2126 * +m[1] + 0.7152 * +m[2] + 0.0722 * +m[3]
-  );
-
-test('ניווט עליון: "ישראל ריאלית" במקום "הודעות", עם יעודכן בקרוב וחזרה (7.30)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
-  await page.goto('/');
-  // הניווט נחשף רק אחרי שתמונת הפתיחה נעלמה (6.3)
-  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
-
-  const nav = page.locator('#site-header .nav-list');
-  await expect(nav.getByRole('link', { name: 'הודעות' })).toHaveCount(0);
-  const link = nav.getByRole('link', { name: 'ישראל ריאלית' });
-  await expect(link).toHaveCount(1);
-
-  await link.click();
-  await page.waitForURL('**/israel-realit/');
-  await expect(page.locator('h1')).toHaveText('ישראל ריאלית');
-  const lede = page.locator('.soon-lede');
-  await expect(lede).toHaveText('יעודכן בקרוב');
-  const size = await lede.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
-  expect(size, 'כיתוב גדול').toBeGreaterThanOrEqual(30);
-
-  // כפתור החזרה מחזיר בפועל לעמוד שממנו הגענו
-  const back = page.locator('#soon-back');
-  await expect(back).toBeVisible();
-  await back.click();
-  await page.waitForURL((u) => !u.pathname.includes('israel-realit'));
-});
-
-test('תחתית האתר: בלוק הניווט נמחק, הפס הכחול סוגר את המסך (7.24)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
-  await page.goto('/');
-
-  // כל מה שנמחק — בלי שריד אחד
-  await expect(page.locator('.footer-nav')).toHaveCount(0);
-  await expect(page.locator('.to-top')).toHaveCount(0);
-  await expect(page.locator('.footer-brand')).toHaveCount(0);
-  await expect(page.locator('nav[aria-label="ניווט תחתון"]')).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'חזרה לראש העמוד' })).toHaveCount(0);
-
-  // הקרדיט נשאר — השם בזהב בהיר וקריא על הכחול (7.24)
-  const managed = page.locator('.footer-managed');
-  await expect(managed).toHaveText('האתר מנוהל על ידי יניב רז');
-  const nameLuma = gradientLuma(
-    await managed.locator('strong').evaluate((el) => getComputedStyle(el).color)
-  )[0];
-  expect(nameLuma, 'שם המנהל בזהב בהיר').toBeGreaterThan(150);
-
-  // הפס הכחול־הכהה סוגר את העמוד ממש
-  const navy = page.locator('.footer-navy');
-  await expect(navy).toHaveCount(1);
-  const luma = gradientLuma(await navy.evaluate((el) => getComputedStyle(el).backgroundImage));
-  expect(luma.length, 'לפס יש רקע צבעוני').toBeGreaterThan(0);
-  expect(Math.max(...luma), 'הפס התחתון כחול־כהה').toBeLessThan(45);
-
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await page.waitForTimeout(500);
-  const nb = (await navy.boundingBox())!;
-  expect(nb.height, 'לפס יש נוכחות אמיתית כמו הפס העליון').toBeGreaterThanOrEqual(60);
-  expect(Math.abs(nb.y + nb.height - 900), 'הפס הכחול הוא החלק הכי תחתון במסך').toBeLessThanOrEqual(3);
-
-  // והירוק של הווטסאפ צמוד לו — בלי רווח ביניהם. נמדד על תיבת הפריסה
-  // (offsetTop) ולא על ה-rect החזותי, שמושפע מאנימציית החשיפה בגלילה
-  const flush = await page.evaluate(() => {
-    const wrap = document.querySelector<HTMLElement>('.wa-band-wrap')!;
-    const footer = document.querySelector<HTMLElement>('.site-footer')!;
-    return {
-      gap: Math.round(footer.offsetTop - (wrap.offsetTop + wrap.offsetHeight)),
-      margin: getComputedStyle(footer).marginBlockStart,
-    };
-  });
-  expect(flush.gap, 'הירוק צמוד לכחול').toBeLessThanOrEqual(1);
-  expect(flush.margin, 'בלי מרווח מעל הפוטר בעמוד עם רצועת ווטסאפ').toBe('0px');
-});
-
-test('תחתית האתר: הפס הכחול סוגר גם עמוד בלי רצועת ווטסאפ (7.24)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/luach/');
-  const navy = page.locator('.footer-navy');
-  await expect(navy).toHaveCount(1);
-  await expect(page.locator('.footer-nav')).toHaveCount(0);
-
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await page.waitForTimeout(500);
-  const nb = (await navy.boundingBox())!;
-  expect(Math.abs(nb.y + nb.height - 900), 'הפס הכחול סוגר את העמוד').toBeLessThanOrEqual(3);
-});
-
-test('עמוד משאב: ההטמעה ממלאת את הדף — כרטיס הפתיחה מוסתר באמת (8.8, 3.29)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await openToc(page);
-  await shown(page).locator('button.idx-row').first().click();
-  await settle(page);
-  // הכרטיס קיים ב-DOM אך חייב להיות מוסתר בפועל כשיש מציג PDF בדפדפן
-  const hiddenCards = await page.evaluate(() =>
-    [...document.querySelectorAll('[data-pdf-fb][hidden], .mrange-fallback[hidden]')].filter(
-      (el) => getComputedStyle(el).display !== 'none'
-    ).length
-  );
-  expect(hiddenCards, 'כרטיס פתיחה עם hidden חייב להיעלם — לא לגנוב חצי עמוד').toBe(0);
-  // ההטמעה ממלאת את דף המשאב לגובה
-  const fill = await page.evaluate(() => {
-    const f = document.querySelector<HTMLElement>('.stf__item[style*="display: block"] .item-frame:not([hidden])');
-    const host = f?.closest<HTMLElement>('.item-embed');
-    return f && host ? f.getBoundingClientRect().height / host.getBoundingClientRect().height : 0;
-  });
-  expect(fill, 'ההטמעה ממלאת כמעט את כל שטח הדף').toBeGreaterThan(0.9);
-});
-
-test('הטמעות PDF בחוברת בלי סרגל השחור של הדפדפן (8.26)', async ({ page }) => {
-  await page.goto('/chativat-beynayim/');
-  const bad = await page.evaluate(() =>
-    [...document.querySelectorAll('iframe[data-esrc]')]
-      .map((f) => (f as HTMLIFrameElement).dataset.esrc || '')
-      .filter((s) => /\.pdf(\?|#|$)/i.test(s) && !s.includes('toolbar=0'))
-  );
-  expect(bad, 'כל PDF נטען עם toolbar=0 — המסגור הוא הזכוכית נייבי-זהב שלנו').toEqual([]);
-});
-
-test('פתיחה נקייה: אין כפתורי פעולה על המסך עד שהתמונה נעלמת (6.3, הוראת יניב 05/08)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
-  await page.goto('/');
-  await page.waitForTimeout(600);
-
-  // הניווט העליון, פס "מה צפוי?" וכפתור ההתחלה — כולם מוסתרים ולא ניתנים למיקוד
-  await expect(page.locator('.nav-list')).toBeHidden();
-  await expect(page.locator('.rail')).toBeHidden();
-  await expect(page.locator('a.start-btn')).toBeHidden();
-
-  // התמונה מכסה את כל השטח שמתחת לפס התאריך, עד תחתית המסך
-  const media = (await page.locator('#hero-media').boundingBox())!;
-  expect(media.width, 'לכל הרוחב').toBeGreaterThanOrEqual(1400);
-  expect(Math.abs(media.y + media.height - 900), 'עד תחתית המסך').toBeLessThanOrEqual(3);
-
-  // אחרי שהתמונה נעלמה — הכול נחשף
-  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
-  await expect(page.locator('.nav-list')).toBeVisible();
-  await expect(page.locator('.rail')).toBeVisible();
-  await expect(page.locator('a.start-btn')).toBeVisible();
+test('פריט מהחוזר מוצג עם טווח העמודים המאומת ולא כמסגרת ריקה (9.3.11)', async ({ page }) => {
+  await page.goto('/chativat-beynayim/reader/z/maf-02/');
+  await expect(page.locator('.res-panel .res-title')).not.toBeEmpty();
+  await expect(page.locator('.res-view .mrange')).toHaveCount(1);
 });

@@ -29,13 +29,19 @@ const ROUTES = [
   '/hozer-mafmar/',
   '/luach/',
   '/hodaot/',
+  '/chativat-beynayim/kita-z/',
+  '/chativat-beynayim/kita-h/',
+  '/chativat-beynayim/kita-t/',
+  '/chativat-beynayim/klali/',
   '/chativat-beynayim/reader/z/tochnit-z/',
 ];
 
 /** סמנים מחייבים: אם אחד מהם נעלם — רגרסיה שקטה בפרודקשן */
 const MARKERS = [
-  { path: '/chativat-beynayim/', needle: 'flip-host', what: 'מנוע הדפדוף של החוברת (3.29)' },
-  { path: '/chativat-beynayim/', needle: 'gtoc-title', what: 'תוכן העניינים של השכבה (3.29)' },
+  { path: '/chativat-beynayim/', needle: 'split3', what: 'מסך השלישים של חטיבת הביניים (3.26)' },
+  { path: '/chativat-beynayim/', needle: 'klali-band', what: 'רצועת החומרים המשותפים (3.26)' },
+  { path: '/chativat-beynayim/kita-z/', needle: 'chapter-bar', what: 'סרגל הקפיצה לפרקים בעמוד שכבה (3.29)' },
+  { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'res-panel', what: 'לוח הפעולות בעמוד המשאב (3.29, 8.2)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
   { path: '/', needle: 'start-btn', what: 'כפתור ההתחלה בעמוד הראשי (7.28)' },
@@ -120,19 +126,33 @@ try {
   const { html } = await fetchOnce('/chativat-beynayim/');
   const m = markup(html);
 
-  // מפתח השכבה: בדיוק שני עמודים לכל שכבה (3.29) — מונע חזרה שקטה
-  // למודל "עמוד לכל פרק" או קריסה לעמוד יחיד
-  for (const g of ['z', 'h', 't', 'klali']) {
-    const pair = countOf(m, new RegExp(`data-page="toc-${g}(-2)?"`, 'g'));
-    if (pair === 2) console.log(`✓ מפתח שכבה ${g} — שני עמודים בדיוק (3.29)`);
-    else fail(`מפתח שכבה ${g}: ${pair} עמודי מפתח במקום 2 (3.29)`);
+  // שער חטיבת הביניים: בדיוק שלושה שלישים (3.26) — מונע קריסה שקטה
+  // לשניים או לארבעה, ומונע חזרה של החוברת המדפדפת
+  const thirds = countOf(m, /class="third[ "]/g);
+  if (thirds === 3) console.log(`✓ שער חטיבת הביניים — שלושה שלישים בדיוק (3.26)`);
+  else fail(`שער חטיבת הביניים: ${thirds} שלישים במקום 3 (3.26)`);
+
+  const booklet = countOf(m, /data-book|stf__item|flip-host/g);
+  if (booklet) fail(`נמצאו ${booklet} שרידי חוברת מדפדפת — המודל הישן חזר (3.29)`);
+  else console.log('✓ אין שרידי חוברת מדפדפת (3.29)');
+
+  // כל עמוד שכבה מגיש פרקים וכרטיסי קבצים
+  for (const [slug, path] of [
+    ['z', '/chativat-beynayim/kita-z/'],
+    ['h', '/chativat-beynayim/kita-h/'],
+    ['t', '/chativat-beynayim/kita-t/'],
+    ['klali', '/chativat-beynayim/klali/'],
+  ]) {
+    const g = markup((await fetchOnce(path)).html);
+    const chapters = countOf(g, /<section class="chapter"/g);
+    const cards = countOf(g, /class="rcard"/g);
+    if (chapters > 0 && cards > 0) console.log(`✓ שכבה ${slug} — ${chapters} פרקים, ${cards} כרטיסים (3.29)`);
+    else fail(`שכבה ${slug}: ${chapters} פרקים ו-${cards} כרטיסים (3.29)`);
   }
-  const legacy = countOf(m, /class="[^"]*bp-toc/g);
-  if (legacy) fail(`נמצאו ${legacy} עמודי תוכן-עניינים לכל פרק — המודל הישן חזר (3.29)`);
-  else console.log('✓ אין עמודי תוכן-עניינים לכל פרק (3.29)');
 
   // הטמעות PDF בלי סרגל הדפדפן השחור (8.26)
-  const pdfs = [...m.matchAll(/data-esrc="([^"]+)"/g)].map((x) => x[1]).filter((u) => /\.pdf(\?|#|$)/i.test(u));
+  const reader = markup((await fetchOnce('/chativat-beynayim/reader/z/tochnit-z/')).html);
+  const pdfs = [...reader.matchAll(/data-esrc="([^"]+)"/g)].map((x) => x[1]).filter((u) => /\.pdf(\?|#|$)/i.test(u));
   const bare = pdfs.filter((u) => !u.includes('toolbar=0'));
   if (bare.length) fail(`${bare.length} הטמעות PDF בלי toolbar=0 — סרגל שחור חוזר (8.26)`);
   else console.log(`✓ ${pdfs.length} הטמעות PDF עם מסגור נייבי-זהב (8.26)`);

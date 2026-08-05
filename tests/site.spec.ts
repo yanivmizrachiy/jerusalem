@@ -25,6 +25,7 @@ const routes = [
   '/hodaot/',
   '/israel-realit/',
   '/luach/',
+  '/chativat-beynayim/klali/',
   '/chativat-beynayim/reader/z/maf-02/',
   '/chativat-beynayim/reader/t/mifrat-tnufa/',
 ];
@@ -66,13 +67,19 @@ for (const route of routes) {
   });
 }
 
-// העמודים המרוכזים של מבחנים ומשחקים הוחלפו בעמודי-קובץ בתוך החוברת (1.10, 3.29);
-// הכתובות הישנות נשארות חיות ומפנות מיידית לחוברת — קישורים ששותפו לא נשברים
-for (const old of ['/chativat-beynayim/mivchanim/', '/chativat-beynayim/mischakim/']) {
-  test(`הפניה לחוברת: ${old}`, async ({ page }) => {
+// העמודים המרוכזים של מבחנים ומשחקים הוחלפו בפרקים שבעמוד "משותף לכל
+// השכבות" (1.10, 3.29); הכתובות הישנות נשארות חיות ומפנות מיידית לפרק
+// הנכון — קישורים ששותפו לא נשברים
+const moved: Record<string, string> = {
+  '/chativat-beynayim/mivchanim/': '#meitzav',
+  '/chativat-beynayim/mischakim/': '#mischakim',
+};
+for (const [old, hash] of Object.entries(moved)) {
+  test(`הפניה לעמוד המשותף: ${old}`, async ({ page }) => {
     await page.goto(old);
-    await page.waitForURL((u) => u.pathname === '/chativat-beynayim/', { timeout: 10_000 });
-    // החוברת מנרמלת מיד את המזהה המקוצר לעמוד הפרק הראשון של "כללי"
-    expect(new URL(page.url()).hash).toMatch(/^#toc-klali/);
+    await page.waitForURL((u) => u.pathname === '/chativat-beynayim/klali/', { timeout: 10_000 });
+    expect(new URL(page.url()).hash).toBe(hash);
+    // הפרק שאליו הופנינו באמת קיים בעמוד
+    await expect(page.locator(`section.chapter${hash}`)).toHaveCount(1);
   });
 }
