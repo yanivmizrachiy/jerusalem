@@ -239,6 +239,11 @@ import { team } from '../data/team';
     transition-delay: 260ms, 260ms, 0s, 0s;
   }
 
+  /* בתצוגת מורה יחיד "התחל" נעלם — נשאר רק חץ החזרה (הוראת יניב, 05/08/2026) */
+  :global(html.team-solo) .start-btn {
+    display: none;
+  }
+
   .start-face {
     display: flex;
     flex-direction: column;

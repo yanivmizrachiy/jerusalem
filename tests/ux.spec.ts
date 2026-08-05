@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 
 /**
  * בדיקות הקבלה של תיקון ה-UX המלא (RULES 19.34, הוראת יניב 04/08/2026):
- * hero מלא, כפתור חזרה טקסטואלי מכרטיס צוות, רצועת WhatsApp נקייה,
+ * hero מלא, חץ החזרה מכרטיס צוות, רצועת WhatsApp נקייה,
  * באנר תמונה מלאה, מכונת המצבים של החוברת וכותרת ה-Lovable של לוח השנה.
  */
 
@@ -43,7 +43,7 @@ test('רצועת WhatsApp בלי משפט ההסבר שנמחק (7.27)', async (
   await expect(page.locator('.wa-band')).not.toContainText('לחיצה בכל נקודה');
 });
 
-test('כרטיס צוות: כפתור חזרה טקסטואלי במקום חץ עגול, ושחזור התצוגה (6.5)', async ({ page }) => {
+test('כרטיס צוות: חץ אחד בעיגול בלי כיתוב, בלי כפתור התחל, ושחזור התצוגה (6.5)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   await expect(page.locator('.team-arrow')).toHaveCount(0);
@@ -53,9 +53,15 @@ test('כרטיס צוות: כפתור חזרה טקסטואלי במקום חץ 
   await expect(page.locator('#tzevet-ayelet')).toBeVisible();
   const back = page.locator('[data-team-back]');
   await expect(back).toBeVisible();
-  await expect(back).toHaveText(/חזרה לתצוגה הקודמת/);
+  // חץ בלבד — בלי כיתוב גלוי; הנגישות דרך aria-label (6.5, 05/08/2026)
+  await expect(back).toHaveText('');
+  await expect(back).toHaveAttribute('aria-label', /חזרה/);
+  await expect(back.locator('svg')).toHaveCount(1);
   const box = (await back.boundingBox())!;
   expect(box.height, 'גובה לחיץ ≥44px').toBeGreaterThanOrEqual(44);
+  expect(Math.abs(box.width - box.height), 'עיגול — רוחב וגובה שווים').toBeLessThanOrEqual(2);
+  // כפתור "התחל" מוסתר כל עוד מוצג מורה יחיד
+  await expect(page.locator('.start-btn')).toBeHidden();
   await back.click();
   await expect(page).not.toHaveURL(/#tzevet-/);
   await expect(page.locator('[data-team-details]')).toBeHidden();
