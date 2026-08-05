@@ -450,11 +450,21 @@ test('העמוד הראשי: כפתור "התחל" יחיד מתחת לצוות,
   const box = (await start.boundingBox())!;
   expect(box.height, 'מטרת מגע תקינה').toBeGreaterThanOrEqual(44);
 
-  // הכפתור נמצא מתחת לתצוגת הצוות ומעל רצועת הווטסאפ
-  const team = (await page.locator('.hero-after').boundingBox())!;
-  const band = (await page.locator('.wa-band').boundingBox())!;
-  expect(box.y).toBeGreaterThan(team.y);
-  expect(box.y).toBeLessThan(band.y);
+  // הכפתור חי בתוך מסך הפתיחה — ונראה בלי לגלול בכלל (7.28)
+  const hero = (await page.locator('.hero-after').boundingBox())!;
+  expect(box.y).toBeGreaterThan(hero.y);
+  expect(box.y + box.height, 'נראה בלי גלילה').toBeLessThanOrEqual(900);
+  expect(await page.evaluate(() => window.scrollY), 'בלי גלילה').toBe(0);
+
+  // מדליון עגול בהיקף זהב (7.28)
+  expect(Math.abs(box.width - box.height), 'עיגול מושלם').toBeLessThanOrEqual(1);
+  const ring = await start.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { radius: cs.borderRadius, shadow: cs.boxShadow };
+  });
+  expect(ring.radius, 'עגול').toMatch(/50%|\d+px/);
+  expect(ring.shadow, 'טבעת זהב').not.toBe('none');
+  await expect(page.locator('.start-arrow')).toHaveCount(1);
 
   // אין שרידים של שני כרטיסי השער הישנים בעמוד הראשי
   await expect(page.locator('.gate-card')).toHaveCount(0);
@@ -634,6 +644,31 @@ const gradientLuma = (bg: string) =>
   [...bg.matchAll(/rgba?\((\d+),\s*(\d+),\s*(\d+)/g)].map(
     (m) => 0.2126 * +m[1] + 0.7152 * +m[2] + 0.0722 * +m[3]
   );
+
+test('ניווט עליון: "ישראל ריאלית" במקום "הודעות", עם יעודכן בקרוב וחזרה (7.30)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+
+  const nav = page.locator('#site-header .nav-list');
+  await expect(nav.getByRole('link', { name: 'הודעות' })).toHaveCount(0);
+  const link = nav.getByRole('link', { name: 'ישראל ריאלית' });
+  await expect(link).toHaveCount(1);
+
+  await link.click();
+  await page.waitForURL('**/israel-realit/');
+  await expect(page.locator('h1')).toHaveText('ישראל ריאלית');
+  const lede = page.locator('.soon-lede');
+  await expect(lede).toHaveText('יעודכן בקרוב');
+  const size = await lede.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+  expect(size, 'כיתוב גדול').toBeGreaterThanOrEqual(30);
+
+  // כפתור החזרה מחזיר בפועל לעמוד שממנו הגענו
+  const back = page.locator('#soon-back');
+  await expect(back).toBeVisible();
+  await back.click();
+  await page.waitForURL((u) => !u.pathname.includes('israel-realit'));
+});
 
 test('תחתית האתר: בלוק הניווט נמחק, הפס הכחול סוגר את המסך (7.24)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
