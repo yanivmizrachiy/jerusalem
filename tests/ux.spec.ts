@@ -517,3 +517,44 @@ test('שערי הכניסה בנייד: החצאים נערמים בלי גלי�
   );
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+test('שערי הכניסה: הריחוף באמת מרחיב, וקו הזהב נצמד לתפר (7.29)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/shearim/');
+  const halves = page.locator('.split .half');
+  const rule = page.locator('.split-rule');
+
+  const rest = [(await halves.nth(0).boundingBox())!, (await halves.nth(1).boundingBox())!];
+  const restRule = (await rule.boundingBox())!;
+  // התפר = הקצה בין שני החצאים; הקו יושב עליו (סטייה של פיקסל אחד לכל היותר)
+  expect(Math.abs(restRule.x + restRule.width / 2 - rest[0].x), 'קו הזהב על התפר').toBeLessThanOrEqual(2);
+
+  await halves.nth(0).hover();
+  await page.waitForTimeout(900);
+  const hov = [(await halves.nth(0).boundingBox())!, (await halves.nth(1).boundingBox())!];
+  const hovRule = (await rule.boundingBox())!;
+
+  // החצי שמרחפים עליו מתרחב בפועל, והשני נסוג — לא no-op של flex-grow
+  expect(hov[0].width - rest[0].width, 'החצי הנבחר מתרחב').toBeGreaterThan(40);
+  expect(hov[1].width - rest[1].width, 'החצי השני נסוג').toBeLessThan(-40);
+  // גם בריחוף הקו נשאר על התפר
+  expect(Math.abs(hovRule.x + hovRule.width / 2 - hov[0].x), 'הקו זז עם התפר').toBeLessThanOrEqual(2);
+});
+
+test('כפתור "התחל": הילת הזהב אינה נחתכת, וקו-האור נשאר בתוך הגלולה (7.28)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+  const btn = page.locator('a.start-btn');
+  await btn.scrollIntoViewIfNeeded();
+
+  // הכפתור עצמו אינו חותך — אחרת ההילה שמתפשטת החוצה לא מצוירת כלל
+  expect(await btn.evaluate((el) => getComputedStyle(el).overflow)).toBe('visible');
+  // שכבת קו-האור היא זו שחותכת, בעיגול הגלולה
+  const sheen = page.locator('.start-sheen');
+  await expect(sheen).toHaveCount(1);
+  expect(await sheen.evaluate((el) => getComputedStyle(el).overflow)).toBe('hidden');
+  // ההילה יושבת על טבעת הזהב, בתוך הכפתור — ולא חוסמת לחיצה
+  const ring = page.locator('.start-ring');
+  expect(await ring.evaluate((el) => getComputedStyle(el).pointerEvents)).toBe('none');
+});

@@ -35,6 +35,7 @@ import WhatsAppBand from '../components/WhatsAppBand.astro';
           href="/shearim/"
           aria-label="התחל — מעבר לבחירת שער: חטיבת ביניים או חטיבה עליונה"
         >
+          <span class="start-sheen" aria-hidden="true"></span>
           <span class="start-ring" aria-hidden="true"></span>
           <span class="start-label">התחל</span>
         </a>
@@ -66,7 +67,6 @@ import WhatsAppBand from '../components/WhatsAppBand.astro';
     padding: 1.1rem clamp(3.4rem, 9vw, 6rem);
     border-radius: 999px;
     text-decoration: none;
-    overflow: hidden;
     isolation: isolate;
     background:
       radial-gradient(120% 160% at 80% -30%, rgb(232 200 119 / 0.28) 0%, transparent 60%),
@@ -76,6 +76,17 @@ import WhatsAppBand from '../components/WhatsAppBand.astro';
       inset 0 1px 0 rgb(255 255 255 / 0.16),
       var(--shadow-soft);
     transition: transform 380ms var(--ease-lift), box-shadow 320ms var(--ease);
+  }
+
+  /* שכבת קו-האור: היא היחידה שחותכת את מה שבתוכה, כדי שהילת הזהב
+     של הטבעת לא תיחתך יחד איתו */
+  .start-sheen {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
   }
 
   /* טבעת הזהב סביב הכפתור */
@@ -103,13 +114,12 @@ import WhatsAppBand from '../components/WhatsAppBand.astro';
 
   /* קו-אור זהב שחולף על פני הכפתור, ונשימת הילה עדינה סביבו */
   @media (prefers-reduced-motion: no-preference) {
-    .start-btn::after {
+    .start-sheen::after {
       content: '';
       position: absolute;
       inset-block: 0;
       inline-size: 45%;
       inset-inline-start: -60%;
-      pointer-events: none;
       background: linear-gradient(100deg, transparent, rgb(255 245 215 / 0.22), transparent);
       animation: start-sheen 4.6s var(--ease) infinite;
     }
