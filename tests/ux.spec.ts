@@ -244,6 +244,24 @@ test('עמוד משאב: ניווט קודם/הבא בתוך השכבה וחזר
   await expect(page.locator('.res-back')).toHaveAttribute('href', /\/chativat-beynayim\/kita-z\/#/);
 });
 
+test('עמוד משאב במסך רחב: פס גלילה אחד — העמוד עצמו אינו נגלל (הוראת יניב, 06/08)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const route of [
+    '/chativat-beynayim/reader/z/misparim/', // אתר חי מוטמע — כאן נוצר פס הגלילה הכפול
+    '/chativat-beynayim/reader/t/sheelot-t/', // מסמך
+    '/chativat-beynayim/reader/z/maf-02/', // טווח מהחוזר
+  ]) {
+    await page.goto(route);
+    const scroll = await page.evaluate(
+      () => document.documentElement.scrollHeight - document.documentElement.clientHeight
+    );
+    expect(scroll, `${route}: לעמוד עצמו אין גלילה — פס גלילה אחד בלבד`).toBeLessThanOrEqual(2);
+    // ההטמעה עדיין גדולה ושימושית, לא נמחצה כדי להיכנס
+    const view = (await page.locator('.res-view').boundingBox())!;
+    expect(view.height, `${route}: צד המשאב נשאר גבוה`).toBeGreaterThan(420);
+  }
+});
+
 test('עמוד משאב בנייד: ההטמעה לפני ההסבר (8.6)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
