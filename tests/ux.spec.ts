@@ -98,6 +98,8 @@ const openToc = async (page: Page) => {
   await expect(page.locator('[data-book].is-ready')).toHaveCount(1);
   await page.locator('.rashi-row').first().click();
   await expect(page).toHaveURL(/#toc-z/);
+  // פתיחת שכבה משתלטת על המסך ובונה מחדש את המנוע — ממתינים להתייצבות (05/08)
+  await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
   await settle(page);
 };
 
@@ -140,11 +142,22 @@ for (const width of [1440, 1920]) {
   });
 }
 
-test('לחיצה על שכבה פותחת תוכן עניינים — בלי is-full, הניווט גלוי (3.29)', async ({ page }) => {
+test('לחיצה על שכבה: תוכן עניינים במסך מלא, סרגל שמאלי, הניווט העליון מכוסה (3.29, 05/08)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
   await openToc(page);
-  await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
-  await expect(page.locator('[data-exit]')).toBeHidden();
-  await expect(page.locator('header nav').first()).toBeVisible();
+  // תוכן העניינים משתלט על המסך — כפתור "חזרה לאתר" גלוי
+  await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
+  await expect(page.locator('[data-exit]')).toBeVisible();
+  // ההשתלטות מכסה את הניווט העליון של האתר
+  const coversTop = await page.evaluate(() => {
+    const el = document.elementFromPoint(Math.round(window.innerWidth / 2), 12);
+    return !!el?.closest('.book-shell.is-full');
+  });
+  expect(coversTop, 'ההשתלטות מכסה את הניווט העליון').toBe(true);
+  // הסרגל צמוד לשמאל המסך, אנכי וגבוה
+  const bar = (await page.locator('.book-bar').boundingBox())!;
+  expect(bar.x, 'הסרגל צמוד לשמאל').toBeLessThan(60);
+  expect(bar.height, 'הסרגל אנכי וגבוה').toBeGreaterThan(300);
   // הנחיתה: כפולת המפתח של השכבה — עמוד ימין נושא את שם השכבה
   await expect(shown(page).locator('h2.gtoc-title').first()).toHaveText('מתמטיקה לכיתה ז׳');
   // מולו העמוד השני של אותו מפתח — "המשך" (הכפולה כולה היא תוכן העניינים)
@@ -208,12 +221,12 @@ test('אף עמוד מפתח אינו גולש — הכול נכנס בכפול�
   }
 });
 
-test('פתיחת משאב: is-full, הטמעה בדף הימני, Escape וחזרה לפרק (3.29)', async ({ page }) => {
+test('פתיחת משאב: is-full, הטמעה בדף הימני, "חזרה לאתר"/Escape חוזרים לשער (3.29, 05/08)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await openToc(page);
   await shown(page).locator('button.idx-row').first().click();
   await settle(page);
-  // מצב עבודה מלא
+  // מצב עבודה מלא נשמר
   await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
   const exit = page.locator('[data-exit]');
   await expect(exit).toBeVisible();
@@ -223,29 +236,31 @@ test('פתיחת משאב: is-full, הטמעה בדף הימני, Escape וחז�
   expect(embed.width).toBeGreaterThan(500);
   expect(info.width).toBeGreaterThan(500);
   expect(embed.x, 'ההטמעה בדף הימני (RTL)').toBeGreaterThan(info.x);
-  // חזרה: לתוכן העניינים של השכבה, בלי is-full
+  // "חזרה לאתר" — יציאה מלאה מההשתלטות אל השער שבזרימת האתר
   await exit.click();
   await settle(page);
-  await expect(page).toHaveURL(/#toc-z/);
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
+  await expect(page.locator('.book-shell.on-rashi')).toHaveCount(1);
   await expect(exit).toBeHidden();
-  // Escape יוצא גם הוא
-  await shown(page).locator('button.idx-row').first().click();
+  // Escape יוצא גם הוא אל השער
+  await page.locator('.rashi-row').first().click();
+  await settle(page);
   await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
   await page.keyboard.press('Escape');
   await settle(page);
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
+  await expect(page.locator('.book-shell.on-rashi')).toHaveCount(1);
 });
 
-test('deep link לעמוד reader נפתח ישירות במצב העבודה המלא (3.29)', async ({ page }) => {
+test('deep link לעמוד reader נפתח במצב מלא ו"חזרה לאתר" חוזר לשער (3.29, 05/08)', async ({ page }) => {
   await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
   await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
   const exit = page.locator('[data-exit]');
   await expect(exit).toBeVisible();
   await exit.click();
   await settle(page);
-  await expect(page).toHaveURL(/#toc-z-tichnun$/);
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
+  await expect(page.locator('.book-shell.on-rashi')).toHaveCount(1);
 });
 
 test('במסך צר מוצג דף אחד וכפתורי מגע תקינים (3.29)', async ({ page }) => {

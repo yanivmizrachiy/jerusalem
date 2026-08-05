@@ -12,8 +12,11 @@
  * זוגות כשמספר הפרקים אי-זוגי) ← עמודי משאב (זוג אמיתי: דף הטמעה מימין,
  * דף מידע משמאל) ← כריכה אחורית (דף קשיח). סה"כ זוגי — כל spread מיושר.
  *
- * מכונת המצבים נשמרת: שער ותוכן עניינים בזרימת האתר; רק עמוד משאב משתלט
- * על המסך (is-full) עם "חזרה לאתר"/Escape שחוזרים לפרק ולמיקום המדויקים.
+ * מכונת המצבים (הוראת יניב 05/08/2026): רק שער החוברת נשאר בזרימת האתר.
+ * ברגע שנפתחת שכבה — תוכן העניינים והמשאבים כאחד משתלטים על מלוא המסך
+ * (is-full): הניווט העליון של האתר מכוסה, החוברת עולה למקסימום הגובה,
+ * ולשוניות השכבות עוברות לסרגל צד שמאלי יוקרתי. כפתור הזהב "חזרה לאתר"
+ * ו-Escape יוצאים מההשתלטות אל השער שבזרימת האתר.
  * הטמעות נטענות רק כשהעמוד נפתח, שכנים מתחממים ברגעי סרק, ודפדפן בלי
  * מציג PDF מקבל כרטיס פתיחה (8.8).
  */
@@ -171,7 +174,8 @@ const embedOrigins = [
 <div class="book-shell" data-book data-initial={initial} data-total={total}>
   {embedOrigins.map((o) => <link rel="preconnect" href={o} />)}
 
-  <!-- פס עליון קומפקטי: לשוניות קפיצה ומסך מלא; "חזרה לאתר" רק במצב מלא -->
+  <!-- פס לשוניות: בשער — פס עליון קומפקטי; במצב פתוח (is-full) הופך לסרגל
+       צד שמאלי יוקרתי עם "חזרה לאתר" ולשוניות השכבות (הוראת יניב 05/08/2026) -->
   <div class="book-bar">
     <button class="book-exit" type="button" data-exit hidden>
       <span class="book-exit-ico" aria-hidden="true">→</span>
@@ -1203,6 +1207,101 @@ const embedOrigins = [
       padding-block: 0.45rem;
     }
   }
+
+  /* ===== מצב פתוח במסך רחב: החוברת שולטת בגובה, לשוניות בסרגל שמאלי יוקרתי =====
+     (הוראת יניב 05/08/2026) — הפס העליון הקומפקטי הופך לסרגל אנכי צמוד לשמאל
+     הבמה, והחוברת מנצלת את כל הגובה והרוחב שנותרו. הניווט העליון של האתר מכוסה
+     על ידי ההשתלטות (position:fixed מעל ה-header). */
+  @media (min-width: 881px) {
+    .book-shell.is-full {
+      --rail-w: clamp(96px, 7vw, 120px);
+      --rail-gap: clamp(0.5rem, 1vw, 1rem);
+    }
+
+    /* הפס העליון → סרגל אנכי צמוד לשמאל, מחוץ לזרימה כדי שהבמה תקבל את הגובה */
+    .is-full .book-bar {
+      position: absolute;
+      inset-block: var(--rail-gap);
+      left: var(--rail-gap);
+      inline-size: var(--rail-w);
+      z-index: 8;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 0.5rem;
+      min-block-size: 0;
+      padding: 0.7rem 0.5rem;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #17293f 0%, #0d1a2e 100%);
+      border: 1px solid color-mix(in srgb, var(--gold) 58%, transparent);
+      box-shadow:
+        0 26px 52px -26px rgb(9 17 30 / 0.85),
+        inset 0 1px 0 rgb(255 255 255 / 0.06);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    /* כפתור הזהב "חזרה לאתר" — ראש הסרגל, במלוא הרוחב */
+    .is-full .book-exit {
+      inline-size: 100%;
+      justify-content: center;
+      padding-inline: 0.4rem;
+      font-size: 0.92rem;
+    }
+
+    /* לשוניות השכבות — אנכיות; "ראשי" מיותר לצד כפתור הזהב ולכן מוסתר */
+    .is-full .book-tabs {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.4rem;
+      margin: 0;
+    }
+
+    .is-full .book-tabs .btab:not([data-grade]) { display: none; }
+
+    .is-full .btab {
+      inline-size: 100%;
+      min-block-size: 52px;
+      border-color: color-mix(in srgb, var(--gold) 34%, transparent);
+      background: rgb(255 255 255 / 0.05);
+      color: #f0e6cf;
+      font-size: 1.15rem;
+    }
+
+    .is-full .btab:hover {
+      background: rgb(255 255 255 / 0.11);
+      color: #fff;
+    }
+
+    .is-full .btab.is-current {
+      background: linear-gradient(180deg, #f3d68b 0%, #d4af5c 100%);
+      border-color: var(--gold);
+      color: #2a2008;
+    }
+
+    /* מסך מלא אמיתי — תחתית הסרגל */
+    .is-full .book-tools {
+      margin-block-start: auto;
+      justify-content: center;
+    }
+
+    .is-full .bfs {
+      color: #f3d68b;
+      background: rgb(255 255 255 / 0.06);
+      border-color: color-mix(in srgb, var(--gold) 34%, transparent);
+    }
+
+    /* הבמה והדפדוף מפנים מקום לסרגל השמאלי ומקבלים את שאר הרוחב */
+    .is-full .book-stage {
+      margin-left: calc(var(--rail-w) + var(--rail-gap) + 0.75rem);
+      padding-inline: 24px;
+    }
+
+    .is-full .book-nav {
+      margin-left: calc(var(--rail-w) + var(--rail-gap) + 0.75rem);
+    }
+  }
 </style>
 
 <script>
@@ -1233,10 +1332,8 @@ const embedOrigins = [
     let cur = 0;
     let engaged = false;
     let savedY = 0;
-    let lastToc = '';
     let pendingExit = false;
 
-    const isItem = (k: number) => ids[k].startsWith('it-');
     const isLone = (k: number) => k === 0 || k === total - 1;
     /* הפריסה שלנו: השער והכריכה בודדים; השאר זוגות (אי-זוגי, זוגי) */
     const spreadOf = (k: number): number[] => (isLone(k) ? [k] : k % 2 === 1 ? [k, k + 1] : [k - 1, k]);
@@ -1342,7 +1439,7 @@ const embedOrigins = [
         pendingExit = true;
         return;
       }
-      goto(lastToc || secs[cur].dataset.toc || 'rashi');
+      goto('rashi'); // "חזרה לאתר" — יציאה מלאה מההשתלטות אל שער החוברת בזרימת האתר
     };
 
     /* ===== ציור המצב: מונה, התקדמות, לשוניות, hash, השתלטות ===== */
@@ -1366,18 +1463,12 @@ const embedOrigins = [
       shell.classList.toggle('on-back', ids[cur] === 'back');
       const hid = wantId && s.some((k) => ids[k] === wantId) ? wantId : ids[cur];
       history.replaceState(null, '', `#${hid}`);
-      if (s.some((k) => isItem(k))) engage();
-      else disengage();
-      const t = visIds.find((id) => id.startsWith('toc-'));
-      if (t) lastToc = t;
+      // רק שער החוברת נשאר בזרימת האתר; כל עמוד פתוח (תוכן עניינים או משאב)
+      // משתלט על מלוא המסך — הניווט העליון מכוסה והחוברת שולטת בגובה (הוראת יניב 05/08/2026)
+      if (ids[cur] === 'rashi') disengage();
+      else engage();
       s.forEach((k) => mount(secs[k]));
       if (engaged) shell.scrollTop = 0;
-      // חוויית קריאה: בפתיחת תוכן עניינים הספר מתיישר מתחת לניווט
-      if (!engaged && ids[cur] !== 'rashi') {
-        const top = shell.getBoundingClientRect().top;
-        const want = headerH() + 6;
-        if (Math.abs(top - want) > 60) scrollTo(0, scrollY + top - want);
-      }
       warmNeighbors();
     };
 
@@ -1467,6 +1558,12 @@ const embedOrigins = [
       (shell as HTMLElement & { __pf?: unknown }).__pf = pf; // ידית לבדיקות הקבלה
       paint();
       markScrollable();
+      // בנייה מחדש מאפסת turning ישירות ועוקפת את changeState — לכן משלימים כאן
+      // בקשת יציאה שנרשמה בזמן היפוך/בנייה, כדי ש"חזרה לאתר" לא ייתקע (pendingExit)
+      if (pendingExit) {
+        pendingExit = false;
+        exitFull();
+      }
     };
 
     let rebuildTimer = 0;
