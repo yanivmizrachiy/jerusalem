@@ -158,10 +158,12 @@ test('לחיצה על שכבה: תוכן עניינים במסך מלא, סרג�
   const bar = (await page.locator('.book-bar').boundingBox())!;
   expect(bar.x, 'הסרגל צמוד לשמאל').toBeLessThan(60);
   expect(bar.height, 'הסרגל אנכי וגבוה').toBeGreaterThan(300);
-  // הנחיתה: כפולת המפתח של השכבה — עמוד ימין נושא את שם השכבה
-  await expect(shown(page).locator('h2.gtoc-title').first()).toHaveText('מתמטיקה לכיתה ז׳');
+  // הנחיתה: כפולת המפתח של השכבה — שני העמודים גלויים יחד (סדר ה-DOM של
+  // המנוע אינו מובטח, ולכן ממקדים לפי מזהה העמוד ולא לפי first)
+  const vis = '.stf__item[style*="display: block"]';
+  await expect(page.locator(`${vis}[data-page="toc-z"] h2.gtoc-title`)).toHaveText('מתמטיקה לכיתה ז׳');
   // מולו העמוד השני של אותו מפתח — "המשך" (הכפולה כולה היא תוכן העניינים)
-  await expect(shown(page).locator('h2.toc-title').first()).toContainText('מתמטיקה לכיתה ז׳ —');
+  await expect(page.locator(`${vis}[data-page="toc-z-2"] h2.toc-title`)).toContainText('מתמטיקה לכיתה ז׳ —');
   // כל פרקי השכבה נמצאים על הכפולה עצמה — אין עמוד תוכן-עניינים נוסף (05/08/2026)
   const heads = shown(page).locator('.idx-ch-name');
   await expect(heads.filter({ hasText: 'תכנון והוראה' })).toHaveCount(1);
