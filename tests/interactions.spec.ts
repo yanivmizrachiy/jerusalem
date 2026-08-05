@@ -88,6 +88,7 @@ test('כפתורי WhatsApp אמיתיים: כל כפתור מוביל ישיר�
     ).toHaveCount(1);
   }
   // "מה צפוי?": הלוגו העגול + כיתוב ירוק יחיד — שניהם ישירות לקבוצה (7.20)
+  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
   await expect(page.locator(`.rail a[href="${whatsappCommunity.url}"]`)).toHaveCount(2);
   // רצועת ההצטרפות בתחתית העמוד — כולה קישור אחד ישירות לקבוצה, עם הכיתובים (7.27)
   const band = page.locator(`a.wa-band[href="${whatsappCommunity.url}"]`);
