@@ -7,12 +7,12 @@ import TeamSection from '../components/TeamSection.astro';
 import WhatsAppBand from '../components/WhatsAppBand.astro';
 
 // מתחת לצוות ההדרכה — כפתור "התחל" יחיד (הוראת יניב, 05/08/2026).
-// שני שערי-הענק עברו לעמוד `/shearim/`, שבו המסך מחולק חצי-חצי.
+// שני הכפתורים עברו לעמוד `/shearim/`, שבו המסך מחולק חצי-חצי.
 ---
 
 <Base
   title="מחוז ירושלים — הדרכת מתמטיקה"
-  description="המרכז המחוזי להוראת מתמטיקה במחוז ירושלים: סרטון הפתיחה, צוות ההדרכה, שערי חטיבת הביניים והחטיבה העליונה ועדכונים שוטפים."
+  description="המרכז המחוזי להוראת מתמטיקה במחוז ירושלים: סרטון הפתיחה, צוות ההדרכה, הכניסה לחטיבת הביניים ולחטיבה העליונה ועדכונים שוטפים."
   transparentHeader
 >
   <link slot="head" rel="preload" as="image" href="/media/hero-poster-880.avif" fetchpriority="high" />
@@ -28,15 +28,13 @@ import WhatsAppBand from '../components/WhatsAppBand.astro';
   <div class="rail-offset">
     <TeamSection />
 
-    <section class="section" id="shearim">
-      <div class="container start-slot" data-reveal>
+    <section class="section start-section" id="shearim">
+      <div class="container start-slot">
         <a
           class="start-btn"
           href="/shearim/"
-          aria-label="התחל — מעבר לבחירת שער: חטיבת ביניים או חטיבה עליונה"
+          aria-label="התחל — מעבר לבחירת החטיבה: חטיבת ביניים או חטיבה עליונה"
         >
-          <span class="start-sheen" aria-hidden="true"></span>
-          <span class="start-ring" aria-hidden="true"></span>
           <span class="start-label">התחל</span>
         </a>
       </div>
@@ -55,85 +53,59 @@ import WhatsAppBand from '../components/WhatsAppBand.astro';
 
   .rail-slot { margin-block-start: clamp(1.6rem, 4vw, 2.8rem); }
 
-  /* כפתור "התחל" יחיד מתחת לצוות ההדרכה (הוראת יניב, 05/08/2026) */
+  /* כפתור "התחל" — עדין, ממורכז מול תמונות הצוות, ונחשף רק אחרי
+     שתמונת הפתיחה נעלמה כליל (הוראת יניב, 05/08/2026) */
   .start-slot { display: flex; justify-content: center; }
+
+  /* ביטול היסט פס "מה צפוי?" — מרכוז מול תמונות הצוות שב-hero */
+  @media (min-width: 1280px) {
+    .start-section { margin-inline-end: calc(-1 * (var(--rail-w) + 2.2rem)); }
+  }
 
   .start-btn {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-block-size: 84px;
-    padding: 1.1rem clamp(3.4rem, 9vw, 6rem);
+    min-block-size: 62px;
+    padding: 0.85rem clamp(2.6rem, 6vw, 4rem);
+    border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
     border-radius: 999px;
     text-decoration: none;
-    isolation: isolate;
-    background:
-      radial-gradient(120% 160% at 80% -30%, rgb(232 200 119 / 0.28) 0%, transparent 60%),
-      linear-gradient(200deg, #26324a 0%, var(--navy) 58%, #172033 100%);
-    background-color: var(--navy);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.16),
-      var(--shadow-soft);
-    transition: transform 380ms var(--ease-lift), box-shadow 320ms var(--ease);
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
+    box-shadow: 0 10px 30px -22px rgb(42 37 32 / 0.5);
+    /* חשיפה עדינה במקום הופעה פתאומית */
+    opacity: 0;
+    visibility: hidden;
+    translate: 0 10px;
+    transition:
+      opacity 900ms var(--ease),
+      translate 900ms var(--ease),
+      visibility 0s linear 900ms,
+      border-color 300ms var(--ease),
+      background-color 300ms var(--ease);
   }
 
-  /* שכבת קו-האור: היא היחידה שחותכת את מה שבתוכה, כדי שהילת הזהב
-     של הטבעת לא תיחתך יחד איתו */
-  .start-sheen {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    overflow: hidden;
-    border-radius: inherit;
-    pointer-events: none;
-  }
-
-  /* טבעת הזהב סביב הכפתור */
-  .start-ring {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border: 1px solid rgb(232 200 119 / 0.6);
-    border-radius: inherit;
-    pointer-events: none;
+  :global(html.hero-done) .start-btn {
+    opacity: 1;
+    visibility: visible;
+    translate: none;
+    transition-delay: 260ms, 260ms, 0s, 0s, 0s;
   }
 
   .start-label {
     font-family: var(--font-display);
-    font-size: clamp(1.7rem, 4vw, 2.5rem);
+    font-size: clamp(1.2rem, 2.4vw, 1.55rem);
     font-weight: 700;
     line-height: 1;
-    letter-spacing: 0.02em;
-    color: #f0dca8;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
   }
 
-  .start-btn:hover { transform: translateY(-4px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), var(--shadow-lift); }
+  .start-btn:hover {
+    border-color: var(--gold);
+    background: color-mix(in srgb, var(--gold) 8%, var(--paper));
+  }
 
   .start-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
-
-  /* קו-אור זהב שחולף על פני הכפתור, ונשימת הילה עדינה סביבו */
-  @media (prefers-reduced-motion: no-preference) {
-    .start-sheen::after {
-      content: '';
-      position: absolute;
-      inset-block: 0;
-      inline-size: 45%;
-      inset-inline-start: -60%;
-      background: linear-gradient(100deg, transparent, rgb(255 245 215 / 0.22), transparent);
-      animation: start-sheen 4.6s var(--ease) infinite;
-    }
-
-    .start-ring { animation: start-halo 3.4s var(--ease) infinite; }
-
-    @keyframes start-sheen {
-      0%, 55% { inset-inline-start: -60%; }
-      88%, 100% { inset-inline-start: 115%; }
-    }
-
-    @keyframes start-halo {
-      0%, 100% { box-shadow: 0 0 0 0 rgb(232 200 119 / 0.38); }
-      70% { box-shadow: 0 0 0 16px rgb(232 200 119 / 0); }
-    }
-  }
 </style>

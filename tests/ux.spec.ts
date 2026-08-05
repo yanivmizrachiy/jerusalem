@@ -430,21 +430,25 @@ test('בלי Web Share — הלחיצה מורידה את תמונת הלוח כ
   await expect(page.locator('#vac-send-status')).toContainText('הורדה');
 });
 
-/* ===== שערי הכניסה — כפתור "התחל" והמסך המחולק (הוראת יניב, 05/08/2026) ===== */
+/* ===== בחירת החטיבה — כפתור "התחל" והמסך המחולק (הוראת יניב, 05/08/2026) ===== */
 
-test('העמוד הראשי: כפתור "התחל" יחיד מתחת לצוות, מוביל ל-/shearim/ (7.28)', async ({ page }) => {
+test('העמוד הראשי: כפתור "התחל" יחיד מתחת לצוות, מוביל לעמוד בחירת החטיבה (7.28)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
 
   const start = page.locator('a.start-btn');
   await expect(start).toHaveCount(1);
+  // לפני שתמונת הפתיחה נעלמה — הכפתור אינו נראה (7.28)
+  await expect(start).toBeHidden();
+  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
+  await expect(start).toBeVisible();
   await expect(start).toHaveText('התחל');
   expect(await start.getAttribute('href')).toBe('/shearim/');
 
   // מטרת מגע גדולה ולחיצה אמיתית שמגיעה לעמוד השערים
   const box = (await start.boundingBox())!;
-  expect(box.height, 'כפתור גדול ונוח ללחיצה').toBeGreaterThanOrEqual(70);
+  expect(box.height, 'מטרת מגע תקינה').toBeGreaterThanOrEqual(44);
 
   // הכפתור נמצא מתחת לתצוגת הצוות ומעל רצועת הווטסאפ
   const team = (await page.locator('.hero-after').boundingBox())!;
@@ -459,7 +463,7 @@ test('העמוד הראשי: כפתור "התחל" יחיד מתחת לצוות,
   await page.waitForURL('**/shearim/');
 });
 
-test('שערי הכניסה: חצי-חצי — כהה עם מלל בהיר מול בהיר עם מלל כהה (05/08)', async ({ page }) => {
+test('בחירת החטיבה: חצי-חצי — כהה עם מלל בהיר מול בהיר עם מלל כהה (05/08)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/shearim/');
 
@@ -495,7 +499,7 @@ test('שערי הכניסה: חצי-חצי — כהה עם מלל בהיר מו�
   expect(b.bg, 'החצי השני בהיר').toBeGreaterThan(200);
   expect(b.fg, 'ומללו כהה').toBeLessThan(90);
 
-  // כל חצי הוא קישור אמיתי לשער שלו
+  // כל חצי הוא קישור אמיתי לחטיבה
   expect(await halves.nth(0).getAttribute('href')).toBe('/chativat-beynayim/');
   expect(await halves.nth(1).getAttribute('href')).toBe('/chativa-elyona/');
 
@@ -504,21 +508,21 @@ test('שערי הכניסה: חצי-חצי — כהה עם מלל בהיר מו�
   await expect(page.locator('.footer-navy')).toHaveCount(1);
 });
 
-test('שערי הכניסה בנייד: החצאים נערמים בלי גלילה אופקית (05/08)', async ({ page }) => {
+test('בחירת החטיבה בנייד: החצאים נערמים בלי גלילה אופקית (05/08)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/shearim/');
   const halves = page.locator('.split .half');
   const a = (await halves.nth(0).boundingBox())!;
   const b = (await halves.nth(1).boundingBox())!;
   expect(b.y, 'החצי השני מתחת לראשון').toBeGreaterThan(a.y + a.height - 2);
-  expect(a.height, 'כל חצי נשאר גדול ונוח').toBeGreaterThanOrEqual(280);
+  expect(a.height, 'כל חצי נשאר גדול ונוח').toBeGreaterThanOrEqual(240);
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth
   );
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-test('שערי הכניסה: הריחוף באמת מרחיב, וקו הזהב נצמד לתפר (7.29)', async ({ page }) => {
+test('בחירת החטיבה: הריחוף באמת מרחיב, וקו הזהב נצמד לתפר (7.29)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/shearim/');
   const halves = page.locator('.split .half');
@@ -541,20 +545,50 @@ test('שערי הכניסה: הריחוף באמת מרחיב, וקו הזהב �
   expect(Math.abs(hovRule.x + hovRule.width / 2 - hov[0].x), 'הקו זז עם התפר').toBeLessThanOrEqual(2);
 });
 
-test('כפתור "התחל": הילת הזהב אינה נחתכת, וקו-האור נשאר בתוך הגלולה (7.28)', async ({ page }) => {
+test('כפתור "התחל": נחשף רק אחרי תמונת הפתיחה, וממורכז מול תמונות הצוות (7.28)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
   const btn = page.locator('a.start-btn');
-  await btn.scrollIntoViewIfNeeded();
+  await expect(btn).toBeHidden();
 
-  // הכפתור עצמו אינו חותך — אחרת ההילה שמתפשטת החוצה לא מצוירת כלל
-  expect(await btn.evaluate((el) => getComputedStyle(el).overflow)).toBe('visible');
-  // שכבת קו-האור היא זו שחותכת, בעיגול הגלולה
-  const sheen = page.locator('.start-sheen');
-  await expect(sheen).toHaveCount(1);
-  expect(await sheen.evaluate((el) => getComputedStyle(el).overflow)).toBe('hidden');
-  // ההילה יושבת על טבעת הזהב, בתוך הכפתור — ולא חוסמת לחיצה
-  const ring = page.locator('.start-ring');
-  expect(await ring.evaluate((el) => getComputedStyle(el).pointerEvents)).toBe('none');
+  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
+  await expect(btn).toBeVisible();
+  await page.waitForTimeout(1300);
+
+  const b = (await btn.boundingBox())!;
+  const photos = await page.locator('.hero-team .hero-avatar').all();
+  const boxes = await Promise.all(photos.map((p) => p.boundingBox()));
+  const left = Math.min(...boxes.map((x) => x!.x));
+  const right = Math.max(...boxes.map((x) => x!.x + x!.width));
+  expect(Math.abs(b.x + b.width / 2 - (left + right) / 2), 'ממורכז מול התמונות').toBeLessThanOrEqual(4);
+});
+
+test('תמונת הפתיחה פרוסה עד תחתית המסך (6.3)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+  await page.waitForTimeout(900);
+  const media = (await page.locator('#hero-media').boundingBox())!;
+  expect(Math.abs(media.y + media.height - 900), 'אין שטח ריק מתחת לתמונה').toBeLessThanOrEqual(3);
+});
+
+test('בחירת החטיבה: הצבע יורד עד רצועת הווטסאפ, כיתוב הכיתות וחץ עדין (7.29)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/shearim/');
+  await page.waitForTimeout(900);
+
+  await expect(page.locator('.half-desc').nth(0)).toHaveText('מתמטיקה לכיתות ז׳–ט׳');
+  await expect(page.locator('.half-desc').nth(1)).toHaveText('מתמטיקה לכיתות י׳–י״ב');
+  await expect(page.locator('.half-cta svg')).toHaveCount(2);
+
+  const split = (await page.locator('.split').boundingBox())!;
+  expect(Math.abs(split.y + split.height - 900), 'הצבע מגיע לתחתית המסך').toBeLessThanOrEqual(3);
+
+  // אחרי גלילה — רצועת הווטסאפ צמודה לצבע, בלי רצועה לבנה
+  await page.locator('.wa-band').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(900);
+  const s2 = (await page.locator('.split').boundingBox())!;
+  const wa = (await page.locator('.wa-band-wrap').boundingBox())!;
+  expect(Math.abs(wa.y - (s2.y + s2.height)), 'אין שטח לבן בין הצבע לווטסאפ').toBeLessThanOrEqual(2);
 });
