@@ -62,9 +62,9 @@
 | שינוי תוכן הספר המדפדף | `src/data/choveret.ts` | תוכן עניינים, reader, embed, הורדה, שיתוף, דפדוף ומובייל |
 | שינוי חוזר מפמ״ר | `src/data/mafmar.ts` + `public/docs/` | מקור רשמי, מספר עמודים, טווחי MAF, hash ועותק מקומי |
 | שינוי כפתור "התחל" בעמוד הבית | `src/pages/index.astro` | קישור ל-`/shearim/`, מיקום מתחת לצוות, מטרת מגע, reduced motion |
-| שינוי המסך המחולק חצי-חצי | `src/pages/shearim/index.astro` | היפוך הצבעים בין החצאים, קו הזהב, ריחוף, ערימה בנייד ונגישות (7.29) |
+| שינוי המסך המחולק חצי-חצי | `src/pages/shearim/index.astro` | היפוך הצבעים בין החצאים, קו הזהב, ריחוף, ערימה בנייד, נגישות, ובלי פירורי לחם — הצבע נוגע בניווט העליון (7.29) |
 | שינוי ניווט עליון | `src/components/SiteHeader.astro` | מצב פעיל, יעדי מגע, גלישה צרה וקישורי עוגן |
-| שינוי תחתית האתר | `src/components/SiteFooter.astro` | קישורים, קו/פס תחתון, טקסט מנהל האתר |
+| שינוי תחתית האתר | `src/components/SiteFooter.astro` | פס כחול־כהה יחיד שסוגר את המסך (7.24): בלי ניווט תחתון ובלי "חזרה לראש העמוד"; הירוק של הווטסאפ צמוד לו דרך `main:has(> .wa-band-wrap:last-child) + .site-footer` |
 | שינוי הפס העליון והתאריך | `src/components/DateBar.astro` | אזור זמן ירושלים, עברי/לועזי, reduced motion ומובייל |
 | שינוי סרטון הפתיחה | `src/components/HeroVideo.astro` + `public/media/` | desktop/mobile, poster, preload, משקל, autoplay ו־reduced motion |
 | שינוי הספר והאנימציה | `src/components/Booklet.astro` | מקלדת, מגע, גרירה, deep link, iframe, fullscreen ו־reduced motion |

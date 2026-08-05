@@ -592,3 +592,105 @@ test('בחירת החטיבה: הצבע יורד עד רצועת הווטסאפ,
   const wa = (await page.locator('.wa-band-wrap').boundingBox())!;
   expect(Math.abs(wa.y - (s2.y + s2.height)), 'אין שטח לבן בין הצבע לווטסאפ').toBeLessThanOrEqual(2);
 });
+
+for (const [label, w, h] of [
+  ['מחשב', 1440, 900],
+  ['נייד', 390, 844],
+] as const) {
+  test(`בחירת החטיבה (${label}): בלי פירורי לחם — הצבע נוגע בניווט העליון (7.29)`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto('/shearim/');
+    await page.waitForTimeout(900);
+
+    // שורת "ראשי › בחירת החטיבה" נמחקה מהעמוד הזה (5.13; חריג מפורש ל-5.3)
+    await expect(page.locator('.crumbs')).toHaveCount(0);
+
+    // הכותרת הסמנטית נשמרת — קיימת, בטקסט הנכון, ומוסתרת חזותית
+    const h1 = page.locator('h1');
+    await expect(h1).toHaveCount(1);
+    await expect(h1).toHaveText('בחירת החטיבה');
+    const hb = (await h1.boundingBox())!;
+    expect(hb.height, 'ה-h1 מוסתר חזותית ואינו תופס שטח').toBeLessThanOrEqual(2);
+
+    // הצבע מתחיל מיד מתחת לניווט — אפס רצועה לבנה ביניהם
+    const header = (await page.locator('#site-header').boundingBox())!;
+    const split = (await page.locator('.split').boundingBox())!;
+    expect(
+      Math.abs(split.y - (header.y + header.height)),
+      'אין רצועה לבנה בין הניווט לצבע'
+    ).toBeLessThanOrEqual(2);
+
+    // והשטח שהתפנה באמת תפוס בחצי צבוע — לא ברקע העמוד
+    const filled = await page.evaluate(([x, y]) => {
+      const el = document.elementFromPoint(x, y);
+      return !!el?.closest('.half');
+    }, [Math.round(w / 2), Math.round(split.y + 6)] as [number, number]);
+    expect(filled, 'החצי הצבוע ממלא את השטח שמתחת לניווט').toBe(true);
+  });
+}
+
+/** בהירות ממוצעת של כל עצירות הצבע בגרדיאנט — לזיהוי "כהה" בלי לנעול הקסה */
+const gradientLuma = (bg: string) =>
+  [...bg.matchAll(/rgba?\((\d+),\s*(\d+),\s*(\d+)/g)].map(
+    (m) => 0.2126 * +m[1] + 0.7152 * +m[2] + 0.0722 * +m[3]
+  );
+
+test('תחתית האתר: בלוק הניווט נמחק, הפס הכחול סוגר את המסך (7.24)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+
+  // כל מה שנמחק — בלי שריד אחד
+  await expect(page.locator('.footer-nav')).toHaveCount(0);
+  await expect(page.locator('.to-top')).toHaveCount(0);
+  await expect(page.locator('.footer-brand')).toHaveCount(0);
+  await expect(page.locator('nav[aria-label="ניווט תחתון"]')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'חזרה לראש העמוד' })).toHaveCount(0);
+
+  // הקרדיט נשאר — השם בזהב בהיר וקריא על הכחול (7.24)
+  const managed = page.locator('.footer-managed');
+  await expect(managed).toHaveText('האתר מנוהל על ידי יניב רז');
+  const nameLuma = gradientLuma(
+    await managed.locator('strong').evaluate((el) => getComputedStyle(el).color)
+  )[0];
+  expect(nameLuma, 'שם המנהל בזהב בהיר').toBeGreaterThan(150);
+
+  // הפס הכחול־הכהה סוגר את העמוד ממש
+  const navy = page.locator('.footer-navy');
+  await expect(navy).toHaveCount(1);
+  const luma = gradientLuma(await navy.evaluate((el) => getComputedStyle(el).backgroundImage));
+  expect(luma.length, 'לפס יש רקע צבעוני').toBeGreaterThan(0);
+  expect(Math.max(...luma), 'הפס התחתון כחול־כהה').toBeLessThan(45);
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(500);
+  const nb = (await navy.boundingBox())!;
+  expect(nb.height, 'לפס יש נוכחות אמיתית כמו הפס העליון').toBeGreaterThanOrEqual(60);
+  expect(Math.abs(nb.y + nb.height - 900), 'הפס הכחול הוא החלק הכי תחתון במסך').toBeLessThanOrEqual(3);
+
+  // והירוק של הווטסאפ צמוד לו — בלי רווח ביניהם. נמדד על תיבת הפריסה
+  // (offsetTop) ולא על ה-rect החזותי, שמושפע מאנימציית החשיפה בגלילה
+  const flush = await page.evaluate(() => {
+    const wrap = document.querySelector<HTMLElement>('.wa-band-wrap')!;
+    const footer = document.querySelector<HTMLElement>('.site-footer')!;
+    return {
+      gap: Math.round(footer.offsetTop - (wrap.offsetTop + wrap.offsetHeight)),
+      margin: getComputedStyle(footer).marginBlockStart,
+    };
+  });
+  expect(flush.gap, 'הירוק צמוד לכחול').toBeLessThanOrEqual(1);
+  expect(flush.margin, 'בלי מרווח מעל הפוטר בעמוד עם רצועת ווטסאפ').toBe('0px');
+});
+
+test('תחתית האתר: הפס הכחול סוגר גם עמוד בלי רצועת ווטסאפ (7.24)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/luach/');
+  const navy = page.locator('.footer-navy');
+  await expect(navy).toHaveCount(1);
+  await expect(page.locator('.footer-nav')).toHaveCount(0);
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(500);
+  const nb = (await navy.boundingBox())!;
+  expect(Math.abs(nb.y + nb.height - 900), 'הפס הכחול סוגר את העמוד').toBeLessThanOrEqual(3);
+});
