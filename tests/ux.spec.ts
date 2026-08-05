@@ -655,6 +655,8 @@ test('ניווט עליון: "ישראל ריאלית" במקום "הודעות"
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
+  // הניווט נחשף רק אחרי שתמונת הפתיחה נעלמה (6.3)
+  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
 
   const nav = page.locator('#site-header .nav-list');
   await expect(nav.getByRole('link', { name: 'הודעות' })).toHaveCount(0);
