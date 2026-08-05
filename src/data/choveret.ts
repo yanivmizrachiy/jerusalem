@@ -1,7 +1,8 @@
 /**
- * הספר המדפדף המרכזי (RULES 3.29, הוראת יניב 03/08/2026):
- * מקור אחד לכל חומרי השכבות — השער הוא עמוד הכפתורים, כל שכבה היא תוכן
- * עניינים צבעוני, וכל משאב נפתח בקורא מסך-מפוצל. אין רשימות חומרים
+ * מקור התוכן היחיד של חטיבת הביניים (RULES 3.29, הוראת יניב 05/08/2026):
+ * החוברת המדפדפת בוטלה — החומרים מוצגים בעמודי אינטרנט אחידים: מסך
+ * השלישים בשער, עמוד שכבה לכל כיתה, ועמוד משאב מחולק (הטמעה מול פעולות).
+ * מבנה הנתונים נשאר כשהיה — שכבות, פרקים ופריטים — ואין רשימות חומרים
  * מקבילות בעמודי ה-astro; הכול נגזר מכאן.
  */
 import { grade7Resources } from './resources';
@@ -654,7 +655,45 @@ export const readerItems = choveret.flatMap((g) =>
   )
 );
 
-/** מניין אמיתי לכרטיסי השער (3.27) — נגזר מהחוברת עצמה */
+/** מניין אמיתי לכרטיסי השער (3.27) — נגזר מהנתונים עצמם, לעולם לא ידני */
 export const gradeCounts = Object.fromEntries(
   choveret.map((g) => [g.slug, g.chapters.reduce((n, c) => n + c.items.length, 0)])
-) as Record<'z' | 'h' | 't', number>;
+) as Record<string, number>;
+
+/** הכתובת הקנונית של עמוד השכבה */
+export const gradeHref = (slug: string) =>
+  slug === 'klali' ? '/chativat-beynayim/klali/' : `/chativat-beynayim/kita-${slug}/`;
+
+/** הכתובת הקנונית של פריט: עמוד פנימי אם יש, אחרת עמוד המשאב */
+export const itemHref = (gradeSlug: string, item: ChoveretItem) =>
+  item.pageHref ?? `/chativat-beynayim/reader/${gradeSlug}/${item.id}/`;
+
+/** התווית הגלויה של השכבה — "כיתה ז׳" או "כללי" */
+export const gradeLabel = (g: ChoveretGrade) => (g.slug === 'klali' ? 'כללי' : `כיתה ${g.letter}`);
+
+export const gradeBySlug = (slug: string) => choveret.find((g) => g.slug === slug);
+
+/**
+ * סדר הקריאה של שכבה — כל פריטי המשאב שלה לפי סדר הפרקים. זהו הסדר
+ * הפדגוגי שעליו נשען ניווט קודם/הבא (5.12), ולא סדר אלפביתי או מקרי.
+ */
+export const gradeReading = (g: ChoveretGrade) =>
+  g.chapters.flatMap((ch) => ch.items.filter((it) => !it.pageHref).map((item) => ({ chapter: ch, item })));
+
+/** השכן הקודם והבא של פריט בתוך השכבה */
+export function itemNeighbours(g: ChoveretGrade, itemId: string) {
+  const list = gradeReading(g);
+  const i = list.findIndex((e) => e.item.id === itemId);
+  return { prev: i > 0 ? list[i - 1] : undefined, next: i >= 0 && i < list.length - 1 ? list[i + 1] : undefined };
+}
+
+export const kindLabel: Record<ItemKind, string> = {
+  site: 'אתר חי',
+  doc: 'מסמך',
+  drive: 'קובץ',
+  pdf: 'PDF',
+  canva: 'מצגת',
+  flip: 'חוברת דפדוף',
+  maf: 'מתוך החוזר',
+  link: 'קישור',
+};

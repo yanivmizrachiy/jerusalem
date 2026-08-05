@@ -1,11 +1,10 @@
 ---
 /**
- * קישור עומק לעמוד בחוברת (RULES 3.29): כל משאב נשאר עם כתובת קנונית
- * לשיתוף — העמוד פותח את הספר המדפדף ישירות בעמוד הנכון.
+ * עמוד המשאב הקנוני (RULES 8.2; הוראת יניב 05/08/2026): כתובת יציבה
+ * לשיתוף לכל קובץ — המשאב מוטמע בצד אחד של המסך והפעולות בצד השני.
  */
 import Base from '../../../../layouts/Base.astro';
-import Breadcrumbs from '../../../../components/Breadcrumbs.astro';
-import Booklet from '../../../../components/Booklet.astro';
+import ResourceSplit from '../../../../components/ResourceSplit.astro';
 import { choveret, readerItems } from '../../../../data/choveret';
 
 export function getStaticPaths() {
@@ -17,32 +16,10 @@ export function getStaticPaths() {
 
 const { gradeSlug, itemId } = Astro.props;
 const grade = choveret.find((g) => g.slug === gradeSlug)!;
-const item = grade.chapters.flatMap((c) => c.items).find((i) => i.id === itemId)!;
+const chapter = grade.chapters.find((c) => c.items.some((i) => i.id === itemId))!;
+const item = chapter.items.find((i) => i.id === itemId)!;
 ---
 
 <Base title={`${item.title} — ${grade.title} — מחוז ירושלים`} description={item.note}>
-  <div class="container-wide page">
-    <Breadcrumbs
-      items={[
-        { label: 'ראשי', href: '/' },
-        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
-        { label: `כיתה ${grade.letter}`, href: `/chativat-beynayim/kita-${grade.slug}/` },
-        { label: item.title },
-      ]}
-    />
-    <h1 class="sr-only">{item.title}</h1>
-    <Booklet initial={`it-${gradeSlug}-${itemId}`} />
-  </div>
+  <ResourceSplit grade={grade} chapter={chapter} item={item} />
 </Base>
-
-<style>
-  .page { padding-block: 1.6rem 2.5rem; }
-
-  .sr-only {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
-</style>

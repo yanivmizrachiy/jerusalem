@@ -1,35 +1,14 @@
 ---
 import Base from '../../layouts/Base.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import Booklet from '../../components/Booklet.astro';
+import GradeIndex from '../../components/GradeIndex.astro';
+import { gradeBySlug } from '../../data/choveret';
+
+const grade = gradeBySlug('h')!;
 ---
 
 <Base
   title="מתמטיקה לכיתה ח׳ — מחוז ירושלים"
-  description="מתמטיקה לכיתה ח׳ בספר המדפדף: תוכן עניינים צבעוני — החוזר הרשמי, יחידת הדגל, תכנון והוראה מחוזי ועוד מהחוזר."
+  description="מתמטיקה לכיתה ח׳ במחוז ירושלים: החוזר הרשמי, יחידת הדגל ותכנון ההוראה."
 >
-  <div class="container page">
-    <Breadcrumbs
-      items={[
-        { label: 'ראשי', href: '/' },
-        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
-        { label: 'כיתה ח׳' },
-      ]}
-    />
-
-    <h1 class="sr-only">מתמטיקה לכיתה ח׳</h1>
-    <Booklet initial="toc-h" />
-  </div>
+  <GradeIndex grade={grade} />
 </Base>
-
-<style>
-  .page { padding-block: 1.6rem 2.5rem; }
-
-  .sr-only {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
-</style>
