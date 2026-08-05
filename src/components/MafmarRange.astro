@@ -40,7 +40,7 @@ const anchorId = s.id.toLowerCase();
 
   <div class="mrange-shell" data-shell>
     <iframe
-      src={`${MAFMAR_LOCAL}#page=${s.startPage}&view=FitH`}
+      src={`${MAFMAR_LOCAL}#page=${s.startPage}&toolbar=0&navpanes=0&view=FitH`}
       title={`${s.title} — מתוך חוזר מפמ״ר תשפ״ז`}
       loading="lazy"
     ></iframe>
@@ -232,6 +232,10 @@ const anchorId = s.id.toLowerCase();
     padding: 1.4rem;
   }
 
+  /* `hidden` מנצח את ה-display של המחלקה (הוראת יניב, 05/08/2026) — אחרת
+     כרטיס הפתיחה מוצג מתחת להטמעה החיה וגונב חצי עמוד */
+  .mrange-fallback[hidden] { display: none !important; }
+
   .mrange-fallback p { margin: 0; font-weight: 600; color: var(--ink-soft); }
 
   .mrange-pager {
@@ -320,7 +324,7 @@ const anchorId = s.id.toLowerCase();
     const pageUrl = () => `${location.origin}${location.pathname}#${root.id}`;
 
     const render = (reload: boolean) => {
-      if (reload) frame.src = `${LOCAL}#page=${page}&view=FitH`;
+      if (reload) frame.src = `${LOCAL}#page=${page}&toolbar=0&navpanes=0&view=FitH`;
       fbOpen.href = `${LOCAL}#page=${page}`;
       ind.textContent = `עמוד ${page - start + 1} מתוך ${end - start + 1} בטווח זה`;
       prev.disabled = page <= start;
