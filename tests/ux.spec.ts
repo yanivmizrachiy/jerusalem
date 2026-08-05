@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 
 /**
  * בדיקות הקבלה של תיקון ה-UX המלא (RULES 19.34, הוראת יניב 04–05/08/2026):
@@ -101,6 +102,29 @@ const noOverflow = async (page: Page, label: string) => {
   );
   expect(overflow, `גלילה אופקית ב-${label}`).toBeLessThanOrEqual(1);
 };
+
+test('רכיב החוברת נשמר בריפו אך אינו מיובא בשום עמוד (הוראת יניב, 4.14)', async () => {
+  // יניב ביקש לשמור את הרכיב לעת הצורך — הוא קובץ היעד של הסטודיו הפרטי.
+  // הבדיקה חוסמת מחיקה שקטה שלו, ובמקביל מוודאת שהוא באמת לא נבנה לאתר.
+  expect(existsSync('src/components/Booklet.astro'), 'Booklet.astro נשמר בריפו').toBe(true);
+  expect(readFileSync('package.json', 'utf8'), 'התלות page-flip נשמרה').toContain('page-flip');
+  const imported = ['src/pages', 'src/layouts', 'src/components']
+    .flatMap((dir) => globAstro(dir))
+    .filter((f) => !f.endsWith('Booklet.astro'))
+    .filter((f) => /from ['"][^'"]*Booklet\.astro['"]/.test(readFileSync(f, 'utf8')));
+  expect(imported, 'הרכיב אינו מיובא בשום עמוד — ולכן אינו נשלח לגולשים').toEqual([]);
+});
+
+/** כל קובצי ה-astro תחת נתיב, רקורסיבית */
+function globAstro(dir: string): string[] {
+  const out: string[] = [];
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = `${dir}/${e.name}`;
+    if (e.isDirectory()) out.push(...globAstro(p));
+    else if (e.name.endsWith('.astro')) out.push(p);
+  }
+  return out;
+}
 
 test('שער חטיבת הביניים: שלושה שלישים שווים, בלי חוברת מדפדפת (3.29, 05/08)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });

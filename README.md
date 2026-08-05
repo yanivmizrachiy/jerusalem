@@ -34,6 +34,7 @@ src/
   pages/       כל המסלולים — עמוד הבית, חטיבות, חוזר מפמ״ר, לוח, reader/[grade]/[item]
   pages/api/   פרוקסי em/ ו-mam/ להטמעת האתרים הקנוניים (allowlist קשיח בלבד)
   components/  GradeIndex, ResourceSplit, SplashIntro, SiteHeader/Footer, HeroVideo, DateBar ועוד
+               (Booklet.astro שמור ואינו מיובא בשום עמוד — RULES 4.14; אין למחוק)
   data/        התוכן כ-TypeScript מוקלד: משאבים, צוות, שכבות חט״ב, יחידות, הודעות
   layouts/     Base.astro — SEO, canonical, פונטים, RTL
   lib/         proxyGuard — משמר זמן-הריצה של ההטמעות
