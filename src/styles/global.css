@@ -450,3 +450,31 @@ a:hover { color: var(--ink); }
   a { color: #000; text-decoration: underline; }
   main a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; word-break: break-all; }
 }
+
+/* ---------- פתיחת העמוד הראשי: שום כפתור פעולה עד שהתמונה נעלמת ----------
+   (הוראת יניב, 05/08/2026): בזמן שתמונת הפתיחה על המסך לא מוצגים הניווט
+   העליון ופס "מה צפוי?" — הם נחשפים בדהייה רק אחרי שהתמונה נעלמה כליל.
+   חל על העמוד הראשי בלבד: הניווט השקוף קיים רק שם, וכך גם הפס. */
+.site-header.is-transparent .nav-list,
+.rail {
+  transition: opacity 900ms var(--ease), visibility 0s linear 900ms;
+}
+
+html:not(.hero-done) .site-header.is-transparent .nav-list,
+html:not(.hero-done) .rail {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+html.hero-done .site-header.is-transparent .nav-list,
+html.hero-done .rail {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 220ms, 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header.is-transparent .nav-list,
+  .rail { transition-duration: 1ms; }
+}

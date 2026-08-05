@@ -21,6 +21,8 @@ for (const vp of viewports) {
     for (const route of pages) {
       test(`רספונסיבי: ${route}`, async ({ page }) => {
         await page.goto(route);
+        // בעמוד הבית הניווט והפס נחשפים רק אחרי שתמונת הפתיחה נעלמה (6.3)
+        await page.evaluate(() => document.documentElement.classList.add('hero-done'));
 
         // אפס גלילה אופקית
         const overflow = await page.evaluate(

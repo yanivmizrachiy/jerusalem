@@ -655,6 +655,8 @@ test('ניווט עליון: "ישראל ריאלית" במקום "הודעות"
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
+  // הניווט נחשף רק אחרי שתמונת הפתיחה נעלמה (6.3)
+  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
 
   const nav = page.locator('#site-header .nav-list');
   await expect(nav.getByRole('link', { name: 'הודעות' })).toHaveCount(0);
@@ -765,4 +767,27 @@ test('הטמעות PDF בחוברת בלי סרגל השחור של הדפדפן
       .filter((s) => /\.pdf(\?|#|$)/i.test(s) && !s.includes('toolbar=0'))
   );
   expect(bad, 'כל PDF נטען עם toolbar=0 — המסגור הוא הזכוכית נייבי-זהב שלנו').toEqual([]);
+});
+
+test('פתיחה נקייה: אין כפתורי פעולה על המסך עד שהתמונה נעלמת (6.3, הוראת יניב 05/08)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+  await page.waitForTimeout(600);
+
+  // הניווט העליון, פס "מה צפוי?" וכפתור ההתחלה — כולם מוסתרים ולא ניתנים למיקוד
+  await expect(page.locator('.nav-list')).toBeHidden();
+  await expect(page.locator('.rail')).toBeHidden();
+  await expect(page.locator('a.start-btn')).toBeHidden();
+
+  // התמונה מכסה את כל השטח שמתחת לפס התאריך, עד תחתית המסך
+  const media = (await page.locator('#hero-media').boundingBox())!;
+  expect(media.width, 'לכל הרוחב').toBeGreaterThanOrEqual(1400);
+  expect(Math.abs(media.y + media.height - 900), 'עד תחתית המסך').toBeLessThanOrEqual(3);
+
+  // אחרי שהתמונה נעלמה — הכול נחשף
+  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
+  await expect(page.locator('.nav-list')).toBeVisible();
+  await expect(page.locator('.rail')).toBeVisible();
+  await expect(page.locator('a.start-btn')).toBeVisible();
 });
