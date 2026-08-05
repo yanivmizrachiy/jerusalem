@@ -145,15 +145,18 @@ test('לחיצה על שכבה פותחת תוכן עניינים — בלי is-
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
   await expect(page.locator('[data-exit]')).toBeHidden();
   await expect(page.locator('header nav').first()).toBeVisible();
-  // הנחיתה: עמוד תוכן העניינים של השכבה — הכותרת היא שם השכבה
-  await expect(shown(page).locator('h2.gtoc-title')).toHaveText('מתמטיקה לכיתה ז׳');
-  // מולו עמוד הפרק הראשון עם כותרת כיתה+נושא
+  // הנחיתה: כפולת המפתח של השכבה — עמוד ימין נושא את שם השכבה
+  await expect(shown(page).locator('h2.gtoc-title').first()).toHaveText('מתמטיקה לכיתה ז׳');
+  // מולו העמוד השני של אותו מפתח — "המשך" (הכפולה כולה היא תוכן העניינים)
   await expect(shown(page).locator('h2.toc-title').first()).toContainText('מתמטיקה לכיתה ז׳ —');
-  // שורת פרק בתוכן השכבה קופצת ישירות לעמוד הפרק
-  await shown(page).locator('.gtoc-row').filter({ hasText: 'תכנון והוראה' }).click();
+  // כל פרקי השכבה נמצאים על הכפולה עצמה — אין עמוד תוכן-עניינים נוסף (05/08/2026)
+  const heads = shown(page).locator('.idx-ch-name');
+  await expect(heads.filter({ hasText: 'תכנון והוראה' })).toHaveCount(1);
+  await expect(heads.filter({ hasText: 'מהחוזר הרשמי' })).toHaveCount(1);
+  // שורת קובץ במפתח קופצת ישירות לעמוד המשאב
+  await shown(page).locator('button.idx-row').first().click();
   await settle(page);
-  await expect(page).toHaveURL(/#toc-z-tichnun$/);
-  await expect(shown(page).locator('.toc-nav-chip.is-here').filter({ hasText: 'תכנון והוראה' })).toHaveCount(1);
+  await expect(page).toHaveURL(/#it-z-/);
 });
 
 test('דפדוף: מקלדת וכפתורים מעדכנים מונה ו-hash — בלי עמוד ריק (3.29)', async ({ page }) => {
@@ -169,22 +172,46 @@ test('דפדוף: מקלדת וכפתורים מעדכנים מונה ו-hash �
   expect(await counter.textContent(), 'דף קודם חוזר').toBe(before);
 });
 
-test('תוכן העניינים מחולק לעמודים אמיתיים עם כותרות כיתה ונושא (3.29)', async ({ page }) => {
+test('מפתח השכבה מרוכז בכפולה אחת — שני עמודים בדיוק לכל שכבה (3.29)', async ({ page }) => {
   await page.goto('/chativat-beynayim/');
-  const tocPages = page.locator('.bp-toc');
-  const count = await tocPages.count();
-  expect(count, 'עמוד לכל פרק — לא עמוד אחד ארוך לשכבה').toBeGreaterThanOrEqual(10);
-  for (let i = 0; i < count; i++) {
-    const h2 = tocPages.nth(i).locator('h2.toc-title');
-    await expect(h2).toHaveCount(1);
-    await expect(h2).toContainText(/(מתמטיקה לכיתה [זחט]׳|משותף לכל השכבות) — /);
+  // אין יותר עמוד תוכן-עניינים לכל פרק
+  await expect(page.locator('.bp-toc')).toHaveCount(0);
+  const grades = ['z', 'h', 't', 'klali'];
+  for (const g of grades) {
+    const pair = page.locator(`.bp-gtoc[data-page="toc-${g}"], .bp-gtoc[data-page="toc-${g}-2"]`);
+    await expect(pair, `שכבה ${g}: שני עמודי מפתח בדיוק`).toHaveCount(2);
+    // שני העמודים יחד מכילים את כל הפרקים ואת כל הקבצים של השכבה
+    await expect(pair.locator('.idx-ch'), `שכבה ${g}: יש פרקים במפתח`).not.toHaveCount(0);
+    await expect(pair.locator('.idx-row'), `שכבה ${g}: יש שורות קבצים`).not.toHaveCount(0);
+    // כל עמוד נושא כותרת מזוהה
+    await expect(pair.locator('h2')).toHaveCount(2);
+  }
+  // סך עמודי המפתח בספר: 2 לכל שכבה
+  await expect(page.locator('.bp-gtoc')).toHaveCount(grades.length * 2);
+});
+
+test('אף עמוד מפתח אינו גולש — הכול נכנס בכפולה (3.29)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const g of ['z', 'h', 't', 'klali']) {
+    await page.goto(`/chativat-beynayim/#toc-${g}`);
+    await settle(page);
+    const overflowing = await page.evaluate(() =>
+      [...document.querySelectorAll('.bp-gtoc')]
+        .map((p) => {
+          const l = p.querySelector<HTMLElement>('.idx');
+          if (!l || l.clientHeight === 0) return null;
+          return l.scrollHeight > l.clientHeight + 4 ? (p as HTMLElement).dataset.page : null;
+        })
+        .filter(Boolean)
+    );
+    expect(overflowing, `שכבה ${g}: אין עמוד מפתח שגולש`).toEqual([]);
   }
 });
 
 test('פתיחת משאב: is-full, הטמעה בדף הימני, Escape וחזרה לפרק (3.29)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await openToc(page);
-  await shown(page).locator('button.toc-item').first().click();
+  await shown(page).locator('button.idx-row').first().click();
   await settle(page);
   // מצב עבודה מלא
   await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
@@ -203,7 +230,7 @@ test('פתיחת משאב: is-full, הטמעה בדף הימני, Escape וחז�
   await expect(page.locator('.book-shell.is-full')).toHaveCount(0);
   await expect(exit).toBeHidden();
   // Escape יוצא גם הוא
-  await shown(page).locator('button.toc-item').first().click();
+  await shown(page).locator('button.idx-row').first().click();
   await expect(page.locator('.book-shell.is-full')).toHaveCount(1);
   await page.keyboard.press('Escape');
   await settle(page);

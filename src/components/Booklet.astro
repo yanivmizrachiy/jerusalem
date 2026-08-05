@@ -21,7 +21,7 @@ import MafmarRange from './MafmarRange.astro';
 import { choveret } from '../data/choveret';
 
 interface Props {
-  /** מזהה העמוד הפותח: rashi / toc-z-hozer / it-z-maf-02 ... */
+  /** מזהה העמוד הפותח: rashi / toc-z / toc-z-2 / it-z-maf-02 ... */
   initial?: string;
 }
 
@@ -48,12 +48,48 @@ interface PageDef {
  * לכל שכבה: עמודי הפרקים, דף ריק אם מספרם אי-זוגי, ואז זוגות המשאבים.
  * דף אחרון: כריכה אחורית — הסך הכולל זוגי וכל spread מיושר.
  */
+/**
+ * מפתח השכבה — כפולה אחת בלבד (הוראת יניב, 05/08/2026):
+ * כל הפרקים וכל הקבצים של השכבה מרוכזים בשני עמודים נגדיים, כמו מפתח
+ * בספר אמיתי. הפרקים נשמרים שלמים ומחולקים בין שני העמודים לפי מניין
+ * השורות (כותרת פרק + קבציו), כך ששני העמודים מאוזנים ואין גלילה.
+ */
+const tocSplit = (g: (typeof choveret)[number]) => {
+  const chs = g.chapters;
+  const rows = (ch: (typeof chs)[number]) => 1 + ch.items.length;
+  const total = chs.reduce((n, ch) => n + rows(ch), 0);
+
+  // שכבה בעלת פרק יחיד: מפצלים את קבציו בין שני העמודים, והכותרת חוזרת כ"המשך"
+  if (chs.length < 2) {
+    const ch = chs[0];
+    if (!ch) return [[], []] as const;
+    const mid = Math.ceil(ch.items.length / 2);
+    return [
+      [{ ...ch, items: ch.items.slice(0, mid) }],
+      [{ ...ch, title: `${ch.title} (המשך)`, items: ch.items.slice(mid) }],
+    ] as const;
+  }
+
+  // גבול הפרקים שממזער את הפער בין שני העמודים — כמו מפתח בספר מודפס
+  let best = 1;
+  let bestGap = Infinity;
+  let acc = 0;
+  for (let k = 0; k < chs.length - 1; k++) {
+    acc += rows(chs[k]);
+    const gap = Math.abs(acc - (total - acc));
+    if (gap < bestGap) {
+      bestGap = gap;
+      best = k + 1;
+    }
+  }
+  return [chs.slice(0, best), chs.slice(best)] as const;
+};
+
 const pages: PageDef[] = [{ id: 'rashi', label: 'ראשי' }];
 for (const g of choveret) {
-  // עמוד תוכן העניינים של השכבה — הכותרת היא שם השכבה (הוראת יניב, 04/08/2026)
+  // מפתח השכבה — שני עמודים בדיוק, כפולה אחת (הוראת יניב, 05/08/2026)
   pages.push({ id: `toc-${g.slug}`, label: g.title });
-  for (const ch of g.chapters) pages.push({ id: `toc-${g.slug}-${ch.id}`, label: `${g.title} — ${ch.title}` });
-  if (g.chapters.length % 2 === 0) pages.push({ id: `blank-${g.slug}`, label: '' });
+  pages.push({ id: `toc-${g.slug}-2`, label: `${g.title} — המשך` });
   for (const ch of g.chapters)
     for (const it of ch.items)
       if (!it.pageHref) {
@@ -67,6 +103,9 @@ const total = pages.length;
 const pageNum = (id: string) => pages.findIndex((p) => p.id === id) + 1;
 /** תוכן העניינים של השכבה — היעד של שורות השער ולשוניות הקפיצה */
 const firstToc = (slug: string) => `toc-${slug}`;
+/** עמוד המפתח שבו יושב הפרק — יעד החזרה ממשאב (data-toc) */
+const tocPageOf = (g: (typeof choveret)[number], chId: string) =>
+  tocSplit(g)[1].some((c) => c.id === chId) ? `toc-${g.slug}-2` : `toc-${g.slug}`;
 /** צד הדף בפריסה: אינדקס אי-זוגי = דף ימין, זוגי = דף שמאל (השער והכריכה בודדים) */
 const folioSide = (id: string) => (pageNum(id) % 2 === 0 ? 'folio-r' : 'folio-l');
 
@@ -193,102 +232,55 @@ const embedOrigins = [
       {
         choveret.map((g) => (
           <>
-            <!-- תוכן העניינים של השכבה — הכותרת היא שם השכבה (הוראת יניב, 04/08/2026) -->
-            <section
-              class:list={['bpage', 'bp-gtoc', folioSide(`toc-${g.slug}`)]}
-              data-page={`toc-${g.slug}`}
-              data-n={pageNum(`toc-${g.slug}`)}
-            >
-              <div class="page-face" style={`--g-color:${g.color}; --g-dark:${g.dark}`}>
-                <header class="gtoc-head">
-                  <h2 class="gtoc-title">{g.title}</h2>
-                  <p class="gtoc-sub">תוכן העניינים</p>
-                </header>
-                <ol class="gtoc-rows">
-                  {g.chapters.map((ch) => (
-                    <li>
-                      <button
-                        class="gtoc-row"
-                        type="button"
-                        data-jump={`toc-${g.slug}-${ch.id}`}
-                        style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}
-                      >
-                        <span class="gtoc-name">{ch.title}</span>
-                        <span class="gtoc-count">{ch.items.length} קבצים</span>
-                        <span class="gtoc-dots" aria-hidden="true"></span>
-                        <span class="gtoc-pnum">עמוד {pageNum(`toc-${g.slug}-${ch.id}`)}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ol>
-                <span class="folio" aria-hidden="true">{pageNum(`toc-${g.slug}`)}</span>
-              </div>
-            </section>
-
-            {g.chapters.map((ch) => (
-              <section
-                class:list={['bpage', 'bp-toc', folioSide(`toc-${g.slug}-${ch.id}`)]}
-                data-page={`toc-${g.slug}-${ch.id}`}
-                data-n={pageNum(`toc-${g.slug}-${ch.id}`)}
-              >
-                <!-- משתני הצבע על ה-face — המנוע דורס את ה-style של הדף עצמו -->
-                <div class="page-face" style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}>
-                  <header class="toc-head">
-                    <h2 class="toc-title">
-                      {g.title} — {ch.title}
-                    </h2>
-                  </header>
-                  {g.chapters.length > 1 && (
-                    <nav class="toc-nav" aria-label={`תוכן העניינים של ${g.title}`}>
-                      {g.chapters.map((c) => (
-                        <button
-                          type="button"
-                          class:list={['toc-nav-chip', { 'is-here': c.id === ch.id }]}
-                          style={`--nc:${c.color}; --nd:${c.dark}`}
-                          data-jump={`toc-${g.slug}-${c.id}`}
-                          aria-current={c.id === ch.id ? 'page' : undefined}
-                        >
-                          {c.title}
-                          <b>{pageNum(`toc-${g.slug}-${c.id}`)}</b>
-                        </button>
+            <!-- מפתח השכבה — כפולה אחת: כל הפרקים וכל הקבצים (הוראת יניב, 05/08/2026) -->
+            {tocSplit(g).map((part, side) => {
+              const pid = side === 0 ? `toc-${g.slug}` : `toc-${g.slug}-2`;
+              return (
+                <section class:list={['bpage', 'bp-gtoc', folioSide(pid)]} data-page={pid} data-n={pageNum(pid)}>
+                  <div class="page-face" style={`--g-color:${g.color}; --g-dark:${g.dark}`}>
+                    <header class="gtoc-head">
+                      <h2 class:list={['gtoc-title', { 'toc-title': side === 1 }]}>
+                        {side === 0 ? g.title : `${g.title} — המשך`}
+                      </h2>
+                      <p class="gtoc-sub">תוכן העניינים</p>
+                    </header>
+                    <div class="idx">
+                      {part.map((ch) => (
+                        <section class="idx-ch" style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}>
+                          <h3 class="idx-ch-head">
+                            <span class="idx-ch-name">{ch.title}</span>
+                            <span class="idx-ch-count">{ch.items.length} קבצים</span>
+                          </h3>
+                          <ol class="idx-rows">
+                            {ch.items.map((item) => (
+                              <li>
+                                {item.pageHref ? (
+                                  <a class="idx-row" href={item.pageHref}>
+                                    <span class="idx-name">{item.title}</span>
+                                    <span class="idx-dots" aria-hidden="true" />
+                                    <span class="idx-pnum idx-pnum-ext" aria-hidden="true">
+                                      ↗
+                                    </span>
+                                  </a>
+                                ) : (
+                                  <button class="idx-row" type="button" data-jump={`it-${g.slug}-${item.id}`}>
+                                    <span class="idx-name">{item.title}</span>
+                                    <span class="idx-dots" aria-hidden="true" />
+                                    <span class="idx-pnum">{pageNum(`it-${g.slug}-${item.id}`)}</span>
+                                  </button>
+                                )}
+                              </li>
+                            ))}
+                          </ol>
+                        </section>
                       ))}
-                    </nav>
-                  )}
-                  <ol class="toc-list gtoc-rows">
-                    {ch.items.map((item) => (
-                      <li>
-                        {item.pageHref ? (
-                          <a class="toc-item gtoc-row" href={item.pageHref}>
-                            <span class="gtoc-name">{item.title}</span>
-                            <span class="gtoc-dots" aria-hidden="true"></span>
-                            <span class="gtoc-pnum gtoc-pnum-ext" aria-hidden="true">↗</span>
-                          </a>
-                        ) : (
-                          <button class="toc-item gtoc-row" type="button" data-jump={`it-${g.slug}-${item.id}`}>
-                            <span class="gtoc-name">{item.title}</span>
-                            <span class="gtoc-dots" aria-hidden="true"></span>
-                            <span class="gtoc-pnum">עמוד {pageNum(`it-${g.slug}-${item.id}`)}</span>
-                          </button>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                  <span class="folio" aria-hidden="true">{pageNum(`toc-${g.slug}-${ch.id}`)}</span>
-                </div>
-              </section>
-            ))}
+                    </div>
+                    <span class="folio" aria-hidden="true">{pageNum(pid)}</span>
+                  </div>
+                </section>
+              );
+            })}
 
-            {g.chapters.length % 2 === 0 && (
-              <section
-                class:list={['bpage', 'bp-blank', folioSide(`blank-${g.slug}`)]}
-                data-page={`blank-${g.slug}`}
-                data-n={pageNum(`blank-${g.slug}`)}
-              >
-                <div class="page-face">
-                  <span class="folio" aria-hidden="true">{pageNum(`blank-${g.slug}`)}</span>
-                </div>
-              </section>
-            )}
 
             {g.chapters.map((ch) =>
               ch.items
@@ -300,7 +292,7 @@ const embedOrigins = [
                       data-page={`it-${g.slug}-${item.id}`}
                       data-n={pageNum(`it-${g.slug}-${item.id}`)}
                       data-kind={item.kind}
-                      data-toc={`toc-${g.slug}-${ch.id}`}
+                      data-toc={tocPageOf(g, ch.id)}
                     >
                       <div class="page-face" style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}>
                         <div class="item-embed">
@@ -343,7 +335,7 @@ const embedOrigins = [
                       class:list={['bpage', 'bp-item', 'bp-item-info', folioSide(`it-${g.slug}-${item.id}-info`)]}
                       data-page={`it-${g.slug}-${item.id}-info`}
                       data-n={pageNum(`it-${g.slug}-${item.id}-info`)}
-                      data-toc={`toc-${g.slug}-${ch.id}`}
+                      data-toc={tocPageOf(g, ch.id)}
                     >
                       <div class="page-face" style={`--ch-color:${ch.color}; --ch-dark:${ch.dark}`}>
                         <aside class="item-info">
@@ -881,81 +873,96 @@ const embedOrigins = [
     white-space: nowrap;
   }
 
-  /* ===== תוכן עניינים — עמוד לפרק ===== */
-  .bp-toc .page-face { gap: 0.75rem; }
 
-  .toc-head { flex: none; text-align: center; }
-
-  /* כותרת הפרק — אותו עיצוב אלגנטי של עמוד השכבה: כותרת ממורכזת בצבע
-     הפרק וקו-הדגשה מתחתיה (במקום באנר מלא) */
-  .toc-title {
-    margin: 0;
-    font-size: clamp(1.35rem, 2.4vw, 2rem);
-    line-height: 1.25;
-    color: var(--ch-dark);
-  }
-
-  .toc-head::after {
-    content: '';
-    display: block;
-    inline-size: 100%;
-    block-size: 2px;
-    margin-block-start: 0.7rem;
-    background: linear-gradient(90deg, transparent, var(--ch-color, var(--gold)), transparent);
-  }
-
-  .toc-nav {
-    flex: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .toc-nav-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    min-block-size: 36px;
-    padding: 0.25rem 0.8rem;
-    border-radius: 999px;
-    border: 1.5px solid color-mix(in srgb, var(--nc) 55%, #fff);
-    background: color-mix(in srgb, var(--nc) 7%, #fff);
-    color: var(--nd);
-    font: inherit;
-    font-size: 0.86rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 250ms var(--ease), transform 250ms var(--ease);
-  }
-
-  .toc-nav-chip:hover { background: color-mix(in srgb, var(--nc) 16%, #fff); transform: translateY(-2px); }
-
-  .toc-nav-chip.is-here {
-    background: linear-gradient(120deg, var(--nc), color-mix(in srgb, var(--nc) 72%, #000));
-    border-color: var(--nc);
-    color: #fff;
-    cursor: default;
-  }
-
-  .toc-nav-chip b { font-variant-numeric: tabular-nums; font-weight: 800; opacity: 0.9; }
-
-  /* רשימת הפריטים — היררכיה קריאה, בלי גלילה כברירת מחדל */
-  .toc-list {
-    list-style: none;
-    margin: 0;
-    padding: 0 0 1.4rem;
+  /* ===== מפתח השכבה — כפולה אחת, כל הפרקים והקבצים (הוראת יניב 05/08/2026) ===== */
+  .idx {
     flex: 1;
     min-block-size: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1.1vh, 0.95rem);
+    padding-block-end: 1.4rem;
     overflow: hidden;
   }
 
-  /* גלילה פנימית רק כשהתוכן באמת אינו נכנס — המנוע מסמן בזמן ריצה */
-  .bp-toc.can-scroll .toc-list { overflow-y: auto; overscroll-behavior: contain; }
+  /* כותרת פרק — כמו כותרת-ביניים במפתח של ספר: שם בצבע הפרק, מניין הקבצים
+     בצדו וקו-שיער עדין שמפריד מהשורות שמתחתיו */
+  .idx-ch-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0 0 0.25rem;
+    padding-block-end: 0.2rem;
+    border-block-end: 1px solid color-mix(in srgb, var(--ch-color) 35%, transparent);
+    font-size: clamp(0.92rem, 1.5vw, 1.06rem);
+    font-weight: 800;
+    color: var(--ch-dark);
+  }
 
-  /* שורות הפריטים משתמשות בעיצוב שורות עמוד-השכבה (.gtoc-row/.gtoc-name/
-     .gtoc-dots/.gtoc-pnum) — שם צבעוני, מובילי נקודות ומספר עמוד; כך כל
-     עמודי התוכן אחידים כמו עמוד השכבה (הוראת יניב, 05/08/2026) */
+  /* גלילה פנימית רק אם התוכן באמת אינו נכנס — המנוע מסמן בזמן ריצה */
+  .bp-gtoc.can-scroll .idx { overflow-y: auto; overscroll-behavior: contain; }
+
+  .idx-ch-name { white-space: nowrap; }
+
+  .idx-ch-count {
+    font-size: 0.76em;
+    font-weight: 700;
+    color: color-mix(in srgb, var(--ch-dark) 70%, #fff);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .idx-rows { list-style: none; margin: 0; padding: 0; }
+
+  /* שורת קובץ — שם, מובילי נקודות ומספר עמוד; מטרת מגע ≥44px בנייד */
+  .idx-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    inline-size: 100%;
+    min-block-size: 30px;
+    padding: 0.16rem 0.3rem 0.16rem 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: clamp(0.84rem, 1.35vw, 0.97rem);
+    color: var(--ink);
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 7px;
+    transition: background-color 200ms var(--ease), color 200ms var(--ease);
+  }
+
+  .idx-row:hover { background: color-mix(in srgb, var(--ch-color) 9%, transparent); color: var(--ch-dark); }
+  .idx-row:focus-visible { outline: 2px solid var(--ch-color); outline-offset: 2px; }
+
+  .idx-name { flex: 0 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .idx-dots {
+    flex: 1 1 auto;
+    min-inline-size: 1.2rem;
+    align-self: center;
+    border-block-end: 1.5px dotted color-mix(in srgb, var(--ch-color) 45%, transparent);
+    transform: translateY(-2px);
+  }
+
+  .idx-pnum {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    color: var(--ch-dark);
+  }
+
+  .idx-pnum-ext { font-size: 1.1em; line-height: 1; }
+
+  /* במסך צר המפתח נושם: שורות מעט נמוכות יותר ומטרת מגע נשמרת */
+  @media (max-width: 900px) {
+    .idx-row { min-block-size: 44px; font-size: 0.95rem; }
+    .idx { gap: 0.75rem; }
+  }
+
   .gtoc-pnum-ext { font-size: 1.15em; line-height: 1; }
+
 
   /* ===== עמודי משאב — זוג אמיתי: הטמעה מימין, מידע משמאל ===== */
   .bp-item .page-face { border-block-start: 6px solid var(--ch-color); }
@@ -1299,10 +1306,10 @@ const embedOrigins = [
       );
     };
 
-    /* גלילה פנימית רק כשבאמת צריך: המנוע מסמן עמודי תוכן שגולשים */
+    /* גלילה פנימית רק כשבאמת צריך: המנוע מסמן עמודי מפתח שגולשים */
     const markScrollable = () => {
-      shell.querySelectorAll<HTMLElement>('.bp-toc').forEach((p) => {
-        const list = p.querySelector<HTMLElement>('.toc-list');
+      shell.querySelectorAll<HTMLElement>('.bp-gtoc').forEach((p) => {
+        const list = p.querySelector<HTMLElement>('.idx');
         if (list) p.classList.toggle('can-scroll', list.scrollHeight > list.clientHeight + 4);
       });
     };
@@ -1494,7 +1501,12 @@ const embedOrigins = [
 
     const norm = (h: string) => {
       if (h === 'cover') return 'rashi';
-      if (!ids.includes(h) && /^toc-[a-z]+$/.test(h)) return ids.find((id) => id.startsWith(`${h}-`)) ?? h;
+      if (ids.includes(h)) return h;
+      if (/^toc-[a-z]+$/.test(h)) return ids.find((id) => id.startsWith(`${h}-`)) ?? h;
+      /* קישור עומק ישן לעמוד פרק (למשל toc-z-hozer) — המפתח מרוכז בכפולה
+         אחת, ולכן הוא מפנה למפתח השכבה במקום למות בשקט (05/08/2026) */
+      const m = /^(toc-[a-z]+)-/.exec(h);
+      if (m && ids.includes(m[1])) return m[1];
       return h;
     };
 
