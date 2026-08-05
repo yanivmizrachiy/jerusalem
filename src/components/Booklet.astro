@@ -239,8 +239,20 @@ const embedOrigins = [
             <!-- מפתח השכבה — כפולה אחת: כל הפרקים וכל הקבצים (הוראת יניב, 05/08/2026) -->
             {tocSplit(g).map((part, side) => {
               const pid = side === 0 ? `toc-${g.slug}` : `toc-${g.slug}-2`;
+              /* צפיפות המפתח נגזרת ממספר השורות בעמוד: שכבה עשירה בקבצים
+                 מתהדקת כדי שהמפתח יישאר כפולה אחת בדיוק (RULES 3.29) */
+              const rows = part.reduce((n, ch) => n + ch.items.length + 1, 0);
               return (
-                <section class:list={['bpage', 'bp-gtoc', folioSide(pid)]} data-page={pid} data-n={pageNum(pid)}>
+                <section
+                  class:list={[
+                    'bpage',
+                    'bp-gtoc',
+                    folioSide(pid),
+                    { 'is-dense': rows > 15, 'is-xdense': rows > 19 },
+                  ]}
+                  data-page={pid}
+                  data-n={pageNum(pid)}
+                >
                   <div class="page-face" style={`--g-color:${g.color}; --g-dark:${g.dark}`}>
                     <header class="gtoc-head">
                       <h2 class:list={['gtoc-title', { 'toc-title': side === 1 }]}>
@@ -346,6 +358,8 @@ const embedOrigins = [
                           <p class="item-chapter">{ch.title} · {g.slug === 'klali' ? 'כללי' : `כיתה ${g.letter}`}</p>
                           <h2 class="item-title">{item.title}</h2>
                           {item.note && <p class="item-note">{item.note}</p>}
+                          {/* ייחוס מקור אחיד לכל חומר שנשאב מחוזר המפמ״ר (RULES 9.3.21) */}
+                          {item.source && <p class="item-source">{item.source}</p>}
                           <p class="item-kind">{kindLabel[item.kind]}</p>
                           <div class="item-actions" role="group" aria-label="פעולות">
                             {item.download && (
@@ -906,6 +920,16 @@ const embedOrigins = [
   /* גלילה פנימית רק אם התוכן באמת אינו נכנס — המנוע מסמן בזמן ריצה */
   .bp-gtoc.can-scroll .idx { overflow-y: auto; overscroll-behavior: contain; }
 
+  /* ===== צפיפות מסתגלת: שכבה עם הרבה קבצים מתהדקת כדי שהמפתח יישאר
+     כפולה אחת בדיוק, בלי לוותר על אף שורה ובלי scrollbar (RULES 3.29) ===== */
+  .bp-gtoc.is-dense .idx { gap: clamp(0.35rem, 0.7vh, 0.6rem); padding-block-end: 1rem; }
+  .bp-gtoc.is-dense .idx-ch-head { margin-block-end: 0.1rem; padding-block-end: 0.12rem; font-size: clamp(0.86rem, 1.3vw, 0.98rem); }
+  .bp-gtoc.is-dense .idx-row { min-block-size: 26px; padding-block: 0.1rem; font-size: clamp(0.8rem, 1.2vw, 0.92rem); }
+
+  .bp-gtoc.is-xdense .idx { gap: clamp(0.25rem, 0.5vh, 0.45rem); padding-block-end: 0.7rem; }
+  .bp-gtoc.is-xdense .idx-ch-head { margin-block-end: 0.06rem; padding-block-end: 0.08rem; font-size: clamp(0.82rem, 1.2vw, 0.93rem); }
+  .bp-gtoc.is-xdense .idx-row { min-block-size: 23px; padding-block: 0.06rem; font-size: clamp(0.76rem, 1.1vw, 0.87rem); }
+
   .idx-ch-name { white-space: nowrap; }
 
   .idx-ch-count {
@@ -1019,6 +1043,17 @@ const embedOrigins = [
   .item-chapter { margin: 0 0 0.3rem; font-size: 0.82rem; font-weight: 800; color: var(--ch-dark); }
   .item-title { margin: 0 0 0.4rem; font-size: clamp(1.2rem, 2vw, 1.55rem); }
   .item-note { margin: 0 0 0.6rem; color: var(--ink-soft); line-height: 1.55; }
+
+  /* ייחוס המקור — שורה מרוסנת ואחידה, עם חוט זהב מפריד (RULES 9.3.21) */
+  .item-source {
+    margin: 0 0 0.7rem;
+    padding-inline-start: 0.6rem;
+    border-inline-start: 3px solid var(--gold);
+    color: var(--ink-soft);
+    font-size: 0.84rem;
+    font-weight: 700;
+    line-height: 1.45;
+  }
 
   .item-kind {
     display: inline-block;

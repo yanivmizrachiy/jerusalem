@@ -25,6 +25,11 @@ export interface ChoveretItem {
   pageHref?: string;
   /** למקטעי חוזר: מזהה MAF */
   maf?: string;
+  /**
+   * ייחוס מקור אחיד ומחייב (RULES 9.3.21): כל פריט שנשאב מחוזר המפמ״ר נושא
+   * את הנוסח "מתוך חוזר מפמ״ר תשפ״ז, עמ׳ N" — אותו נוסח בכל השכבות.
+   */
+  source?: string;
 }
 
 export interface ChoveretChapter {
@@ -97,7 +102,14 @@ const folder = (id: string, folderId: string, title: string, note: string): Chov
  * וההורדה מוגשות מעותק same-origin מאומת ב-/docs/ (RULES 8.26, 9.8).
  */
 const TASHPAZ = 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz';
-const gov = (id: string, remote: string, local: string, title: string, note: string): ChoveretItem => ({
+const gov = (
+  id: string,
+  remote: string,
+  local: string,
+  title: string,
+  note: string,
+  source = 'מתוך קובץ התוכניות והפריסות הרשמי שאליו מפנה חוזר מפמ״ר תשפ״ז, עמ׳ 3'
+): ChoveretItem => ({
   id,
   title,
   note,
@@ -105,6 +117,7 @@ const gov = (id: string, remote: string, local: string, title: string, note: str
   embed: `${local}#view=FitH`,
   download: local,
   kind: 'pdf',
+  source,
 });
 const maf = (id: string, sectionId: string, note: string): ChoveretItem => {
   const s = mafmarSections.find((x) => x.id === sectionId)!;
@@ -126,6 +139,50 @@ const hozerAnchor = (id: string, mafId: string, title: string): ChoveretItem => 
   url: `/hozer-mafmar/#${mafId}`,
   kind: 'link',
   pageHref: `/hozer-mafmar/#${mafId}`,
+});
+
+/* ===== חומרי חוזר מפמ״ר תשפ״ז — נשאבו מהמסמך עצמו (RULES 9.3.21–9.3.24) =====
+ * הקישורים חולצו מ-annotations של ה-PDF הרשמי (לא מטקסט מרונדר ולא מניחוש),
+ * כל אחד שויך לעמוד ולעוגן שלו במסמך, וכולם נבדקו חיים ב-05/08/2026:
+ * 200, סוג תוכן אמיתי, ומדיניות המסגור נבדקה לפני כל החלטת הטמעה. */
+
+/** ייחוס אחיד — אותו נוסח בכל השכבות, עם עמוד המקור המדויק בחוזר */
+const hz = (page: number) => `מתוך חוזר מפמ״ר תשפ״ז, עמ׳ ${page}`;
+
+/** מסמך רשמי שהחוזר מקשר אליו — אומת: 200, ‏%PDF אמיתי, בלי XFO/CSP חוסמים */
+const hozerPdf = (id: string, url: string, title: string, note: string, page: number): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url,
+  embed: url,
+  download: url,
+  kind: 'pdf',
+  source: hz(page),
+});
+
+/** אתר חי שהחוזר מקשר אליו ואומת כניתן להטמעה (בלי X-Frame-Options/CSP) */
+const hozerSite = (id: string, url: string, title: string, note: string, page: number): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url,
+  embed: url,
+  kind: 'site',
+  source: hz(page),
+});
+
+/**
+ * יעד שהחוזר מקשר אליו אך חוסם הטמעה (‏X-Frame-Options/CSP) — כרטיס פתיחה
+ * אמיתי ולא מסגרת ריקה (RULES 8.8, 8.26).
+ */
+const hozerLink = (id: string, url: string, title: string, note: string, page: number): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url,
+  kind: 'link',
+  source: hz(page),
 });
 
 const siteItems: ChoveretItem[] = [...grade7Resources]
@@ -152,7 +209,27 @@ export const choveret: ChoveretGrade[] = [
         title: 'מהחוזר הרשמי',
         color: '#d90429',
         dark: '#b3001b',
-        items: [maf('maf-02', 'MAF-02', '')],
+        items: [
+          maf('maf-02', 'MAF-02', ''),
+          hozerLink(
+            'tochnit-limudim-z',
+            'https://pop.education.gov.il/tchumey_daat/matmatika/chativat-beynayim/teaching-mathematics/tohnit-limudim/',
+            'תוכנית הלימודים המעודכנת ז׳–ח׳',
+            'עדכון תוכנית הלימודים לכיתות ז׳ ו-ח׳ פורסם במרחב הפדגוגי; בתשפ״ז כל תלמידי ז׳ לומדים לפיו.',
+            3
+          ),
+          gov(
+            'prisot-pdf',
+            'plan%26prisa.pdf',
+            '/docs/plan-prisa-tashpaz.pdf',
+            'פריסות ההוראה תשפ״ז',
+            'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳. החוזר מבקש לשמור את הקישור ולא להוריד כקובץ — חומרי הוראה יתווספו לפריסות במהלך השנה.',
+            hz(3)
+          ),
+          hozerAnchor('maf-05-z', 'MAF-05', 'משימות הערכה ומבחן מפמ״ר ז׳'),
+          hozerAnchor('maf-06-z', 'MAF-06', 'Moodle — הפלטפורמה המחייבת בז׳'),
+          hozerAnchor('maf-08-z', 'MAF-08', 'ספרי הלימוד החדשים'),
+        ],
       },
       {
         id: 'sites',
@@ -190,18 +267,6 @@ export const choveret: ChoveretGrade[] = [
           canva('mechuvanim-tavnit', 'https://www.canva.com/design/DAF4MgAMjRg/e6QN_h0zEVqOJPtRQjyJHw/edit', 'פעולות במספרים מכוונים — תבנית', 'תבנית עבודה לפעולות במספרים מכוונים.'),
         ],
       },
-      {
-        id: 'od',
-        title: 'עוד בחוזר על ז׳ וחט״ב',
-        color: '#7c3aed',
-        dark: '#6d28d9',
-        items: [
-          gov('prisot-pdf', 'plan%26prisa.pdf', '/docs/plan-prisa-tashpaz.pdf', 'פריסות ההוראה תשפ״ז', 'טבלת התוכניות והפריסות הרשמית (החוזר, עמ׳ 3); פריסות עמ״ט יתווספו בה במהלך השנה.'),
-          hozerAnchor('maf-05-z', 'MAF-05', 'אירועי הערכה ומבחנים בחט״ב'),
-          hozerAnchor('maf-06-z', 'MAF-06', 'Moodle ולמידה דיגיטלית'),
-          hozerAnchor('maf-08-z', 'MAF-08', 'חומרי למידה וספרי לימוד'),
-        ],
-      },
     ],
   },
   {
@@ -216,7 +281,27 @@ export const choveret: ChoveretGrade[] = [
         title: 'מהחוזר הרשמי',
         color: '#d90429',
         dark: '#b3001b',
-        items: [maf('maf-03', 'MAF-03', '')],
+        items: [
+          maf('maf-03', 'MAF-03', ''),
+          hozerLink(
+            'tochnit-limudim-h',
+            'https://pop.education.gov.il/tchumey_daat/matmatika/chativat-beynayim/teaching-mathematics/tohnit-limudim/',
+            'תוכנית הלימודים המעודכנת ז׳–ח׳',
+            'עדכון תוכנית הלימודים לכיתות ז׳ ו-ח׳ פורסם במרחב הפדגוגי; כיתה ח׳ לומדת לפי פריסה ארצית מיוחדת המותאמת לו.',
+            3
+          ),
+          gov(
+            'prisot-pdf-h',
+            'plan%26prisa.pdf',
+            '/docs/plan-prisa-tashpaz.pdf',
+            'פריסות ההוראה תשפ״ז',
+            'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳. החוזר מבקש לשמור את הקישור ולא להוריד כקובץ — חומרי הוראה יתווספו לפריסות במהלך השנה.',
+            hz(3)
+          ),
+          hozerAnchor('maf-05-h', 'MAF-05', 'משימות הערכה ומבחן מפמ״ר ח׳'),
+          hozerAnchor('maf-06-h', 'MAF-06', 'Moodle — הפלטפורמה המחייבת בח׳'),
+          hozerAnchor('maf-09-h', 'MAF-09', 'חלוקה לרמות והדרכה'),
+        ],
       },
       {
         id: 'unit',
@@ -263,18 +348,6 @@ export const choveret: ChoveretGrade[] = [
           canva('dema', 'https://www.canva.com/design/DAGZcMbg0x8/WM5X1ydiUJ4XtX2Z9Sh9cA/view', 'מבחני דמה למהלך השנה', 'אוסף מבחני דמה מוכנים לשימוש.'),
         ],
       },
-      {
-        id: 'od',
-        title: 'עוד בחוזר על ח׳ וחט״ב',
-        color: '#7c3aed',
-        dark: '#6d28d9',
-        items: [
-          gov('prisot-pdf-h', 'plan%26prisa.pdf', '/docs/plan-prisa-tashpaz.pdf', 'פריסות ההוראה תשפ״ז', 'טבלת התוכניות והפריסות הרשמית (החוזר, עמ׳ 3); פריסות עמ״ט יתווספו בה במהלך השנה.'),
-          hozerAnchor('maf-05-h', 'MAF-05', 'אירועי הערכה ומבחני מפמ״ר'),
-          hozerAnchor('maf-06-h', 'MAF-06', 'Moodle ולמידה דיגיטלית'),
-          hozerAnchor('maf-09-h', 'MAF-09', 'חלוקה לרמות והדרכה'),
-        ],
-      },
     ],
   },
   {
@@ -292,6 +365,23 @@ export const choveret: ChoveretGrade[] = [
         items: [
           maf('maf-04', 'MAF-04', ''),
           maf('maf-10', 'MAF-10', ''),
+          hozerPdf(
+            'tochnit-limudim-t',
+            'https://meyda.education.gov.il/files/Curriculum/math_7_9.pdf',
+            'תוכנית הלימודים ז׳–ט׳ (לפני העדכון)',
+            'בתשפ״ז תלמידי כיתה ט׳ לומדים על פי תוכנית הלימודים שלפני העדכון — זהו המסמך המחייב עבורם.',
+            3
+          ),
+          gov(
+            'prisot-pdf-t',
+            'plan%26prisa.pdf',
+            '/docs/plan-prisa-tashpaz.pdf',
+            'פריסות ההוראה תשפ״ז',
+            'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳. החוזר מבקש לשמור את הקישור ולא להוריד כקובץ — חומרי הוראה יתווספו לפריסות במהלך השנה.',
+            hz(3)
+          ),
+          hozerAnchor('maf-05-t', 'MAF-05', 'מבחן תנופה והערכה בחט״ב'),
+          hozerAnchor('maf-06-t', 'MAF-06', 'Moodle — שני מרחבים בכיתה ט׳'),
         ],
       },
       {
@@ -314,10 +404,34 @@ export const choveret: ChoveretGrade[] = [
         color: '#0d9488',
         dark: '#0f766e',
         items: [
-          pdf('kdam-algebra', 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/algebraic%20profile%204%20unit.pdf', 'טכניקה אלגברית', 'פרופיל הטכניקה האלגברית הנדרש ל-4 יח״ל.'),
-          pdf('kdam-functions', 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/functions%20profile%204%20unit.pdf', 'פונקציות', 'פרופיל הפונקציות הנדרש ל-4 יח״ל.'),
-          pdf('kdam-geometry', 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/geometry%20profile%204%20units.pdf', 'גאומטריה', 'פרופיל הגאומטריה הנדרש ל-4 יח״ל.'),
-          gov('prisot-pdf-t', 'plan%26prisa.pdf', '/docs/plan-prisa-tashpaz.pdf', 'פריסות ההוראה תשפ״ז', 'טבלת התוכניות והפריסות הרשמית (החוזר, עמ׳ 3); פריסות עמ״ט יתווספו בה במהלך השנה.'),
+          hozerPdf(
+            'kdam-algebra',
+            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/algebraic%20profile%204%20unit.pdf',
+            'טכניקה אלגברית',
+            'מסמך הדרכה להוראה בכיתה ט׳ עבור תלמידים המיועדים ללמוד עד 4 יח״ל — מפרט את דרישות המינימום בטכניקה האלגברית.',
+            8
+          ),
+          hozerPdf(
+            'kdam-functions',
+            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/functions%20profile%204%20unit.pdf',
+            'פונקציות',
+            'מסמך הדרכה להוראה בכיתה ט׳ עבור תלמידים המיועדים ללמוד עד 4 יח״ל — מפרט את דרישות המינימום בפונקציות.',
+            8
+          ),
+          hozerPdf(
+            'kdam-geometry',
+            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/geometry%20profile%204%20units.pdf',
+            'גאומטריה',
+            'מסמך הדרכה להוראה בכיתה ט׳ עבור תלמידים המיועדים ללמוד עד 4 יח״ל — מפרט את דרישות המינימום בגאומטריה.',
+            8
+          ),
+          hozerPdf(
+            'graph-teacher',
+            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpav/graph-teacher.pdf',
+            'מתכונות לגרף ובחזרה — מדריך למורה',
+            'חומרי ההוראה לנושא קדם־אנליזה בכיתה ט׳ — הנושא שמפתח חוש לפונקציות לקראת החטיבה העליונה.',
+            8
+          ),
         ],
       },
       {
@@ -335,14 +449,20 @@ export const choveret: ChoveretGrade[] = [
             pageHref: '/chativa-elyona/',
           },
           pdf('mifrat-tnufa', 'https://meyda.education.gov.il/files/Rama/Mifrat_Math_LangH_9_26.pdf', 'מפרט מבחן תנופה — ראמ״ה', 'המפרט הרשמי של מבחן תנופה ט׳ (25.11.26).'),
-          {
-            id: 'rama-page',
-            title: 'עמוד תנופה באתר ראמ״ה',
-            note: 'עמוד המבחן הרשמי — נפתח באתר ראמ״ה.',
-            url: 'https://rama.edu.gov.il/assessments/tnufa-math-heb-9-2026',
-            kind: 'link',
-          },
-          hozerAnchor('maf-05-t', 'MAF-05', 'מבחן תנופה והערכה בחט״ב'),
+          hozerLink(
+            'tnufa-rama',
+            'https://rama.edu.gov.il/assessments/tnufa-math-9-2026',
+            'עמוד מבחן תנופה באתר ראמ״ה',
+            'מבחן תנופה לתלמידי כיתה ט׳ יתקיים ב-25.11.26; מפרט המבחן מתפרסם באתר ראמ״ה סמוך לפתיחת שנת הלימודים.',
+            8
+          ),
+          hozerLink(
+            'tnufa-mankal',
+            'https://apps.education.gov.il/Mankal/horaa.aspx?siduri=589#_Toc256000008',
+            'מבחן תנופה — חוזר מנכ״ל',
+            'הפרטים המלאים על מבחן תנופה מופיעים בחוזר מנכ״ל, בסעיף שאליו החוזר מפנה ישירות.',
+            8
+          ),
         ],
       },
     ],
@@ -354,6 +474,70 @@ export const choveret: ChoveretGrade[] = [
     letter: 'כללי',
     title: 'משותף לכל השכבות',
     chapters: [
+      {
+        id: 'hozer',
+        title: 'מהחוזר הרשמי',
+        color: '#d90429',
+        dark: '#b3001b',
+        items: [
+          hozerPdf(
+            'amat-tashpaz',
+            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/amat.pdf',
+            'התוכנית הייעודית עמ״ט ז׳–ט׳',
+            'מסמך התוכנית הייעודית והפריסה לתלמידי ז׳–ט׳ בעתודה מדעית-טכנולוגית, מעודכן לשנת הלימודים תשפ״ז.',
+            17
+          ),
+          hozerPdf(
+            'hadracha-chatb',
+            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/contact.pdf',
+            'צוות ההדרכה במתמטיקה חט״ב',
+            'רשימת צוות ההדרכה הארצי והמחוזי במתמטיקה לחטיבת הביניים ודרכי ההתקשרות אליו.',
+            9
+          ),
+          hozerSite(
+            'merchav-chatb',
+            'https://pop.education.gov.il/tchumey_daat/matmatika/chativat-beynayim/noseem_nilmadim/',
+            'המרחב הפדגוגי — מתמטיקה חט״ב',
+            'אתר המתמטיקה הארצי לחטיבת הביניים: מידע שוטף, פריסות הוראה וחומרי למידה.',
+            9
+          ),
+          hozerLink(
+            'merkaz-morim',
+            'https://newhighmath.haifa.ac.il/index.php/home',
+            'מרכז המורים למתמטיקה — אוניברסיטת חיפה',
+            'מאגר עשיר של חומרים תומכי הוראה, בהתאם לדגשים של הפיקוח על הוראת המתמטיקה.',
+            9
+          ),
+          hozerLink(
+            'merkaz-morim-zt',
+            'https://newhighmath.haifa.ac.il/index.php/2015-05-31-10-59-23/2015-05-31-11-11-57',
+            'חומרי מרכז המורים לכיתות ז׳–ט׳',
+            'החומרים של מרכז המורים בנושאים מגוונים, מסודרים לכיתות חטיבת הביניים.',
+            9
+          ),
+          hozerLink(
+            'merkaz-morim-peiluyot',
+            'https://newhighmath.haifa.ac.il/index.php/2-uncategorised/3277-2019-11-06-13-45-6',
+            'פעילויות לחטיבת הביניים',
+            'פעילויות שפותחו לכיתות חטיבת הביניים ומודגשים בהן קישורים בין תחומים במתמטיקה ומשלבות אוריינות מתמטית.',
+            9
+          ),
+          hozerSite(
+            'maor',
+            'https://maor.haifa.ac.il/',
+            'מאור — מתמטיקה אוריינית',
+            'חומרי תוכנית מתמטיקה אוריינית המשולבים בקהילות עדכון תוכנית הלימודים, ותומכים בהטמעתה בכיתות ז׳–ט׳.',
+            9
+          ),
+          hozerLink(
+            'forum-facebook-chatb',
+            'https://facebook.com/groups/324706402455298/',
+            'פורום מורי המתמטיקה בחט״ב',
+            'קבוצת הפייסבוק של הפיקוח — מקום לשאול שאלות בפורום מורים למתמטיקה של חטיבת הביניים.',
+            9
+          ),
+        ],
+      },
       {
         id: 'noschaot',
         title: 'דפי הנוסחאות הרשמיים',
