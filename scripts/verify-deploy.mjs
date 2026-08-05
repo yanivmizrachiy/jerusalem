@@ -47,6 +47,13 @@ const get = async (path) => {
   return { status: res.status, html: await res.text() };
 };
 
+/**
+ * ה-HTML בלי <style>/<script>. Astro מטביע גיליונות סגנונות בעמודים קטנים,
+ * ולכן חיפוש מחרוזת ב-HTML הגולמי עובר ירוק גם כשהרכיב נמחק מה-DOM —
+ * נמדד: 36 מופעים של 'wa-band' בעמוד הראשי, 26 מהם בתוך <style>.
+ */
+const markup = (html) => html.replace(/<(style|script)[^>]*>[\s\S]*?<\/>/g, '');
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const fail = (msg) => {
   console.error(`✗ ${msg}`);
@@ -100,11 +107,37 @@ for (const path of ROUTES) {
 for (const { path, needle, what } of MARKERS) {
   try {
     const { html } = await fetchOnce(path);
-    if (html.includes(needle)) console.log(`✓ ${what}`);
+    if (markup(html).includes(needle)) console.log(`✓ ${what}`);
     else fail(`${what} — הסמן "${needle}" חסר ב-${path}`);
   } catch (e) {
     fail(`בדיקת "${what}" נכשלה: ${e.message}`);
   }
+}
+
+// ===== שלב ג׳: מבנה — כמות נכונה, לא רק נוכחות מחרוזת =====
+const countOf = (html, re) => (html.match(re) || []).length;
+try {
+  const { html } = await fetchOnce('/chativat-beynayim/');
+  const m = markup(html);
+
+  // מפתח השכבה: בדיוק שני עמודים לכל שכבה (3.29) — מונע חזרה שקטה
+  // למודל "עמוד לכל פרק" או קריסה לעמוד יחיד
+  for (const g of ['z', 'h', 't', 'klali']) {
+    const pair = countOf(m, new RegExp(`data-page="toc-${g}(-2)?"`, 'g'));
+    if (pair === 2) console.log(`✓ מפתח שכבה ${g} — שני עמודים בדיוק (3.29)`);
+    else fail(`מפתח שכבה ${g}: ${pair} עמודי מפתח במקום 2 (3.29)`);
+  }
+  const legacy = countOf(m, /class="[^"]*bp-toc/g);
+  if (legacy) fail(`נמצאו ${legacy} עמודי תוכן-עניינים לכל פרק — המודל הישן חזר (3.29)`);
+  else console.log('✓ אין עמודי תוכן-עניינים לכל פרק (3.29)');
+
+  // הטמעות PDF בלי סרגל הדפדפן השחור (8.26)
+  const pdfs = [...m.matchAll(/data-esrc="([^"]+)"/g)].map((x) => x[1]).filter((u) => /\.pdf(\?|#|$)/i.test(u));
+  const bare = pdfs.filter((u) => !u.includes('toolbar=0'));
+  if (bare.length) fail(`${bare.length} הטמעות PDF בלי toolbar=0 — סרגל שחור חוזר (8.26)`);
+  else console.log(`✓ ${pdfs.length} הטמעות PDF עם מסגור נייבי-זהב (8.26)`);
+} catch (e) {
+  fail(`בדיקת המבנה נכשלה: ${e.message}`);
 }
 
 if (process.exitCode === 1) {

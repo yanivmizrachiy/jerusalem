@@ -42,7 +42,10 @@ jobs:
 
   # אימות פריסה: רץ רק אחרי מיזוג ל-main, ממתין ל-Vercel ומוכיח שהקומיט חי
   verify-production:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # always() — Vercel פורס מה-push ל-main בלי קשר ל-Actions (RULES 4.15),
+    # ולכן הפרודקשן חייב אימות גם כשהסוללה נפלה או הבהבה. בלי זה בדיקה
+    # מהבהבת אחת משאירה פריסה חיה שאיש לא אימת.
+    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 12
