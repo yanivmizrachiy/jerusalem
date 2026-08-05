@@ -1,0 +1,102 @@
+---
+/**
+ * ישראל ריאלית (הוראת יניב, 05/08/2026): מחליף את "הודעות" בניווט העליון.
+ * לעת עתה — כיתוב גדול "יעודכן בקרוב" וכפתור ניווט לחזרה אחורה.
+ */
+import Base from '../../layouts/Base.astro';
+---
+
+<Base
+  title="ישראל ריאלית — מחוז ירושלים"
+  description="ישראל ריאלית במחוז ירושלים — העמוד יעודכן בקרוב."
+>
+  <section class="soon" aria-label="ישראל ריאלית">
+    <div class="container soon-inner">
+      <h1 class="soon-title">ישראל ריאלית</h1>
+      <p class="soon-lede">יעודכן בקרוב</p>
+      <button class="soon-back" type="button" id="soon-back">
+        <svg viewBox="0 0 34 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+          <path d="M1 6h31M26 1l6 5-6 5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span>חזרה אחורה</span>
+      </button>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .soon {
+    display: grid;
+    place-items: center;
+    min-block-size: calc(100svh - var(--header-h) - 190px);
+    padding-block: clamp(3rem, 10vh, 7rem);
+  }
+
+  .soon-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: clamp(1.2rem, 4vh, 2.4rem);
+  }
+
+  .soon-title {
+    margin: 0;
+    font-size: clamp(2.4rem, 7vw, 5rem);
+    line-height: 1.05;
+    background: linear-gradient(175deg, var(--gold-deep) 20%, var(--amber) 80%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* הכיתוב הגדול שביקש יניב — גדול, נקי ובשפת האתר */
+  .soon-lede {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 5.5vw, 3.4rem);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+
+  .soon-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-block-size: 52px;
+    padding: 0.7rem 1.9rem;
+    border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
+    color: var(--gold-deep);
+    font: 700 1.05rem var(--font-body);
+    cursor: pointer;
+    box-shadow: 0 10px 30px -22px rgb(42 37 32 / 0.5);
+    transition: border-color 300ms var(--ease), background-color 300ms var(--ease);
+  }
+
+  .soon-back svg { inline-size: 30px; block-size: auto; transition: translate 400ms var(--ease); }
+
+  .soon-back:hover { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 8%, var(--paper)); }
+
+  .soon-back:hover svg { translate: 5px 0; }
+
+  .soon-back:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .soon-back, .soon-back svg { transition-duration: 1ms; }
+  }
+</style>
+
+<script>
+  // חזרה אחורה אמיתית; אם אין היסטוריה בתוך האתר — לעמוד הראשי
+  document.getElementById('soon-back')?.addEventListener('click', () => {
+    if (history.length > 1 && document.referrer && new URL(document.referrer).origin === location.origin) {
+      history.back();
+    } else {
+      location.href = '/';
+    }
+  });
+</script>
