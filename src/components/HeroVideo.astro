@@ -80,6 +80,20 @@ import { team } from '../data/team';
           }
         </ul>
       </div>
+
+      {/* מדליון "התחל" — מעוגן בתחתית מסך הפתיחה עצמו, נראה בלי גלילה (7.28) */}
+      <a
+        class="start-btn"
+        href="/shearim/"
+        aria-label="התחל — מעבר לבחירת החטיבה: חטיבת ביניים או חטיבה עליונה"
+      >
+        <span class="start-face">
+          <span class="start-label">התחל</span>
+          <svg class="start-arrow" viewBox="0 0 34 12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">
+            <path d="M33 6H2M8 1 2 6l6 5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+      </a>
     </div>
   </div>
 </section>
@@ -171,7 +185,8 @@ import { team } from '../data/team';
     transition-delay: 200ms, 0s;
   }
 
-  /* ריווח יוקרתי — יש מקום בעמוד, והכותרות נושמות (הוראת יניב, 05/08/2026) */
+  /* ריווח יוקרתי — יש מקום בעמוד, והכותרות נושמות (הוראת יניב, 05/08/2026).
+     בתחתית שמור מקום למדליון "התחל" כדי שלא ייווצר חפיפה איתו (7.28) */
   .hero-after-inner {
     max-width: 980px;
     display: flex;
@@ -179,6 +194,92 @@ import { team } from '../data/team';
     align-items: center;
     gap: clamp(1.1rem, 3.2vh, 2.6rem);
     padding-block: clamp(1rem, 4vh, 3rem);
+    padding-block-end: calc(var(--start-d) + clamp(1.6rem, 4vh, 3rem));
+  }
+
+  /* ---------- מדליון "התחל" (7.28, הוראת יניב 05/08/2026) ----------
+     עגול, בהיקף זהב, בתוך מסך הפתיחה — נראה תמיד בלי גלילה. */
+  .hero-after { --start-d: clamp(96px, 13vh, 132px); }
+
+  .start-btn {
+    position: absolute;
+    inset-block-end: clamp(1.2rem, 3.5vh, 2.6rem);
+    /* ממורכז מול תמונות הצוות — אותו מרכז בדיוק, בלי היסט פס "מה צפוי?" */
+    inset-inline: 0;
+    margin-inline: auto;
+    translate: 0 10px;
+    inline-size: var(--start-d);
+    block-size: var(--start-d);
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    text-decoration: none;
+    /* טבעת הזהב: חוט דק כפול על נייר — שפת המדליונים של אתרי יוקרה */
+    background:
+      radial-gradient(circle at 50% 32%, #fffefb 0%, var(--paper) 62%, var(--paper-soft) 100%);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--gold) 62%, transparent),
+      inset 0 0 0 1px rgb(255 255 255 / 0.9),
+      inset 0 0 0 6px color-mix(in srgb, var(--gold) 26%, transparent),
+      0 22px 50px -26px rgb(42 37 32 / 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 900ms var(--ease),
+      translate 900ms var(--ease),
+      visibility 0s linear 900ms,
+      box-shadow 420ms var(--ease);
+  }
+
+  /* נחשף רק אחרי שתמונת הפתיחה נעלמה כליל (7.28) */
+  :global(html.hero-done) .start-btn {
+    opacity: 1;
+    visibility: visible;
+    translate: none;
+    transition-delay: 260ms, 260ms, 0s, 0s;
+  }
+
+  /* בתצוגת מורה יחיד "התחל" נעלם — נשאר רק חץ החזרה (הוראת יניב, 05/08/2026) */
+  :global(html.team-solo) .start-btn {
+    display: none;
+  }
+
+  .start-face {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.32rem;
+    color: var(--gold-deep);
+  }
+
+  .start-label {
+    font-family: var(--font-display);
+    font-size: clamp(1.05rem, 2.1vh, 1.4rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.1em;
+  }
+
+  .start-arrow {
+    inline-size: clamp(30px, 3.6vh, 40px);
+    block-size: auto;
+    transition: translate 420ms var(--ease);
+  }
+
+  .start-btn:hover {
+    box-shadow:
+      0 0 0 1px var(--gold),
+      inset 0 0 0 1px rgb(255 255 255 / 0.95),
+      inset 0 0 0 6px color-mix(in srgb, var(--gold) 40%, transparent),
+      0 26px 56px -24px rgb(42 37 32 / 0.55);
+  }
+
+  .start-btn:hover .start-arrow { translate: -5px 0; }
+
+  .start-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 6px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .start-btn, .start-arrow { transition-duration: 1ms; }
   }
 
   /* צוות ההדרכה על המסך הבהיר (6.5) */
@@ -264,6 +365,14 @@ import { team } from '../data/team';
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  /* מסך נמוך: מהדקים את הריווח והדיוקנאות כדי שהצוות והמדליון ייכנסו
+     יחד בלי גלילה ובלי חפיפה (7.28) */
+  @media (max-height: 820px) {
+    .hero-after-inner { gap: clamp(0.6rem, 2vh, 1.4rem); padding-block-start: 0.5rem; }
+    .hero-member.is-featured .hero-avatar { inline-size: clamp(92px, 12vh, 120px); block-size: clamp(92px, 12vh, 120px); }
+    .hero-avatar { inline-size: clamp(60px, 8vh, 84px); block-size: clamp(60px, 8vh, 84px); }
   }
 
   @media (max-width: 700px) {

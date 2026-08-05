@@ -6,8 +6,9 @@ import NewsRail from '../components/NewsRail.astro';
 import TeamSection from '../components/TeamSection.astro';
 import WhatsAppBand from '../components/WhatsAppBand.astro';
 
-// מתחת לצוות ההדרכה — כפתור "התחל" יחיד (הוראת יניב, 05/08/2026).
-// שני הכפתורים עברו לעמוד `/shearim/`, שבו המסך מחולק חצי-חצי.
+// מדליון "התחל" חי בתוך מסך הפתיחה עצמו (`HeroVideo`), כדי שייראה בלי
+// גלילה (7.28, הוראת יניב 05/08/2026). שני הכפתורים הישנים עברו לעמוד
+// `/shearim/`, שבו המסך מחולק חצי-חצי.
 ---
 
 <Base
@@ -28,18 +29,6 @@ import WhatsAppBand from '../components/WhatsAppBand.astro';
   <div class="rail-offset">
     <TeamSection />
 
-    <section class="section start-section" id="shearim">
-      <div class="container start-slot">
-        <a
-          class="start-btn"
-          href="/shearim/"
-          aria-label="התחל — מעבר לבחירת החטיבה: חטיבת ביניים או חטיבה עליונה"
-        >
-          <span class="start-label">התחל</span>
-        </a>
-      </div>
-    </section>
-
     <WhatsAppBand />
   </div>
 </Base>
@@ -52,65 +41,4 @@ import WhatsAppBand from '../components/WhatsAppBand.astro';
   }
 
   .rail-slot { margin-block-start: clamp(1.6rem, 4vw, 2.8rem); }
-
-  /* כפתור "התחל" — עדין, ממורכז מול תמונות הצוות, ונחשף רק אחרי
-     שתמונת הפתיחה נעלמה כליל (הוראת יניב, 05/08/2026) */
-  .start-slot { display: flex; justify-content: center; }
-
-  /* ביטול היסט פס "מה צפוי?" — מרכוז מול תמונות הצוות שב-hero */
-  @media (min-width: 1280px) {
-    .start-section { margin-inline-end: calc(-1 * (var(--rail-w) + 2.2rem)); }
-  }
-
-  .start-btn {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-block-size: 62px;
-    padding: 0.85rem clamp(2.6rem, 6vw, 4rem);
-    border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
-    border-radius: 999px;
-    text-decoration: none;
-    background: color-mix(in srgb, var(--paper) 82%, transparent);
-    box-shadow: 0 10px 30px -22px rgb(42 37 32 / 0.5);
-    /* חשיפה עדינה במקום הופעה פתאומית */
-    opacity: 0;
-    visibility: hidden;
-    translate: 0 10px;
-    transition:
-      opacity 900ms var(--ease),
-      translate 900ms var(--ease),
-      visibility 0s linear 900ms,
-      border-color 300ms var(--ease),
-      background-color 300ms var(--ease);
-  }
-
-  :global(html.hero-done) .start-btn {
-    opacity: 1;
-    visibility: visible;
-    translate: none;
-    transition-delay: 260ms, 260ms, 0s, 0s, 0s;
-  }
-
-  /* בתצוגת מורה יחיד "התחל" נעלם — נשאר רק חץ החזרה (הוראת יניב, 05/08/2026) */
-  :global(html.team-solo) .start-btn {
-    display: none;
-  }
-
-  .start-label {
-    font-family: var(--font-display);
-    font-size: clamp(1.2rem, 2.4vw, 1.55rem);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.08em;
-    color: var(--gold-deep);
-  }
-
-  .start-btn:hover {
-    border-color: var(--gold);
-    background: color-mix(in srgb, var(--gold) 8%, var(--paper));
-  }
-
-  .start-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
 </style>

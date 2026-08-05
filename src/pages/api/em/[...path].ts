@@ -5,7 +5,7 @@
  * שום יעד אחר אינו מועבר. (אסור לתקן בריפו של האתרים — עובדים רק על jerusalem.)
  */
 import type { APIRoute } from 'astro';
-import { injectGuard } from '../../../lib/proxyGuard';
+import { injectGuard, injectGoldScrollbar } from '../../../lib/proxyGuard';
 
 export const prerender = false;
 
@@ -72,9 +72,7 @@ export const ALL: APIRoute = async ({ params, request }) => {
     html = html.replace(new RegExp(origin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), base.slice(0, -1));
     // משמר זמן-הריצה — חייב לרוץ לפני כל סקריפט של האפליקציה (proxyGuard.ts)
     html = injectGuard(html, base.slice(0, -1));
-    const goldScroll =
-      '<style>::-webkit-scrollbar{width:30px;height:30px}::-webkit-scrollbar-track{background:#f5f1e8}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#d4af5c,#b08d3e 45%,#77602a);border-radius:15px;border:5px solid #f5f1e8}html{scrollbar-color:#b08d3e #f5f1e8;scrollbar-width:auto}</style>';
-    html = html.includes('</head>') ? html.replace('</head>', goldScroll + '</head>') : goldScroll + html;
+    html = injectGoldScrollbar(html);
     return new Response(html, { status: upstream.status, headers });
   }
 

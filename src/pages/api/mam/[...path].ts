@@ -5,7 +5,7 @@
  * מוגבל אך ורק לדומיין ההמחשות; שום יעד אחר אינו מועבר.
  */
 import type { APIRoute } from 'astro';
-import { injectGuard } from '../../../lib/proxyGuard';
+import { injectGuard, injectGoldScrollbar } from '../../../lib/proxyGuard';
 
 export const prerender = false;
 
@@ -47,12 +47,8 @@ export const ALL: APIRoute = async ({ params, request }) => {
     html = html.replace(/https:\/\/mamhishim\.my\.canva\.site/g, '/api/mam');
     // משמר זמן-הריצה — מיישר בקשות שנבנות ב-JS אל תוך הפרוקסי (proxyGuard.ts)
     html = injectGuard(html, '/api/mam');
-    // גלילת זהב רחבה גם בתוך הסביבה המוטמעת (5.23)
-    const goldScroll =
-      '<style>::-webkit-scrollbar{width:30px;height:30px}::-webkit-scrollbar-track{background:#f5f1e8}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#d4af5c,#b08d3e 45%,#77602a);border-radius:15px;border:5px solid #f5f1e8}html{scrollbar-color:#b08d3e #f5f1e8;scrollbar-width:auto}</style>';
-    html = html.includes('</head>')
-      ? html.replace('</head>', goldScroll + '</head>')
-      : goldScroll + html;
+    // גלילת זהב רחבה גם בתוך הסביבה המוטמעת (5.23) — אותו פס בכל ההטמעות
+    html = injectGoldScrollbar(html);
     return new Response(html, { status: upstream.status, headers });
   }
 
