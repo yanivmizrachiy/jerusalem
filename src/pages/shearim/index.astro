@@ -2,10 +2,11 @@
 /**
  * בחירת החטיבה — מסך מחולק חצי-חצי (הוראת יניב, 05/08/2026).
  * חצי אחד כחול־כהה עם מלל בהיר, החצי השני בדיוק אותם צבעים הפוכים.
+ * בלי פירורי לחם: הניווט העליון כבר נושא את "ראשי", והצבע מתחיל
+ * מיד מתחתיו (הוראת יניב, 05/08/2026).
  * בתחתית העמוד נשמרים רצועת הווטסאפ ופס התחתית הכחול (7.24, 7.27).
  */
 import Base from '../../layouts/Base.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import WhatsAppBand from '../../components/WhatsAppBand.astro';
 
 const gates = [
@@ -28,10 +29,6 @@ const gates = [
   title="בחירת החטיבה — מחוז ירושלים"
   description="הכניסה לאתר הדרכת המתמטיקה של מחוז ירושלים: חטיבת ביניים או חטיבה עליונה."
 >
-  <div class="container crumbs-slot">
-    <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'בחירת החטיבה' }]} />
-  </div>
-
   <h1 class="visually-hidden">בחירת החטיבה</h1>
 
   <section class="split" aria-label="בחירת החטיבה">
@@ -59,8 +56,6 @@ const gates = [
 </Base>
 
 <style>
-  .crumbs-slot { padding-block: 1.1rem 0.9rem; }
-
   /* הצבע נוגע ברצועת הווטסאפ — בלי רצועה לבנה ביניהם */
   :global(main .split + .wa-band-wrap) { margin-block-start: 0; }
 
@@ -68,9 +63,11 @@ const gates = [
   .split {
     position: relative;
     display: flex;
-    /* פרוס עד רצועת הווטסאפ — בלי שטח לבן מתחתיו (הוראת יניב, 05/08/2026) */
-    min-block-size: var(--split-h, calc(100svh - 190px));
-    border-block: 1px solid var(--line);
+    /* מהניווט העליון ועד רצועת הווטסאפ — בלי שטח לבן מעליו או מתחתיו
+       (הוראת יניב, 05/08/2026). ה-fallback מחושב מגובה הפס העליון והניווט;
+       הסקריפט שלמטה מדייק אותו לפי המדידה בפועל. */
+    min-block-size: var(--split-h, calc(100svh - var(--header-h) - 65px));
+    border-block-end: 1px solid var(--line);
     overflow: hidden;
   }
 
@@ -235,7 +232,7 @@ const gates = [
 
   /* נייד: החצאים נערמים; אותו קו זהב הופך אופקי — ונשאר בדיוק על התפר */
   @media (max-width: 860px) {
-    .split { flex-direction: column; min-block-size: var(--split-h, calc(100svh - 210px)); }
+    .split { flex-direction: column; min-block-size: var(--split-h, calc(100svh - 200px)); }
     .half { flex: 1 1 50%; min-block-size: 240px; }
 
     .split-rule {

@@ -1,98 +1,56 @@
 ---
+/**
+ * שורת התחתית (RULES 7.24, הוראת יניב 05/08/2026): בלוק הניווט התחתון
+ * — "מחוז ירושלים", רשימת הקישורים וכפתור "חזרה לראש העמוד" — נמחק,
+ * משום ששכפל את הניווט העליון. מה שנשאר הוא פס כחול־כהה בתחתית המסך
+ * ממש, באותה שפה של הפס העליון, ועליו הקרדיט בשם מודגש בזהב.
+ */
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <div class="container footer-inner">
-    <div class="footer-brand">
-      <span class="footer-title">מחוז ירושלים</span>
-      <span class="footer-sub">הדרכת מתמטיקה · על־יסודי</span>
-    </div>
-    <nav aria-label="ניווט תחתון">
-      <ul class="footer-nav">
-        <li><a href="/">העמוד הראשי</a></li>
-        <li><a href="/chativat-beynayim/">חטיבת ביניים</a></li>
-        <li><a href="/chativa-elyona/">חטיבה עליונה</a></li>
-        <li><a href="/hozer-mafmar/">חוזר מפמ״ר תשפ״ז</a></li>
-        <li><a href="/pituach-miktzoi/">פיתוח מקצועי</a></li>
-        <li><a href="/hodaot/">הודעות ועדכונים</a></li>
-        <li><a href="/luach/">לוח שנה ירושלמי</a></li>
-        <li><a href="/chativat-beynayim/#hamchashot">אתר ההמחשות</a></li>
-        <li><a href="/#tzevet">צוות ההדרכה</a></li>
-      </ul>
-    </nav>
-    <a class="to-top btn btn-ghost" href="#main">חזרה לראש העמוד</a>
-  </div>
-  <div class="footer-bottom">
+  <div class="footer-navy">
     <div class="container footer-line">
       <span>© {year} מחוז ירושלים — הדרכת מתמטיקה</span>
       <span class="footer-managed">האתר מנוהל על ידי <strong>יניב רז</strong></span>
     </div>
   </div>
-  <div class="footer-navy" aria-hidden="true"></div>
 </footer>
 
 <style>
-  .site-footer {
-    margin-block-start: clamp(4rem, 8vw, 6rem);
-    border-block-start: 1px solid var(--line);
-    background: var(--paper-soft);
+  .site-footer { margin-block-start: clamp(4rem, 8vw, 6rem); }
+
+  /* רצועת הווטסאפ הירוקה צמודה לפס הכחול — בלי רווח לבן ביניהם
+     (הוראת יניב, 05/08/2026). הרצועה היא תמיד הרכיב האחרון בעמוד שמציג
+     אותה (העמוד הראשי ובחירת החטיבה), ולכן די בקיומה בתוך main. */
+  :global(main:has(.wa-band-wrap)) + .site-footer { margin-block-start: 0; }
+
+  /* החלק הכי תחתון של המסך — כחול כהה באותה שפה של הפס העליון (7.22, 7.24) */
+  .footer-navy {
+    background: linear-gradient(180deg, #0e1c31 0%, #0b1524 100%);
+    /* קו זהב עדין על מלוא הרוחב, מעל הכיתובים (7.24) */
+    border-block-start: 1px solid rgb(232 200 119 / 0.32);
   }
-
-  .footer-inner {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.4rem;
-    padding-block: 2.4rem;
-  }
-
-  .footer-brand { display: flex; flex-direction: column; }
-
-  .footer-title {
-    font-family: var(--font-display);
-    font-size: 1.35rem;
-    font-weight: 700;
-  }
-
-  .footer-sub { color: var(--ink-faint); font-size: 0.9rem; }
-
-  .footer-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem 1.4rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .footer-nav a {
-    color: var(--ink-soft);
-    font-weight: 600;
-    min-block-size: 44px;
-    display: inline-flex;
-    align-items: center;
-  }
-
-  .footer-nav a:hover { color: var(--gold-deep); }
-
-  /* קו עדין קבוע על מלוא רוחב העמוד (100%) — מעל כיתובי התחתית (7.24) */
-  .footer-bottom { border-block-start: 1px solid var(--line); }
 
   .footer-line {
-    padding-block: 1.1rem;
-    color: var(--ink);
-    font-size: 0.85rem;
-    font-weight: 600;
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     justify-content: space-between;
     gap: 0.4rem 1.2rem;
+    min-block-size: 64px;
+    padding-block: 1.1rem;
+    color: #cfe1f5;
+    font-size: 0.88rem;
+    font-weight: 600;
   }
 
-  .footer-managed strong { color: var(--gold-deep); font-weight: 700; }
+  .footer-managed strong {
+    color: #e8c877;
+    font-weight: 800;
+  }
 
-  /* בתחתית העמוד ממש — פס כחול־כהה על מלוא הרוחב, עבה מהקו העדין שמעליו (7.24) */
-  .footer-navy { block-size: 7px; background: var(--navy); }
+  @media (max-width: 640px) {
+    .footer-line { justify-content: center; text-align: center; }
+  }
 </style>
