@@ -105,6 +105,7 @@ const audiences = [
         mafmarParts.map((p, i) => (
           <button
             class="part-btn"
+            id={p.id}
             style={`--part-accent:${partAccents[i]}`}
             type="button"
             data-goto={p.startPage}
@@ -220,12 +221,18 @@ const audiences = [
     font-family: var(--font-display);
     font-size: 0.85rem;
     font-weight: 700;
-    color: var(--part-accent);
+    /* הגוון נשמר לזיהוי, מוכהה כדי לעבור 4.5:1 בטקסט קטן (4.7, 21.18) */
+    color: color-mix(in srgb, var(--part-accent) 62%, #101a2e);
   }
 
   .part-title { font-weight: 700; font-size: 1.05rem; color: var(--ink); }
 
   .part-page { font-size: 0.85rem; color: var(--ink-faint); }
+
+  .part-btn.is-active {
+    border-color: var(--part-accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--part-accent) 35%, transparent);
+  }
 
   /* הצופה */
   .viewer {
@@ -257,12 +264,17 @@ const audiences = [
     display: flex;
     justify-content: center;
     padding: clamp(0.9rem, 2vw, 1.4rem);
+    /* הכלל הגלובלי scroll-margin חל על [id] בלבד, ולזה יש רק class —
+       בלי השורה הזו קפיצה למקטע מנחיתה את ראש העמוד מתחת לכותרת הדביקה */
+    scroll-margin-block-start: calc(var(--header-h) + 1.2rem);
   }
 
   .viewer-shell {
     /* --pw/--ph מגיעים מהמסמך עצמו (MAFMAR_PAGE_W/H) ולא מניחוש.
-       80dvh נבחר כדי שהעמוד השלם *וגם* כפתורי הדפדוף שמתחתיו ייכנסו
-       יחד למסך — רואים עמוד מלא ומדפדפים בלי לגלול. */
+       הגובה נגזר מ-80dvh כדי שהעמוד השלם ייכנס לגובה החלון עם מקום
+       לכותרת ולשורת המצב; הרוחב נגזר ממנו לפי יחס העמוד. ברוחבי מסך
+       צרים ה-100% גובר על החישוב, ואז הגובה קטן מהרצפה שבחישוב —
+       מובן, כי עמוד שלם צר פשוט נמוך יותר. */
     --fit-h: clamp(560px, 80dvh, 1120px);
     inline-size: min(100%, calc(var(--fit-h) * var(--pw) / var(--ph)));
     aspect-ratio: var(--pw) / var(--ph);
@@ -281,9 +293,6 @@ const audiences = [
   }
 
   .viewer-shell.is-loaded iframe { opacity: 1; }
-
-  /* display:block היה גובר על hidden — הכלל הזה סוגר את הפרצה (8.26) */
-  .viewer-shell iframe[hidden] { display: none; }
 
   .viewer-shell:fullscreen {
     inline-size: 100%;
@@ -372,9 +381,8 @@ const audiences = [
 
   .viewer-open-card p { margin: 0; color: var(--ink-soft); }
 
-  /* display:flex היה גובר על hidden — הכלל הזה סוגר את הפרצה (8.26) */
-  .viewer-open-card[hidden],
-  .viewer-pager[hidden] { display: none !important; }
+  /* הכלל הגלובלי [hidden]{display:none!important} ב-global.css מטפל
+     בכל הסתרה בעמוד הזה — כולל כרטיס הפתיחה, סרגל הדפדוף וכפתור מסך מלא. */
 
   /* דפדוף חוברת (3.29): אותם צבעי ניווט של הספר */
   .viewer-pager {
@@ -458,7 +466,8 @@ const audiences = [
     font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.04em;
-    color: var(--aud-accent);
+    /* כנ״ל — 0.72rem מודגש נחשב טקסט קטן ודורש 4.5:1 (4.7, 21.18) */
+    color: color-mix(in srgb, var(--aud-accent) 62%, #101a2e);
     padding-block-start: 0.2rem;
   }
 
@@ -536,6 +545,8 @@ const audiences = [
     pager.hidden = true;
     openCard.hidden = false;
     skel.remove();
+    // שורת המצב לא תטען "מציג" כשאין מה להציג בעמוד עצמו (4.6)
+    status.textContent = `החוזר נפתח לצפייה במסך נפרד — ${MAFMAR_TOTAL_PAGES} עמודים`;
   }
 
   /* שלד הטעינה נחשף בעדינות; רשת ביטחון שלא משאירה שלד תקוע (8.9) */
@@ -575,8 +586,10 @@ const audiences = [
     frame.src = pageSrc(page);
     aimOpenCard(page);
     currentLabel = label;
-    status.textContent = `מציג: ${label}`;
-    document.querySelectorAll('.maf-item.is-active').forEach((el) => el.classList.remove('is-active'));
+    status.textContent = hasPdfViewer ? `מציג: ${label}` : `נבחר: ${label}`;
+    document
+      .querySelectorAll('.maf-item.is-active, .part-btn.is-active')
+      .forEach((el) => el.classList.remove('is-active'));
     if (frag) {
       history.replaceState(null, '', `#${frag}`);
       document.getElementById(frag)?.classList.add('is-active');
@@ -628,7 +641,10 @@ const audiences = [
   // כניסה עם קישור עמוק (9.3.12): פתיחת המקטע המשותף ישירות
   const frag = decodeURIComponent(location.hash.slice(1));
   if (frag) {
-    const target = document.querySelector<HTMLButtonElement>(`#${CSS.escape(frag)} [data-goto]`);
+    const esc = CSS.escape(frag);
+    const target = document.querySelector<HTMLButtonElement>(
+      `#${esc}[data-goto], #${esc} [data-goto]`
+    );
     if (target) {
       goto(Number(target.dataset.goto), frag, target.dataset.label ?? '');
       document.getElementById(frag)?.scrollIntoView({ behavior: 'auto', block: 'center' });
