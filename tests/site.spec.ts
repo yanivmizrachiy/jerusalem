@@ -1,5 +1,28 @@
 import { test, expect } from '@playwright/test';
 
+/**
+ * אזהרת Chromium שאינה בשליטתנו, ולכן מסוננת במחרוזת המדויקת שלה בלבד.
+ *
+ * מקור: נגן YouTube בתוך ההטמעה (`www.youtube-nocookie.com/embed/...`) מנסה
+ * לקרוא ל-Compute Pressure API. אנחנו **לא** מאצילים לו את ההרשאה — ה-iframe
+ * נטען בלי `allow="compute-pressure"` — ולכן Chromium חוסם את הקריאה כמתוכנן
+ * ורושם ל-console:
+ *   `Permissions policy violation: compute-pressure is not allowed in this document.`
+ *
+ * כלומר ההודעה היא **הראיה שהמדיניות עובדת**, לא תקלה: החסימה הצליחה.
+ * ‏`compute-pressure` אינו מופיע בשום מקום בקוד המוצר (אומת ב-`src/`,
+ * ב-`public/` וב-`astro.config.mjs`).
+ *
+ * לא ניתן להסיר את ההודעה בלי לפגוע: הוספת `allow="compute-pressure"` הייתה
+ * מעניקה לצד שלישי API של חיישני עומס — בניגוד ל-RULES 4.11 (`allow` מצומצם) —
+ * והסרת ההטמעה הייתה מוחקת תוכן שסעיף 10 מחייב.
+ *
+ * הסינון מכוון למשפט המלא והמדויק בלבד. כל הפרת permissions-policy אחרת
+ * (מצלמה, מיקום, מיקרופון) תמשיך להכשיל את הבדיקה כרגיל.
+ */
+const COMPUTE_PRESSURE_DENIED =
+  'Permissions policy violation: compute-pressure is not allowed in this document.';
+
 /** כל המסלולים החיים — אינווריאנטים מחייבים (1.3, 18, 19.14) */
 const routes = [
   '/',
@@ -64,6 +87,7 @@ for (const route of routes) {
     const hard = errors.filter(
       (e) =>
         !/net::|Failed to load resource|third-party cookie/i.test(e) &&
+        !e.includes(COMPUTE_PRESSURE_DENIED) &&
         !(
           /Refused to display|violates the following Content Security Policy/.test(e) &&
           !/127\.0\.0\.1|localhost/.test(e)
