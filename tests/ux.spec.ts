@@ -1101,8 +1101,8 @@ test('בנייד: ההטמעה ראשונה, בלי גלילה אופקית וב
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-/* ===== חוזר מפמ״ר: החוזר למעלה, עמוד שלם ממורכז, התמונה למטה
-   (הוראת יניב, 06/08/2026) ===== */
+/* ===== חוזר מפמ״ר: מסך מחולק (החוזר מימין, פעולות משמאל), מדריך ניווט
+   מתחת, התמונה אחרונה (הוראת יניב, 06/08/2026) ===== */
 
 test('חוזר מפמ״ר: החוזר עצמו למעלה — לפני כפתורי הקפיצה, המקטעים והתמונה', async ({ page }) => {
   await page.addInitScript(() =>
@@ -1121,13 +1121,13 @@ test('חוזר מפמ״ר: החוזר עצמו למעלה — לפני כפתו�
   expect(jumps, 'כפתורי הקפיצה לפני אינדקס המקטעים').toBeLessThan(sections);
   expect(banner, 'התמונה הכי למטה — אחרי כל שאר התוכן').toBeGreaterThan(sections);
   const last = await page.evaluate(() => {
-    const kids = [...document.querySelectorAll('.container.page > *')];
+    const kids = [...document.querySelectorAll('.page > *')];
     return kids[kids.length - 1]?.className ?? '';
   });
   expect(last, 'התמונה היא הרכיב האחרון בעמוד').toContain('art-banner');
 });
 
-test('חוזר מפמ״ר: עמוד שלם ממש — יחס העמוד האמיתי, ממורכז ונכנס לגובה החלון', async ({ page }) => {
+test('חוזר מפמ״ר: מסך מחולק 50/50 — החוזר מימין, לוח הפעולות משמאל, עמוד שלם ביחס A4 (8.2)', async ({ page }) => {
   // ה-Chromium של הבדיקות מדווח pdfViewerEnabled=false; כאן נמדד מסלול
   // הדפדפן האמיתי עם מציג PDF, שבו ההטמעה חיה.
   await page.addInitScript(() =>
@@ -1140,23 +1140,32 @@ test('חוזר מפמ״ר: עמוד שלם ממש — יחס העמוד האמי
     await page.setViewportSize(size);
     await page.goto('/hozer-mafmar/');
     await expect(page.locator('#viewer-open-card')).toBeHidden();
+    await expect(page.locator('#viewer-shell')).toBeVisible();
+    // הפריסה מתייצבת לפני המדידה: גופנים + שני frames של rAF (יחס ה-A4
+    // נגזר מהרוחב, ופס גלילה אנכי עלול לצוץ אחרי הפריסה הראשונה)
+    await page.evaluate(
+      () =>
+        document.fonts.ready.then(
+          () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+        )
+    );
+
+    const view = (await page.locator('.res-view').boundingBox())!;
+    const panel = (await page.locator('.res-panel').boundingBox())!;
     const shell = (await page.locator('#viewer-shell').boundingBox())!;
-    const stage = (await page.locator('.viewer-stage').boundingBox())!;
     const frame = (await page.locator('#mafmar-frame').boundingBox())!;
 
-    // יחס A4 אמיתי של המסמך (595.32×841.92) — כך נכנס עמוד שלם ולא חלק ממנו
+    // חצי-חצי מדויק: שתי העמודות שוות ברוחב ומתחילות באותו קו עליון
+    expect(Math.abs(view.width - panel.width), `${size.width}: שני הצדדים שווים ברוחב`).toBeLessThanOrEqual(3);
+    expect(Math.abs(view.y - panel.y), `${size.width}: שני הצדדים באותו קו עליון`).toBeLessThanOrEqual(3);
+    // ב-RTL ההטמעה בצד ימין (x גדול יותר) והפעולות משמאל
+    expect(view.x, `${size.width}: ההטמעה בצד ימין`).toBeGreaterThan(panel.x);
+
+    // עמוד שלם ביחס A4 אמיתי של המסמך (595.32×841.92) — לא חלק ממנו
     const ratio = shell.height / shell.width;
     expect(ratio, `${size.width}: מסגרת הצפייה ביחס העמוד`).toBeGreaterThan(1.36);
     expect(ratio, `${size.width}: מסגרת הצפייה ביחס העמוד`).toBeLessThan(1.47);
-
-    // העמוד השלם נכנס לגובה החלון — אין צורך לגלול כדי לראות עמוד אחד
-    expect(shell.height, `${size.width}: העמוד השלם נכנס לגובה החלון`).toBeLessThanOrEqual(size.height);
     expect(shell.height, `${size.width}: העמוד גדול ושימושי`).toBeGreaterThan(520);
-
-    // ממורכז בתוך אזור התצוגה
-    const start = shell.x - stage.x;
-    const end = stage.x + stage.width - (shell.x + shell.width);
-    expect(Math.abs(start - end), `${size.width}: העמוד ממורכז`).toBeLessThanOrEqual(2);
 
     // ההטמעה ממלאת את המסגרת — בלי מסגרת בתוך מסגרת
     expect(shell.width - frame.width, `${size.width}: ה-iframe ממלא את המסגרת`).toBeLessThanOrEqual(20);
