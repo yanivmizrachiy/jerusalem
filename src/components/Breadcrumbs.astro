@@ -7,16 +7,23 @@ interface Props {
   items: Crumb[];
 }
 const { items } = Astro.props;
+
+// אין להציג שתי רמות סמוכות שמובילות לאותה כתובת. הדבר חשוב במיוחד
+// ב"כללי", שבו עמוד השכבה ועמוד החומרים הם אותו מסלול.
+const visibleItems = items.filter((crumb, index) => {
+  if (!crumb.href || index === 0) return true;
+  return items[index - 1]?.href !== crumb.href;
+});
 ---
 
 <nav class="crumbs" aria-label="פירורי לחם">
   <ol>
     {
-      items.map((c, i) => (
+      visibleItems.map((c, i) => (
         <li style={`--depth:${i}`}>
-          {c.href && i < items.length - 1 ? (
+          {c.href && i < visibleItems.length - 1 ? (
             <a href={c.href}>{c.label}</a>
-          ) : i === items.length - 1 ? (
+          ) : i === visibleItems.length - 1 ? (
             <span aria-current="page">{c.label}</span>
           ) : (
             <span>{c.label}</span>

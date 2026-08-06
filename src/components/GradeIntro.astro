@@ -25,6 +25,7 @@ interface Props {
 const { grade } = Astro.props;
 const { plan, prisa } = gradeMainDocs(grade);
 const letter = grade.letter;
+const movedChapterIds = grade.chapters.map((chapter) => chapter.id).join(',');
 ---
 
 <div class="container grade-intro" style={`--grade:${grade.color}; --grade-dark:${grade.dark}`}>
@@ -64,7 +65,12 @@ const letter = grade.letter;
     </div>
   </section>
 
-  <a class="band band-materials" href={gradeMaterialsHref(grade.slug)} data-materials>
+  <a
+    class="band band-materials"
+    href={gradeMaterialsHref(grade.slug)}
+    data-materials
+    data-moved-chapters={movedChapterIds}
+  >
     <span class="band-title">חומרים להוראה</span>
     <span class="band-sub">דפי עבודה, מבחנים, משחקים, קישורים ועוד...</span>
     <span class="band-count">{gradeCounts[grade.slug]} קבצים, קישורים ופעילויות</span>
@@ -76,12 +82,19 @@ const letter = grade.letter;
 </div>
 
 <script>
-  // קישור ישן לעמוד השכבה עם עוגן של פרק (למשל #tichnun) הצביע פעם על
-  // תצוגת החומרים שהייתה כאן; מפנים אותו לכתובת החדשה כדי לא לשבור שיתופים
+  // רק עוגנים של פרקים שעברו מעמוד השכבה לתצוגת החומרים מופנים למסלול
+  // החדש. עוגנים מקומיים של עמוד המבוא, כגון #hamchashot, נשארים כאן.
   {
     const el = document.querySelector<HTMLAnchorElement>('[data-materials]');
-    const h = location.hash.slice(1);
-    if (el && h && !/^ma-melamdim$/.test(h)) location.replace(el.href + location.hash);
+    const moved = new Set((el?.dataset.movedChapters ?? '').split(',').filter(Boolean));
+
+    const redirectMovedChapter = () => {
+      const hash = location.hash.slice(1);
+      if (el && moved.has(hash)) location.replace(el.href + location.hash);
+    };
+
+    redirectMovedChapter();
+    addEventListener('hashchange', redirectMovedChapter);
   }
 </script>
 
