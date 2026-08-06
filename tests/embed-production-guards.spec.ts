@@ -85,7 +85,7 @@ test('כל פעולות עמוד המשאב נמצאות רק בחצי השמא�
     const view = (await page.locator('.res-view').boundingBox())!;
     expect(panel.x + panel.width, `${route}: הפאנל כולו משמאל`).toBeLessThan(view.x);
 
-    const actions = page.locator('.res-actions .btn, .res-pager a, .res-back');
+    const actions = page.locator('.orbs .orb:visible, .res-pager a, .res-back');
     const count = await actions.count();
     expect(count, `${route}: קיימות פעולות אמיתיות`).toBeGreaterThan(0);
 
@@ -95,7 +95,7 @@ test('כל פעולות עמוד המשאב נמצאות רק בחצי השמא�
       expect(box.x + box.width, `${route}: פעולה ${index + 1} אינה זולגת לימין`).toBeLessThanOrEqual(view.x - 1);
     }
 
-    await expect(page.locator('.res-view > a, .res-view > button, .res-view .res-actions')).toHaveCount(0);
+    await expect(page.locator('.res-view > a, .res-view > button, .res-view .orbs')).toHaveCount(0);
   }
 });
 
