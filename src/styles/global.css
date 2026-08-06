@@ -105,6 +105,12 @@
 *::before,
 *::after { box-sizing: border-box; }
 
+/* ‏`hidden` חייב באמת להסתיר. בלי הכלל הזה כל מחלקה שמצהירה display —
+   ‏`.btn { display: inline-flex }` למשל — גוברת על כלל הדפדפן ומשאירה על
+   המסך כפתור או כרטיס שאמורים להיות סמויים (8.25, 8.26). נמדד בפועל:
+   כפתור "מסך מלא" נראה לפני שה-JS רץ, ולצמיתות בדפדפן בלי מסך מלא. */
+[hidden] { display: none !important; }
+
 html {
   scrollbar-gutter: stable; /* אפס קפיצות layout כשמופיע פס גלילה */
   -webkit-text-size-adjust: 100%;

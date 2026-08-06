@@ -1015,6 +1015,9 @@ test('בנייד: ההטמעה ראשונה, בלי גלילה אופקית וב
    (הוראת יניב, 06/08/2026) ===== */
 
 test('חוזר מפמ״ר: החוזר עצמו למעלה — לפני כפתורי הקפיצה, המקטעים והתמונה', async ({ page }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
+  );
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/hozer-mafmar/');
 
@@ -1109,9 +1112,16 @@ test('חוזר מפמ״ר: דפדוף אמיתי עמוד-עמוד, בלי סר�
 });
 
 test('חוזר מפמ״ר: אין כיתובי דמו בטקסט הגלוי (8.25, 8.26)', async ({ page }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
+  );
   await page.goto('/hozer-mafmar/');
   const text = (await page.locator('main').innerText()).replace(/\s+/g, ' ');
-  for (const banned of ['מאומת', 'אומתו', 'מחליף:', 'עותק מאומת', 'מקור האמת']) {
+  // בדיוק המילים ש-8.25 אוסר בטקסט גלוי, ועוד שרידי הניסוח שנמחק
+  for (const banned of [
+    'מאומת', 'מאומתים', 'אומתו', 'בדוקים', 'רשמיים', 'נכרה ואומת',
+    'מחליף:', 'עותק מאומת', 'מקור האמת', 'Lorem', 'TODO', 'משאבים',
+  ]) {
     expect(text, `כיתוב דמו על המסך: ${banned}`).not.toContain(banned);
   }
   // שלד הטעינה וכרטיס הפתיחה לא גונבים חצי עמוד כשיש מציג PDF
@@ -1122,4 +1132,97 @@ test('חוזר מפמ״ר: אין כיתובי דמו בטקסט הגלוי (8.2
       ).length
   );
   expect(leaked, 'כרטיס הפתיחה מוסתר באמת כשיש מציג PDF').toBe(0);
+});
+
+test('חוזר מפמ״ר: קפיצה למקטע לא נבלעת מתחת לכותרת הדביקה (5.17)', async ({ page }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
+  );
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/hozer-mafmar/');
+  await page.locator('#MAF-13 [data-goto]').click();
+  await expect(page).toHaveURL(/#MAF-13$/);
+  const geo = await page.evaluate(() => ({
+    header: document.querySelector('header')!.getBoundingClientRect().bottom,
+    stage: document.querySelector('.viewer-stage')!.getBoundingClientRect().top,
+  }));
+  expect(geo.stage, 'ראש ההטמעה נשאר מתחת לכותרת הדביקה').toBeGreaterThanOrEqual(geo.header - 1);
+});
+
+test('חוזר מפמ״ר: כפתורי החלקים נושאים עוגן אמיתי וקישור משותף משחזר אותם (9.3.12)', async ({ page }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
+  );
+  await page.goto('/hozer-mafmar/');
+  const parts = page.locator('.part-btn');
+  await expect(parts).toHaveCount(4);
+  for (let i = 0; i < 4; i++) {
+    await expect(parts.nth(i), 'לכל חלק יש id — אחרת ה-hash מצביע לשומקום').toHaveAttribute('id', `part-${i + 1}`);
+  }
+  await parts.nth(1).click();
+  await expect(page).toHaveURL(/#part-2$/);
+  await expect(page.locator('#part-2'), 'החלק הנבחר מודגש').toHaveClass(/is-active/);
+  // הקישור ששותף באמת פותח את החלק מחדש
+  await page.goto('/hozer-mafmar/#part-2');
+  await expect(page.locator('#part-2')).toHaveClass(/is-active/);
+  await expect(page.locator('#mafmar-frame')).toHaveAttribute('src', /#page=10&/);
+});
+
+test('חוזר מפמ״ר: hidden באמת מסתיר — אין כפתור "מסך מלא" מת (5.13, 8.26)', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true });
+    Object.defineProperty(document, 'fullscreenEnabled', { get: () => false, configurable: true });
+  });
+  await page.goto('/hozer-mafmar/');
+  await expect(page.locator('#fullscreen-btn'), 'בלי תמיכה במסך מלא — הכפתור לא מוצג').toBeHidden();
+  // הכלל הגלובלי, לא תיקון מקומי: כל [hidden] בעמוד באמת נעלם
+  const leaked = await page.evaluate(
+    () => [...document.querySelectorAll('[hidden]')].filter((el) => getComputedStyle(el).display !== 'none').length
+  );
+  expect(leaked, 'שום אלמנט עם hidden אינו נשאר על המסך').toBe(0);
+});
+
+test('חוזר מפמ״ר: ניגודיות AA בכיתובים הקטנים והצבעוניים (4.7, 21.18)', async ({ page }) => {
+  await page.goto('/hozer-mafmar/');
+  const bad = await page.evaluate(() => {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = 1;
+    const ctx = cv.getContext('2d', { willReadFrequently: true })!;
+    const rgb = (c: string) => {
+      ctx.clearRect(0, 0, 1, 1);
+      ctx.fillStyle = c;
+      ctx.fillRect(0, 0, 1, 1);
+      const d = ctx.getImageData(0, 0, 1, 1).data;
+      return [d[0], d[1], d[2]];
+    };
+    const lum = (c: string) => {
+      const [r, g, b] = rgb(c).map((v) => {
+        const n = v / 255;
+        return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const out: string[] = [];
+    for (const sel of ['.maf-id', '.part-num', '.maf-meta', '.viewer-status', '.part-page']) {
+      document.querySelectorAll<HTMLElement>(sel).forEach((el) => {
+        const cs = getComputedStyle(el);
+        let bg = 'rgb(255,255,255)';
+        let p: HTMLElement | null = el;
+        while (p) {
+          const c = getComputedStyle(p).backgroundColor;
+          if (c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') { bg = c; break; }
+          p = p.parentElement;
+        }
+        const a = lum(cs.color);
+        const z = lum(bg);
+        const ratio = (Math.max(a, z) + 0.05) / (Math.min(a, z) + 0.05);
+        const px = parseFloat(cs.fontSize);
+        const large = px >= 24 || (px >= 18.66 && parseInt(cs.fontWeight) >= 700);
+        const need = large ? 3 : 4.5;
+        if (ratio < need) out.push(`${sel} ${px}px → ${ratio.toFixed(2)}:1 (דרוש ${need})`);
+      });
+    }
+    return [...new Set(out)];
+  });
+  expect(bad, 'כל כיתוב עובר את סף הניגודיות הנדרש').toEqual([]);
 });
