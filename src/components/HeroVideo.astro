@@ -185,6 +185,18 @@ import { team } from '../data/team';
     transition-delay: 200ms, 0s;
   }
 
+  /* ===== כבר נצפה באותו session (RULES 6.2.1) =====
+     ‏`hero-seen` נקבע ב-bootstrap שב-<head> (Base.astro) לפני ה-paint הראשון,
+     ולכן החוזר ל"ראשי" נוחת ישר על מצב הצוות — בלי הבזק. `display: none` על
+     הווידאו מבטל גם את ה-poster (שהוא תכונה על האלמנט), ו-`transition: none`
+     מונע דהייה של 1400ms שהייתה נראית כמו "משהו נטען". */
+  :global(html.hero-seen) .hero-media video { display: none; }
+  :global(html.hero-seen) .hero-media .hero-after {
+    opacity: 1;
+    visibility: visible;
+    transition: none;
+  }
+
   /* ריווח יוקרתי — יש מקום בעמוד, והכותרות נושמות (הוראת יניב, 05/08/2026).
      בתחתית שמור מקום למדליון "התחל" כדי שלא ייווצר חפיפה איתו (7.28) */
   .hero-after-inner {
@@ -391,8 +403,28 @@ import { team } from '../data/team';
 
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // בחירת גרסה לפי רוחב המסך — שתי הגרסאות קודדו מהמקור ללא שינוי תוכן (6.10)
-  video.src = innerWidth < 760 ? '/media/hero-720.mp4' : '/media/hero-1080.mp4';
+  /* ===== "נצפה" — פעם אחת בכל session של הטאב (RULES 6.2.1, 6.6) ===== */
+  const SEEN_KEY = 'jerusalem.heroSeen.v1';
+  const wasSeen = () => {
+    try {
+      return sessionStorage.getItem(SEEN_KEY) === '1';
+    } catch {
+      return false; // מצב פרטי/חסום — מתנהגים כמו כניסה ראשונה
+    }
+  };
+  const markSeen = () => {
+    try {
+      sessionStorage.setItem(SEEN_KEY, '1');
+    } catch {
+      /* אין אחסון — אין מה לשמור; ההתנהגות נשארת תקינה */
+    }
+  };
+
+  // בחירת גרסה לפי רוחב המסך — שתי הגרסאות קודדו מהמקור ללא שינוי תוכן (6.10).
+  // מי שכבר צפה אינו מקבל src כלל: בלי בקשת רשת, בלי פריים ובלי poster.
+  if (!wasSeen()) {
+    video.src = innerWidth < 760 ? '/media/hero-720.mp4' : '/media/hero-1080.mp4';
+  }
 
   // גובה ה-hero עד תחתית החלון בדיוק — בלי שטח ריק מתחת לתמונה
   const fit = () => {
@@ -408,6 +440,15 @@ import { team } from '../data/team';
   const finish = () => {
     media.classList.add('is-ended');
     document.documentElement.classList.add('hero-done');
+    markSeen();
+  };
+
+  /* מצב הצוות המיידי למי שכבר צפה: בלי play(), בלי איפוס currentTime,
+     בלי poster ובלי אנימציה (6.2.1). `hero-seen` כבר הוסף ב-<head> ברוב
+     המקרים; מוסיפים אותו גם כאן כרשת ביטחון ל-bfcache ולסדר טעינה חריג. */
+  const settleSeen = () => {
+    document.documentElement.classList.add('hero-seen', 'hero-done');
+    media.classList.add('is-ending', 'is-ended');
   };
 
   video.addEventListener('ended', finish);
@@ -428,16 +469,18 @@ import { team } from '../data/team';
     });
   };
 
-  /* ===== הסרטון רץ בכל כניסה לעמוד הראשי (6.2, הוראת יניב 06/08/2026) =====
-     הסרטון נועד לרוץ "בעת הכניסה" — לא פעם אחת לביקור. כשהדפדפן מחזיר את
-     העמוד מזיכרון הניווט (bfcache) הוא משחזר אותו קפוא בדיוק כפי שנעזב:
-     הווידאו עצור בסופו והמחלקות is-ending/is-ended/hero-done כבר עליו — ולכן
-     המשתמש נוחת ישר על מצב הצוות ולא רואה את הסרטון. כאן מאפסים את המצב
-     ומנגנים מהתחלה. שימו לב ש-6.6 נשמר: בתוך אותה צפייה הסרטון אינו חוזר
-     להתחלה — האיפוס קורה רק בכניסה חדשה לעמוד. */
+  /* ===== פעם אחת בכל session של הטאב (6.2.1, הוראת יניב 06/08/2026) =====
+     מבטל את "הסרטון רץ בכל כניסה" ומחזיר את 6.6 לתוקף: לאחר שנצפה, כל חזרה
+     ל"ראשי" באותו session מציגה מיד את מצב הצוות. הניסוח הקודם כאן איפס את
+     המחלקות ואת `currentTime` בכל `pageshow` מ-bfcache, ולכן הסרטון חזר שוב
+     ושוב — זו בדיוק התלונה. טאב חדש (session חדש) רשאי להציג אותו מחדש. */
   const start = () => {
+    if (wasSeen()) {
+      settleSeen();
+      return;
+    }
     if (reduced) {
-      // רגישי תנועה: מצב הצוות מיד, בלי ניגון אוטומטי
+      // רגישי תנועה: מצב הצוות מיד, בלי ניגון אוטומטי — ונחשב "נצפה"
       finish();
       return;
     }
@@ -453,7 +496,14 @@ import { team } from '../data/team';
 
   start();
 
+  /* bfcache/‏history back: אם כבר נצפה — מצב צוות מיד ובלי ניגון; אם טרם נצפה
+     (למשל חזרה אחורה באמצע הצפייה הראשונה) — מותר להתחיל. */
   addEventListener('pageshow', (e) => {
-    if ((e as PageTransitionEvent).persisted) start();
+    if (!(e as PageTransitionEvent).persisted) return;
+    if (wasSeen()) {
+      settleSeen();
+      return;
+    }
+    start();
   });
 </script>

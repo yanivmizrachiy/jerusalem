@@ -1348,38 +1348,143 @@ test('חוזר מפמ״ר: ניגודיות AA בכיתובים הקטנים ו�
   expect(bad, 'כל כיתוב עובר את סף הניגודיות הנדרש').toEqual([]);
 });
 
-test('סרטון הפתיחה רץ בכל כניסה לעמוד הראשי, גם בחזרה מזיכרון הניווט (6.2)', async ({ page }) => {
+/* ===== סרטון הפתיחה — פעם אחת בכל session של הטאב (6.2.1, 6.6) =====
+   מחליף את "רץ בכל כניסה" (06/08/2026): לאחר שנצפה, כל חזרה ל"ראשי" באותו
+   session מציגה מיד את מצב הצוות, בלי ניגון ובלי הבזק של הווידאו/ה-poster. */
+
+type HeroState = {
+  t: number; src: string; videoDisplay: string; ended: boolean;
+  done: boolean; seenClass: boolean; seenKey: string | null; afterOpacity: string;
+};
+
+const heroState = (p: import('@playwright/test').Page): Promise<HeroState> =>
+  p.evaluate(() => {
+    const v = document.getElementById('hero-video') as HTMLVideoElement | null;
+    const m = document.getElementById('hero-media');
+    const after = m?.querySelector('.hero-after') as HTMLElement | null;
+    return {
+      t: v ? v.currentTime : -1,
+      src: v ? v.getAttribute('src') || '' : '',
+      videoDisplay: v ? getComputedStyle(v).display : 'absent',
+      ended: !!m?.classList.contains('is-ended'),
+      done: document.documentElement.classList.contains('hero-done'),
+      seenClass: document.documentElement.classList.contains('hero-seen'),
+      seenKey: sessionStorage.getItem('jerusalem.heroSeen.v1'),
+      afterOpacity: after ? getComputedStyle(after).opacity : '0',
+    };
+  });
+
+const endHero = (p: import('@playwright/test').Page) =>
+  p.evaluate(() => document.getElementById('hero-video')!.dispatchEvent(new Event('ended')));
+
+test('סרטון הפתיחה: בכניסה ראשונה בטאב הוא רשאי לרוץ (6.2.1)', async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
 
-  const state = () =>
-    page.evaluate(() => {
-      const v = document.getElementById('hero-video') as HTMLVideoElement;
-      const m = document.getElementById('hero-media')!;
-      return {
-        t: v.currentTime,
-        ended: m.classList.contains('is-ended'),
-        ending: m.classList.contains('is-ending'),
-        done: document.documentElement.classList.contains('hero-done'),
-      };
-    });
+  const first = await heroState(page);
+  expect(first.seenKey, 'טאב חדש — המפתח עדיין ריק').toBeNull();
+  expect(first.src, 'נטען מקור וידאו אמיתי').toContain('/media/hero-');
+  await expect.poll(async () => (await heroState(page)).t, { message: 'הסרטון מתקדם בכניסה הראשונה' })
+    .toBeGreaterThan(0.1);
+});
 
-  // הסרטון מתנגן בכניסה
-  await expect.poll(async () => (await state()).t, { message: 'הסרטון מתקדם בכניסה' }).toBeGreaterThan(0.1);
+test('סרטון הפתיחה: אחרי שנצפה, חזרה ל"ראשי" מציגה מיד את הצוות בלי ניגון (6.2.1)', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+  await endHero(page);
+  await expect.poll(async () => (await heroState(page)).seenKey, { message: 'הסיום נשמר' }).toBe('1');
 
-  // מדמים את מה שקורה בחזרה מזיכרון הניווט: העמוד משוחזר קפוא בסוף הסרטון
+  // יוצאים לעמוד אחר וחוזרים ל"ראשי" — בדיוק התלונה של יניב
+  await page.goto('/shearim/');
+  await page.goto('/');
+
+  const s = await heroState(page);
+  expect(s.seenClass, 'hero-seen נקבע ב-bootstrap שלפני ה-paint').toBe(true);
+  expect(s.done, 'hero-done מיידי').toBe(true);
+  expect(s.ended, 'מצב הצוות מיד').toBe(true);
+  expect(s.afterOpacity, 'הצוות גלוי מיד ובלי דהייה').toBe('1');
+  expect(s.src, 'לא נטען src — אין בקשת וידאו כלל').toBe('');
+  expect(s.videoDisplay, 'הווידאו אינו מוצג — אין הבזק poster').toBe('none');
+  expect(s.t, 'לא הופעל ניגון').toBeLessThanOrEqual(0);
+});
+
+test('סרטון הפתיחה: רענון באותו session אינו מפעיל אותו מחדש (6.2.1)', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+  await endHero(page);
+  await expect.poll(async () => (await heroState(page)).seenKey).toBe('1');
+
+  await page.reload();
+
+  const s = await heroState(page);
+  expect(s.seenClass, 'גם אחרי reload — מצב נצפה').toBe(true);
+  expect(s.ended).toBe(true);
+  expect(s.src, 'אין טעינת וידאו ברענון').toBe('');
+  expect(s.t, 'אין ניגון ברענון').toBeLessThanOrEqual(0);
+});
+
+test('סרטון הפתיחה: bfcache/history back אינם מאפסים אותו (6.2.1)', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+  await expect.poll(async () => (await heroState(page)).t).toBeGreaterThan(0.1);
+
+  // מסיימים בפועל: הסרטון נעצר בסופו, בדיוק כפי ש-bfcache היה משמר אותו
   await page.evaluate(() => {
     const v = document.getElementById('hero-video') as HTMLVideoElement;
-    const m = document.getElementById('hero-media')!;
     v.pause();
-    m.classList.add('is-ending', 'is-ended');
-    document.documentElement.classList.add('hero-done');
-    dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+    v.dispatchEvent(new Event('ended'));
+  });
+  await expect.poll(async () => (await heroState(page)).seenKey, { message: 'הסיום נשמר' }).toBe('1');
+  const before = await page.evaluate(() => (document.getElementById('hero-video') as HTMLVideoElement).currentTime);
+
+  // מדמים שחזור מזיכרון הניווט
+  await page.evaluate(() =>
+    dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))
+  );
+  await page.waitForTimeout(300);
+
+  const after = await page.evaluate(() => {
+    const v = document.getElementById('hero-video') as HTMLVideoElement;
+    const m = document.getElementById('hero-media')!;
+    return {
+      t: v.currentTime,
+      paused: v.paused,
+      ended: m.classList.contains('is-ended'),
+      done: document.documentElement.classList.contains('hero-done'),
+    };
   });
 
-  const after = await state();
-  expect(after.ended, 'מצב הסיום נוקה — לא נוחתים ישר על הצוות').toBe(false);
-  expect(after.ending, 'גם הדעיכה אופסה').toBe(false);
-  expect(after.done, 'hero-done הוסר כדי שהפתיחה תתחיל מחדש').toBe(false);
-  await expect.poll(async () => (await state()).t, { message: 'הסרטון רץ שוב מההתחלה' }).toBeGreaterThan(0.1);
+  expect(after.ended, 'מצב הסיום לא נוקה').toBe(true);
+  expect(after.done, 'hero-done לא הוסר').toBe(true);
+  expect(after.paused, 'הסרטון לא הופעל מחדש').toBe(true);
+  expect(after.t, 'הסרטון לא הוחזר להתחלה').toBeGreaterThanOrEqual(before);
+});
+
+test('סרטון הפתיחה: Browser Context חדש רשאי להציג אותו שוב (6.2.1)', async ({ page, browser }) => {
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+  const base = new URL(page.url()).origin;
+  await endHero(page);
+  await expect.poll(async () => (await heroState(page)).seenKey).toBe('1');
+
+  const ctx = await browser.newContext({ baseURL: base });
+  const fresh = await ctx.newPage();
+  await fresh.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await fresh.goto('/');
+
+  const s = await heroState(fresh);
+  expect(s.seenKey, 'session חדש — המפתח ריק').toBeNull();
+  expect(s.src, 'נטען מקור וידאו בטאב החדש').toContain('/media/hero-');
+  await expect.poll(async () => (await heroState(fresh)).t, { message: 'רץ שוב בטאב חדש' })
+    .toBeGreaterThan(0.1);
+  await ctx.close();
+});
+
+test('סרטון הפתיחה: ה-bootstrap יושב ב-head לפני הגוף — אין הבזק (6.2.1)', async ({ page }) => {
+  const res = await page.request.get('/');
+  const html = await res.text();
+  const boot = html.indexOf('jerusalem.heroSeen.v1');
+  const body = html.indexOf('<body');
+  expect(boot, 'ה-bootstrap קיים ב-HTML המוגש').toBeGreaterThan(-1);
+  expect(boot, 'ה-bootstrap קודם ל-<body> — כלומר רץ לפני ה-paint').toBeLessThan(body);
 });
