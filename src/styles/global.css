@@ -154,6 +154,28 @@ html {
   @view-transition { navigation: auto; }
   ::view-transition-old(root),
   ::view-transition-new(root) { animation-duration: 340ms; }
+
+  /* מעבר "התחל" ← בחירת החטיבה: במקום עמעום, העמוד מחליק ימינה והבא מגיע
+     משמאל בהחלקה — כיוון ההתקדמות ב-RTL (הוראת יניב 06/08/2026). ה-class
+     vt-forward מתווסף אך ורק על המעבר / → /shearim/ (Base.astro), ולכן שאר
+     מעברי האתר נשארים בעמעום העדין. שכבת ה-::view-transition היא overlay
+     ואינה יוצרת גלילה אופקית (19.32). */
+  html.vt-forward::view-transition-old(root) {
+    animation: vt-slide-out-right 520ms var(--ease) both;
+  }
+  html.vt-forward::view-transition-new(root) {
+    animation: vt-slide-in-left 520ms var(--ease) both;
+  }
+}
+
+@keyframes vt-slide-out-right {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(100%); opacity: 0.4; }
+}
+
+@keyframes vt-slide-in-left {
+  from { transform: translateX(-100%); opacity: 0.4; }
+  to   { transform: translateX(0); opacity: 1; }
 }
 
 /* פס התקדמות גלילה עדין — שיפור הדרגתי בדפדפנים תומכים */
