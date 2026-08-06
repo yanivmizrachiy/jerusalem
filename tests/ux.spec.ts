@@ -970,3 +970,116 @@ test('בנייד: ההטמעה ראשונה, בלי גלילה אופקית וב
   );
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+/* ===== חוזר מפמ״ר: החוזר למעלה, עמוד שלם ממורכז, התמונה למטה
+   (הוראת יניב, 06/08/2026) ===== */
+
+test('חוזר מפמ״ר: החוזר עצמו למעלה — לפני כפתורי הקפיצה, המקטעים והתמונה', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/hozer-mafmar/');
+
+  const y = async (sel: string) => (await page.locator(sel).first().boundingBox())!.y;
+  const viewer = await y('.viewer');
+  const jumps = await y('.part-jumps');
+  const sections = await y('.sections-block');
+  const banner = await y('.art-banner');
+
+  expect(viewer, 'החוזר מוצג לפני כפתורי הקפיצה').toBeLessThan(jumps);
+  expect(jumps, 'כפתורי הקפיצה לפני אינדקס המקטעים').toBeLessThan(sections);
+  expect(banner, 'התמונה הכי למטה — אחרי כל שאר התוכן').toBeGreaterThan(sections);
+  const last = await page.evaluate(() => {
+    const kids = [...document.querySelectorAll('.container.page > *')];
+    return kids[kids.length - 1]?.className ?? '';
+  });
+  expect(last, 'התמונה היא הרכיב האחרון בעמוד').toContain('art-banner');
+});
+
+test('חוזר מפמ״ר: עמוד שלם ממש — יחס העמוד האמיתי, ממורכז ונכנס לגובה החלון', async ({ page }) => {
+  // ה-Chromium של הבדיקות מדווח pdfViewerEnabled=false; כאן נמדד מסלול
+  // הדפדפן האמיתי עם מציג PDF, שבו ההטמעה חיה.
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
+  );
+  for (const size of [
+    { width: 1440, height: 900 },
+    { width: 1920, height: 1080 },
+  ]) {
+    await page.setViewportSize(size);
+    await page.goto('/hozer-mafmar/');
+    await expect(page.locator('#viewer-open-card')).toBeHidden();
+    const shell = (await page.locator('#viewer-shell').boundingBox())!;
+    const stage = (await page.locator('.viewer-stage').boundingBox())!;
+    const frame = (await page.locator('#mafmar-frame').boundingBox())!;
+
+    // יחס A4 אמיתי של המסמך (595.32×841.92) — כך נכנס עמוד שלם ולא חלק ממנו
+    const ratio = shell.height / shell.width;
+    expect(ratio, `${size.width}: מסגרת הצפייה ביחס העמוד`).toBeGreaterThan(1.36);
+    expect(ratio, `${size.width}: מסגרת הצפייה ביחס העמוד`).toBeLessThan(1.47);
+
+    // העמוד השלם נכנס לגובה החלון — אין צורך לגלול כדי לראות עמוד אחד
+    expect(shell.height, `${size.width}: העמוד השלם נכנס לגובה החלון`).toBeLessThanOrEqual(size.height);
+    expect(shell.height, `${size.width}: העמוד גדול ושימושי`).toBeGreaterThan(520);
+
+    // ממורכז בתוך אזור התצוגה
+    const start = shell.x - stage.x;
+    const end = stage.x + stage.width - (shell.x + shell.width);
+    expect(Math.abs(start - end), `${size.width}: העמוד ממורכז`).toBeLessThanOrEqual(2);
+
+    // ההטמעה ממלאת את המסגרת — בלי מסגרת בתוך מסגרת
+    expect(shell.width - frame.width, `${size.width}: ה-iframe ממלא את המסגרת`).toBeLessThanOrEqual(20);
+    expect(shell.height - frame.height, `${size.width}: ה-iframe ממלא את המסגרת`).toBeLessThanOrEqual(20);
+  }
+});
+
+test('חוזר מפמ״ר: בלי מציג PDF — כרטיס פתיחה אמיתי, בלי מסגרת ריקה ובלי דפדוף מדומה (8.8)', async ({ page }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => false, configurable: true })
+  );
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/hozer-mafmar/');
+  await expect(page.locator('#viewer-shell'), 'בלי מסגרת ריקה').toBeHidden();
+  await expect(page.locator('.viewer-pager'), 'בלי דפדוף שאין לו מה לדפדף').toBeHidden();
+  const card = page.locator('#viewer-open-card');
+  await expect(card).toBeVisible();
+  expect((await card.boundingBox())!.height, 'הכרטיס נוכח ואינו פס דק').toBeGreaterThan(300);
+  // קפיצה למקטע מכוונת את הכרטיס לעמוד הנכון
+  await page.locator('#MAF-13 [data-goto]').click();
+  await expect(page.locator('#open-card-link')).toHaveAttribute('href', /#page=11$/);
+});
+
+test('חוזר מפמ״ר: דפדוף אמיתי עמוד-עמוד, בלי סרגל ה-PDF של הדפדפן (8.26)', async ({ page }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
+  );
+  await page.goto('/hozer-mafmar/');
+  const frame = page.locator('#mafmar-frame');
+  const prev = page.locator('#pg-prev');
+  const next = page.locator('#pg-next');
+
+  await expect(prev, 'בעמוד הראשון אין "קודם"').toBeDisabled();
+  await expect(page.locator('#pg-counter')).toHaveText(/עמוד 1 מתוך 18/);
+  await next.click();
+  await expect(frame).toHaveAttribute('src', /#page=2&/);
+  await expect(page.locator('#pg-counter')).toHaveText(/עמוד 2 מתוך 18/);
+  await expect(prev).toBeEnabled();
+  await expect(frame, 'בלי סרגל PDF שחור ובלי חלונית ניווט').toHaveAttribute(
+    'src',
+    /toolbar=0&navpanes=0/
+  );
+});
+
+test('חוזר מפמ״ר: אין כיתובי דמו בטקסט הגלוי (8.25, 8.26)', async ({ page }) => {
+  await page.goto('/hozer-mafmar/');
+  const text = (await page.locator('main').innerText()).replace(/\s+/g, ' ');
+  for (const banned of ['מאומת', 'אומתו', 'מחליף:', 'עותק מאומת', 'מקור האמת']) {
+    expect(text, `כיתוב דמו על המסך: ${banned}`).not.toContain(banned);
+  }
+  // שלד הטעינה וכרטיס הפתיחה לא גונבים חצי עמוד כשיש מציג PDF
+  const leaked = await page.evaluate(
+    () =>
+      [...document.querySelectorAll('#viewer-open-card[hidden]')].filter(
+        (el) => getComputedStyle(el).display !== 'none'
+      ).length
+  );
+  expect(leaked, 'כרטיס הפתיחה מוסתר באמת כשיש מציג PDF').toBe(0);
+});
