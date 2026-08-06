@@ -1,14 +1,12 @@
 ---
+/** עמוד המבוא של השכבה (הוראת יניב, 06/08/2026) */
 import Base from '../../layouts/Base.astro';
-import GradeIndex from '../../components/GradeIndex.astro';
+import GradeIntro from '../../components/GradeIntro.astro';
 import { gradeBySlug } from '../../data/choveret';
 
 const grade = gradeBySlug('t')!;
 ---
 
-<Base
-  title="מתמטיקה לכיתה ט׳ — מחוז ירושלים"
-  description="מתמטיקה לכיתה ט׳ במחוז ירושלים: החוזר הרשמי, ההכנה ל-4 יח״ל, מבחן תנופה והמעבר לחטיבה העליונה."
->
-  <GradeIndex grade={grade} />
+<Base title={`${grade.title} — מחוז ירושלים`} description="תוכנית ההוראה, פריסת ההוראה וכל חומרי ההוראה לכיתה ט׳ במחוז ירושלים.">
+  <GradeIntro grade={grade} />
 </Base>

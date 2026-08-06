@@ -1,0 +1,15 @@
+---
+/** תצוגת החומרים של השכבה — מסלול-בן של עמוד המבוא (הוראת יניב, 06/08/2026) */
+import Base from '../../../layouts/Base.astro';
+import GradeIndex from '../../../components/GradeIndex.astro';
+import { gradeBySlug } from '../../../data/choveret';
+
+const grade = gradeBySlug('h')!;
+---
+
+<Base
+  title={`חומרים להוראה — ${grade.title} — מחוז ירושלים`}
+  description="דפי עבודה, מבחנים, משחקים וקישורים לכיתה ח׳ במחוז ירושלים."
+>
+  <GradeIndex grade={grade} />
+</Base>
