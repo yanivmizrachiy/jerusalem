@@ -15,7 +15,7 @@ const routes = [
   '/chativat-beynayim/nose/z/tichnun/',
   '/chativat-beynayim/nose/h/hozer/',
   '/chativat-beynayim/nose/t/yahal4/',
-  '/chativat-beynayim/nose/klali/noschaot/',
+  '/chativat-beynayim/nose/z/noschaot/',
   '/chativat-beynayim/misparim-mechuvanim/',
   '/chativat-beynayim/zaviyot/',
   '/chativat-beynayim/maarechet-tzirim/',
@@ -32,7 +32,6 @@ const routes = [
   '/hodaot/',
   '/israel-realit/',
   '/luach/',
-  '/chativat-beynayim/klali/',
   '/chativat-beynayim/reader/z/maf-02/',
   '/chativat-beynayim/reader/t/mifrat-tnufa/',
 ];
@@ -74,12 +73,12 @@ for (const route of routes) {
   });
 }
 
-// העמודים המרוכזים של מבחנים ומשחקים הוחלפו בפרקים שבעמוד "משותף לכל
-// השכבות" (1.10, 3.29); הכתובות הישנות נשארות חיות ומפנות מיידית לפרק
+// העמודים המרוכזים של מבחנים ומשחקים הוחלפו בפרקים שבתוך עמודי הכיתות
+// (1.10, 3.29, 3.31); הכתובות הישנות נשארות חיות ומפנות מיידית לפרק
 // הנכון — קישורים ששותפו לא נשברים
 const moved: Record<string, string> = {
-  '/chativat-beynayim/mivchanim/': '/chativat-beynayim/nose/klali/meitzav/',
-  '/chativat-beynayim/mischakim/': '/chativat-beynayim/nose/klali/mischakim/',
+  '/chativat-beynayim/mivchanim/': '/chativat-beynayim/nose/h/mivchanim/',
+  '/chativat-beynayim/mischakim/': '/chativat-beynayim/nose/z/mischakim/',
 };
 for (const [old, target] of Object.entries(moved)) {
   test(`הפניה לעמוד הנושא: ${old}`, async ({ page }) => {

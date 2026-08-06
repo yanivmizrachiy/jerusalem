@@ -35,7 +35,6 @@ const ROUTES = [
   '/chativat-beynayim/kita-z/chomarim/',
   '/chativat-beynayim/kita-h/chomarim/',
   '/chativat-beynayim/kita-t/chomarim/',
-  '/chativat-beynayim/klali/',
   '/chativat-beynayim/nose/z/tichnun/',
   '/chativat-beynayim/reader/z/tochnit-z/',
 ];
@@ -43,7 +42,6 @@ const ROUTES = [
 /** סמנים מחייבים: אם אחד מהם נעלם — רגרסיה שקטה בפרודקשן */
 const MARKERS = [
   { path: '/chativat-beynayim/', needle: 'split3', what: 'מסך השלישים של חטיבת הביניים (3.26)' },
-  { path: '/chativat-beynayim/', needle: 'klali-band', what: 'רצועת החומרים המשותפים (3.26)' },
   { path: '/chativat-beynayim/kita-z/', needle: 'מה אנחנו מלמדים?', what: 'אזור המבוא של השכבה (הוראת יניב 06/08)' },
   { path: '/chativat-beynayim/kita-z/', needle: 'חומרים להוראה', what: 'אזור החומרים בעמוד המבוא (06/08)' },
   { path: '/chativat-beynayim/kita-z/chomarim/', needle: 'class="topics"', what: 'רשימת הנושאים בתצוגת החומרים (3.29)' },
@@ -148,7 +146,6 @@ try {
     ['z', '/chativat-beynayim/kita-z/chomarim/'],
     ['h', '/chativat-beynayim/kita-h/chomarim/'],
     ['t', '/chativat-beynayim/kita-t/chomarim/'],
-    ['klali', '/chativat-beynayim/klali/'],
   ]) {
     const g = markup((await fetchOnce(path)).html);
     const topics = countOf(g, /class="topic"/g);
