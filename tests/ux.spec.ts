@@ -165,32 +165,43 @@ test('שער חטיבת הביניים בנייד: השלישים נערמים �
   await noOverflow(page, 'שער 390');
 });
 
-test('תצוגת החומרים: פרקים, כרטיסי קבצים, סרגל קפיצה ומעבר בין שכבות (5.3–5.4)', async ({ page }) => {
+test('תצוגת החומרים: רשימת נושאים בלבד, וכל נושא נפתח לרשימת משימות (הוראת יניב, 06/08)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/chativat-beynayim/kita-z/chomarim/');
 
   await expect(page.locator('h1.grade-title')).toHaveText('מתמטיקה לכיתה ז׳');
 
-  // סרגל הקפיצה דביק ומכיל שבב לכל פרק, כל אחד ≥44px
-  const chips = page.locator('.chapter-bar .chip');
-  await expect(chips).toHaveCount(await page.locator('section.chapter').count());
-  expect(await page.locator('.chapter-bar').evaluate((el) => getComputedStyle(el).position)).toBe('sticky');
-  for (const h of await chips.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))) {
-    expect(h, 'מטרת מגע ≥44px').toBeGreaterThanOrEqual(44);
+  // המסך הראשון הוא רשימת הנושאים — ואין בו כרטיסי משימות כלל
+  const topics = page.locator('.topics .topic');
+  expect(await topics.count(), 'יש רשימת נושאים').toBeGreaterThan(2);
+  await expect(page.locator('.rcard')).toHaveCount(0);
+  for (const h of await topics.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))) {
+    expect(h, 'שורת נושא גדולה ונוחה').toBeGreaterThanOrEqual(44);
   }
 
-  // לחיצה על שבב מגלגלת לפרק הנכון
-  const target = await chips.nth(1).getAttribute('href');
-  await chips.nth(1).click();
-  await expect(page).toHaveURL(new RegExp(`${target?.slice(1)}$`));
+  // כל השאר יורד ממש למטה — הניווט מתחת לקיפול
+  const nav = (await page.locator('.grade-nav').boundingBox())!;
+  const last = (await topics.last().boundingBox())!;
+  expect(nav.y, 'הניווט הרחק מתחת לרשימת הנושאים').toBeGreaterThan(last.y + last.height + 60);
 
-  // כל כרטיס מוביל ליעד אמיתי — עמוד משאב או עמוד פנימי
+  // לחיצה על נושא מגיעה לעמוד הנושא ובו רשימת המשימות שלו
+  const href = await topics.nth(1).getAttribute('href');
+  expect(href).toMatch(/^\/chativat-beynayim\/nose\/z\//);
+  await topics.nth(1).click();
+  await page.waitForURL((u) => u.pathname === href);
+  await expect(page.locator('h1.chapter-title')).toBeVisible();
+
   const cards = page.locator('.rcard');
-  expect(await cards.count(), 'יש כרטיסי קבצים').toBeGreaterThan(3);
+  expect(await cards.count(), 'יש כרטיסי משימות').toBeGreaterThan(0);
   const hrefs = await cards.evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')));
-  for (const href of hrefs) expect(href, 'לכל כרטיס יעד').toMatch(/^\/(chativat-beynayim|chativa-elyona|hozer-mafmar)/);
+  for (const h of hrefs) expect(h, 'לכל משימה יעד').toMatch(/^\/(chativat-beynayim|chativa-elyona|hozer-mafmar)/);
 
-  // מעבר לשכבה הבאה וחזרה לשער
+  // חזרה לרשימת הנושאים
+  await expect(page.locator('[data-to-topics]')).toHaveAttribute('href', '/chativat-beynayim/kita-z/chomarim/');
+  await noOverflow(page, 'עמוד נושא 1440');
+
+  // מעבר לשכבה הבאה וחזרה לשער — בתחתית תצוגת החומרים
+  await page.goto('/chativat-beynayim/kita-z/chomarim/');
   await expect(page.locator('.grade-nav a[href="/chativat-beynayim/kita-h/chomarim/"]')).toHaveCount(1);
   await expect(page.locator('.grade-nav a[href="/chativat-beynayim/"]')).toHaveCount(1);
   await expect(page.locator('.grade-nav a[data-to-intro]')).toHaveAttribute('href', '/chativat-beynayim/kita-z/');
@@ -247,16 +258,16 @@ test('כיתה ט׳: הכפתורים הראשיים הם המסלול הראש�
   await page.goto('/chativat-beynayim/kita-t/');
   await expect(page.locator('[data-main-plan]')).toHaveAttribute('href', /\/reader\/t\/tochnit-t\/$/);
   await expect(page.locator('[data-main-prisa]')).toHaveAttribute('href', /\/reader\/t\/prisa-t\/$/);
-  await page.goto('/chativat-beynayim/kita-t/chomarim/');
+  await page.goto('/chativat-beynayim/nose/t/tichnun/');
   for (const id of ['tochnit-t-m', 'prisa-t-m']) {
     await expect(page.locator(`a.rcard[href="/chativat-beynayim/reader/t/${id}/"]`)).toHaveCount(1);
   }
 });
 
-test('עמוד "כללי" קיים ומציג את החומרים המשותפים (1.9)', async ({ page }) => {
+test('עמוד "כללי" קיים ומציג את הנושאים המשותפים (1.9)', async ({ page }) => {
   await page.goto('/chativat-beynayim/klali/');
   await expect(page.locator('h1.grade-title')).toHaveText('משותף לכל השכבות');
-  expect(await page.locator('.rcard').count()).toBeGreaterThan(10);
+  expect(await page.locator('.topics .topic').count()).toBeGreaterThan(3);
 });
 
 test('עמוד מבוא בנייד: הכול נגיש בלי גלילה אופקית (19.32)', async ({ page }) => {
@@ -309,8 +320,8 @@ test('עמוד משאב: ניווט קודם/הבא בתוך השכבה וחזר
   expect(await pager.count(), 'יש שכן אחד לפחות').toBeGreaterThan(0);
   const href = await pager.first().getAttribute('href');
   expect(href).toMatch(/^\/chativat-beynayim\/reader\/z\//);
-  // חזרה אל הפרק שממנו הגענו
-  await expect(page.locator('.res-back')).toHaveAttribute('href', /\/chativat-beynayim\/kita-z\/chomarim\/#/);
+  // חזרה אל הנושא שממנו הגענו
+  await expect(page.locator('.res-back')).toHaveAttribute('href', /^\/chativat-beynayim\/nose\/z\/[a-z0-9-]+\/$/);
 });
 
 test('עמוד משאב במסך רחב: פס גלילה אחד — העמוד עצמו אינו נגלל (הוראת יניב, 06/08)', async ({ page }) => {
