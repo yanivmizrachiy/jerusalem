@@ -50,6 +50,13 @@ const gates = [
         </a>
       ))
     }
+
+    <a class="back-home" href="/">
+      <svg viewBox="0 0 34 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+        <path d="M1 6h31M26 1l6 5-6 5" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      <span>חזרה לעמוד הראשי</span>
+    </a>
   </section>
 
   <WhatsAppBand />
@@ -78,6 +85,8 @@ const gates = [
     align-items: center;
     justify-content: center;
     padding: clamp(2rem, 5vw, 4rem) clamp(1.4rem, 4.5vw, 3.4rem);
+    /* מקום שמור בתחתית לכפתור החזרה, כדי שלא יכסה את תוכן החצי */
+    padding-block-end: calc(clamp(2rem, 5vw, 4rem) + 4.2rem);
     text-decoration: none;
     isolation: isolate;
     transition: flex-basis 700ms var(--ease), filter 400ms var(--ease);
@@ -197,12 +206,58 @@ const gates = [
     );
   }
 
+  /* חזרה לעמוד הראשי — בתחתית העמוד, על התפר בין שני החצאים.
+     יושב מחוץ לזרימה כדי שהצבע ימשיך לגעת בניווט העליון וברצועת הווטסאפ (7.29). */
+  .back-home {
+    position: absolute;
+    z-index: 4;
+    inset-block-end: clamp(1.1rem, 3.2vh, 2.1rem);
+    inset-inline: 0;
+    margin-inline: auto;
+    inline-size: max-content;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-block-size: 48px;
+    padding: 0.6rem 1.7rem;
+    border: 1px solid color-mix(in srgb, var(--gold) 62%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--navy) 88%, transparent);
+    color: #e8c877;
+    font: 700 1.02rem var(--font-body);
+    text-decoration: none;
+    box-shadow: 0 14px 34px -20px rgb(15 21 34 / 0.75);
+    backdrop-filter: blur(6px);
+    transition: border-color 300ms var(--ease), background-color 300ms var(--ease);
+  }
+
+  .back-home svg {
+    inline-size: 28px;
+    block-size: auto;
+    transition: translate 380ms var(--ease);
+  }
+
+  .back-home:hover {
+    border-color: var(--gold);
+    background: color-mix(in srgb, var(--navy) 96%, transparent);
+  }
+
+  .back-home:hover svg { translate: 5px 0; }
+
+  .back-home:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .back-home, .back-home svg { transition-duration: 1ms; }
+  }
+
   /* ריחוף במחשב: החצי הנבחר גדל, השני נסוג — בלי קפיצות.
      ההרחבה חייבת להיות על flex-basis: כששני הבסיסים כבר ממלאים את המכל,
-     אין שטח פנוי ו-flex-grow אינו משנה דבר. */
+     אין שטח פנוי ו-flex-grow אינו משנה דבר.
+     התנאי הוא ריחוף על חצי בלבד — ריחוף על כפתור החזרה לא יכווץ את שניהם. */
   @media (min-width: 1000px) and (pointer: fine) {
-    .split:hover .half { flex-basis: 43%; filter: saturate(0.94); }
-    .split .half:hover { flex-basis: 57%; filter: none; }
+    /* שתי השורות נושאות את אותו :has כדי שהסלקטור השני יישאר הספציפי יותר */
+    .split:has(> .half:hover) .half { flex-basis: 43%; filter: saturate(0.94); }
+    .split:has(> .half:hover) .half:hover { flex-basis: 57%; filter: none; }
   }
 
   /* פתיחת העמוד: כל חצי נחשף מהמרכז החוצה והתוכן עולה בהדרגה */
