@@ -94,6 +94,8 @@
   --embed-workspace-min: 600px;
   /* גובה הטמעה ברוחב מלא (המחשות, אתרים, חוזר מלא) */
   --embed-full-height: clamp(600px, 78dvh, 1040px);
+  /* הטמעת אתר שלם (ההמחשות, אתרי המשאבים) — גובה נדיב שמציג עמוד ראשי שלם */
+  --embed-site-height: clamp(760px, 88dvh, 1240px);
   /* גובה סביבת עבודה מחולקת שאינה נמדדת בזמן ריצה (UnitPlaylist) */
   --embed-workspace: clamp(560px, 72dvh, 900px);
   --rail-w: 260px;

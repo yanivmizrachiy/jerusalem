@@ -873,6 +873,25 @@ test('עמוד מסמך שלם בהטמעה, וכל הפעולות רק בצד �
   }
 });
 
+test('הטמעות אתר שלם גדולות ומרווחות — לא קורסות לגובה ברירת מחדל (9.1)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const [route, sel] of [
+    ['/chativat-beynayim/', '.mam-frame'],
+    ['/chativat-beynayim/misparim-mechuvanim/', '.semb-frame'],
+  ] as const) {
+    await page.goto(route);
+    const frame = (await page.locator(sel).boundingBox())!;
+    const iframe = (await page.locator(`${sel} iframe`).boundingBox())!;
+    // 150px הוא גובה ברירת המחדל של iframe — קריסה כזו קרתה בעבר
+    expect(frame.height, `${sel}: מסגרת גדולה ומרווחת`).toBeGreaterThanOrEqual(700);
+    expect(iframe.height, `${sel}: ההטמעה ממלאת את המסגרת`).toBeGreaterThanOrEqual(frame.height - 30);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+    );
+    expect(overflow, `${route}: אין גלילה אופקית`).toBeLessThanOrEqual(1);
+  }
+});
+
 test('כל ההטמעות חולקות את אותה מסגרת (.embed-frame) — לא CSS מקומי (8.26)', async ({ page }) => {
   const seen: Record<string, string> = {};
   for (const [route, sel] of [
