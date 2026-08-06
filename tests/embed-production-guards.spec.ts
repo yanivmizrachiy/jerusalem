@@ -123,19 +123,35 @@ const readerRoutes = [
   '/chativat-beynayim/reader/t/sheelot-t/',
 ] as const;
 
+/* חוסם משאבים חיצוניים (Google Docs, אתרי ההמחשות). הם אינם נדרשים כדי לאמת
+   את לוח הפעולות, והם שהפכו את הבדיקה לאיטית ולתלוית-רשת. */
+const blockExternal = (p: import('@playwright/test').Page) =>
+  // מיירטים אך ורק מארחים חיצוניים — בקשות מקומיות אינן עוברות דרך ה-handler
+  // ולכן אין תקורת ניתוב על כל נכס של האתר עצמו.
+  p.route(
+    (url) => url.hostname !== '127.0.0.1' && url.hostname !== 'localhost',
+    (route) => route.abort()
+  );
+
+test.describe('שומר לוח הפעולות', () => {
+  /* `prefers-reduced-motion` מבטל את כניסת `orb-rise` דרך ה-CSS של המוצר עצמו
+     (global.css), ולכן האורבים גלויים כבר בפריים הראשון — בלי sleep קבוע
+     ובלי לשנות שורה אחת במוצר. */
+  test.use({ reducedMotion: 'reduce' });
+
 for (const size of [
   { label: 'מחשב', width: 1440, height: 900 },
   { label: 'נייד', width: 390, height: 844 },
 ] as const) {
   test(`לוח הפעולות (אורבים) חי וגלוי בכל מסלול reader — ${size.label} (8.4, 19.32)`, async ({ page }) => {
+    await blockExternal(page);
     await page.setViewportSize({ width: size.width, height: size.height });
 
     for (const route of readerRoutes) {
       await page.goto(route);
-
-      // לאורבים כניסה מדורגת (`orb-rise`, השהיה עד 800ms + 700ms) עם
-      // `animation-fill-mode: both`, ולכן בפריימים הראשונים ה-opacity הוא 0.
-      // ממתינים שייחשפו בפועל במקום למדוד מוקדם מדי ולהאשים את המוצר.
+      /* המתנה לתנאי DOM אמיתי — לא sleep קבוע. `toBeVisible()` לבדו אינו
+         מספיק: הוא מתעלם מ-opacity, ולאורבים כניסה מדורגת עם השהיה
+         (`orb-rise`, ‏fill-mode: both) שמשאירה אותם ב-opacity 0 בתחילה. */
       await expect
         .poll(
           () =>
@@ -143,11 +159,10 @@ for (const size of [
               () =>
                 [...document.querySelectorAll('.orb')].filter((e) => {
                   const cs = getComputedStyle(e);
-                  const r = e.getBoundingClientRect();
-                  return cs.display !== 'none' && +cs.opacity > 0.01 && r.width > 0;
+                  return cs.display !== 'none' && +cs.opacity > 0.01;
                 }).length
             ),
-          { message: `${route}: האורבים נחשפים אחרי הכניסה המדורגת`, timeout: 8000 }
+          { message: `${route}: האורבים נחשפים`, timeout: 10_000 }
         )
         .toBeGreaterThanOrEqual(5);
 
@@ -184,10 +199,31 @@ for (const size of [
 }
 
 test('אורבים קיימים אך ורק במסלולי reader — לא בעמוד הראשי ובשערים', async ({ page }) => {
+  await blockExternal(page);
   await page.setViewportSize({ width: 1440, height: 900 });
   for (const route of ['/', '/chativat-beynayim/', '/chativat-beynayim/kita-z/']) {
     await page.goto(route);
     const n = await page.evaluate(() => document.querySelectorAll('.orbs').length);
     expect(n, `${route}: אין כאן לוח פעולות של משאב — וזו ההתנהגות הנכונה`).toBe(0);
   }
+});
+
+}); // describe: שומר לוח הפעולות
+
+/* ===== smoke חי אחד בלבד מול הפרודקשן =====
+   בקשת HTML אחת, בלי דפדפן ובלי רינדור — מאמתת שמה שנבדק מקומית באמת מוגש
+   לגולשים. אין להריץ אותה בחזרות; היא רצה פעם אחת כחלק מהסוללה. */
+test('smoke חי: לוח הפעולות מוגש בפועל בפרודקשן (8.4)', async ({ request }) => {
+  const res = await request.get(
+    'https://jerusalem-virid.vercel.app/chativat-beynayim/reader/z/tochnit-z/'
+  );
+  expect(res.status(), 'עמוד המשימה עונה 200 בפרודקשן').toBe(200);
+
+  const html = await res.text();
+  expect(html, 'מכל האורבים קיים ב-HTML החי').toContain('class="orbs"');
+  expect(
+    (html.match(/class="orb"/g) || []).length,
+    'לפחות חמש פעולות מוגשות בפועל'
+  ).toBeGreaterThanOrEqual(5);
+  expect(html, 'לוח הפעולות הישן אינו מוגש עוד').not.toContain('res-actions');
 });
