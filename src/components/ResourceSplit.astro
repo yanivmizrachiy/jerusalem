@@ -240,18 +240,12 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   /* פריט מהחוזר ממלא את הצד שלו באותו אופן */
   .res-view :global(.mrange.is-fill) { block-size: 100%; }
 
-  /* ===== מסגרת הזכוכית האחידה (8.26) ===== */
+  /* ===== המסגרת מגיעה מ-.embed-frame ב-global.css (8.26) ===== */
 
-  /* חוט זהב בתחתית + קו-אור אלכסוני — לעולם לא חוסמים לחיצה */
-
+  /* ייחודי לעמוד המשאב: רצפת גובה וחשיפה הדרגתית אחרי הטעינה (8.9);
+     המידות, הגבול, הרדיוס והרקע מגיעים מ-.embed-frame > iframe */
   .res-frame iframe {
-    display: block;
-    inline-size: 100%;
-    block-size: 100%;
     min-block-size: 320px;
-    border: 0;
-    border-radius: 14px;
-    background: #fff;
     opacity: 0;
     transition: opacity 420ms var(--ease);
   }

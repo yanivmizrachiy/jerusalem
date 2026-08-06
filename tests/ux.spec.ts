@@ -851,7 +851,9 @@ test('כל ההטמעות חולקות את אותה מסגרת (.embed-frame) �
     await expect(el, `${sel} משתמש במסגרת המשותפת`).toHaveClass(/embed-frame/);
     seen[sel] = await el.evaluate((n) => {
       const s = getComputedStyle(n);
-      return `${s.borderTopLeftRadius}|${s.paddingTop}|${s.boxShadow}`;
+      // גם ה-pseudo-element נבדק: ::after מקומי היה עוקף את המשותף בשקט
+      const a = getComputedStyle(n, '::after');
+      return [s.borderTopLeftRadius, s.paddingTop, s.boxShadow, a.backgroundImage, a.borderTopLeftRadius].join('|');
     });
   }
   const values = [...new Set(Object.values(seen))];
