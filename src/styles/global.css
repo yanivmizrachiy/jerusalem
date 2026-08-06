@@ -87,7 +87,9 @@
   --embed-panel-padding: clamp(1.6rem, 2.6vw, 2.75rem);
   --embed-radius: 22px;
   --embed-inner-radius: 13px;
-  --embed-pad: 11px;
+  /* ‏9px לכל צד = 18px הפרש בין המסגרת ל-iframe. חוזה הקבלה מחייב ≤20px
+     ("ה-iframe ממלא את המסגרת") — אין להעלות מעל 10px. */
+  --embed-pad: 9px;
   /* מסגרת ההטמעה — נייבי כמו פס התאריך והתחתית, עם חוט זהב (הוראת יניב, 06/08/2026) */
   --embed-mat: linear-gradient(158deg, #27334c 0%, #1f293d 46%, #161f31 100%);
   --embed-ring: rgb(212 175 92 / 0.55);
@@ -354,8 +356,10 @@ a:hover { color: var(--ink); }
 
 /* כפתור ראשי היושב על מזרן ההטמעה הנייבי (כרטיסי הפתיחה של 8.26) —
    זהב בולט כדי שיקפוץ מהנייבי, במקום דיו כהה על כהה */
+/* זהב עמוק בלבד: לבן על ‎--gold הבהיר נותן ~3.3:1 ונופל מ-AA (4.7).
+   על ‎--gold-deep הלבן מגיע ל-‎~6.4:1. אין להבהיר את העצירה העליונה. */
 .embed-frame .btn-primary {
-  background: linear-gradient(160deg, var(--gold) 0%, var(--gold-deep) 100%);
+  background: linear-gradient(160deg, var(--gold-deep) 0%, #5b4a1f 100%);
   color: #fff;
 }
 .embed-frame .btn-primary:hover {
