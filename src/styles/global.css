@@ -599,10 +599,14 @@ html.hero-done .rail {
    הטוקנים כולם קיימים כבר ב-:root — אין כאן צבע חדש.
    ============================================================ */
 
+/* כל שבע הפעולות בשורה אחת. ברוחב הפנוי של הפאנל (‏551px ב-1440) שש פעולות
+   ברוחב הקודם דרשו ‎631px, ולכן אחת נשברה לשורה שנייה והוסיפה ‎120px לגובה —
+   כך צד המידע (‏756px) גבה מההטמעה (‏702px) ונשבר החוזה "אין שטח לבן מיותר
+   משמאל" (19.34, 8.2). המידות כאן מחזיקות 7 פעולות: ‎7×68.8 + 6×9.4 = 538px. */
 .orbs {
   display: flex;
   flex-wrap: wrap;
-  gap: clamp(0.9rem, 1.6vw, 1.5rem);
+  gap: clamp(0.4rem, 0.7vw, 0.8rem);
   margin-block-start: clamp(1.7rem, 2.8vw, 2.3rem);
 }
 
@@ -613,7 +617,7 @@ html.hero-done .rail {
   flex-direction: column;
   align-items: center;
   gap: 0.55rem;
-  inline-size: 5.4rem;
+  inline-size: 4.3rem;
   padding: 0;
   border: 0;
   background: none;
@@ -657,8 +661,8 @@ html.hero-done .rail {
   z-index: 1;
   display: grid;
   place-items: center;
-  inline-size: 66px;
-  block-size: 66px;
+  inline-size: 58px;
+  block-size: 58px;
   border-radius: 50%;
   color: #fff;
   background: linear-gradient(160deg, var(--orb-c) 0%, var(--orb-c2) 100%);
@@ -668,7 +672,7 @@ html.hero-done .rail {
   transition: transform 520ms var(--ease-lift), box-shadow 380ms var(--ease);
 }
 
-.orb-face svg { inline-size: 26px; block-size: 26px; }
+.orb-face svg { inline-size: 23px; block-size: 23px; }
 
 /* טבעת הזהב — מסתובבת סביב כל פעולה, בכל הצבעים */
 .orb-face::before {
@@ -710,7 +714,7 @@ html.hero-done .rail {
     0 10px 26px -14px color-mix(in srgb, var(--orb-c) 65%, transparent),
     inset 0 0 0 1px var(--line);
 }
-.orb-face.is-light svg { inline-size: 24px; block-size: 24px; }
+.orb-face.is-light svg { inline-size: 21px; block-size: 21px; }
 
 /* כניסה מדורגת — פעולה אחרי פעולה */
 .orb { animation: orb-rise 700ms var(--ease) both; animation-delay: calc(320ms + var(--orb-i, 0ms)); }
