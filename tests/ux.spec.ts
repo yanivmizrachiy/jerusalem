@@ -1226,3 +1226,39 @@ test('חוזר מפמ״ר: ניגודיות AA בכיתובים הקטנים ו�
   });
   expect(bad, 'כל כיתוב עובר את סף הניגודיות הנדרש').toEqual([]);
 });
+
+test('סרטון הפתיחה רץ בכל כניסה לעמוד הראשי, גם בחזרה מזיכרון הניווט (6.2)', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+
+  const state = () =>
+    page.evaluate(() => {
+      const v = document.getElementById('hero-video') as HTMLVideoElement;
+      const m = document.getElementById('hero-media')!;
+      return {
+        t: v.currentTime,
+        ended: m.classList.contains('is-ended'),
+        ending: m.classList.contains('is-ending'),
+        done: document.documentElement.classList.contains('hero-done'),
+      };
+    });
+
+  // הסרטון מתנגן בכניסה
+  await expect.poll(async () => (await state()).t, { message: 'הסרטון מתקדם בכניסה' }).toBeGreaterThan(0.1);
+
+  // מדמים את מה שקורה בחזרה מזיכרון הניווט: העמוד משוחזר קפוא בסוף הסרטון
+  await page.evaluate(() => {
+    const v = document.getElementById('hero-video') as HTMLVideoElement;
+    const m = document.getElementById('hero-media')!;
+    v.pause();
+    m.classList.add('is-ending', 'is-ended');
+    document.documentElement.classList.add('hero-done');
+    dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+  });
+
+  const after = await state();
+  expect(after.ended, 'מצב הסיום נוקה — לא נוחתים ישר על הצוות').toBe(false);
+  expect(after.ending, 'גם הדעיכה אופסה').toBe(false);
+  expect(after.done, 'hero-done הוסר כדי שהפתיחה תתחיל מחדש').toBe(false);
+  await expect.poll(async () => (await state()).t, { message: 'הסרטון רץ שוב מההתחלה' }).toBeGreaterThan(0.1);
+});
