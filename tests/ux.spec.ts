@@ -578,6 +578,46 @@ test('בחירת החטיבה: חצי-חצי — כהה עם מלל בהיר מ�
   await expect(page.locator('.footer-navy')).toHaveCount(1);
 });
 
+for (const [label, w, h] of [
+  ['מחשב', 1440, 900],
+  ['נייד', 390, 844],
+] as const) {
+  test(`בחירת החטיבה (${label}): כפתור חזרה לעמוד הראשי בתחתית העמוד (7.29)`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto('/shearim/');
+    await page.waitForTimeout(900);
+
+    const back = page.locator('.back-home');
+    await expect(back).toHaveCount(1);
+    await expect(back).toBeVisible();
+    expect(await back.getAttribute('href'), 'מוביל לעמוד הראשי').toBe('/');
+
+    // מטרת מגע תקינה, ובתחתית האזור הצבוע — לא באמצעו
+    const b = (await back.boundingBox())!;
+    const split = (await page.locator('.split').boundingBox())!;
+    expect(b.height, 'מטרת מגע').toBeGreaterThanOrEqual(44);
+    expect(b.y, 'בתחתית העמוד').toBeGreaterThan(split.y + split.height * 0.7);
+    expect(b.y + b.height, 'בתוך האזור הצבוע').toBeLessThanOrEqual(split.y + split.height + 1);
+
+    // לחיצה אמיתית שמחזירה לעמוד הראשי
+    await back.click();
+    await page.waitForURL((u) => new URL(u).pathname === '/');
+  });
+}
+
+test('בחירת החטיבה: ריחוף על כפתור החזרה אינו מכווץ את שני החצאים (7.29)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/shearim/');
+  await page.waitForTimeout(900);
+
+  const halves = page.locator('.split .half');
+  const rest = (await halves.nth(0).boundingBox())!;
+  await page.locator('.back-home').hover();
+  await page.waitForTimeout(900);
+  const after = (await halves.nth(0).boundingBox())!;
+  expect(Math.abs(after.width - rest.width), 'החצאים נשארים חצי-חצי').toBeLessThanOrEqual(2);
+});
+
 test('בחירת החטיבה בנייד: החצאים נערמים בלי גלילה אופקית (05/08)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/shearim/');
