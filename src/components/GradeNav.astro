@@ -19,6 +19,7 @@ const order = choveret.findIndex((g) => g.slug === grade.slug);
 const prev = order > 0 ? choveret[order - 1] : undefined;
 const next = order < choveret.length - 1 ? choveret[order + 1] : undefined;
 const hasIntro = grade.slug !== 'klali';
+const sideLabel = (g: ChoveretGrade) => (g.slug === 'klali' ? 'מעבר לכללי' : `מעבר לשכבת ${g.letter}`);
 const sideHref = (g: ChoveretGrade) => (here === 'materials' ? gradeMaterialsHref(g.slug) : gradeHref(g.slug));
 ---
 
@@ -43,7 +44,7 @@ const sideHref = (g: ChoveretGrade) => (here === 'materials' ? gradeMaterialsHre
     {
       prev ? (
         <a class="pager-link" href={sideHref(prev)} style={`--p:${prev.color}`}>
-          <span class="pager-tag">השכבה הקודמת</span>
+          <span class="pager-tag">{sideLabel(prev)}</span>
           <span class="pager-title">{prev.title}</span>
         </a>
       ) : (
@@ -53,7 +54,7 @@ const sideHref = (g: ChoveretGrade) => (here === 'materials' ? gradeMaterialsHre
     {
       next ? (
         <a class="pager-link" href={sideHref(next)} style={`--p:${next.color}`}>
-          <span class="pager-tag">השכבה הבאה</span>
+          <span class="pager-tag">{sideLabel(next)}</span>
           <span class="pager-title">{next.title}</span>
         </a>
       ) : (
