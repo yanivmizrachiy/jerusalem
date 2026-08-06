@@ -86,9 +86,15 @@ const movedChapterIds = grade.chapters.map((chapter) => chapter.id).join(',');
   // החדש. עוגנים מקומיים של עמוד המבוא, כגון #hamchashot, נשארים כאן.
   {
     const el = document.querySelector<HTMLAnchorElement>('[data-materials]');
-    const hash = location.hash.slice(1);
     const moved = new Set((el?.dataset.movedChapters ?? '').split(',').filter(Boolean));
-    if (el && moved.has(hash)) location.replace(el.href + location.hash);
+
+    const redirectMovedChapter = () => {
+      const hash = location.hash.slice(1);
+      if (el && moved.has(hash)) location.replace(el.href + location.hash);
+    };
+
+    redirectMovedChapter();
+    addEventListener('hashchange', redirectMovedChapter);
   }
 </script>
 
