@@ -49,14 +49,14 @@ export function guardScript(base: string): string {
 
 /**
  * פס הגלילה הזהוב של הסביבות המוטמעות (RULES 5.23, 9.1, הוראת יניב
- * 05/08/2026): רוחב כפול — 60px — בכל ההטמעות שעוברות דרך הפרוקסי
+ * 05/08/2026): רוחב מוכפל — 120px — בכל ההטמעות שעוברות דרך הפרוקסי
  * המחוזי, כדי שכולן יהיו זהות. מקור יחיד לשתי נקודות ההזרקה.
  */
 export const GOLD_SCROLLBAR =
-  '<style>::-webkit-scrollbar{width:60px;height:60px}' +
+  '<style>::-webkit-scrollbar{width:120px;height:120px}' +
   '::-webkit-scrollbar-track{background:#f5f1e8}' +
   '::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#d4af5c,#b08d3e 45%,#77602a);' +
-  'border-radius:30px;border:10px solid #f5f1e8}' +
+  'border-radius:60px;border:20px solid #f5f1e8}' +
   '::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#b08d3e,#77602a)}' +
   'html{scrollbar-color:#b08d3e #f5f1e8;scrollbar-width:auto}</style>';
 
