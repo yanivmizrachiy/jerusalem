@@ -755,9 +755,13 @@ html.hero-done .rail {
   from { opacity: 0; clip-path: inset(0 0 14% 0); }
   to { opacity: 1; clip-path: inset(0 0 0 0); }
 }
+/* חשיפה בעמעום בלבד — בלי הזזה אנכית. `translate` על הפאנל הזיז אותו 26px
+   מתחת להטמעה למשך הכניסה, ושבר את "אותו קו עליון" של החצי-חצי (19.34, 8.2)
+   בעמוד המשאב וגם ב-/hozer-mafmar/ שחולק את אותה מחלקה. תחושת התנועה
+   נשמרת בכניסה המדורגת של האורבים (orb-rise), שאינה נוגעת בגיאומטריה. */
 @keyframes res-panel-in {
-  from { opacity: 0; translate: 0 26px; }
-  to { opacity: 1; translate: none; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

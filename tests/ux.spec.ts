@@ -305,7 +305,7 @@ test('כל משימה בכל נושא בכל שכבה מובילה לעמוד מ
     await page.goto(href);
     await expect(page.locator('.res-view'), href).toBeVisible();
     await expect(page.locator('.res-panel'), href).toBeVisible();
-    await expect(page.locator('.res-actions'), href).toBeVisible();
+    await expect(page.locator('.orbs'), href).toBeVisible();
   }
 });
 
@@ -387,11 +387,11 @@ test('עמוד משאב: חצי-חצי — הטמעה מימין, פעולות �
   expect(view.x, 'ההטמעה בצד ימין (RTL)').toBeGreaterThan(panel.x);
   expect(Math.abs(view.width - panel.width), 'חצי-חצי מדויק — הפרש עד פיקסל').toBeLessThanOrEqual(1);
 
-  // לוח הפעולות המלא
-  await expect(page.locator('.res-actions .btn-whatsapp')).toHaveCount(1);
-  await expect(page.locator('.res-actions .btn-gmail')).toHaveCount(1);
-  await expect(page.locator('.res-actions [data-copy]')).toHaveCount(1);
-  await expect(page.locator('.res-actions a[target="_blank"]')).not.toHaveCount(0);
+  // לוח הפעולות המלא — נבדק לפי היעד האמיתי של כל פעולה, לא לפי שם מחלקה (8.4)
+  await expect(page.locator('.orbs a[href^="https://wa.me/"]')).toHaveCount(1);
+  await expect(page.locator('.orbs a[href^="mailto:"]')).toHaveCount(1);
+  await expect(page.locator('.orbs [data-copy]')).toHaveCount(1);
+  await expect(page.locator('.orbs a[target="_blank"]')).not.toHaveCount(0);
 
   // ההטמעה נטענת ואינה חסומה בשכבה מעליה (19.33)
   const frame = page.locator('.res-frame iframe');
@@ -1006,7 +1006,7 @@ test('עמוד מסמך שלם בהטמעה, וכל הפעולות רק בצד �
 
     // כל כפתורי הפעולה נמצאים רק בצד שמאל, מחוץ לאזור ההטמעה
     const xs = await page
-      .locator('.res-actions .btn, .res-pager a, .res-back')
+      .locator('.orbs .orb:visible, .res-pager a, .res-back')
       .evaluateAll((els) => els.map((e) => e.getBoundingClientRect().right));
     expect(xs.length, 'יש לוח פעולות').toBeGreaterThan(3);
     for (const right of xs) expect(right, `${w}: פעולה בצד שמאל בלבד`).toBeLessThanOrEqual(view.x + 1);
