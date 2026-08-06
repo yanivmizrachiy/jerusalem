@@ -76,6 +76,22 @@ const movedChapterIds = grade.chapters.map((chapter) => chapter.id).join(',');
     <span class="band-count">{gradeCounts[grade.slug]} קבצים, קישורים ופעילויות</span>
   </a>
 
+  {
+    grade.pages && grade.pages.length > 0 && (
+      <section class="band band-pages" data-reveal aria-labelledby="grade-pages-title">
+        <h2 class="band-title" id="grade-pages-title">יחידות ועמודים ייעודיים</h2>
+        <div class="doc-row">
+          {grade.pages.map((p) => (
+            <a class="doc-btn" href={p.href} data-grade-page>
+              <span class="doc-name">{p.title}</span>
+              <span class="doc-sub">{p.count ? `${p.count} קבצים · ${p.note}` : p.note}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
   <HamchashotEmbed />
 
   <GradeNav grade={grade} here="intro" />
