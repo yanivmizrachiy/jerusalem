@@ -94,8 +94,8 @@
   --embed-workspace-min: 600px;
   /* גובה הטמעה ברוחב מלא (המחשות, אתרים, חוזר מלא) */
   --embed-full-height: clamp(600px, 78dvh, 1040px);
-  /* הנקודה שבה סביבת עבודה מחולקת עוברת לעמודה אחת */
-  --embed-split-bp: 1100px;
+  /* גובה סביבת עבודה מחולקת שאינה נמדדת בזמן ריצה (UnitPlaylist) */
+  --embed-workspace: clamp(560px, 72dvh, 900px);
   --rail-w: 260px;
 }
 
@@ -223,6 +223,16 @@ a:hover { color: var(--ink); }
     inset 0 1px 0 rgb(255 255 255 / 0.85),
     var(--embed-shadow);
   overflow: hidden;
+}
+
+/* קו-אור אלכסוני עדין — לעולם אינו חוסם לחיצה בתוך ההטמעה (8.26) */
+.embed-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 42%, rgb(255 255 255 / 0.2) 50%, transparent 58%);
 }
 
 .embed-frame > iframe,

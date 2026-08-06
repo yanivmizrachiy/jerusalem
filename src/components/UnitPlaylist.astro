@@ -110,12 +110,21 @@ const sections = [...new Set(unit.resources.map((r) => r.section))];
 
   /* במחשב: הצופה בימין (ראשון ב־RTL), הפלייליסט בשמאל — לפי רוחב המיכל */
   @container (min-width: 940px) {
-    .uplay { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+    /* סביבת עבודה בגובה מוגבל: שני הצדדים שווים ברוחב ובגובה,
+       והרשימה גוללת בתוך הגובה הזה כשהיא ארוכה ממנו (בלי להגדיל את השורה) */
+    .uplay {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+      block-size: var(--embed-workspace);
+    }
+    .uplay-viewer { min-block-size: 0; display: flex; flex-direction: column; }
     /* שני הצדדים באותו גובה; הרשימה גוללת בפנים רק כשהיא ארוכה ממנו */
     .uplay-list {
       border-inline-start: 1px solid var(--line);
       min-block-size: 0;
+      block-size: 100%;
       overflow-y: auto;
+      overscroll-behavior: contain;
     }
   }
 
