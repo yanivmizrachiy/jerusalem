@@ -16,9 +16,9 @@ export default defineConfig({
   },
   webServer: {
     // אדפטר Vercel אינו תומך ב-astro preview — מגישים את הפלט הסטטי ישירות
-    command: 'npx --yes serve .vercel/output/static -l 4321 -n',
+    command: 'npm run serve:dist',
     url: 'http://127.0.0.1:4321',
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },
   projects: [

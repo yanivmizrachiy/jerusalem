@@ -13,7 +13,10 @@ const links = [
   { href: '/israel-realit/', label: 'ישראל ריאלית' },
   { href: '/luach/', label: 'לוח שנה' },
   { href: '/chativat-beynayim/#hamchashot', label: 'אתר ההמחשות' },
-  { href: '/#tzevet', label: 'צוות ההדרכה' },
+  // ‎#tzevet‎ הוא מקטע פרטי הקשר, שמוסתר דרך קבע ונחשף רק בלחיצה על חבר
+  // צוות (RULES 6.5) — קישור אליו הוביל ליעד שאינו נראה לעולם (5.13).
+  // צוות ההדרכה מוצג ב-hero שאחרי הסרטון, וזה היעד הנכון.
+  { href: '/#hero-after', label: 'צוות ההדרכה' },
 ];
 
 const isActive = (href: string) =>
@@ -49,6 +52,7 @@ const isActive = (href: string) =>
     padding-inline: max(0px, env(safe-area-inset-right)) max(0px, env(safe-area-inset-left));
     background: color-mix(in srgb, var(--paper) 88%, transparent);
     backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border-block-end: 1px solid var(--line);
     transition: background-color 400ms var(--ease), border-color 400ms var(--ease);
   }
@@ -57,6 +61,7 @@ const isActive = (href: string) =>
     background: transparent;
     border-block-end-color: transparent;
     backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .header-inner {

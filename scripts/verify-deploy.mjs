@@ -58,7 +58,7 @@ const get = async (path) => {
  * ולכן חיפוש מחרוזת ב-HTML הגולמי עובר ירוק גם כשהרכיב נמחק מה-DOM —
  * נמדד: 36 מופעים של 'wa-band' בעמוד הראשי, 26 מהם בתוך <style>.
  */
-const markup = (html) => html.replace(/<(style|script)[^>]*>[\s\S]*?<\/>/g, '');
+const markup = (html) => html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const fail = (msg) => {

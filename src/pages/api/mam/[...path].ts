@@ -19,15 +19,25 @@ export const ALL: APIRoute = async ({ params, request }) => {
   let upstream: Response;
   try {
     upstream = await fetch(target, {
-    headers: {
-      'user-agent': request.headers.get('user-agent') ?? 'Mozilla/5.0',
-      accept: request.headers.get('accept') ?? '*/*',
-      'accept-language': 'he,en;q=0.8',
-    },
+      headers: {
+        'user-agent': request.headers.get('user-agent') ?? 'Mozilla/5.0',
+        accept: request.headers.get('accept') ?? '*/*',
+        'accept-language': 'he,en;q=0.8',
+      },
       redirect: 'follow',
+      // בלי תקרת זמן בקשה תלויה מחזיקה פונקציה עד לטיים-אאוט של הפלטפורמה
+      signal: AbortSignal.timeout(12_000),
     });
   } catch {
     return new Response('המקור אינו זמין כרגע — נסו שוב בעוד רגע.', {
+      status: 502,
+      headers: { 'content-type': 'text/plain; charset=utf-8' },
+    });
+  }
+
+  // ה-allowlist חייב לחול גם על סוף שרשרת ההפניות
+  if (upstream.url && !upstream.url.startsWith(ORIGIN)) {
+    return new Response('היעד הסופי אינו ברשימת ההיתר.', {
       status: 502,
       headers: { 'content-type': 'text/plain; charset=utf-8' },
     });
