@@ -231,6 +231,216 @@ const siteItems: ChoveretItem[] = [...grade7Resources]
     kind: 'site' as const,
   }));
 
+/* ===== חומרים משותפים לכל חט״ב (RULES 3.31, הוראת יניב 06/08/2026) =====
+ * מה שמשרת באמת את שלוש הכיתות מוגדר פעם אחת כאן ומופיע בעמוד כל כיתה
+ * מתאימה — לכן הוא נראה עד שלוש פעמים באתר, ואין עוד לשונית/עמוד "משותף
+ * לכל השכבות" (klali). פריט המופיע בכמה כיתות נושא את אותו מזהה; כתובת
+ * הקורא כוללת את השכבה (/reader/{שכבה}/{מזהה}) ולכן נשארת ייחודית. */
+
+/** חומרי החוזר הכלליים לחט״ב (עמ׳ 9, 17) — מצורפים לפרק "מהחוזר הרשמי" בכל שכבה */
+const sharedHozer: ChoveretItem[] = [
+  hozerPdf(
+    'amat-tashpaz',
+    'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/amat.pdf',
+    'התוכנית הייעודית עמ״ט ז׳–ט׳',
+    'מסמך התוכנית הייעודית והפריסה לתלמידי ז׳–ט׳ בעתודה מדעית-טכנולוגית, מעודכן לשנת הלימודים תשפ״ז.',
+    17
+  ),
+  hozerPdf(
+    'hadracha-chatb',
+    'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/contact.pdf',
+    'צוות ההדרכה במתמטיקה חט״ב',
+    'רשימת צוות ההדרכה הארצי והמחוזי במתמטיקה לחטיבת הביניים ודרכי ההתקשרות אליו.',
+    9
+  ),
+  hozerSite(
+    'merchav-chatb',
+    'https://pop.education.gov.il/tchumey_daat/matmatika/chativat-beynayim/noseem_nilmadim/',
+    'המרחב הפדגוגי — מתמטיקה חט״ב',
+    'אתר המתמטיקה הארצי לחטיבת הביניים: מידע שוטף, פריסות הוראה וחומרי למידה.',
+    9
+  ),
+  hozerLink(
+    'merkaz-morim',
+    'https://newhighmath.haifa.ac.il/index.php/home',
+    'מרכז המורים למתמטיקה — אוניברסיטת חיפה',
+    'מאגר עשיר של חומרים תומכי הוראה, בהתאם לדגשים של הפיקוח על הוראת המתמטיקה.',
+    9
+  ),
+  hozerLink(
+    'merkaz-morim-zt',
+    'https://newhighmath.haifa.ac.il/index.php/2015-05-31-10-59-23/2015-05-31-11-11-57',
+    'חומרי מרכז המורים לכיתות ז׳–ט׳',
+    'החומרים של מרכז המורים בנושאים מגוונים, מסודרים לכיתות חטיבת הביניים.',
+    9
+  ),
+  hozerLink(
+    'merkaz-morim-peiluyot',
+    'https://newhighmath.haifa.ac.il/index.php/2-uncategorised/3277-2019-11-06-13-45-6',
+    'פעילויות לחטיבת הביניים',
+    'פעילויות שפותחו לכיתות חטיבת הביניים ומודגשים בהן קישורים בין תחומים במתמטיקה ומשלבות אוריינות מתמטית.',
+    9
+  ),
+  hozerSite(
+    'maor',
+    'https://maor.haifa.ac.il/',
+    'מאור — מתמטיקה אוריינית',
+    'חומרי תוכנית מתמטיקה אוריינית המשולבים בקהילות עדכון תוכנית הלימודים, ותומכים בהטמעתה בכיתות ז׳–ט׳.',
+    9
+  ),
+  hozerLink(
+    'forum-facebook-chatb',
+    'https://facebook.com/groups/324706402455298/',
+    'פורום מורי המתמטיקה בחט״ב',
+    'קבוצת הפייסבוק של הפיקוח — מקום לשאול שאלות בפורום מורים למתמטיקה של חטיבת הביניים.',
+    9
+  ),
+];
+
+/** דף נוסחאות ז׳–ח׳ — עותק לעריכה (מופיע בז׳ ובח׳) */
+const noschaotCopy = doc(
+  'noschaot-copy',
+  '1PS4B4VwdZQk5S5BfjUzC2RtQ-9WEexRp',
+  'נוסחאות ז׳–ח׳ — עותק לעריכה',
+  'גרסת מסמך של דפי הנוסחאות — פתיחה במקור מאפשרת ליצור עותק אישי לעריכה.'
+);
+
+/** הנחיות מבחנים כלליות (בכל שכבה) */
+const mivchanimHanchayot = drive(
+  'mivchanim-hanchayot',
+  '19edSXZCMSSnFVFvD6B4I-VKRqyGVNwcK',
+  'הנחיות לכתיבת מבחנים',
+  'מסמך ההנחיות המחוזי לכתיבת מבחן תקין והוגן.'
+);
+const sadnatHachana = drive(
+  'sadnat-hachana',
+  '1SX6ta5BpyhlZhxjFMPPcVuQgLJXgxsMH',
+  'סדנת הכנה למבחן',
+  'סדנה מוכנה להכנת התלמידים לקראת מבחן.'
+);
+
+/** משחקים משותפים (בכל שכבה) */
+const mischakimPrisot = doc(
+  'mischakim-prisot',
+  '1AQNue5voom-CuO3opIJMjQoIzy5Ryl1dXPLd-c8IW-M',
+  'משחקים הצמודים לפריסות ההוראה',
+  'לכל שלב בפריסת ההוראה — המשחק המתאים, מוכן לשיעור.'
+);
+const mischakimTavnit: ChoveretItem = {
+  id: 'mischakim-tavnit',
+  title: 'משחקים לכיתות ז׳–ח׳ — תבנית',
+  note: 'מאגר משחקים לפי נושאים — זוויות, מלבן, חפיפה, משוואות ופונקציות — מאת שילת דדשי, מדריכה אזורית במחוז. פתיחה במקור מאפשרת ליצור עותק לעריכה.',
+  url: 'https://www.canva.com/design/DAF3dEaqSG8/TPgg_h9hz37GX09p6A4rWQ/edit',
+  embed: 'https://www.canva.com/design/DAF3dEaqSG8/TPgg_h9hz37GX09p6A4rWQ/view?embed',
+  kind: 'canva',
+};
+const hanukkaChoveret = drive(
+  'hanukka-choveret',
+  '1DBXCKHarZAuBCQreKrvxKUwDLa3k4IHF',
+  'משחקי חנוכה — חוברת',
+  'חוברת משחקי חנוכה מרוכזת — להדפסה ולמשחק מיידי.'
+);
+
+/** העשרה ואתרים (בכל שכבה) */
+const haasharaItems: ChoveretItem[] = [
+  canva(
+    'parasha',
+    'https://www.canva.com/design/DAGa9tq_uLQ/WtXuSJ80nCM8Ow9p7Gd9Eg/view',
+    'מתמטיקה בפרשה שלי',
+    'חיבור שבועי בין פרשת השבוע לחשיבה מתמטית.'
+  ),
+  {
+    id: 'chinuch-meyuchad',
+    title: 'אתר החינוך המיוחד המחוזי',
+    note: 'סביבת ההעשרה האינטראקטיבית של החינוך המיוחד במחוז.',
+    url: 'https://view.genially.com/652ba55030c0f100115d551e/interactive-content-',
+    embed: 'https://view.genially.com/652ba55030c0f100115d551e',
+    kind: 'site',
+  },
+  {
+    id: 'al-haretzef',
+    title: 'מתמטיקה על הרצף — מיכל דוד',
+    note: 'אתר ההעשרה של מיכל דוד למתמטיקה על הרצף.',
+    url: 'https://mathonthespectrum.my.canva.site/',
+    kind: 'site',
+  },
+];
+
+/** משאבי רוחב ולמידה דיגיטלית (בכל שכבה) */
+const rohavShared: ChoveretItem[] = [
+  {
+    id: 'moodle-guide',
+    title: 'אתר המודל — מדריך למורה',
+    note: 'המדריך הרשמי למורה באתר המודל למתמטיקה.',
+    url: 'https://sites.google.com/view/moodlemath/%D7%9E%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%A6%D7%95%D7%95%D7%AA/%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9C%D7%9E%D7%95%D7%A8%D7%94',
+    kind: 'link',
+  },
+  {
+    id: 'moodle-slides',
+    title: 'מצגות מהמודל לפי נושאים',
+    note: 'גיליון מרכז של כל המצגות לפי נושא.',
+    url: 'https://docs.google.com/spreadsheets/d/1l8-7V7DMQSMkWNCFj3Y1OTnrJmaoOuRPWFkIP0a0_OE/edit',
+    embed: 'https://docs.google.com/spreadsheets/d/1l8-7V7DMQSMkWNCFj3Y1OTnrJmaoOuRPWFkIP0a0_OE/preview',
+    kind: 'doc',
+  },
+  doc(
+    'ruach-tochnit',
+    '1RYQQdKawSDPYYCDlUrm2MzcrNskv1SZQKHTNf8JJPuo',
+    'חומרים ברוח התוכנית החדשה',
+    'ריכוז חומרים מעודכנים ברוח התוכנית.'
+  ),
+  canva(
+    'sheelot-chashiva',
+    'https://www.canva.com/design/DAGXwB1tskI/-SQYskyIRJmt8i4W8A806w/edit',
+    'שאלות חשיבה מסדר גבוה',
+    'אוסף שאלות חשיבה מוכן להוראה.'
+  ),
+];
+/** לקראת מבחן תנופה — נושאים וקישורים (כיתה ט׳; תנופה נבחן בט׳) */
+const kvatzimNosim = doc(
+  'kvatzim-nosim',
+  '1ILL7bpo4LLNmXfE0Kaz1ApoWmDIzk6ILDX3HpDeFd5o',
+  'לקראת מבחן תנופה — נושאים וקישורים',
+  'מאגר הנושאים והקישורים להכנה למבחן תנופה.'
+);
+
+/* בוני פרקים משותפים — פרק טרי לכל שכבה, עם פריטי המקור המשותפים (RULES 3.31) */
+const noschaotChapter = (items: ChoveretItem[]): ChoveretChapter => ({
+  id: 'noschaot',
+  title: 'דפי הנוסחאות הרשמיים',
+  color: '#be185d',
+  dark: '#9d174d',
+  items,
+});
+const mivchanimChapter = (items: ChoveretItem[]): ChoveretChapter => ({
+  id: 'mivchanim',
+  title: 'מבחנים והערכה',
+  color: '#c2410c',
+  dark: '#9a3412',
+  items,
+});
+const mischakimChapter = (items: ChoveretItem[]): ChoveretChapter => ({
+  id: 'mischakim',
+  title: 'משחקים לאורך השנה',
+  color: '#059669',
+  dark: '#047857',
+  items,
+});
+const haasharaChapter = (): ChoveretChapter => ({
+  id: 'haashara',
+  title: 'העשרה ואתרים',
+  color: '#7c3aed',
+  dark: '#6d28d9',
+  items: [...haasharaItems],
+});
+const rohavChapter = (items: ChoveretItem[]): ChoveretChapter => ({
+  id: 'rohav',
+  title: 'משאבי רוחב ולמידה דיגיטלית',
+  color: '#0d9488',
+  dark: '#0f766e',
+  items,
+});
+
 export const choveret: ChoveretGrade[] = [
   {
     slug: 'z',
@@ -274,6 +484,7 @@ export const choveret: ChoveretGrade[] = [
           maf('maf-05-z', 'MAF-05', '', 'משימות הערכה ומבחן מפמ״ר ז׳'),
           maf('maf-06-z', 'MAF-06', '', 'Moodle — הפלטפורמה המחייבת בז׳'),
           maf('maf-08-z', 'MAF-08', '', 'ספרי הלימוד החדשים'),
+          ...sharedHozer,
         ],
       },
       {
@@ -296,6 +507,19 @@ export const choveret: ChoveretGrade[] = [
           canva('mechuvanim-tavnit', 'https://www.canva.com/design/DAF4MgAMjRg/e6QN_h0zEVqOJPtRQjyJHw/edit', 'פעולות במספרים מכוונים — תבנית', 'תבנית עבודה לפעולות במספרים מכוונים.'),
         ],
       },
+      noschaotChapter([
+        drive('noschaot-z', '1nJdVkTlZvnulYiabkeVZG0BT6ek1lU0c', 'דף נוסחאות כיתה ז׳', 'דף הנוסחאות הרשמי לכיתה ז׳ — לצפייה, להורדה ולהדפסה.'),
+        noschaotCopy,
+      ]),
+      mivchanimChapter([mivchanimHanchayot, sadnatHachana]),
+      mischakimChapter([
+        mischakimPrisot,
+        mischakimTavnit,
+        hanukkaChoveret,
+        folder('hanukka-z', '1CO-6MbihZaNkHT34kbYuB3YKliuOitgV', 'משחקי חנוכה לכיתה ז׳ — תיקייה', 'תיקיית Drive עם משחקי חנוכה לכיתה ז׳ — כל קובץ נפתח בלחיצה.'),
+      ]),
+      haasharaChapter(),
+      rohavChapter([...rohavShared]),
     ],
   },
   {
@@ -340,6 +564,7 @@ export const choveret: ChoveretGrade[] = [
           maf('maf-05-h', 'MAF-05', '', 'משימות הערכה ומבחן מפמ״ר ח׳'),
           maf('maf-06-h', 'MAF-06', '', 'Moodle — הפלטפורמה המחייבת בח׳'),
           maf('maf-09-h', 'MAF-09', '', 'חלוקה לרמות והדרכה'),
+          ...sharedHozer,
         ],
       },
       {
@@ -371,6 +596,24 @@ export const choveret: ChoveretGrade[] = [
           canva('dema', 'https://www.canva.com/design/DAGZcMbg0x8/WM5X1ydiUJ4XtX2Z9Sh9cA/view', 'מבחני דמה למהלך השנה', 'אוסף מבחני דמה מוכנים לשימוש.'),
         ],
       },
+      noschaotChapter([
+        drive('noschaot-h', '1hf30qH4SbS7UxRlkmrFiitDhdoDFt90B', 'דף נוסחאות כיתה ח׳', 'דף הנוסחאות הרשמי לכיתה ח׳ — לצפייה, להורדה ולהדפסה.'),
+        noschaotCopy,
+      ]),
+      mivchanimChapter([
+        doc('meitzav-demo', '1-F8gCF7V9X1afsr2D5vOLdgq8DC1OzlH', 'מבחן דמוי מיצ״ב', 'מבחן מלא במתכונת מיצ״ב — מוכן להדפסה ולהעברה בכיתה.'),
+        doc('meitzav-machvan', '10eruHhJRK6HX3nvD17tAypCTqNoC83WD', 'מחוון למבחן דמוי מיצ״ב', 'המחוון המלא של המבחן — ניקוד מפורט לכל שאלה.'),
+        mivchanimHanchayot,
+        sadnatHachana,
+      ]),
+      mischakimChapter([
+        mischakimPrisot,
+        mischakimTavnit,
+        hanukkaChoveret,
+        folder('hanukka-h', '1Sv2iLXVFe_QYhe_3hEIAqCuN_YrlLM7A', 'משחקי חנוכה לכיתה ח׳ — תיקייה', 'תיקיית Drive עם משחקי חנוכה לכיתה ח׳ — כל קובץ נפתח בלחיצה.'),
+      ]),
+      haasharaChapter(),
+      rohavChapter([...rohavShared]),
     ],
   },
   {
@@ -414,6 +657,7 @@ export const choveret: ChoveretGrade[] = [
           ),
           maf('maf-05-t', 'MAF-05', '', 'מבחן תנופה והערכה בחט״ב'),
           maf('maf-06-t', 'MAF-06', '', 'Moodle — שני מרחבים בכיתה ט׳'),
+          ...sharedHozer,
         ],
       },
       {
@@ -489,174 +733,13 @@ export const choveret: ChoveretGrade[] = [
           ),
         ],
       },
-    ],
-  },
-  {
-    slug: 'klali',
-    color: '#7c3aed',
-    dark: '#6d28d9',
-    letter: 'כללי',
-    title: 'משותף לכל השכבות',
-    chapters: [
-      {
-        id: 'hozer',
-        title: 'מהחוזר הרשמי',
-        color: '#d90429',
-        dark: '#b3001b',
-        items: [
-          hozerPdf(
-            'amat-tashpaz',
-            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/amat.pdf',
-            'התוכנית הייעודית עמ״ט ז׳–ט׳',
-            'מסמך התוכנית הייעודית והפריסה לתלמידי ז׳–ט׳ בעתודה מדעית-טכנולוגית, מעודכן לשנת הלימודים תשפ״ז.',
-            17
-          ),
-          hozerPdf(
-            'hadracha-chatb',
-            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/contact.pdf',
-            'צוות ההדרכה במתמטיקה חט״ב',
-            'רשימת צוות ההדרכה הארצי והמחוזי במתמטיקה לחטיבת הביניים ודרכי ההתקשרות אליו.',
-            9
-          ),
-          hozerSite(
-            'merchav-chatb',
-            'https://pop.education.gov.il/tchumey_daat/matmatika/chativat-beynayim/noseem_nilmadim/',
-            'המרחב הפדגוגי — מתמטיקה חט״ב',
-            'אתר המתמטיקה הארצי לחטיבת הביניים: מידע שוטף, פריסות הוראה וחומרי למידה.',
-            9
-          ),
-          hozerLink(
-            'merkaz-morim',
-            'https://newhighmath.haifa.ac.il/index.php/home',
-            'מרכז המורים למתמטיקה — אוניברסיטת חיפה',
-            'מאגר עשיר של חומרים תומכי הוראה, בהתאם לדגשים של הפיקוח על הוראת המתמטיקה.',
-            9
-          ),
-          hozerLink(
-            'merkaz-morim-zt',
-            'https://newhighmath.haifa.ac.il/index.php/2015-05-31-10-59-23/2015-05-31-11-11-57',
-            'חומרי מרכז המורים לכיתות ז׳–ט׳',
-            'החומרים של מרכז המורים בנושאים מגוונים, מסודרים לכיתות חטיבת הביניים.',
-            9
-          ),
-          hozerLink(
-            'merkaz-morim-peiluyot',
-            'https://newhighmath.haifa.ac.il/index.php/2-uncategorised/3277-2019-11-06-13-45-6',
-            'פעילויות לחטיבת הביניים',
-            'פעילויות שפותחו לכיתות חטיבת הביניים ומודגשים בהן קישורים בין תחומים במתמטיקה ומשלבות אוריינות מתמטית.',
-            9
-          ),
-          hozerSite(
-            'maor',
-            'https://maor.haifa.ac.il/',
-            'מאור — מתמטיקה אוריינית',
-            'חומרי תוכנית מתמטיקה אוריינית המשולבים בקהילות עדכון תוכנית הלימודים, ותומכים בהטמעתה בכיתות ז׳–ט׳.',
-            9
-          ),
-          hozerLink(
-            'forum-facebook-chatb',
-            'https://facebook.com/groups/324706402455298/',
-            'פורום מורי המתמטיקה בחט״ב',
-            'קבוצת הפייסבוק של הפיקוח — מקום לשאול שאלות בפורום מורים למתמטיקה של חטיבת הביניים.',
-            9
-          ),
-        ],
-      },
-      {
-        id: 'noschaot',
-        title: 'דפי הנוסחאות הרשמיים',
-        color: '#be185d',
-        dark: '#9d174d',
-        items: [
-          drive('noschaot-z', '1nJdVkTlZvnulYiabkeVZG0BT6ek1lU0c', 'דף נוסחאות כיתה ז׳', 'דף הנוסחאות הרשמי לכיתה ז׳ — לצפייה, להורדה ולהדפסה.'),
-          drive('noschaot-h', '1hf30qH4SbS7UxRlkmrFiitDhdoDFt90B', 'דף נוסחאות כיתה ח׳', 'דף הנוסחאות הרשמי לכיתה ח׳ — לצפייה, להורדה ולהדפסה.'),
-          drive('noschaot-t', '1UJJeoCAomVPNp4PN3FsBhCbfaqcSxL1G', 'דף נוסחאות כיתה ט׳', 'דף הנוסחאות הרשמי לכיתה ט׳ — לצפייה, להורדה ולהדפסה.'),
-          doc('noschaot-copy', '1PS4B4VwdZQk5S5BfjUzC2RtQ-9WEexRp', 'נוסחאות ז׳–ח׳ — עותק לעריכה', 'גרסת מסמך של דפי הנוסחאות — פתיחה במקור מאפשרת ליצור עותק אישי לעריכה.'),
-        ],
-      },
-      {
-        id: 'meitzav',
-        title: 'מבחן דמוי מיצ״ב והנחיות',
-        color: '#c2410c',
-        dark: '#9a3412',
-        items: [
-          doc('meitzav-demo', '1-F8gCF7V9X1afsr2D5vOLdgq8DC1OzlH', 'מבחן דמוי מיצ״ב', 'מבחן מלא במתכונת מיצ״ב — מוכן להדפסה ולהעברה בכיתה.'),
-          doc('meitzav-machvan', '10eruHhJRK6HX3nvD17tAypCTqNoC83WD', 'מחוון למבחן דמוי מיצ״ב', 'המחוון המלא של המבחן — ניקוד מפורט לכל שאלה.'),
-          drive('mivchanim-hanchayot', '19edSXZCMSSnFVFvD6B4I-VKRqyGVNwcK', 'הנחיות לכתיבת מבחנים', 'מסמך ההנחיות המחוזי לכתיבת מבחן תקין והוגן.'),
-          drive('sadnat-hachana', '1SX6ta5BpyhlZhxjFMPPcVuQgLJXgxsMH', 'סדנת הכנה למבחן', 'סדנה מוכנה להכנת התלמידים לקראת מבחן.'),
-          maf('maf-05-klali', 'MAF-05', '', 'אירועי הערכה ומבחנים בחוזר'),
-        ],
-      },
-      {
-        id: 'mischakim',
-        title: 'משחקים לאורך השנה',
-        color: '#059669',
-        dark: '#047857',
-        items: [
-          doc('mischakim-prisot', '1AQNue5voom-CuO3opIJMjQoIzy5Ryl1dXPLd-c8IW-M', 'משחקים הצמודים לפריסות ההוראה', 'לכל שלב בפריסת ההוראה — המשחק המתאים, מוכן לשיעור.'),
-          {
-            id: 'mischakim-tavnit',
-            title: 'משחקים לכיתות ז׳–ח׳ — תבנית',
-            note: 'מאגר משחקים לפי נושאים — זוויות, מלבן, חפיפה, משוואות ופונקציות — מאת שילת דדשי, מדריכה אזורית במחוז. פתיחה במקור מאפשרת ליצור עותק לעריכה.',
-            url: 'https://www.canva.com/design/DAF3dEaqSG8/TPgg_h9hz37GX09p6A4rWQ/edit',
-            embed: 'https://www.canva.com/design/DAF3dEaqSG8/TPgg_h9hz37GX09p6A4rWQ/view?embed',
-            kind: 'canva',
-          },
-          drive('hanukka-choveret', '1DBXCKHarZAuBCQreKrvxKUwDLa3k4IHF', 'משחקי חנוכה — חוברת', 'חוברת משחקי חנוכה מרוכזת — להדפסה ולמשחק מיידי.'),
-          folder('hanukka-z', '1CO-6MbihZaNkHT34kbYuB3YKliuOitgV', 'משחקי חנוכה לכיתה ז׳ — תיקייה', 'תיקיית Drive עם משחקי חנוכה לכיתה ז׳ — כל קובץ נפתח בלחיצה.'),
-          folder('hanukka-h', '1Sv2iLXVFe_QYhe_3hEIAqCuN_YrlLM7A', 'משחקי חנוכה לכיתה ח׳ — תיקייה', 'תיקיית Drive עם משחקי חנוכה לכיתה ח׳ — כל קובץ נפתח בלחיצה.'),
-        ],
-      },
-      {
-        id: 'haashara',
-        title: 'העשרה ואתרים',
-        color: '#7c3aed',
-        dark: '#6d28d9',
-        items: [
-          canva('parasha', 'https://www.canva.com/design/DAGa9tq_uLQ/WtXuSJ80nCM8Ow9p7Gd9Eg/view', 'מתמטיקה בפרשה שלי', 'חיבור שבועי בין פרשת השבוע לחשיבה מתמטית.'),
-          {
-            id: 'chinuch-meyuchad',
-            title: 'אתר החינוך המיוחד המחוזי',
-            note: 'סביבת ההעשרה האינטראקטיבית של החינוך המיוחד במחוז.',
-            url: 'https://view.genially.com/652ba55030c0f100115d551e/interactive-content-',
-            embed: 'https://view.genially.com/652ba55030c0f100115d551e',
-            kind: 'site',
-          },
-          {
-            id: 'al-haretzef',
-            title: 'מתמטיקה על הרצף — מיכל דוד',
-            note: 'אתר ההעשרה של מיכל דוד למתמטיקה על הרצף.',
-            url: 'https://mathonthespectrum.my.canva.site/',
-            kind: 'site',
-          },
-        ],
-      },
-      {
-        id: 'rohav',
-        title: 'משאבי רוחב ולמידה דיגיטלית',
-        color: '#0d9488',
-        dark: '#0f766e',
-        items: [
-          {
-            id: 'moodle-guide',
-            title: 'אתר המודל — מדריך למורה',
-            note: 'המדריך הרשמי למורה באתר המודל למתמטיקה.',
-            url: 'https://sites.google.com/view/moodlemath/%D7%9E%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%A6%D7%95%D7%95%D7%AA/%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9C%D7%9E%D7%95%D7%A8%D7%94',
-            kind: 'link',
-          },
-          {
-            id: 'moodle-slides',
-            title: 'מצגות מהמודל לפי נושאים',
-            note: 'גיליון מרכז של כל המצגות לפי נושא.',
-            url: 'https://docs.google.com/spreadsheets/d/1l8-7V7DMQSMkWNCFj3Y1OTnrJmaoOuRPWFkIP0a0_OE/edit',
-            embed: 'https://docs.google.com/spreadsheets/d/1l8-7V7DMQSMkWNCFj3Y1OTnrJmaoOuRPWFkIP0a0_OE/preview',
-            kind: 'doc',
-          },
-          doc('ruach-tochnit', '1RYQQdKawSDPYYCDlUrm2MzcrNskv1SZQKHTNf8JJPuo', 'חומרים ברוח התוכנית החדשה', 'ריכוז חומרים מעודכנים ברוח התוכנית.'),
-          doc('kvatzim-nosim', '1ILL7bpo4LLNmXfE0Kaz1ApoWmDIzk6ILDX3HpDeFd5o', 'לקראת מבחן תנופה — נושאים וקישורים', 'מאגר הנושאים והקישורים להכנה למבחן תנופה.'),
-          canva('sheelot-chashiva', 'https://www.canva.com/design/DAGXwB1tskI/-SQYskyIRJmt8i4W8A806w/edit', 'שאלות חשיבה מסדר גבוה', 'אוסף שאלות חשיבה מוכן להוראה.'),
-        ],
-      },
+      noschaotChapter([
+        drive('noschaot-t', '1UJJeoCAomVPNp4PN3FsBhCbfaqcSxL1G', 'דף נוסחאות כיתה ט׳', 'דף הנוסחאות הרשמי לכיתה ט׳ — לצפייה, להורדה ולהדפסה.'),
+      ]),
+      mivchanimChapter([mivchanimHanchayot, sadnatHachana]),
+      mischakimChapter([mischakimPrisot, hanukkaChoveret]),
+      haasharaChapter(),
+      rohavChapter([...rohavShared, kvatzimNosim]),
     ],
   },
 ];
@@ -676,24 +759,19 @@ export const gradeCounts = Object.fromEntries(
 ) as Record<string, number>;
 
 /** הכתובת הקנונית של עמוד השכבה */
-export const gradeHref = (slug: string) =>
-  slug === 'klali' ? '/chativat-beynayim/klali/' : `/chativat-beynayim/kita-${slug}/`;
+export const gradeHref = (slug: string) => `/chativat-beynayim/kita-${slug}/`;
 
 /** הכתובת הקנונית של פריט: עמוד פנימי אם יש, אחרת עמוד המשאב */
 export const itemHref = (gradeSlug: string, item: ChoveretItem) =>
   item.pageHref ?? `/chativat-beynayim/reader/${gradeSlug}/${item.id}/`;
 
-/** התווית הגלויה של השכבה — "כיתה ז׳" או "כללי" */
-export const gradeLabel = (g: ChoveretGrade) => (g.slug === 'klali' ? 'כללי' : `כיתה ${g.letter}`);
+/** התווית הגלויה של השכבה — "כיתה ז׳" */
+export const gradeLabel = (g: ChoveretGrade) => `כיתה ${g.letter}`;
 
 export const gradeBySlug = (slug: string) => choveret.find((g) => g.slug === slug);
 
-/**
- * תצוגת החומרים של השכבה. בשלוש הכיתות היא מסלול-בן של עמוד המבוא;
- * ב"כללי" אין עמוד מבוא — העמוד עצמו הוא תצוגת החומרים.
- */
-export const gradeMaterialsHref = (slug: string) =>
-  slug === 'klali' ? '/chativat-beynayim/klali/' : `/chativat-beynayim/kita-${slug}/chomarim/`;
+/** תצוגת החומרים של השכבה — מסלול-בן של עמוד המבוא בכל אחת משלוש הכיתות */
+export const gradeMaterialsHref = (slug: string) => `/chativat-beynayim/kita-${slug}/chomarim/`;
 
 /**
  * עמוד הנושא (הוראת יניב, 06/08/2026): תצוגת החומרים היא רשימת נושאים

@@ -29,8 +29,7 @@ const stamp = Object.fromEntries(
 const updatedLine = `מאגר הקבצים עודכן ב${stamp.weekday}, ${Number(stamp.day)}/${Number(stamp.month)}/${stamp.year}, בשעה ${stamp.hour}:${stamp.minute}`;
 
 // שלושת השלישים נגזרים מהנתונים — כולל המניין האמיתי (3.27)
-const thirds = choveret.filter((g) => g.slug !== 'klali');
-const klali = choveret.find((g) => g.slug === 'klali')!;
+const thirds = choveret;
 ---
 
 <Base
@@ -70,20 +69,6 @@ const klali = choveret.find((g) => g.slug === 'klali')!;
       ))
     }
   </section>
-
-  <a class="klali-band" href={gradeHref(klali.slug)}>
-    <span class="klali-inner">
-      <span class="klali-text">
-        <span class="klali-title">{klali.title}</span>
-        <span class="klali-count">{gradeCounts[klali.slug]} קבצים, קישורים ופעילויות</span>
-      </span>
-      <span class="klali-cta" aria-hidden="true">
-        <svg viewBox="0 0 44 16" fill="none" stroke="currentColor" stroke-width="1.4">
-          <path d="M43 8H2M9 1.5 2 8l7 6.5" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </span>
-    </span>
-  </a>
 
   <div class="container page-rest">
     <hr class="section-rule" aria-hidden="true" />
@@ -258,44 +243,6 @@ const klali = choveret.find((g) => g.slug === 'klali')!;
       to { scale: 1 1; opacity: 1; }
     }
   }
-
-  /* ===== רצועת "כללי" — החומרים המשותפים לכל השכבות ===== */
-  .klali-band {
-    display: block;
-    inline-size: 100vw;
-    margin-inline: calc(50% - 50vw);
-    padding-block: clamp(1.1rem, 2.4vw, 1.7rem);
-    text-decoration: none;
-    background: linear-gradient(200deg, #2b2340 0%, #241d36 60%, #1b1629 100%);
-    border-block-end: 1px solid var(--line);
-    transition: filter 400ms var(--ease);
-  }
-
-  .klali-band:hover { filter: brightness(1.14); }
-  .klali-band:focus-visible { outline: 3px solid var(--gold); outline-offset: -6px; }
-
-  .klali-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.2rem;
-    inline-size: min(1180px, 100% - 2.4rem);
-    margin-inline: auto;
-  }
-
-  .klali-text { display: flex; flex-direction: column; gap: 0.15rem; }
-
-  .klali-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.15rem, 2.1vw, 1.6rem);
-    color: var(--paper);
-  }
-
-  .klali-count { color: rgb(251 249 245 / 0.75); font-size: 0.92rem; }
-
-  .klali-cta { color: #e8c877; display: inline-flex; transition: translate 380ms var(--ease); }
-  .klali-cta svg { inline-size: 46px; block-size: auto; display: block; }
-  .klali-band:hover .klali-cta { translate: -10px 0; }
 
   /* ===== המפריד בין האזורים (הוראת יניב, 05/08/2026) ===== */
   .section-rule {

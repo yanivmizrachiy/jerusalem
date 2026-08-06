@@ -24,7 +24,6 @@ interface Props {
 }
 
 const { grade, chapter } = Astro.props;
-const hasIntro = grade.slug !== 'klali';
 const { prev, next } = chapterNeighbours(grade, chapter.id);
 ---
 
@@ -36,7 +35,7 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
     items={[
       { label: 'ראשי', href: '/' },
       { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
-      ...(hasIntro ? [{ label: gradeLabel(grade), href: gradeHref(grade.slug) }] : []),
+      { label: gradeLabel(grade), href: gradeHref(grade.slug) },
       { label: 'חומרים להוראה', href: gradeMaterialsHref(grade.slug) },
       { label: chapter.title },
     ]}

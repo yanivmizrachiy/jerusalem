@@ -19,16 +19,9 @@ test.describe('תיקוני ניווט בעמודי השכבות', () => {
     expect(current.hash).toBe('#tichnun');
   });
 
-  test('בעמוד כללי אין קישור חזרה לעצמו', async ({ page }) => {
-    await page.goto('/chativat-beynayim/klali/');
+  test('פירורי הלחם בעמוד משאב אינם מכפילים את אותו מסלול (5.13)', async ({ page }) => {
+    await page.goto('/chativat-beynayim/reader/z/noschaot-z/');
 
-    await expect(page.locator('.grade-nav [data-to-intro]')).toHaveCount(0);
-    await expect(page.locator('.grade-nav a[href="/chativat-beynayim/"]')).toHaveCount(1);
-  });
-
-  test('במשאב כללי פירורי הלחם אינם מכפילים את אותו מסלול', async ({ page }) => {
-    await page.goto('/chativat-beynayim/reader/klali/noschaot-z/');
-
-    await expect(page.locator('.crumbs a[href="/chativat-beynayim/klali/"]')).toHaveCount(1);
+    await expect(page.locator('.crumbs a[href="/chativat-beynayim/kita-z/"]')).toHaveCount(1);
   });
 });

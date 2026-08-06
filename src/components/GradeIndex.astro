@@ -15,9 +15,6 @@ interface Props {
 }
 
 const { grade } = Astro.props;
-
-// ב"כללי" אין עמוד מבוא — העמוד עצמו הוא תצוגת החומרים, ולכן אין רמה מעליו
-const hasIntro = grade.slug !== 'klali';
 ---
 
 <div class="container grade-page" style={`--grade:${grade.color}; --grade-dark:${grade.dark}`}>
@@ -25,12 +22,8 @@ const hasIntro = grade.slug !== 'klali';
     items={[
       { label: 'ראשי', href: '/' },
       { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
-      ...(hasIntro
-        ? [
-            { label: gradeLabel(grade), href: gradeHref(grade.slug) },
-            { label: 'חומרים להוראה' },
-          ]
-        : [{ label: gradeLabel(grade) }]),
+      { label: gradeLabel(grade), href: gradeHref(grade.slug) },
+      { label: 'חומרים להוראה' },
     ]}
   />
 

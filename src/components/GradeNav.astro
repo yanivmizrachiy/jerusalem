@@ -18,8 +18,7 @@ const { grade, here } = Astro.props;
 const order = choveret.findIndex((g) => g.slug === grade.slug);
 const prev = order > 0 ? choveret[order - 1] : undefined;
 const next = order < choveret.length - 1 ? choveret[order + 1] : undefined;
-const hasIntro = grade.slug !== 'klali';
-const sideLabel = (g: ChoveretGrade) => (g.slug === 'klali' ? 'מעבר לכללי' : `מעבר לשכבת ${g.letter}`);
+const sideLabel = (g: ChoveretGrade) => `מעבר לשכבת ${g.letter}`;
 const sideHref = (g: ChoveretGrade) => (here === 'materials' ? gradeMaterialsHref(g.slug) : gradeHref(g.slug));
 ---
 
@@ -27,16 +26,15 @@ const sideHref = (g: ChoveretGrade) => (here === 'materials' ? gradeMaterialsHre
   <div class="gnav-main">
     <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
     {
-      hasIntro &&
-        (here === 'materials' ? (
-          <a class="btn btn-ghost" href={gradeHref(grade.slug)} data-to-intro>
-            חזרה ל{grade.title}
-          </a>
-        ) : (
-          <a class="btn btn-ghost" href={gradeMaterialsHref(grade.slug)} data-to-materials>
-            חומרים להוראה
-          </a>
-        ))
+      here === 'materials' ? (
+        <a class="btn btn-ghost" href={gradeHref(grade.slug)} data-to-intro>
+          חזרה ל{grade.title}
+        </a>
+      ) : (
+        <a class="btn btn-ghost" href={gradeMaterialsHref(grade.slug)} data-to-materials>
+          חומרים להוראה
+        </a>
+      )
     }
   </div>
 

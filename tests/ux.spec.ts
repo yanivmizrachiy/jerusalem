@@ -149,8 +149,8 @@ test('שער חטיבת הביניים: שלושה שלישים שווים, בל
     expect(Number(text.match(/\d+/)?.[0] ?? 0), 'מניין קבצים אמיתי').toBeGreaterThan(0);
   }
 
-  // רצועת "כללי" — החומרים המשותפים לא אבדו
-  await expect(page.locator('.klali-band')).toHaveAttribute('href', '/chativat-beynayim/klali/');
+  // אין עוד רצועת "כללי" — החומרים המשותפים חולקו לשלוש הכיתות (3.31)
+  await expect(page.locator('.klali-band')).toHaveCount(0);
   await noOverflow(page, 'שער 1440');
 });
 
@@ -274,7 +274,6 @@ test('כל משימה בכל נושא בכל שכבה מובילה לעמוד מ
     ['z', '/chativat-beynayim/kita-z/chomarim/'],
     ['h', '/chativat-beynayim/kita-h/chomarim/'],
     ['t', '/chativat-beynayim/kita-t/chomarim/'],
-    ['klali', '/chativat-beynayim/klali/'],
   ] as const) {
     await page.goto(materials);
     const topicHrefs = await page
@@ -354,10 +353,15 @@ test('יחידות ועמודים ייעודיים עברו לעמוד המבו�
   }
 });
 
-test('עמוד "כללי" קיים ומציג את הנושאים המשותפים (1.9)', async ({ page }) => {
-  await page.goto('/chativat-beynayim/klali/');
-  await expect(page.locator('h1.grade-title')).toHaveText('משותף לכל השכבות');
-  expect(await page.locator('.topics .topic').count()).toBeGreaterThan(3);
+test('החומרים המשותפים חולקו לשלוש הכיתות ואין עוד עמוד "כללי" (3.31)', async ({ page }) => {
+  // חומר שמשרת את כל השכבות (מרכז המורים, עמ״ט וכו׳) מופיע בכל אחת מהן
+  for (const slug of ['z', 'h', 't'] as const) {
+    const res = await page.request.get(`/chativat-beynayim/reader/${slug}/maor/`);
+    expect(res.status(), `החומר המשותף חי בכיתה ${slug}`).toBe(200);
+  }
+  // עמוד "כללי" הישן כבר לא קיים
+  const gone = await page.request.get('/chativat-beynayim/klali/');
+  expect(gone.status(), 'עמוד כללי הוסר').toBeGreaterThanOrEqual(400);
 });
 
 test('עמוד מבוא בנייד: הכול נגיש בלי גלילה אופקית (19.32)', async ({ page }) => {
@@ -473,7 +477,7 @@ test('הטמעות PDF בלי סרגל השחור של הדפדפן (8.26)', asy
   for (const route of [
     '/chativat-beynayim/reader/z/tochnit-z/',
     '/chativat-beynayim/reader/t/prisa-t/',
-    '/chativat-beynayim/reader/klali/amat-tashpaz/',
+    '/chativat-beynayim/reader/z/amat-tashpaz/',
   ]) {
     await page.goto(route);
     bad.push(
