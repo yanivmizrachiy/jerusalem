@@ -37,7 +37,7 @@ for (const vp of viewports) {
         for (let i = 0; i < count; i++) {
           const box = await navLinks.nth(i).boundingBox();
           expect(box, `קישור ניווט ${i} נראה`).toBeTruthy();
-          expect(box!.height, `מטרת מגע בקישור ${i}`).toBeGreaterThanOrEqual(40);
+          expect(box!.height, `מטרת מגע בקישור ${i}`).toBeGreaterThanOrEqual(44);
         }
 
         // תוכן מרכזי ופס עליון נראים
