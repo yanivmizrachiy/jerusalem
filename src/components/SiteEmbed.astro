@@ -44,7 +44,8 @@ const { id, title, url, embedSrc, tall = false } = Astro.props;
   /* קו-אור אלכסוני על הזכוכית — ספקולר עדין */
 
 
-  .semb-frame.is-tall { block-size: var(--embed-full-height); }
+  .semb-frame { block-size: var(--embed-full-height); }
+  .semb-frame.is-tall { block-size: var(--embed-site-height); }
 
   .semb-actions {
     display: flex;
