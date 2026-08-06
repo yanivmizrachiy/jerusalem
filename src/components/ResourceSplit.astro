@@ -139,7 +139,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
       </a>
     </aside>
 
-    <div class="res-view" data-view>
+    <div class="res-view" data-view data-kind={item.kind}>
       {
         item.kind === 'maf' && item.maf ? (
           <MafmarRange sectionId={item.maf} accent={chapter.color} fill />
@@ -182,9 +182,9 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
 <style>
   /* מיכל רחב במיוחד — המשאב והפעולות מנצלים את המסך, בלי לגלוש לקצוות */
   .res-page {
-    inline-size: min(1520px, 100% - 2 * clamp(1.1rem, 3.4vw, 2.2rem));
+    inline-size: var(--embed-page-inline);
     margin-inline: auto;
-    padding-block: 1.2rem 2.6rem;
+    padding-block: 1.2rem clamp(2.6rem, 5vw, 4rem);
   }
 
   /* ===== חצי-חצי במסך רחב: המשאב מימין, הפעולות משמאל (8.2) =====
@@ -193,9 +193,9 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
      באמצעות order: ההטמעה בעמודה הראשונה — הימנית ב-RTL. */
   .res-split {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-    gap: clamp(1rem, 2.2vw, 1.9rem);
-    margin-block-start: 1.1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--embed-column-gap);
+    margin-block-start: clamp(1.4rem, 3vw, 2.4rem);
     align-items: start;
   }
 
@@ -217,11 +217,26 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   .res-panel {
     block-size: 100%;
     min-block-size: 0;
+    /* auto — פס גלילה מופיע רק כשהתוכן באמת ארוך מהצד */
     overflow-y: auto;
     overscroll-behavior: contain;
   }
 
   .res-frame:not(.res-open-card) { block-size: 100%; }
+
+  /* ===== התאמה לפי סוג המשאב (הוראת יניב, 06/08/2026) =====
+     סרטון שומר 16/9 ואינו נמתח לגובה של מסמך; מצגת מקבלת יחס מצגת;
+     מסמך, PDF ואתר חי ממלאים את הצד לגובה מלא. */
+  .res-view[data-kind='video'] .res-frame,
+  .res-view[data-kind='canva'] .res-frame,
+  .res-view[data-kind='flip'] .res-frame {
+    block-size: auto;
+    align-self: start;
+  }
+
+  .res-view[data-kind='video'] .res-frame iframe { aspect-ratio: 16 / 9; block-size: auto; }
+  .res-view[data-kind='canva'] .res-frame iframe,
+  .res-view[data-kind='flip'] .res-frame iframe { aspect-ratio: 16 / 10; block-size: auto; }
 
   /* פריט מהחוזר ממלא את הצד שלו באותו אופן */
   .res-view :global(.mrange.is-fill) { block-size: 100%; }
@@ -229,17 +244,15 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   /* ===== מסגרת הזכוכית האחידה (8.26) ===== */
   .res-frame {
     position: relative;
-    padding: 10px;
-    border-radius: 22px;
-    background:
-      linear-gradient(155deg, rgb(255 253 248 / 0.72), rgb(245 241 232 / 0.5)),
-      radial-gradient(120% 90% at 15% 0%, rgb(212 175 92 / 0.16), transparent 60%);
-    backdrop-filter: blur(12px) saturate(1.25);
-    -webkit-backdrop-filter: blur(12px) saturate(1.25);
+    padding: var(--embed-pad);
+    border-radius: var(--embed-radius);
+    background: linear-gradient(155deg, rgb(255 253 248 / 0.72), rgb(245 241 232 / 0.5));
+    backdrop-filter: blur(10px) saturate(1.2);
+    -webkit-backdrop-filter: blur(10px) saturate(1.2);
     box-shadow:
-      inset 0 0 0 1px rgb(212 175 92 / 0.5),
+      inset 0 0 0 1px var(--embed-border),
       inset 0 1px 0 rgb(255 255 255 / 0.85),
-      0 26px 60px -30px rgb(31 41 61 / 0.5);
+      var(--embed-shadow);
     overflow: hidden;
   }
 
@@ -313,8 +326,8 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
 
   /* ===== לוח המידע והפעולות ===== */
   .res-panel {
-    padding: clamp(1.1rem, 2vw, 1.6rem);
-    border-radius: var(--radius-lg);
+    padding: var(--embed-panel-padding);
+    border-radius: var(--embed-radius);
     border: 1px solid var(--line);
     background: #fff;
     box-shadow: var(--shadow-soft);
@@ -356,7 +369,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
     font-weight: 700;
   }
 
-  .res-note { margin: 0.9rem 0 0; color: var(--ink-soft); line-height: 1.75; }
+  .res-note { margin: 1.2rem 0 0; color: var(--ink-soft); line-height: 1.75; }
   .res-source { margin: 0.6rem 0 0; color: var(--ink-faint); font-size: 0.83rem; }
 
   .res-actions {
@@ -364,7 +377,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
-    margin-block-start: 1.2rem;
+    margin-block-start: clamp(1.5rem, 2.6vw, 2.1rem);
   }
 
   .res-status { margin: 0.7rem 0 0; min-block-size: 1.2rem; font-size: 0.85rem; color: var(--gold-deep); font-weight: 600; }
@@ -373,8 +386,8 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.7rem;
-    margin-block-start: 1.4rem;
-    padding-block-start: 1.2rem;
+    margin-block-start: clamp(1.6rem, 3vw, 2.4rem);
+    padding-block-start: clamp(1.2rem, 2.2vw, 1.7rem);
     border-block-start: 1px solid var(--line);
   }
 
@@ -398,13 +411,13 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   .pager-title { font-weight: 600; font-size: 0.92rem; line-height: 1.4; }
   .pager-spacer { display: none; }
 
-  .res-back { margin-block-start: 1rem; inline-size: 100%; justify-content: center; }
+  .res-back { margin-block-start: 1.1rem; inline-size: 100%; justify-content: center; }
 
   /* ===== נייד: ההטמעה ראשונה, ההסבר והפעולות אחריה (8.6) =====
      כאן העמוד זורם וגולל כרגיל — אין חלוקה לשני צדדים ולכן אין
      שני פסי גלילה זה לצד זה. */
-  @media (max-width: 900px) {
-    .res-split { grid-template-columns: 1fr; block-size: auto; }
+  @media (max-width: 1099px) {
+    .res-split { grid-template-columns: 1fr; block-size: auto; gap: clamp(1.4rem, 4vw, 2.2rem); }
     .res-view { block-size: auto; }
     .res-panel { block-size: auto; overflow: visible; }
     .res-frame:not(.res-open-card) { block-size: auto; }
