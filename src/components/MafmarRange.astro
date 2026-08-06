@@ -12,19 +12,18 @@ interface Props {
   /** מזהה מתוך ה־manifest המאומת, למשל "MAF-02" */
   sectionId: string;
   accent?: string;
-  tall?: boolean;
   /** בתוך החוברת: ממלא את דף ההטמעה — בלי כרטיס מקונן ובלי גובה קבוע (RULES 3.29) */
   fill?: boolean;
 }
 
-const { sectionId, accent = 'var(--gold)', tall = false, fill = false } = Astro.props;
+const { sectionId, accent = 'var(--gold)', fill = false } = Astro.props;
 const s = mafmarSections.find((x) => x.id === sectionId);
 if (!s) throw new Error(`MafmarRange: מזהה לא קיים ב-manifest — ${sectionId}`);
 const anchorId = s.id.toLowerCase();
 ---
 
 <section
-  class:list={['mrange', 'card-accent', { 'is-tall': tall, 'is-fill': fill }]}
+  class:list={['mrange', 'card-accent', { 'is-fill': fill }]}
   style={`--card-accent:${accent}`}
   id={anchorId}
   data-mafrange
@@ -122,7 +121,6 @@ const anchorId = s.id.toLowerCase();
     pointer-events: none;
   }
 
-  .mrange.is-tall .mrange-shell { block-size: clamp(520px, 72dvh, 820px); }
 
   .mrange-shell iframe {
     inline-size: 100%;

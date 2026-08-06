@@ -444,7 +444,7 @@ a:hover { color: var(--ink); }
   body { background: #fff; color: #000; }
   body::before, body::after { display: none !important; }
   .site-header, .site-footer, .rail, .skip-link,
-  video, iframe, .btn, .hero-play, .rframe-actions, .uplay-actions,
+  video, iframe, .btn, .uplay-actions,
   .mrange-actions, .mrange-pager, .viewer-actions { display: none !important; }
   .card, .card-accent { box-shadow: none !important; border: 1px solid #999 !important; }
   a { color: #000; text-decoration: underline; }

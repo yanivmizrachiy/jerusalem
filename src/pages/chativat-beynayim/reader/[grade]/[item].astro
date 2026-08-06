@@ -18,8 +18,13 @@ const { gradeSlug, itemId } = Astro.props;
 const grade = choveret.find((g) => g.slug === gradeSlug)!;
 const chapter = grade.chapters.find((c) => c.items.some((i) => i.id === itemId))!;
 const item = chapter.items.find((i) => i.id === itemId)!;
+
+// פריטי החוזר אינם נושאים note (הכותרת והטווח מדברים בעד עצמם), ובלי
+// גיבוי הם נבנו עם description ריק — כלומר גם og:description ריק (18.1)
+const description =
+  item.note || item.source || `${item.title} — ${chapter.title}, ${grade.title}, מחוז ירושלים.`;
 ---
 
-<Base title={`${item.title} — ${grade.title} — מחוז ירושלים`} description={item.note}>
+<Base title={`${item.title} — ${grade.title} — מחוז ירושלים`} description={description}>
   <ResourceSplit grade={grade} chapter={chapter} item={item} />
 </Base>

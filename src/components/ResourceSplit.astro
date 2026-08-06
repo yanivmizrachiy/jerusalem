@@ -48,44 +48,6 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   />
 
   <div class="res-split">
-    <div class="res-view" data-view>
-      {
-        item.kind === 'maf' && item.maf ? (
-          <MafmarRange sectionId={item.maf} accent={chapter.color} fill />
-        ) : item.embed ? (
-          <>
-            <div class="res-frame" data-frame>
-              <iframe
-                data-esrc={item.embed}
-                title={`${item.title} — תצוגה חיה`}
-                allow="fullscreen; clipboard-write"
-                loading="lazy"
-              />
-              <span class="res-skel" aria-hidden="true">
-                <span class="res-skel-spin"></span>
-                <span class="res-skel-txt">טוען את {item.title}…</span>
-              </span>
-            </div>
-            {item.kind === 'pdf' && (
-              <div class="res-frame res-open-card" data-pdf-fb hidden>
-                <p>בדפדפן הזה קובצי PDF נפתחים לצפייה מלאה במסך נפרד:</p>
-                <a class="btn btn-primary" href={item.url} target="_blank" rel="noopener">
-                  פתיחת {item.title} ↗
-                </a>
-              </div>
-            )}
-          </>
-        ) : (
-          <div class="res-frame res-open-card">
-            <p>המשאב הזה נפתח באתר המקור:</p>
-            <a class="btn btn-primary" href={item.url} target="_blank" rel="noopener">
-              פתיחת {item.title} ↗
-            </a>
-          </div>
-        )
-      }
-    </div>
-
     <aside class="res-panel">
       <p class="res-eyebrow">
         <a href={gradeHref(grade.slug)}>{gradeLabel(grade)}</a>
@@ -174,6 +136,44 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
         חזרה ל{grade.title}
       </a>
     </aside>
+
+    <div class="res-view" data-view>
+      {
+        item.kind === 'maf' && item.maf ? (
+          <MafmarRange sectionId={item.maf} accent={chapter.color} fill />
+        ) : item.embed ? (
+          <>
+            <div class="res-frame" data-frame>
+              <iframe
+                data-esrc={item.embed}
+                title={`${item.title} — תצוגה חיה`}
+                allow="fullscreen; clipboard-write"
+                loading="lazy"
+              />
+              <span class="res-skel" aria-hidden="true">
+                <span class="res-skel-spin"></span>
+                <span class="res-skel-txt">טוען את {item.title}…</span>
+              </span>
+            </div>
+            {item.kind === 'pdf' && (
+              <div class="res-frame res-open-card" data-pdf-fb hidden>
+                <p>בדפדפן הזה קובצי PDF נפתחים לצפייה מלאה במסך נפרד:</p>
+                <a class="btn btn-primary" href={item.url} target="_blank" rel="noopener">
+                  פתיחת {item.title} ↗
+                </a>
+              </div>
+            )}
+          </>
+        ) : (
+          <div class="res-frame res-open-card">
+            <p>המשאב הזה נפתח באתר המקור:</p>
+            <a class="btn btn-primary" href={item.url} target="_blank" rel="noopener">
+              פתיחת {item.title} ↗
+            </a>
+          </div>
+        )
+      }
+    </div>
   </div>
 </div>
 
@@ -185,7 +185,10 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
     padding-block: 1.2rem 2.6rem;
   }
 
-  /* ===== חצי-חצי במסך רחב: המשאב מימין, הפעולות משמאל (8.2) ===== */
+  /* ===== חצי-חצי במסך רחב: המשאב מימין, הפעולות משמאל (8.2) =====
+     לוח המידע קודם ב-DOM כדי שה-h1 של המשאב יופיע לפני כותרות המשנה
+     שבתוך ההטמעה (סדר כותרות תקין לקורא מסך), והסדר החזותי נשמר
+     באמצעות order: ההטמעה בעמודה הראשונה — הימנית ב-RTL. */
   .res-split {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
@@ -193,6 +196,9 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
     margin-block-start: 1.1rem;
     align-items: start;
   }
+
+  .res-view { order: 1; }
+  .res-panel { order: 2; }
 
   /* ===== פס גלילה אחד בלבד (הוראת יניב, 06/08/2026) =====
      כשהמשאב מוטמע, העמוד עצמו נכנס בדיוק לגובה החלון ואינו נגלל — כך
@@ -227,6 +233,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
       linear-gradient(155deg, rgb(255 253 248 / 0.72), rgb(245 241 232 / 0.5)),
       radial-gradient(120% 90% at 15% 0%, rgb(212 175 92 / 0.16), transparent 60%);
     backdrop-filter: blur(12px) saturate(1.25);
+    -webkit-backdrop-filter: blur(12px) saturate(1.25);
     box-shadow:
       inset 0 0 0 1px rgb(212 175 92 / 0.5),
       inset 0 1px 0 rgb(255 255 255 / 0.85),
