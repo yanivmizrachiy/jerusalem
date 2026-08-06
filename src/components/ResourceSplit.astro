@@ -202,40 +202,42 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   .res-view { order: 1; }
   .res-panel { order: 2; }
 
-  /* ===== פס גלילה אחד בלבד (הוראת יניב, 06/08/2026) =====
-     כשהמשאב מוטמע, העמוד עצמו נכנס בדיוק לגובה החלון ואינו נגלל — כך
-     נראה פס גלילה אחד, של המשאב עצמו, ולא שניים זה לצד זה שנראים
-     כמו דפדפן בתוך דפדפן. הפאנל גולל בפנים אם התוכן שלו ארוך. */
-  .res-split { block-size: var(--fit, auto); }
+  /* ===== עמוד שלם בהטמעה (הוראת יניב, 06/08/2026) =====
+     קודם הצדדים נדחסו לגובה שנשאר בחלון, ולכן מסמך הוצג חתוך. עכשיו
+     גובה ההטמעה נגזר מיחס העמוד עצמו: ברוחב הצד, עמוד A4 שלם נכנס
+     במלואו — כל הרוחב נראה, הגלילה אנכית ואין צורך לגרור לצדדים.
+     צד המידע אינו נמתח לגובה הזה, כדי שלא ייווצר בו שטח לבן ענק. */
+  .res-view { min-inline-size: 0; }
 
-  .res-view {
-    min-inline-size: 0;
-    block-size: 100%;
-    min-block-size: 0;
-  }
-
-  .res-panel {
-    block-size: 100%;
-    min-block-size: 0;
-    /* auto — פס גלילה מופיע רק כשהתוכן באמת ארוך מהצד */
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-
-  .res-frame:not(.res-open-card) { block-size: 100%; }
+  .res-panel { align-self: start; }
 
   /* ===== התאמה לפי סוג המשאב (הוראת יניב, 06/08/2026) =====
-     מצגת וחוברת דפדוף מקבלות יחס מצגת ואינן נמתחות לגובה של מסמך;
-     מסמך, PDF ואתר חי ממלאים את הצד לגובה מלא. הסוגים הם בדיוק אלה
-     שקיימים ב-ItemKind (src/data/choveret.ts) — אין סלקטור לסוג שאינו קיים. */
-  .res-view[data-kind='canva'] .res-frame,
-  .res-view[data-kind='flip'] .res-frame {
-    block-size: auto;
-    align-self: start;
+     הסוגים הם בדיוק אלה שקיימים ב-ItemKind (src/data/choveret.ts).
+     מסמך: יחס עמוד A4 — עמוד שלם נכנס ברוחב הצד, בלי חיתוך צדדים.
+     מצגת וחוברת דפדוף: יחס מצגת. אתר חי: viewer גבוה ונוח לגלישה. */
+  .res-frame iframe { block-size: auto; }
+
+  .res-view[data-kind='pdf'] .res-frame iframe,
+  .res-view[data-kind='doc'] .res-frame iframe,
+  .res-view[data-kind='drive'] .res-frame iframe {
+    aspect-ratio: 1 / 1.414;
+    min-block-size: 640px;
+    max-block-size: 1180px;
   }
 
   .res-view[data-kind='canva'] .res-frame iframe,
-  .res-view[data-kind='flip'] .res-frame iframe { aspect-ratio: 16 / 10; block-size: auto; }
+  .res-view[data-kind='flip'] .res-frame iframe { aspect-ratio: 16 / 10; min-block-size: 460px; }
+
+  .res-view[data-kind='site'] .res-frame iframe,
+  .res-view[data-kind='link'] .res-frame iframe { block-size: var(--embed-full-height); }
+
+  /* מקטע מהחוזר — אותו יחס עמוד, דרך ה-shell של MafmarRange */
+  .res-view[data-kind='maf'] :global(.mrange.is-fill .mrange-shell) {
+    aspect-ratio: 1 / 1.3;
+    block-size: auto;
+    min-block-size: 620px;
+    max-block-size: 1120px;
+  }
 
   /* פריט מהחוזר ממלא את הצד שלו באותו אופן */
   .res-view :global(.mrange.is-fill) { block-size: 100%; }
@@ -245,7 +247,6 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   /* ייחודי לעמוד המשאב: רצפת גובה וחשיפה הדרגתית אחרי הטעינה (8.9);
      המידות, הגבול, הרדיוס והרקע מגיעים מ-.embed-frame > iframe */
   .res-frame iframe {
-    min-block-size: 320px;
     opacity: 0;
     transition: opacity 420ms var(--ease);
   }
@@ -287,7 +288,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    min-block-size: min(58svh, 460px);
+    min-block-size: min(78svh, 720px);
     text-align: center;
     padding: 2rem;
   }
@@ -392,8 +393,9 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
     .res-split { grid-template-columns: 1fr; block-size: auto; gap: clamp(1.4rem, 4vw, 2.2rem); }
     .res-view { block-size: auto; }
     .res-panel { block-size: auto; overflow: visible; }
-    .res-frame:not(.res-open-card) { block-size: auto; }
-    .res-frame iframe { block-size: min(66svh, 560px); }
+    .res-view[data-kind='pdf'] .res-frame iframe,
+    .res-view[data-kind='doc'] .res-frame iframe,
+    .res-view[data-kind='drive'] .res-frame iframe { min-block-size: 520px; max-block-size: none; }
     .res-pager { grid-template-columns: 1fr; }
   }
 
@@ -408,29 +410,6 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
 <script>
   const page = document.querySelector<HTMLElement>('.res-page');
   if (page) {
-    /* פס גלילה אחד בלבד (הוראת יניב, 06/08/2026): במסך רחב החלוקה
-       נכנסת בדיוק לגובה שנשאר בחלון, כך שהעמוד עצמו אינו נגלל ולא
-       נוצרים שני פסי גלילה זה לצד זה. במסך צר העמוד זורם כרגיל. */
-    const split = page.querySelector<HTMLElement>('.res-split');
-    if (split) {
-      const wide = matchMedia('(min-width: 901px)');
-      const fit = () => {
-        split.style.removeProperty('--fit');
-        if (!wide.matches) return;
-        const doc = document.documentElement;
-        const top = split.getBoundingClientRect().top + window.scrollY;
-        // כל מה שיושב מתחת לחלוקה — ריפוד העמוד ופס התחתית — נכנס לחשבון,
-        // אחרת הפוטר דוחף את העמוד וחוזר פס גלילה שני
-        const below = Math.max(0, doc.scrollHeight - (top + split.offsetHeight));
-        split.style.setProperty('--fit', `${Math.max(420, Math.round(innerHeight - top - below))}px`);
-      };
-      fit();
-      addEventListener('resize', fit, { passive: true });
-      addEventListener('load', fit, { once: true });
-      wide.addEventListener('change', fit);
-      document.fonts?.ready.then(fit);
-    }
-
     const status = page.querySelector<HTMLElement>('[data-status]');
     const say = (text: string) => {
       if (!status) return;

@@ -324,7 +324,7 @@ test('עמוד משאב במסך רחב: פס גלילה אחד — העמוד �
     const scroll = await page.evaluate(
       () => document.documentElement.scrollHeight - document.documentElement.clientHeight
     );
-    expect(scroll, `${route}: לעמוד עצמו אין גלילה — פס גלילה אחד בלבד`).toBeLessThanOrEqual(2);
+    expect(scroll, `${route}: העמוד גולל אנכית כדי להציג עמוד שלם`).toBeGreaterThanOrEqual(0);
     // ההטמעה עדיין גדולה ושימושית, לא נמחצה כדי להיכנס
     const view = (await page.locator('.res-view').boundingBox())!;
     expect(view.height, `${route}: צד המשאב נשאר גבוה`).toBeGreaterThan(420);
@@ -822,8 +822,13 @@ for (const [w, h] of [
       const panel = (await page.locator('.res-panel').boundingBox())!;
 
       expect(Math.abs(view.width - panel.width), `${route}: רוחב שווה`).toBeLessThanOrEqual(1);
-      expect(Math.abs(view.height - panel.height), `${route}: גובה שווה`).toBeLessThanOrEqual(1);
       expect(Math.abs(view.y - panel.y), `${route}: אותו קו עליון`).toBeLessThanOrEqual(1);
+
+      // אזור צפייה נדיב בכל סוג משאב
+      expect(view.height, `${route}: אזור צפייה גדול`).toBeGreaterThanOrEqual(560);
+
+      // צד המידע אינו נמתח לגובה ההטמעה — אין בו שטח לבן ענק
+      expect(panel.height, `${route}: אין שטח לבן מיותר משמאל`).toBeLessThan(view.height);
       expect(view.x, `${route}: ההטמעה בצד ימין (RTL)`).toBeGreaterThan(panel.x);
 
       // המרווח בין הצדדים משמעותי ואינו חופף
@@ -837,6 +842,36 @@ for (const [w, h] of [
     }
   });
 }
+
+test('עמוד מסמך שלם בהטמעה, וכל הפעולות רק בצד שמאל (הוראת יניב, 06/08)', async ({ page }) => {
+  for (const [w, h] of [
+    [1440, 900],
+    [1920, 1080],
+  ] as const) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
+
+    const f = (await page.locator('.res-frame iframe').boundingBox())!;
+    expect(f.height / f.width, `${w}: יחס עמוד — כל רוחב הדף נראה`).toBeGreaterThan(1.3);
+    expect(f.height, `${w}: עמוד שלם ולא חתוך`).toBeGreaterThanOrEqual(640);
+
+    // הגלילה בתוך ההטמעה אנכית בלבד
+    const view = (await page.locator('.res-view').boundingBox())!;
+    expect(f.width, `${w}: ההטמעה ממלאת את רוחב הצד`).toBeGreaterThan(view.width - 30);
+
+    // כל כפתורי הפעולה נמצאים רק בצד שמאל, מחוץ לאזור ההטמעה
+    const xs = await page
+      .locator('.res-actions .btn, .res-pager a, .res-back')
+      .evaluateAll((els) => els.map((e) => e.getBoundingClientRect().right));
+    expect(xs.length, 'יש לוח פעולות').toBeGreaterThan(3);
+    for (const right of xs) expect(right, `${w}: פעולה בצד שמאל בלבד`).toBeLessThanOrEqual(view.x + 1);
+
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+    );
+    expect(overflow, `${w}: אין גלילה אופקית`).toBeLessThanOrEqual(1);
+  }
+});
 
 test('כל ההטמעות חולקות את אותה מסגרת (.embed-frame) — לא CSS מקומי (8.26)', async ({ page }) => {
   const seen: Record<string, string> = {};
@@ -899,6 +934,7 @@ test('בנייד: ההטמעה ראשונה, בלי גלילה אופקית וב
     return { over: getComputedStyle(el).overflowY, extra: el.scrollHeight - el.clientHeight };
   });
   expect(panelScrolls.extra, 'אין scrollbar פנימי בלוח המידע בנייד').toBeLessThanOrEqual(1);
+  expect(view.height, 'ההטמעה גדולה ושימושית בנייד').toBeGreaterThanOrEqual(400);
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth
   );
