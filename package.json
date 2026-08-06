@@ -11,6 +11,7 @@
     "build": "astro build",
     "check": "astro check",
     "test": "playwright test",
+    "audit:repo": "node scripts/repo-health.mjs",
     "verify:deploy": "node scripts/verify-deploy.mjs",
     "serve:dist": "serve .vercel/output/static -l 4321 -n"
   },
