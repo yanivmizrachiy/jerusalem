@@ -24,6 +24,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Repo health guard
+        run: node scripts/repo-health.mjs
       # npm 11 — אותה גרסה שמייצרת את הלוקפייל בסביבת העבודה; בלעדיה
       # לוקפייל שנוצר מקומית נדחה כאן ב-EUSAGE (נתפס ב-04/08/2026)
       - run: npm i -g npm@11
