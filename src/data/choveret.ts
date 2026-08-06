@@ -51,6 +51,13 @@ export interface ChoveretGrade {
   /** גוון כהה לטקסט קטן על לבן (AA) */
   dark: string;
   title: string;
+  /**
+   * מזהי התוכנית והפריסה הרשמיות **הראשיות** של השכבה (תשפ״ז). עמוד המבוא
+   * מציג להן שני כפתורים ישירים, ולכן הזיהוי מפורש ולא לפי מיקום במערך.
+   * בכיתה ט׳ אלה המסלול הראשי — המסלול המצומצם נשאר פריט רגיל בפרק.
+   */
+  mainPlan?: string;
+  mainPrisa?: string;
   chapters: ChoveretChapter[];
 }
 
@@ -208,6 +215,8 @@ const siteItems: ChoveretItem[] = [...grade7Resources]
 export const choveret: ChoveretGrade[] = [
   {
     slug: 'z',
+    mainPlan: 'tochnit-z',
+    mainPrisa: 'prisa-z',
     color: '#1d7ed8',
     dark: '#155fa8',
     letter: 'ז׳',
@@ -280,6 +289,8 @@ export const choveret: ChoveretGrade[] = [
   },
   {
     slug: 'h',
+    mainPlan: 'tochnit-h',
+    mainPrisa: 'prisa-h',
     color: '#059669',
     dark: '#047857',
     letter: 'ח׳',
@@ -361,6 +372,8 @@ export const choveret: ChoveretGrade[] = [
   },
   {
     slug: 't',
+    mainPlan: 'tochnit-t',
+    mainPrisa: 'prisa-t',
     color: '#ea580c',
     dark: '#b45309',
     letter: 'ט׳',
@@ -672,6 +685,20 @@ export const itemHref = (gradeSlug: string, item: ChoveretItem) =>
 export const gradeLabel = (g: ChoveretGrade) => (g.slug === 'klali' ? 'כללי' : `כיתה ${g.letter}`);
 
 export const gradeBySlug = (slug: string) => choveret.find((g) => g.slug === slug);
+
+/**
+ * תצוגת החומרים של השכבה. בשלוש הכיתות היא מסלול-בן של עמוד המבוא;
+ * ב"כללי" אין עמוד מבוא — העמוד עצמו הוא תצוגת החומרים.
+ */
+export const gradeMaterialsHref = (slug: string) =>
+  slug === 'klali' ? '/chativat-beynayim/klali/' : `/chativat-beynayim/kita-${slug}/chomarim/`;
+
+/** התוכנית והפריסה הראשיות של השכבה — הפריטים עצמם ממקור הנתונים */
+export function gradeMainDocs(g: ChoveretGrade) {
+  const all = g.chapters.flatMap((ch) => ch.items.map((item) => ({ chapter: ch, item })));
+  const byId = (id?: string) => (id ? all.find((e) => e.item.id === id) : undefined);
+  return { plan: byId(g.mainPlan), prisa: byId(g.mainPrisa) };
+}
 
 /**
  * סדר הקריאה של שכבה — כל פריטי המשאב שלה לפי סדר הפרקים. זהו הסדר

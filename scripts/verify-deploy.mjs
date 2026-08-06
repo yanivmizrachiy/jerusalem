@@ -32,6 +32,9 @@ const ROUTES = [
   '/chativat-beynayim/kita-z/',
   '/chativat-beynayim/kita-h/',
   '/chativat-beynayim/kita-t/',
+  '/chativat-beynayim/kita-z/chomarim/',
+  '/chativat-beynayim/kita-h/chomarim/',
+  '/chativat-beynayim/kita-t/chomarim/',
   '/chativat-beynayim/klali/',
   '/chativat-beynayim/reader/z/tochnit-z/',
 ];
@@ -40,7 +43,9 @@ const ROUTES = [
 const MARKERS = [
   { path: '/chativat-beynayim/', needle: 'split3', what: 'מסך השלישים של חטיבת הביניים (3.26)' },
   { path: '/chativat-beynayim/', needle: 'klali-band', what: 'רצועת החומרים המשותפים (3.26)' },
-  { path: '/chativat-beynayim/kita-z/', needle: 'chapter-bar', what: 'סרגל הקפיצה לפרקים בעמוד שכבה (3.29)' },
+  { path: '/chativat-beynayim/kita-z/', needle: 'מה אנחנו מלמדים?', what: 'אזור המבוא של השכבה (הוראת יניב 06/08)' },
+  { path: '/chativat-beynayim/kita-z/', needle: 'חומרים להוראה', what: 'אזור החומרים בעמוד המבוא (06/08)' },
+  { path: '/chativat-beynayim/kita-z/chomarim/', needle: 'chapter-bar', what: 'סרגל הקפיצה לפרקים בתצוגת החומרים (3.29)' },
   { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'res-panel', what: 'לוח הפעולות בעמוד המשאב (3.29, 8.2)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
@@ -138,9 +143,9 @@ try {
 
   // כל עמוד שכבה מגיש פרקים וכרטיסי קבצים
   for (const [slug, path] of [
-    ['z', '/chativat-beynayim/kita-z/'],
-    ['h', '/chativat-beynayim/kita-h/'],
-    ['t', '/chativat-beynayim/kita-t/'],
+    ['z', '/chativat-beynayim/kita-z/chomarim/'],
+    ['h', '/chativat-beynayim/kita-h/chomarim/'],
+    ['t', '/chativat-beynayim/kita-t/chomarim/'],
     ['klali', '/chativat-beynayim/klali/'],
   ]) {
     const g = markup((await fetchOnce(path)).html);

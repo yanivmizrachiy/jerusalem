@@ -1,20 +1,13 @@
 ---
 /**
- * עמוד שכבה אחיד (הוראת יניב, 05/08/2026 — מחליף את תוכן העניינים של
- * החוברת): כל פרק הוא מקטע צבעוני, כל קובץ הוא כרטיס לחיץ שמוביל לעמוד
- * המשאב, ובראש העמוד סרגל קפיצה דביק לפרקים. בתחתית — מעבר לשכבה
- * הקודמת/הבאה וחזרה לשער (5.3–5.4, 5.11).
+ * תצוגת החומרים של שכבה (הוראת יניב, 06/08/2026 — מסלול-בן של עמוד המבוא):
+ * כל פרק הוא מקטע צבעוני, כל קובץ הוא כרטיס לחיץ שמוביל לעמוד
+ * המשאב, ובראש העמוד סרגל קפיצה דביק לפרקים. הניווט בתחתית משותף
+ * לשלוש השכבות (GradeNav — 5.3–5.4, 5.11).
  */
 import Breadcrumbs from './Breadcrumbs.astro';
-import {
-  choveret,
-  gradeCounts,
-  gradeHref,
-  gradeLabel,
-  itemHref,
-  kindLabel,
-  type ChoveretGrade,
-} from '../data/choveret';
+import GradeNav from './GradeNav.astro';
+import { gradeCounts, gradeHref, gradeLabel, itemHref, kindLabel, type ChoveretGrade } from '../data/choveret';
 
 interface Props {
   grade: ChoveretGrade;
@@ -22,9 +15,8 @@ interface Props {
 
 const { grade } = Astro.props;
 
-const order = choveret.findIndex((g) => g.slug === grade.slug);
-const prev = order > 0 ? choveret[order - 1] : undefined;
-const next = order < choveret.length - 1 ? choveret[order + 1] : undefined;
+// ב"כללי" אין עמוד מבוא — העמוד עצמו הוא תצוגת החומרים, ולכן אין רמה מעליו
+ const hasIntro = grade.slug !== 'klali';
 ---
 
 <div class="container grade-page" style={`--grade:${grade.color}; --grade-dark:${grade.dark}`}>
@@ -32,7 +24,12 @@ const next = order < choveret.length - 1 ? choveret[order + 1] : undefined;
     items={[
       { label: 'ראשי', href: '/' },
       { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
-      { label: gradeLabel(grade) },
+      ...(hasIntro
+        ? [
+            { label: gradeLabel(grade), href: gradeHref(grade.slug) },
+            { label: 'חומרים להוראה' },
+          ]
+        : [{ label: gradeLabel(grade) }]),
     ]}
   />
 
@@ -85,29 +82,7 @@ const next = order < choveret.length - 1 ? choveret[order + 1] : undefined;
     ))
   }
 
-  <nav class="grade-pager" aria-label="מעבר בין שכבות">
-    {
-      prev ? (
-        <a class="pager-link" href={gradeHref(prev.slug)} style={`--p:${prev.color}`}>
-          <span class="pager-tag">השכבה הקודמת</span>
-          <span class="pager-title">{prev.title}</span>
-        </a>
-      ) : (
-        <span class="pager-spacer" />
-      )
-    }
-    <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
-    {
-      next ? (
-        <a class="pager-link pager-next" href={gradeHref(next.slug)} style={`--p:${next.color}`}>
-          <span class="pager-tag">השכבה הבאה</span>
-          <span class="pager-title">{next.title}</span>
-        </a>
-      ) : (
-        <span class="pager-spacer" />
-      )
-    }
-  </nav>
+  <GradeNav grade={grade} here="materials" />
 </div>
 
 <style>

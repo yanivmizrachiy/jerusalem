@@ -1,0 +1,106 @@
+---
+/**
+ * ניווט אחיד לשלוש שכבות חטיבת הביניים (הוראת יניב, 06/08/2026):
+ * אותה לוגיקה ואותו רכיב בז׳, ח׳ וט׳ — חזרה לשער, מעבר בין עמוד המבוא
+ * לתצוגת החומרים, ומעבר לשכבה הקודמת/הבאה. `here` קובע איזה יעד מודגש
+ * ואיזה מוסתר, כדי שלא יוצג קישור אל העמוד שכבר פתוח (5.13).
+ */
+import { choveret, gradeHref, gradeMaterialsHref, type ChoveretGrade } from '../data/choveret';
+
+interface Props {
+  grade: ChoveretGrade;
+  /** באיזה עמוד אנחנו — המבוא של השכבה או תצוגת החומרים שלה */
+  here: 'intro' | 'materials';
+}
+
+const { grade, here } = Astro.props;
+
+const order = choveret.findIndex((g) => g.slug === grade.slug);
+const prev = order > 0 ? choveret[order - 1] : undefined;
+const next = order < choveret.length - 1 ? choveret[order + 1] : undefined;
+const sideHref = (g: ChoveretGrade) => (here === 'materials' ? gradeMaterialsHref(g.slug) : gradeHref(g.slug));
+---
+
+<nav class="grade-nav" aria-label="ניווט בחטיבת הביניים">
+  <div class="gnav-main">
+    <a class="btn btn-ghost" href="/chativat-beynayim/">חזרה לחטיבת ביניים</a>
+    {
+      here === 'materials' ? (
+        <a class="btn btn-ghost" href={gradeHref(grade.slug)} data-to-intro>
+          חזרה ל{grade.title}
+        </a>
+      ) : (
+        <a class="btn btn-ghost" href={gradeMaterialsHref(grade.slug)} data-to-materials>
+          חומרים להוראה
+        </a>
+      )
+    }
+  </div>
+
+  <div class="gnav-sides">
+    {
+      prev ? (
+        <a class="pager-link" href={sideHref(prev)} style={`--p:${prev.color}`}>
+          <span class="pager-tag">השכבה הקודמת</span>
+          <span class="pager-title">{prev.title}</span>
+        </a>
+      ) : (
+        <span class="pager-spacer" />
+      )
+    }
+    {
+      next ? (
+        <a class="pager-link" href={sideHref(next)} style={`--p:${next.color}`}>
+          <span class="pager-tag">השכבה הבאה</span>
+          <span class="pager-title">{next.title}</span>
+        </a>
+      ) : (
+        <span class="pager-spacer" />
+      )
+    }
+  </div>
+</nav>
+
+<style>
+  .grade-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-block-start: clamp(2rem, 5vw, 3rem);
+    padding-block-start: 1.6rem;
+    border-block-start: 1px solid var(--line);
+  }
+
+  .gnav-main,
+  .gnav-sides { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem; }
+
+  .pager-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-inline-size: 200px;
+    min-block-size: 44px;
+    justify-content: center;
+    padding: 0.75rem 1.05rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .pager-link:hover { border-color: color-mix(in srgb, var(--p) 45%, var(--line)); }
+  .pager-link:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+  .pager-tag { font-size: 0.78rem; font-weight: 700; color: var(--gold-deep); }
+  .pager-title { font-weight: 600; }
+  .pager-spacer { display: none; }
+
+  @media (max-width: 720px) {
+    .grade-nav { flex-direction: column; align-items: stretch; }
+    .gnav-main, .gnav-sides { flex-direction: column; align-items: stretch; }
+    .pager-link { min-inline-size: 0; }
+  }
+</style>
