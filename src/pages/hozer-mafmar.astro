@@ -260,8 +260,10 @@ const audiences = [
   }
 
   .viewer-shell {
-    /* --pw/--ph מגיעים מהמסמך עצמו (MAFMAR_PAGE_W/H) ולא מניחוש */
-    --fit-h: clamp(560px, 84dvh, 1160px);
+    /* --pw/--ph מגיעים מהמסמך עצמו (MAFMAR_PAGE_W/H) ולא מניחוש.
+       80dvh נבחר כדי שהעמוד השלם *וגם* כפתורי הדפדוף שמתחתיו ייכנסו
+       יחד למסך — רואים עמוד מלא ומדפדפים בלי לגלול. */
+    --fit-h: clamp(560px, 80dvh, 1120px);
     inline-size: min(100%, calc(var(--fit-h) * var(--pw) / var(--ph)));
     aspect-ratio: var(--pw) / var(--ph);
     block-size: auto;
@@ -370,7 +372,9 @@ const audiences = [
 
   .viewer-open-card p { margin: 0; color: var(--ink-soft); }
 
-  .viewer-open-card[hidden] { display: none !important; }
+  /* display:flex היה גובר על hidden — הכלל הזה סוגר את הפרצה (8.26) */
+  .viewer-open-card[hidden],
+  .viewer-pager[hidden] { display: none !important; }
 
   /* דפדוף חוברת (3.29): אותם צבעי ניווט של הספר */
   .viewer-pager {
@@ -515,19 +519,29 @@ const audiences = [
   /** כתובת המסמך בעמוד מבוקש — מקור אחד לכל מקום שמדפדף */
   const pageSrc = (page: number) => `${MAFMAR_LOCAL}#page=${page}&${MAFMAR_VIEW}`;
 
+  /** כרטיס הפתיחה מפנה תמיד לעמוד שנבחר בפועל */
+  const aimOpenCard = (page: number) => {
+    openLink.href = `${MAFMAR_LOCAL}#page=${page}`;
+    openLink.textContent = page > 1 ? `פתיחת החוזר בעמוד ${page} ↗` : 'פתיחת החוזר ↗';
+  };
+
   /* דפדפן בלי מציג PDF מובנה (בעיקר אנדרואיד): כרטיס פתיחה אמיתי במקום
-     מסגרת ריקה — והוא היחיד על הדף (8.8, 8.26). */
-  const hasPdfViewer = navigator.pdfViewerEnabled !== false;
+     מסגרת ריקה — והוא היחיד על הדף (8.8, 8.26). גם הדפדוף יורד, כי אין
+     מה לדפדף בתוך העמוד — הכרטיס מפנה לעמוד המבוקש עצמו (5.13). */
+  const stage = document.querySelector<HTMLElement>('.viewer-stage')!;
+  const pager = document.querySelector<HTMLElement>('.viewer-pager')!;
+  const hasPdfViewer = !('pdfViewerEnabled' in navigator) || navigator.pdfViewerEnabled === true;
   if (!hasPdfViewer) {
     shell.hidden = true;
+    pager.hidden = true;
     openCard.hidden = false;
+    skel.remove();
   }
 
   /* שלד הטעינה נחשף בעדינות; רשת ביטחון שלא משאירה שלד תקוע (8.9) */
   const reveal = () => shell.classList.add('is-loaded');
   frame.addEventListener('load', reveal);
   window.setTimeout(reveal, 8000);
-  if (!hasPdfViewer) skel.remove();
   const copyBtn = document.getElementById('copy-link') as HTMLButtonElement;
   const wa = document.getElementById('wa-share') as HTMLAnchorElement;
   const mail = document.getElementById('mail-share') as HTMLAnchorElement;
@@ -559,7 +573,7 @@ const audiences = [
     paintPager();
     // טעינה מחדש של ה־iframe בעמוד המבוקש — כך #page נאכף גם אחרי ניווט קודם
     frame.src = pageSrc(page);
-    openLink.href = `${MAFMAR_LOCAL}#page=${page}`;
+    aimOpenCard(page);
     currentLabel = label;
     status.textContent = `מציג: ${label}`;
     document.querySelectorAll('.maf-item.is-active').forEach((el) => el.classList.remove('is-active'));
@@ -571,7 +585,7 @@ const audiences = [
     }
     updateShare();
     // בלי גלילה מונפשת (5.25)
-    shell.scrollIntoView({ block: 'start' });
+    stage.scrollIntoView({ block: 'start' });
   };
 
   document.querySelectorAll<HTMLButtonElement>('[data-goto]').forEach((btn) => {
@@ -585,7 +599,7 @@ const audiences = [
     if (n < 1 || n > TOTAL) return;
     curPage = n;
     frame.src = pageSrc(n);
-    openLink.href = `${MAFMAR_LOCAL}#page=${n}`;
+    aimOpenCard(n);
     paintPager();
   };
   pgPrev.addEventListener('click', () => flipTo(curPage - 1));
