@@ -18,7 +18,7 @@ const { id, title, url, embedSrc, tall = false } = Astro.props;
 ---
 
 <div class="semb" id={id}>
-  <div class:list={['semb-frame', { 'is-tall': tall }]}>
+  <div class:list={['semb-frame', 'embed-frame', { 'is-tall': tall }]}>
     <iframe
       src={embedSrc ?? url}
       title={`${title} — גלישה חיה בתוך האתר`}
@@ -40,38 +40,11 @@ const { id, title, url, embedSrc, tall = false } = Astro.props;
 
 <style>
   /* זכוכית יוקרתית (8.26, הוראת יניב 03/08/2026) */
-  .semb-frame {
-    position: relative;
-    padding: var(--embed-pad);
-    border-radius: 28px;
-    background: linear-gradient(135deg, rgb(250 246 236 / 0.95) 0%, rgb(240 233 216 / 0.78) 45%, rgb(252 249 242 / 0.92) 100%);
-    backdrop-filter: blur(16px) saturate(1.4);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    box-shadow:
-      inset 0 0 0 1px rgb(255 255 255 / 0.9),
-      inset 0 0 0 2.5px rgb(176 141 62 / 0.4),
-      inset 0 -1px 0 rgb(176 141 62 / 0.55),
-      0 0 55px -14px rgb(126 210 255 / 0.35),
-      0 24px 70px -28px rgb(176 141 62 / 0.45),
-      0 34px 80px -34px rgb(31 41 61 / 0.35);
-    block-size: clamp(540px, 74vh, 880px);
-  }
 
   /* קו-אור אלכסוני על הזכוכית — ספקולר עדין */
-  .semb-frame::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 28px;
-    pointer-events: none;
-    background: linear-gradient(115deg, transparent 36%, rgb(255 255 255 / 0.22) 46%, transparent 55%);
-    pointer-events: none;
-  }
 
 
   .semb-frame.is-tall { block-size: var(--embed-full-height); }
-
-  .semb-frame iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; border-radius: 16px; background: #fff; }
 
   .semb-actions {
     display: flex;

@@ -145,7 +145,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
           <MafmarRange sectionId={item.maf} accent={chapter.color} fill />
         ) : item.embed ? (
           <>
-            <div class="res-frame" data-frame>
+            <div class="res-frame embed-frame" data-frame>
               <iframe
                 data-esrc={item.embed}
                 title={`${item.title} — תצוגה חיה`}
@@ -158,7 +158,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
               </span>
             </div>
             {item.kind === 'pdf' && (
-              <div class="res-frame res-open-card" data-pdf-fb hidden>
+              <div class="res-frame embed-frame res-open-card" data-pdf-fb hidden>
                 <p>בדפדפן הזה קובצי PDF נפתחים לצפייה מלאה במסך נפרד:</p>
                 <a class="btn btn-primary" href={item.url} target="_blank" rel="noopener">
                   פתיחת {item.title} ↗
@@ -167,7 +167,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
             )}
           </>
         ) : (
-          <div class="res-frame res-open-card">
+          <div class="res-frame embed-frame res-open-card">
             <p>המשאב הזה נפתח באתר המקור:</p>
             <a class="btn btn-primary" href={item.url} target="_blank" rel="noopener">
               פתיחת {item.title} ↗
@@ -225,55 +225,27 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   .res-frame:not(.res-open-card) { block-size: 100%; }
 
   /* ===== התאמה לפי סוג המשאב (הוראת יניב, 06/08/2026) =====
-     סרטון שומר 16/9 ואינו נמתח לגובה של מסמך; מצגת מקבלת יחס מצגת;
-     מסמך, PDF ואתר חי ממלאים את הצד לגובה מלא. */
-  .res-view[data-kind='video'] .res-frame,
+     מצגת וחוברת דפדוף מקבלות יחס מצגת ואינן נמתחות לגובה של מסמך;
+     מסמך, PDF ואתר חי ממלאים את הצד לגובה מלא. הסוגים הם בדיוק אלה
+     שקיימים ב-ItemKind (src/data/choveret.ts) — אין סלקטור לסוג שאינו קיים. */
   .res-view[data-kind='canva'] .res-frame,
   .res-view[data-kind='flip'] .res-frame {
     block-size: auto;
     align-self: start;
   }
 
-  .res-view[data-kind='video'] .res-frame iframe { aspect-ratio: 16 / 9; block-size: auto; }
   .res-view[data-kind='canva'] .res-frame iframe,
   .res-view[data-kind='flip'] .res-frame iframe { aspect-ratio: 16 / 10; block-size: auto; }
 
   /* פריט מהחוזר ממלא את הצד שלו באותו אופן */
   .res-view :global(.mrange.is-fill) { block-size: 100%; }
 
-  /* ===== מסגרת הזכוכית האחידה (8.26) ===== */
-  .res-frame {
-    position: relative;
-    padding: var(--embed-pad);
-    border-radius: var(--embed-radius);
-    background: linear-gradient(155deg, rgb(255 253 248 / 0.72), rgb(245 241 232 / 0.5));
-    backdrop-filter: blur(10px) saturate(1.2);
-    -webkit-backdrop-filter: blur(10px) saturate(1.2);
-    box-shadow:
-      inset 0 0 0 1px var(--embed-border),
-      inset 0 1px 0 rgb(255 255 255 / 0.85),
-      var(--embed-shadow);
-    overflow: hidden;
-  }
+  /* ===== המסגרת מגיעה מ-.embed-frame ב-global.css (8.26) ===== */
 
-  /* חוט זהב בתחתית + קו-אור אלכסוני — לעולם לא חוסמים לחיצה */
-  .res-frame::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    border-radius: inherit;
-    background: linear-gradient(115deg, transparent 42%, rgb(255 255 255 / 0.22) 50%, transparent 58%);
-  }
-
+  /* ייחודי לעמוד המשאב: רצפת גובה וחשיפה הדרגתית אחרי הטעינה (8.9);
+     המידות, הגבול, הרדיוס והרקע מגיעים מ-.embed-frame > iframe */
   .res-frame iframe {
-    display: block;
-    inline-size: 100%;
-    block-size: 100%;
     min-block-size: 320px;
-    border: 0;
-    border-radius: 14px;
-    background: #fff;
     opacity: 0;
     transition: opacity 420ms var(--ease);
   }

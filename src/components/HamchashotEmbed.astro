@@ -16,7 +16,7 @@
       נפרדת.
     </p>
   </div>
-  <div class="mam-frame card-accent" style="--card-accent:var(--gold)">
+  <div class="mam-frame embed-frame">
     <iframe
       src="/api/mam/"
       title="אתר ההמחשות של איילת קריספין — גלישה חיה בתוך האתר"
@@ -42,34 +42,8 @@
   .hamchashot-section .section-head { max-width: 640px; margin-block-end: clamp(1.2rem, 3vw, 1.8rem); }
 
   /* הדפדפן הפנימי של ההמחשות (9.1) — מסגרת זכוכית יוקרתית אחידה (8.26) */
-  .mam-frame {
-    position: relative;
-    padding: var(--embed-pad);
-    border-radius: var(--embed-radius);
-    background: linear-gradient(135deg, rgb(250 246 236 / 0.95) 0%, rgb(240 233 216 / 0.78) 45%, rgb(252 249 242 / 0.92) 100%);
-    backdrop-filter: blur(16px) saturate(1.4);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    box-shadow:
-      inset 0 0 0 1px rgb(255 255 255 / 0.9),
-      inset 0 0 0 2.5px rgb(176 141 62 / 0.4),
-      inset 0 -1px 0 rgb(176 141 62 / 0.55),
-      0 0 55px -14px rgb(126 210 255 / 0.35),
-      0 24px 70px -28px rgb(176 141 62 / 0.45),
-      0 34px 80px -34px rgb(31 41 61 / 0.35);
-    block-size: var(--embed-full-height);
-  }
 
   /* קו-אור אלכסוני על הזכוכית — ספקולר עדין; אינו חוסם אינטראקציה (8.26) */
-  .mam-frame::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 28px;
-    pointer-events: none;
-    background: linear-gradient(115deg, transparent 36%, rgb(255 255 255 / 0.22) 46%, transparent 55%);
-  }
-
-  .mam-frame iframe { inline-size: 100%; block-size: 100%; border: 0; display: block; border-radius: 16px; background: #fff; }
 
   .mam-actions {
     display: flex;

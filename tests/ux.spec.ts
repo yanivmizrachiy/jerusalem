@@ -280,9 +280,7 @@ test('עמוד משאב: חצי-חצי — הטמעה מימין, פעולות �
   const view = (await page.locator('.res-view').boundingBox())!;
   const panel = (await page.locator('.res-panel').boundingBox())!;
   expect(view.x, 'ההטמעה בצד ימין (RTL)').toBeGreaterThan(panel.x);
-  const ratio = view.width / (view.width + panel.width);
-  expect(ratio, 'חלוקה מאוזנת בקירוב חצי-חצי').toBeGreaterThan(0.42);
-  expect(ratio, 'חלוקה מאוזנת בקירוב חצי-חצי').toBeLessThan(0.62);
+  expect(Math.abs(view.width - panel.width), 'חצי-חצי מדויק — הפרש עד פיקסל').toBeLessThanOrEqual(1);
 
   // לוח הפעולות המלא
   await expect(page.locator('.res-actions .btn-whatsapp')).toHaveCount(1);
@@ -804,4 +802,105 @@ test('פתיחה נקייה: אין כפתורי פעולה על המסך עד �
   await expect(page.locator('.nav-list')).toBeVisible();
   await expect(page.locator('.rail')).toBeVisible();
   await expect(page.locator('a.start-btn')).toBeVisible();
+});
+
+/* ===== מערכת ההטמעות — חצי-חצי מדויק, גובה שווה ומסגרת משותפת (06/08/2026) ===== */
+
+for (const [w, h] of [
+  [1440, 900],
+  [1920, 1080],
+] as const) {
+  test(`עמוד משאב ב-${w}: שני הצדדים שווים ברוחב ובגובה עד פיקסל (8.2)`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    for (const route of [
+      '/chativat-beynayim/reader/z/tochnit-z/', // PDF
+      '/chativat-beynayim/reader/z/misparim/', // אתר חי
+      '/chativat-beynayim/reader/z/maf-02/', // מקטע מהחוזר
+    ]) {
+      await page.goto(route);
+      const view = (await page.locator('.res-view').boundingBox())!;
+      const panel = (await page.locator('.res-panel').boundingBox())!;
+
+      expect(Math.abs(view.width - panel.width), `${route}: רוחב שווה`).toBeLessThanOrEqual(1);
+      expect(Math.abs(view.height - panel.height), `${route}: גובה שווה`).toBeLessThanOrEqual(1);
+      expect(Math.abs(view.y - panel.y), `${route}: אותו קו עליון`).toBeLessThanOrEqual(1);
+      expect(view.x, `${route}: ההטמעה בצד ימין (RTL)`).toBeGreaterThan(panel.x);
+
+      // המרווח בין הצדדים משמעותי ואינו חופף
+      const gap = view.x - (panel.x + panel.width);
+      expect(gap, `${route}: gap יוקרתי`).toBeGreaterThanOrEqual(30);
+
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+      );
+      expect(overflow, `${route}: אין גלילה אופקית`).toBeLessThanOrEqual(1);
+    }
+  });
+}
+
+test('כל ההטמעות חולקות את אותה מסגרת (.embed-frame) — לא CSS מקומי (8.26)', async ({ page }) => {
+  const seen: Record<string, string> = {};
+  for (const [route, sel] of [
+    ['/chativat-beynayim/reader/z/tochnit-z/', '.res-frame'],
+    ['/chativat-beynayim/', '.mam-frame'],
+    ['/chativat-beynayim/misparim-mechuvanim/', '.semb-frame'],
+    ['/hozer-mafmar/', '.viewer-shell'],
+  ] as const) {
+    await page.goto(route);
+    const el = page.locator(sel).first();
+    await expect(el, `${sel} משתמש במסגרת המשותפת`).toHaveClass(/embed-frame/);
+    seen[sel] = await el.evaluate((n) => {
+      const s = getComputedStyle(n);
+      // גם ה-pseudo-element נבדק: ::after מקומי היה עוקף את המשותף בשקט
+      const a = getComputedStyle(n, '::after');
+      return [s.borderTopLeftRadius, s.paddingTop, s.boxShadow, a.backgroundImage, a.borderTopLeftRadius].join('|');
+    });
+  }
+  const values = [...new Set(Object.values(seen))];
+  expect(values.length, `מסגרת אחידה בפועל: ${JSON.stringify(seen)}`).toBe(1);
+});
+
+test('UnitPlaylist: שתי עמודות שוות והרשימה באמת גוללת בתוך גובה מוגבל', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/chativat-beynayim/mishvaot/');
+
+  const viewer = (await page.locator('.uplay-viewer').boundingBox())!;
+  const list = (await page.locator('.uplay-list').boundingBox())!;
+  expect(Math.abs(viewer.width - list.width), 'שתי העמודות שוות ברוחב').toBeLessThanOrEqual(1);
+  expect(Math.abs(viewer.height - list.height), 'שתי העמודות שוות בגובה').toBeLessThanOrEqual(1);
+
+  // הוכחה מספרית: הרשימה ארוכה מהגובה שלה ולכן היא גוללת בפנים
+  const proof = await page.evaluate(() => {
+    const el = document.querySelector<HTMLElement>('.uplay-list')!;
+    const before = el.scrollTop;
+    el.scrollTop = 200;
+    const after = el.scrollTop;
+    el.scrollTop = before;
+    return { scrollHeight: el.scrollHeight, clientHeight: el.clientHeight, moved: after, overflowY: getComputedStyle(el).overflowY };
+  });
+  expect(proof.overflowY).toBe('auto');
+  expect(proof.scrollHeight, 'התוכן ארוך מגובה הרשימה').toBeGreaterThan(proof.clientHeight + 40);
+  expect(proof.moved, 'הרשימה זזה בפועל בגלילה').toBeGreaterThan(0);
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test('בנייד: ההטמעה ראשונה, בלי גלילה אופקית ובלי scrollbar בלוח המידע (8.6)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
+  const view = (await page.locator('.res-view').boundingBox())!;
+  const panel = (await page.locator('.res-panel').boundingBox())!;
+  expect(view.y, 'ההטמעה לפני ההסבר').toBeLessThan(panel.y);
+  const panelScrolls = await page.evaluate(() => {
+    const el = document.querySelector<HTMLElement>('.res-panel')!;
+    return { over: getComputedStyle(el).overflowY, extra: el.scrollHeight - el.clientHeight };
+  });
+  expect(panelScrolls.extra, 'אין scrollbar פנימי בלוח המידע בנייד').toBeLessThanOrEqual(1);
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
 });
