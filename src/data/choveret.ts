@@ -7,6 +7,7 @@
  */
 import { grade7Resources } from './resources';
 import { MAFMAR_URL, MAFMAR_LOCAL, mafmarSections } from './mafmar';
+import { hafifaUnit, mishvaotUnit } from './units';
 
 export type ItemKind = 'site' | 'doc' | 'drive' | 'pdf' | 'canva' | 'flip' | 'maf' | 'link';
 
@@ -22,7 +23,12 @@ export interface ChoveretItem {
   /** קישור הורדה אמיתי בלבד */
   download?: string;
   kind: ItemKind;
-  /** פריט שהוא עמוד פנימי — נפתח בעמוד שלו ולא בקורא */
+  /**
+   * שדה היסטורי של רכיב החוברת הפרטי (RULES 4.14). **אין להשתמש בו בפריטי
+   * החומרים**: כל משימה ברשימת המשימות חייבת להוביל לעמוד המשימה המחולק
+   * (הוראת יניב, 06/08/2026). יעדים שאינם משימה — יחידות ועמודים ייעודיים —
+   * חיים ב-`pages` של השכבה ולא בתוך הנושאים.
+   */
   pageHref?: string;
   /** למקטעי חוזר: מזהה MAF */
   maf?: string;
@@ -43,6 +49,19 @@ export interface ChoveretChapter {
   items: ChoveretItem[];
 }
 
+/**
+ * עמוד ייעודי של השכבה שאינו משימה — יחידת הוראה מלאה או שער לאזור אחר
+ * באתר (הוראת יניב, 06/08/2026). יעדים כאלה סותרים את זרימת המשימות ולכן
+ * הועברו לעמוד המבוא של השכבה; הם לא נמחקו ולא איבדו את עמודם הקנוני.
+ */
+export interface GradePage {
+  title: string;
+  note: string;
+  href: string;
+  /** מניין אמיתי בלבד — נגזר מהנתונים, לא מספר ידני */
+  count?: number;
+}
+
 export interface ChoveretGrade {
   slug: string;
   letter: string;
@@ -59,6 +78,8 @@ export interface ChoveretGrade {
   mainPlan?: string;
   mainPrisa?: string;
   chapters: ChoveretChapter[];
+  /** יחידות ועמודים ייעודיים — מוצגים בעמוד המבוא, מחוץ לרשימת הנושאים */
+  pages?: GradePage[];
 }
 
 const docPreview = (id: string) => `https://docs.google.com/document/d/${id}/preview`;
@@ -135,11 +156,17 @@ const gov = (
   kind: 'pdf',
   source,
 });
-const maf = (id: string, sectionId: string, note: string): ChoveretItem => {
+/**
+ * מקטע מאומת מתוך חוזר המפמ״ר כמשימה לכל דבר: העמודים של המקטע מוטמעים
+ * בעמוד המשימה המחולק, ולוח הפעולות שלצדו נותן שיתוף, העתקה ופתיחה במקור
+ * (הוראת יניב, 06/08/2026 — מחליף את קפיצת העוגן אל עמוד החוזר המלא).
+ * `title` מאפשר לשמור את הכותרת המדויקת שהוצגה לשכבה.
+ */
+const maf = (id: string, sectionId: string, note: string, title?: string): ChoveretItem => {
   const s = mafmarSections.find((x) => x.id === sectionId)!;
   return {
     id,
-    title: s.title,
+    title: title ?? s.title,
     note,
     url: MAFMAR_URL,
     embed: `${MAFMAR_LOCAL}#page=${s.startPage}&toolbar=0&navpanes=0&view=FitH`,
@@ -148,14 +175,6 @@ const maf = (id: string, sectionId: string, note: string): ChoveretItem => {
     maf: sectionId,
   };
 };
-const hozerAnchor = (id: string, mafId: string, title: string): ChoveretItem => ({
-  id,
-  title,
-  note: 'מקטע מאומת בתוך עמוד החוזר המלא.',
-  url: `/hozer-mafmar/#${mafId}`,
-  kind: 'link',
-  pageHref: `/hozer-mafmar/#${mafId}`,
-});
 
 /* ===== חומרי חוזר מפמ״ר תשפ״ז — נשאבו מהמסמך עצמו (RULES 9.3.21–9.3.24) =====
  * הקישורים חולצו מ-annotations של ה-PDF הרשמי (לא מטקסט מרונדר ולא מניחוש),
@@ -221,6 +240,14 @@ export const choveret: ChoveretGrade[] = [
     dark: '#155fa8',
     letter: 'ז׳',
     title: 'מתמטיקה לכיתה ז׳',
+    pages: [
+      {
+        title: 'הוראת משוואות ללא מספרים שליליים',
+        note: 'יחידת הוראה מלאה בנגן אחד — המחשות, שקילות, פתרון, דפי עבודה ומשחק.',
+        href: '/chativat-beynayim/mishvaot/',
+        count: mishvaotUnit.resources.length,
+      },
+    ],
     chapters: [
       {
         id: 'hozer',
@@ -244,9 +271,9 @@ export const choveret: ChoveretGrade[] = [
             'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳. החוזר מבקש לשמור את הקישור ולא להוריד כקובץ — חומרי הוראה יתווספו לפריסות במהלך השנה.',
             hz(3)
           ),
-          hozerAnchor('maf-05-z', 'MAF-05', 'משימות הערכה ומבחן מפמ״ר ז׳'),
-          hozerAnchor('maf-06-z', 'MAF-06', 'Moodle — הפלטפורמה המחייבת בז׳'),
-          hozerAnchor('maf-08-z', 'MAF-08', 'ספרי הלימוד החדשים'),
+          maf('maf-05-z', 'MAF-05', '', 'משימות הערכה ומבחן מפמ״ר ז׳'),
+          maf('maf-06-z', 'MAF-06', '', 'Moodle — הפלטפורמה המחייבת בז׳'),
+          maf('maf-08-z', 'MAF-08', '', 'ספרי הלימוד החדשים'),
         ],
       },
       {
@@ -255,22 +282,6 @@ export const choveret: ChoveretGrade[] = [
         color: '#1d7ed8',
         dark: '#155fa8',
         items: siteItems,
-      },
-      {
-        id: 'unit',
-        title: 'יחידת הדגל',
-        color: '#059669',
-        dark: '#047857',
-        items: [
-          {
-            id: 'mishvaot',
-            title: 'הוראת משוואות ללא מספרים שליליים',
-            note: '19 קבצים בנגן יחידה אחד — המחשות, שקילות, פתרון ומשחק.',
-            url: '/chativat-beynayim/mishvaot/',
-            kind: 'link',
-            pageHref: '/chativat-beynayim/mishvaot/',
-          },
-        ],
       },
       {
         id: 'tichnun',
@@ -295,6 +306,14 @@ export const choveret: ChoveretGrade[] = [
     dark: '#047857',
     letter: 'ח׳',
     title: 'מתמטיקה לכיתה ח׳',
+    pages: [
+      {
+        title: 'חפיפת משולשים',
+        note: 'יחידת הוראה מלאה — שלושת משפטי החפיפה, תרגול מדורג, הוכחות ובוחן מסכם.',
+        href: '/chativat-beynayim/hafifat-meshulashim/',
+        count: hafifaUnit.resources.length,
+      },
+    ],
     chapters: [
       {
         id: 'hozer',
@@ -318,25 +337,9 @@ export const choveret: ChoveretGrade[] = [
             'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳. החוזר מבקש לשמור את הקישור ולא להוריד כקובץ — חומרי הוראה יתווספו לפריסות במהלך השנה.',
             hz(3)
           ),
-          hozerAnchor('maf-05-h', 'MAF-05', 'משימות הערכה ומבחן מפמ״ר ח׳'),
-          hozerAnchor('maf-06-h', 'MAF-06', 'Moodle — הפלטפורמה המחייבת בח׳'),
-          hozerAnchor('maf-09-h', 'MAF-09', 'חלוקה לרמות והדרכה'),
-        ],
-      },
-      {
-        id: 'unit',
-        title: 'יחידת הדגל',
-        color: '#059669',
-        dark: '#047857',
-        items: [
-          {
-            id: 'hafifa',
-            title: 'חפיפת משולשים',
-            note: '26 קבצים — שלושת משפטי החפיפה, תרגול מדורג, הוכחות ובוחן מסכם.',
-            url: '/chativat-beynayim/hafifat-meshulashim/',
-            kind: 'link',
-            pageHref: '/chativat-beynayim/hafifat-meshulashim/',
-          },
+          maf('maf-05-h', 'MAF-05', '', 'משימות הערכה ומבחן מפמ״ר ח׳'),
+          maf('maf-06-h', 'MAF-06', '', 'Moodle — הפלטפורמה המחייבת בח׳'),
+          maf('maf-09-h', 'MAF-09', '', 'חלוקה לרמות והדרכה'),
         ],
       },
       {
@@ -378,6 +381,13 @@ export const choveret: ChoveretGrade[] = [
     dark: '#b45309',
     letter: 'ט׳',
     title: 'מתמטיקה לכיתה ט׳',
+    pages: [
+      {
+        title: 'שער החטיבה העליונה',
+        note: 'כל חומרי החטיבה העליונה באתר — ההמשך הטבעי של כיתה ט׳.',
+        href: '/chativa-elyona/',
+      },
+    ],
     chapters: [
       {
         id: 'hozer',
@@ -402,8 +412,8 @@ export const choveret: ChoveretGrade[] = [
             'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳. החוזר מבקש לשמור את הקישור ולא להוריד כקובץ — חומרי הוראה יתווספו לפריסות במהלך השנה.',
             hz(3)
           ),
-          hozerAnchor('maf-05-t', 'MAF-05', 'מבחן תנופה והערכה בחט״ב'),
-          hozerAnchor('maf-06-t', 'MAF-06', 'Moodle — שני מרחבים בכיתה ט׳'),
+          maf('maf-05-t', 'MAF-05', '', 'מבחן תנופה והערכה בחט״ב'),
+          maf('maf-06-t', 'MAF-06', '', 'Moodle — שני מרחבים בכיתה ט׳'),
         ],
       },
       {
@@ -458,18 +468,10 @@ export const choveret: ChoveretGrade[] = [
       },
       {
         id: 'hamshech',
-        title: 'ממשיכים לחטיבה העליונה',
+        title: 'מבחן תנופה והמעבר לחטיבה העליונה',
         color: '#7c3aed',
         dark: '#6d28d9',
         items: [
-          {
-            id: 'gate-elyona',
-            title: 'שער החטיבה העליונה',
-            note: 'כל חומרי החטיבה העליונה באתר.',
-            url: '/chativa-elyona/',
-            kind: 'link',
-            pageHref: '/chativa-elyona/',
-          },
           pdf('mifrat-tnufa', 'https://meyda.education.gov.il/files/Rama/Mifrat_Math_LangH_9_26.pdf', 'מפרט מבחן תנופה — ראמ״ה', 'המפרט הרשמי של מבחן תנופה ט׳ (25.11.26).'),
           hozerLink(
             'tnufa-rama',
@@ -582,7 +584,7 @@ export const choveret: ChoveretGrade[] = [
           doc('meitzav-machvan', '10eruHhJRK6HX3nvD17tAypCTqNoC83WD', 'מחוון למבחן דמוי מיצ״ב', 'המחוון המלא של המבחן — ניקוד מפורט לכל שאלה.'),
           drive('mivchanim-hanchayot', '19edSXZCMSSnFVFvD6B4I-VKRqyGVNwcK', 'הנחיות לכתיבת מבחנים', 'מסמך ההנחיות המחוזי לכתיבת מבחן תקין והוגן.'),
           drive('sadnat-hachana', '1SX6ta5BpyhlZhxjFMPPcVuQgLJXgxsMH', 'סדנת הכנה למבחן', 'סדנה מוכנה להכנת התלמידים לקראת מבחן.'),
-          hozerAnchor('maf-05-klali', 'MAF-05', 'אירועי הערכה ומבחנים בחוזר'),
+          maf('maf-05-klali', 'MAF-05', '', 'אירועי הערכה ומבחנים בחוזר'),
         ],
       },
       {

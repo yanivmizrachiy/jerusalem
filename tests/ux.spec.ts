@@ -194,7 +194,8 @@ test('תצוגת החומרים: רשימת נושאים בלבד, וכל נוש
   const cards = page.locator('.rcard');
   expect(await cards.count(), 'יש כרטיסי משימות').toBeGreaterThan(0);
   const hrefs = await cards.evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')));
-  for (const h of hrefs) expect(h, 'לכל משימה יעד').toMatch(/^\/(chativat-beynayim|chativa-elyona|hozer-mafmar)/);
+  // כל משימה מובילה לעמוד המשימה שלה — לא לעוגן בעמוד אחר (3.30)
+  for (const h of hrefs) expect(h, 'לכל משימה עמוד משימה').toMatch(/^\/chativat-beynayim\/reader\/z\//);
 
   // חזרה לרשימת הנושאים
   await expect(page.locator('[data-to-topics]')).toHaveAttribute('href', '/chativat-beynayim/kita-z/chomarim/');
@@ -261,6 +262,95 @@ test('כיתה ט׳: הכפתורים הראשיים הם המסלול הראש�
   await page.goto('/chativat-beynayim/nose/t/tichnun/');
   for (const id of ['tochnit-t-m', 'prisa-t-m']) {
     await expect(page.locator(`a.rcard[href="/chativat-beynayim/reader/t/${id}/"]`)).toHaveCount(1);
+  }
+});
+
+test('כל משימה בכל נושא בכל שכבה מובילה לעמוד משימה מחולק (3.30)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  let tasks = 0;
+  const sample: string[] = [];
+
+  for (const [slug, materials] of [
+    ['z', '/chativat-beynayim/kita-z/chomarim/'],
+    ['h', '/chativat-beynayim/kita-h/chomarim/'],
+    ['t', '/chativat-beynayim/kita-t/chomarim/'],
+    ['klali', '/chativat-beynayim/klali/'],
+  ] as const) {
+    await page.goto(materials);
+    const topicHrefs = await page
+      .locator('.topics .topic')
+      .evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')!));
+    expect(topicHrefs.length, `לשכבה ${slug} יש נושאים`).toBeGreaterThan(0);
+
+    for (const topic of topicHrefs) {
+      expect(topic, 'נושא מוביל לעמוד נושא').toMatch(new RegExp(`^/chativat-beynayim/nose/${slug}/`));
+      await page.goto(topic);
+      const hrefs = await page
+        .locator('.rcard')
+        .evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')!));
+      expect(hrefs.length, `לנושא ${topic} יש משימות`).toBeGreaterThan(0);
+      for (const h of hrefs) {
+        expect(h, `משימה בנושא ${topic} מובילה לעמוד משימה`).toMatch(
+          new RegExp(`^/chativat-beynayim/reader/${slug}/[^/]+/$`)
+        );
+        tasks++;
+      }
+      sample.push(hrefs[0]);
+    }
+  }
+
+  expect(tasks, 'נספרו משימות אמיתיות').toBeGreaterThan(40);
+
+  // מדגם משימות — כל אחת באמת עמוד מחולק: הטמעה מצד אחד, פעולות מהצד השני (8.2)
+  for (const href of sample.slice(0, 6)) {
+    await page.goto(href);
+    await expect(page.locator('.res-view'), href).toBeVisible();
+    await expect(page.locator('.res-panel'), href).toBeVisible();
+    await expect(page.locator('.res-actions'), href).toBeVisible();
+  }
+});
+
+test('משימת חוזר: עמוד משימה מחולק עם טווח העמודים — לא קפיצה לעמוד החוזר (3.30)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/chativat-beynayim/nose/z/hozer/');
+
+  const maf = page.locator('a.rcard[href="/chativat-beynayim/reader/z/maf-05-z/"]');
+  await expect(maf).toHaveCount(1);
+  await maf.click();
+  await page.waitForURL('**/reader/z/maf-05-z/');
+
+  await expect(page.locator('h1.res-title')).toHaveText('משימות הערכה ומבחן מפמ״ר ז׳');
+  await expect(page.locator('.mrange')).toHaveCount(1);
+  const view = (await page.locator('.res-view').boundingBox())!;
+  const panel = (await page.locator('.res-panel').boundingBox())!;
+  expect(Math.abs(view.width - panel.width), 'חצי-חצי').toBeLessThanOrEqual(1);
+});
+
+test('יחידות ועמודים ייעודיים עברו לעמוד המבוא — ולא נמחקו (3.30)', async ({ page }) => {
+  const moved = {
+    z: '/chativat-beynayim/mishvaot/',
+    h: '/chativat-beynayim/hafifat-meshulashim/',
+    t: '/chativa-elyona/',
+  } as const;
+
+  for (const [slug, href] of Object.entries(moved)) {
+    await page.goto(`/chativat-beynayim/kita-${slug}/`);
+    const link = page.locator(`[data-grade-page][href="${href}"]`);
+    await expect(link, `${slug}: היחידה מוצגת בעמוד המבוא`).toHaveCount(1);
+    expect((await link.boundingBox())!.height, 'מטרת מגע').toBeGreaterThanOrEqual(44);
+
+    // והעמוד עצמו חי — שום חומר לא נמחק
+    const res = await page.request.get(href);
+    expect(res.status(), `${href} חי`).toBe(200);
+  }
+
+  // ומנגד: הם כבר לא יושבים בתוך רשימת הנושאים
+  for (const [slug, materials] of [
+    ['z', '/chativat-beynayim/kita-z/chomarim/'],
+    ['h', '/chativat-beynayim/kita-h/chomarim/'],
+  ] as const) {
+    await page.goto(materials);
+    await expect(page.locator('.topics .topic[href*="/nose/' + slug + '/unit"]')).toHaveCount(0);
   }
 });
 
