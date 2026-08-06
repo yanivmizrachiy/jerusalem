@@ -1154,10 +1154,28 @@ test('חוזר מפמ״ר: מסך מחולק 50/50 — החוזר מימין, ל
         )
     );
 
-    const view = (await page.locator('.res-view').boundingBox())!;
-    const panel = (await page.locator('.res-panel').boundingBox())!;
-    const shell = (await page.locator('#viewer-shell').boundingBox())!;
-    const frame = (await page.locator('#mafmar-frame').boundingBox())!;
+    // מדידה אטומית אחת (הוראת יניב, 06/08/2026). `.res-split` בעמוד הזה נושא
+    // `data-reveal`, שמנפיש על ההורה של שני החצאים `translateY(26px) → 0` למשך
+    // 700ms. ארבע קריאות `boundingBox()` נפרדות הן ארבע פניות פרוטוקול, ותחת
+    // `--workers=4` ההורה זז ביניהן — כך נולד הפרש מדומה של עד ~8px בין
+    // `view.y` ל-`panel.y` בלי שום תזוזה אמיתית בפריסה (נמדד: ההורה ב-
+    // `matrix(1,0,0,1,0,6.60–8.17)` ברגע המדידה; הכשלים היו 3.005 / 4.515 / 7.343).
+    // קריאה אחת מודדת את ארבעתן באותו frame, ולכן תזוזת ההורה משותפת ומתבטלת.
+    // הסובלנות נשארה `<= 3` — החוזה לא הוחלש, רק הוסר ארטיפקט הדגימה.
+    // אין להמתין ל-`document.getAnimations()` כאן: באתר יש אנימציות אינסופיות
+    // (`logo-spin`, פס התקדמות הגלילה, טבעת/הילת האורבים) וההמתנה לא תסתיים.
+    const { view, panel, shell, frame } = await page.evaluate(() => {
+      const rect = (sel: string) => {
+        const { x, y, width, height } = document.querySelector(sel)!.getBoundingClientRect();
+        return { x, y, width, height };
+      };
+      return {
+        view: rect('.res-view'),
+        panel: rect('.res-panel'),
+        shell: rect('#viewer-shell'),
+        frame: rect('#mafmar-frame'),
+      };
+    });
 
     // חצי-חצי מדויק: שתי העמודות שוות ברוחב ומתחילות באותו קו עליון
     expect(Math.abs(view.width - panel.width), `${size.width}: שני הצדדים שווים ברוחב`).toBeLessThanOrEqual(3);
