@@ -17,6 +17,22 @@ export const MAFMAR_LOCAL = '/docs/hozer-mafmar-tashpaz.pdf';
 
 export const MAFMAR_TOTAL_PAGES = 18;
 
+/**
+ * מידות העמוד האמיתיות של המסמך — כל 18 העמודים 595.32×841.92 (A4 לאורך).
+ * מהן נגזר יחס מסגרת הצפייה, כדי שיוצג עמוד שלם ולא חלק ממנו
+ * (הוראת יניב, 06/08/2026).
+ */
+export const MAFMAR_PAGE_W = 595.32;
+export const MAFMAR_PAGE_H = 841.92;
+
+/**
+ * פרמטרי הצפייה של ה-PDF (8.26): בלי סרגל ה-PDF השחור של הדפדפן ובלי
+ * חלונית ניווט — המסגור הנראה הוא מסגרת הזכוכית של האתר. `view=FitH`
+ * פורס את העמוד על מלוא רוחב המסגרת; מכיוון שהמסגרת עצמה ביחס העמוד,
+ * העמוד נכנס בשלמותו.
+ */
+export const MAFMAR_VIEW = 'toolbar=0&navpanes=0&view=FitH';
+
 export type Audience = 'חט״ב' | 'מעבר' | 'חט״ע' | 'משותף';
 
 export interface MafmarPart {

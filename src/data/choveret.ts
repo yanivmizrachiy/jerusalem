@@ -693,6 +693,27 @@ export const gradeBySlug = (slug: string) => choveret.find((g) => g.slug === slu
 export const gradeMaterialsHref = (slug: string) =>
   slug === 'klali' ? '/chativat-beynayim/klali/' : `/chativat-beynayim/kita-${slug}/chomarim/`;
 
+/**
+ * עמוד הנושא (הוראת יניב, 06/08/2026): תצוגת החומרים היא רשימת נושאים
+ * בלבד, וכל נושא נפתח בעמוד משלו ובו רשימת המשימות שלו.
+ */
+export const chapterHref = (gradeSlug: string, chapterId: string) =>
+  `/chativat-beynayim/nose/${gradeSlug}/${chapterId}/`;
+
+/** כל צמדי שכבה-נושא — ל-getStaticPaths של עמוד הנושא */
+export const chapterPaths = choveret.flatMap((grade) =>
+  grade.chapters.map((chapter) => ({ grade, chapter }))
+);
+
+/** הנושא הקודם והבא בתוך אותה שכבה — לפי סדר הפרקים (5.12) */
+export function chapterNeighbours(g: ChoveretGrade, chapterId: string) {
+  const i = g.chapters.findIndex((c) => c.id === chapterId);
+  return {
+    prev: i > 0 ? g.chapters[i - 1] : undefined,
+    next: i >= 0 && i < g.chapters.length - 1 ? g.chapters[i + 1] : undefined,
+  };
+}
+
 /** התוכנית והפריסה הראשיות של השכבה — הפריטים עצמם ממקור הנתונים */
 export function gradeMainDocs(g: ChoveretGrade) {
   const all = g.chapters.flatMap((ch) => ch.items.map((item) => ({ chapter: ch, item })));
