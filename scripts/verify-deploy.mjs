@@ -36,6 +36,7 @@ const ROUTES = [
   '/chativat-beynayim/kita-h/chomarim/',
   '/chativat-beynayim/kita-t/chomarim/',
   '/chativat-beynayim/klali/',
+  '/chativat-beynayim/nose/z/tichnun/',
   '/chativat-beynayim/reader/z/tochnit-z/',
 ];
 
@@ -45,7 +46,8 @@ const MARKERS = [
   { path: '/chativat-beynayim/', needle: 'klali-band', what: 'רצועת החומרים המשותפים (3.26)' },
   { path: '/chativat-beynayim/kita-z/', needle: 'מה אנחנו מלמדים?', what: 'אזור המבוא של השכבה (הוראת יניב 06/08)' },
   { path: '/chativat-beynayim/kita-z/', needle: 'חומרים להוראה', what: 'אזור החומרים בעמוד המבוא (06/08)' },
-  { path: '/chativat-beynayim/kita-z/chomarim/', needle: 'chapter-bar', what: 'סרגל הקפיצה לפרקים בתצוגת החומרים (3.29)' },
+  { path: '/chativat-beynayim/kita-z/chomarim/', needle: 'class="topics"', what: 'רשימת הנושאים בתצוגת החומרים (3.29)' },
+  { path: '/chativat-beynayim/nose/z/tichnun/', needle: 'class="rcard"', what: 'כרטיסי הקבצים בעמוד הנושא (3.29)' },
   { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'res-panel', what: 'לוח הפעולות בעמוד המשאב (3.29, 8.2)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
@@ -141,7 +143,7 @@ try {
   if (booklet) fail(`נמצאו ${booklet} שרידי חוברת מדפדפת — המודל הישן חזר (3.29)`);
   else console.log('✓ אין שרידי חוברת מדפדפת (3.29)');
 
-  // כל עמוד שכבה מגיש פרקים וכרטיסי קבצים
+  // תצוגת החומרים של כל שכבה מגישה רשימת נושאים; הקבצים חיים בעמוד הנושא
   for (const [slug, path] of [
     ['z', '/chativat-beynayim/kita-z/chomarim/'],
     ['h', '/chativat-beynayim/kita-h/chomarim/'],
@@ -149,10 +151,16 @@ try {
     ['klali', '/chativat-beynayim/klali/'],
   ]) {
     const g = markup((await fetchOnce(path)).html);
-    const chapters = countOf(g, /<section class="chapter"/g);
-    const cards = countOf(g, /class="rcard"/g);
-    if (chapters > 0 && cards > 0) console.log(`✓ שכבה ${slug} — ${chapters} פרקים, ${cards} כרטיסים (3.29)`);
-    else fail(`שכבה ${slug}: ${chapters} פרקים ו-${cards} כרטיסים (3.29)`);
+    const topics = countOf(g, /class="topic"/g);
+    const links = [...g.matchAll(/href="(\/chativat-beynayim\/nose\/[^"]+)"/g)].map((m) => m[1]);
+    if (topics > 0 && links.length > 0) console.log(`✓ שכבה ${slug} — ${topics} נושאים (3.29)`);
+    else fail(`שכבה ${slug}: ${topics} נושאים ו-${links.length} קישורי נושא (3.29)`);
+
+    // הנושא הראשון של כל שכבה באמת מגיש כרטיסי קבצים
+    const first = markup((await fetchOnce(links[0])).html);
+    const cards = countOf(first, /class="rcard"/g);
+    if (cards > 0) console.log(`✓ ${links[0]} — ${cards} כרטיסים (3.29)`);
+    else fail(`${links[0]}: אין כרטיסי קבצים בעמוד הנושא (3.29)`);
   }
 
   // הטמעות PDF בלי סרגל הדפדפן השחור (8.26)
