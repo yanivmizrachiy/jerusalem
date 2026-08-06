@@ -12,6 +12,10 @@ const routes = [
   '/chativat-beynayim/kita-z/chomarim/',
   '/chativat-beynayim/kita-h/chomarim/',
   '/chativat-beynayim/kita-t/chomarim/',
+  '/chativat-beynayim/nose/z/tichnun/',
+  '/chativat-beynayim/nose/h/hozer/',
+  '/chativat-beynayim/nose/t/yahal4/',
+  '/chativat-beynayim/nose/klali/noschaot/',
   '/chativat-beynayim/misparim-mechuvanim/',
   '/chativat-beynayim/zaviyot/',
   '/chativat-beynayim/maarechet-tzirim/',
@@ -74,15 +78,15 @@ for (const route of routes) {
 // השכבות" (1.10, 3.29); הכתובות הישנות נשארות חיות ומפנות מיידית לפרק
 // הנכון — קישורים ששותפו לא נשברים
 const moved: Record<string, string> = {
-  '/chativat-beynayim/mivchanim/': '#meitzav',
-  '/chativat-beynayim/mischakim/': '#mischakim',
+  '/chativat-beynayim/mivchanim/': '/chativat-beynayim/nose/klali/meitzav/',
+  '/chativat-beynayim/mischakim/': '/chativat-beynayim/nose/klali/mischakim/',
 };
-for (const [old, hash] of Object.entries(moved)) {
-  test(`הפניה לעמוד המשותף: ${old}`, async ({ page }) => {
+for (const [old, target] of Object.entries(moved)) {
+  test(`הפניה לעמוד הנושא: ${old}`, async ({ page }) => {
     await page.goto(old);
-    await page.waitForURL((u) => u.pathname === '/chativat-beynayim/klali/', { timeout: 10_000 });
-    expect(new URL(page.url()).hash).toBe(hash);
-    // הפרק שאליו הופנינו באמת קיים בעמוד
-    await expect(page.locator(`section.chapter${hash}`)).toHaveCount(1);
+    await page.waitForURL((u) => u.pathname === target, { timeout: 10_000 });
+    // עמוד הנושא שאליו הופנינו באמת קיים ומציג משימות
+    await expect(page.locator('h1.chapter-title')).toBeVisible();
+    expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);
   });
 }

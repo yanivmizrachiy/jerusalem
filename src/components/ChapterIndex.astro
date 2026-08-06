@@ -1,0 +1,264 @@
+---
+/**
+ * עמוד הנושא (הוראת יניב, 06/08/2026): רשימת המשימות של נושא אחד.
+ * כל משימה היא כרטיס לחיץ אחד שמוביל לעמוד המשימה — הטמעה בצד אחד
+ * ולוח פעולות בצד השני (8.2). בתחתית: מעבר לנושא הקודם/הבא באותה
+ * שכבה (5.12) וחזרה לרשימת הנושאים.
+ */
+import Breadcrumbs from './Breadcrumbs.astro';
+import {
+  chapterHref,
+  chapterNeighbours,
+  gradeHref,
+  gradeLabel,
+  gradeMaterialsHref,
+  itemHref,
+  kindLabel,
+  type ChoveretChapter,
+  type ChoveretGrade,
+} from '../data/choveret';
+
+interface Props {
+  grade: ChoveretGrade;
+  chapter: ChoveretChapter;
+}
+
+const { grade, chapter } = Astro.props;
+const hasIntro = grade.slug !== 'klali';
+const { prev, next } = chapterNeighbours(grade, chapter.id);
+---
+
+<div
+  class="container chapter-page"
+  style={`--grade:${grade.color}; --grade-dark:${grade.dark}; --ch:${chapter.color}; --ch-dark:${chapter.dark}`}
+>
+  <Breadcrumbs
+    items={[
+      { label: 'ראשי', href: '/' },
+      { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
+      ...(hasIntro ? [{ label: gradeLabel(grade), href: gradeHref(grade.slug) }] : []),
+      { label: 'חומרים להוראה', href: gradeMaterialsHref(grade.slug) },
+      { label: chapter.title },
+    ]}
+  />
+
+  <header class="chapter-head" data-reveal>
+    <p class="chapter-eyebrow">{grade.title}</p>
+    <h1 class="chapter-title">{chapter.title}</h1>
+    <p class="chapter-n">{chapter.items.length} משימות</p>
+    <span class="chapter-rule" aria-hidden="true"></span>
+  </header>
+
+  <ul class="cards">
+    {
+      chapter.items.map((item) => (
+        <li>
+          <a class="rcard" href={itemHref(grade.slug, item)}>
+            <span class="rcard-top">
+              <span class="rcard-kind">{kindLabel[item.kind]}</span>
+              <span class="rcard-go" aria-hidden="true">
+                <svg viewBox="0 0 28 12" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M27 6H2M8 1 2 6l6 5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+            </span>
+            <span class="rcard-title">{item.title}</span>
+            {item.note && <span class="rcard-note">{item.note}</span>}
+            {item.source && <span class="rcard-source">{item.source}</span>}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <nav class="chapter-nav" aria-label="ניווט בין הנושאים">
+    <a class="btn btn-ghost" href={gradeMaterialsHref(grade.slug)} data-to-topics>
+      כל הנושאים של {grade.title}
+    </a>
+
+    <div class="chapter-sides">
+      {
+        prev ? (
+          <a
+            class="pager-link"
+            href={chapterHref(grade.slug, prev.id)}
+            style={`--p:${prev.color}`}
+          >
+            <span class="pager-tag">הנושא הקודם</span>
+            <span class="pager-title">{prev.title}</span>
+          </a>
+        ) : (
+          <span class="pager-spacer" />
+        )
+      }
+      {
+        next ? (
+          <a
+            class="pager-link"
+            href={chapterHref(grade.slug, next.id)}
+            style={`--p:${next.color}`}
+          >
+            <span class="pager-tag">הנושא הבא</span>
+            <span class="pager-title">{next.title}</span>
+          </a>
+        ) : (
+          <span class="pager-spacer" />
+        )
+      }
+    </div>
+  </nav>
+</div>
+
+<style>
+  .chapter-page {
+    padding-block: 1.2rem 2.6rem;
+    --ch-ink: color-mix(in srgb, var(--ch-dark) 76%, #10141c);
+  }
+
+  .chapter-head { max-width: 820px; margin-block: 0.8rem 1.6rem; }
+
+  .chapter-eyebrow { margin: 0 0 0.3rem; color: var(--ink-faint); font-size: 0.95rem; font-weight: 600; }
+
+  .chapter-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 4.6vw, 3rem);
+    line-height: 1.1;
+    color: var(--ch-dark);
+  }
+
+  .chapter-n { margin: 0.45rem 0 0; color: var(--ink-faint); font-size: 0.95rem; }
+
+  .chapter-rule {
+    display: block;
+    margin-block-start: 1rem;
+    block-size: 3px;
+    inline-size: 128px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--ch), color-mix(in srgb, var(--gold) 70%, transparent));
+  }
+
+  .cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 285px), 1fr));
+    gap: clamp(0.8rem, 1.6vw, 1.1rem);
+  }
+
+  .rcard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    block-size: 100%;
+    min-block-size: 44px;
+    padding: 1rem 1.1rem 1.15rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: #fff;
+    text-decoration: none;
+    color: var(--ink);
+    position: relative;
+    overflow: hidden;
+    transition: transform 320ms var(--ease-lift), box-shadow 320ms var(--ease), border-color 320ms var(--ease);
+  }
+
+  /* חוט הצבע של הנושא על קצה הכרטיס */
+  .rcard::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: 3px;
+    background: var(--ch);
+    opacity: 0.85;
+  }
+
+  .rcard:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--ch) 42%, var(--line));
+    box-shadow: 0 20px 44px -26px color-mix(in srgb, var(--ch) 80%, transparent);
+  }
+
+  .rcard:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+  .rcard-top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+
+  .rcard-kind {
+    align-self: flex-start;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--ch) 9%, #fff);
+    color: var(--ch-ink);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .rcard-go { color: var(--ch-dark); opacity: 0.65; transition: translate 320ms var(--ease), opacity 320ms var(--ease); }
+  .rcard-go svg { inline-size: 28px; block-size: auto; display: block; }
+  .rcard:hover .rcard-go { translate: -6px 0; opacity: 1; }
+
+  .rcard-title { font-family: var(--font-display); font-size: 1.08rem; line-height: 1.35; color: var(--navy); }
+
+  .rcard-note {
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .rcard-source { color: var(--ink-faint); font-size: 0.78rem; margin-block-start: auto; padding-block-start: 0.3rem; }
+
+  /* ===== ניווט בין הנושאים ===== */
+  .chapter-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-block-start: clamp(2.4rem, 6vw, 3.6rem);
+    padding-block-start: 1.6rem;
+    border-block-start: 1px solid var(--line);
+  }
+
+  .chapter-sides { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem; }
+
+  .pager-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-inline-size: 200px;
+    min-block-size: 44px;
+    justify-content: center;
+    padding: 0.75rem 1.05rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .pager-link:hover { border-color: color-mix(in srgb, var(--p) 45%, var(--line)); }
+  .pager-link:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+  .pager-tag { font-size: 0.78rem; font-weight: 700; color: var(--gold-deep); }
+  .pager-title { font-weight: 600; }
+  .pager-spacer { display: none; }
+
+  @media (max-width: 720px) {
+    .chapter-nav { flex-direction: column; align-items: stretch; }
+    .chapter-sides { flex-direction: column; align-items: stretch; }
+    .pager-link { min-inline-size: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rcard, .rcard-go { transition: none; }
+    .rcard:hover { transform: none; }
+    .rcard:hover .rcard-go { translate: 0; }
+  }
+</style>

@@ -1,9 +1,14 @@
 ---
 /**
- * חוזר מפמ״ר תשפ״ז (RULES 9.3): ההטמעה המלאה היחידה של ה־PDF הרשמי החי,
- * ארבעה כפתורי קפיצה מאומתים (9.3.8), אינדקס 23 מקטעי MAF עם טווחים
- * שנבדקו חזותית (9.3.10), שיתוף יציב עם מזהה MAF (9.3.12) ותיעוד
- * מה שהחוזר החדש מבטל מהשנה שעברה.
+ * חוזר מפמ״ר תשפ״ז (RULES 9.3): ההטמעה המלאה היחידה של החוזר.
+ *
+ * סדר העמוד (הוראת יניב, 06/08/2026): החוזר עצמו למעלה — עמוד שלם ממש,
+ * ממורכז ולדפדוף; אחריו כפתורי הקפיצה, 23 מקטעי MAF ומה שהתבטל; התמונה
+ * הכי למטה. ההטמעה מקבלת את יחס העמוד האמיתי של המסמך (A4 — כל 18
+ * העמודים 595.32×841.92), ולכן נראה עמוד מלא ולא חלק ממנו.
+ *
+ * הטקסט הגלוי נקי מכיתובי דמו (8.25) ומשורת "מחליף" (8.26) — מיפוי
+ * ההחלפות חי ב-src/data/mafmar.ts וב-RULES בלבד.
  */
 import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
@@ -15,6 +20,9 @@ import {
   mafmarSections,
   mafmarObsoletes,
   MAFMAR_LOCAL,
+  MAFMAR_VIEW,
+  MAFMAR_PAGE_W,
+  MAFMAR_PAGE_H,
 } from '../data/mafmar';
 
 const partAccents = ['var(--olive)', 'var(--terracotta)', 'var(--sky)', 'var(--lilac)'];
@@ -28,7 +36,7 @@ const audiences = [
 
 <Base
   title="חוזר מפמ״ר תשפ״ז — מחוז ירושלים"
-  description="חוזר המפמ״ר הרשמי לשנת תשפ״ז — צפייה מלאה, קפיצה לארבעת החלקים ולכל אחד מ־23 המקטעים בטווחי עמודים מאומתים, כולל מה שהתבטל מהשנה שעברה."
+  description="חוזר המפמ״ר לשנת תשפ״ז — צפייה בעמוד מלא, קפיצה לארבעת החלקים ולכל אחד מ־23 המקטעים לפי טווח העמודים שלו, ומה שהתבטל מהשנה שעברה."
 >
   <div class="container page">
     <Breadcrumbs
@@ -43,17 +51,54 @@ const audiences = [
       <p class="eyebrow">מידע רשמי ומדיניות · תשפ״ז</p>
       <h1>חוזר מפמ״ר</h1>
       <p class="lede">
-        המסמך הרשמי של הפיקוח על הוראת המתמטיקה לשנת הלימודים תשפ״ז — {MAFMAR_TOTAL_PAGES}
-        עמודים, ארבעה חלקים. מוצג מעותק מאומת של המסמך הרשמי (הועתק מהמקור 03/08/2026);
-        כל טווחי העמודים שלמטה אומתו חזותית מול המסמך.
+        חוזר הפיקוח על הוראת המתמטיקה לשנת הלימודים תשפ״ז — {MAFMAR_TOTAL_PAGES}
+        עמודים בארבעה חלקים.
       </p>
     </header>
 
-    <ArtBanner
-      art="golden"
-      alt="איור אמנותי: ירושלים זהובה בשקיעה — מגדל דוד, גשר המיתרים וגופים גאומטריים זוהרים"
-      position="center 45%"
-    />
+    <section class="viewer card-accent" style="--card-accent:var(--gold)" data-reveal>
+      <p class="viewer-status" id="viewer-status" role="status" aria-live="polite">
+        מציג את החוזר המלא — {MAFMAR_TOTAL_PAGES} עמודים
+      </p>
+      <div class="viewer-stage">
+        <div
+          class="viewer-shell embed-frame"
+          id="viewer-shell"
+          style={`--pw:${MAFMAR_PAGE_W}; --ph:${MAFMAR_PAGE_H}`}
+        >
+          <iframe
+            id="mafmar-frame"
+            src={`${MAFMAR_LOCAL}#page=1&${MAFMAR_VIEW}`}
+            title="חוזר מפמ״ר תשפ״ז — המסמך המלא"
+            loading="lazy"
+          ></iframe>
+          <div class="viewer-skel" id="viewer-skel" aria-hidden="true">
+            <span class="viewer-skel-spin"></span>
+            <span class="viewer-skel-txt">טוען את החוזר…</span>
+          </div>
+        </div>
+        <div class="viewer-open-card" id="viewer-open-card" hidden>
+          <p>בדפדפן הזה קובצי PDF נפתחים לצפייה במסך נפרד:</p>
+          <a class="btn btn-primary" id="open-card-link" href={MAFMAR_LOCAL} target="_blank" rel="noopener">
+            פתיחת החוזר ↗
+          </a>
+        </div>
+      </div>
+      <div class="viewer-pager" role="group" aria-label="דפדוף בחוזר">
+        <button class="btn vpg-prev" id="pg-prev" type="button">→ עמוד קודם</button>
+        <span class="vpg-counter" id="pg-counter" aria-live="polite">עמוד 1 מתוך {MAFMAR_TOTAL_PAGES}</span>
+        <button class="btn vpg-next" id="pg-next" type="button">עמוד הבא ←</button>
+      </div>
+      <div class="viewer-actions" role="group" aria-label="פעולות על החוזר">
+        <a class="btn btn-primary" href={MAFMAR_URL} target="_blank" rel="noopener">
+          פתיחה במקור ↗
+        </a>
+        <button class="btn btn-ghost" type="button" id="copy-link">העתקת קישור לקטע הנוכחי</button>
+        <a class="btn btn-whatsapp" id="wa-share" href="#" target="_blank" rel="noopener" aria-label="שיתוף הקטע ב־WhatsApp"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
+        <a class="btn btn-ghost" id="mail-share" href="#">שליחה בדוא״ל</a>
+        <button class="btn btn-ghost" type="button" id="fullscreen-btn" hidden>מסך מלא</button>
+      </div>
+    </section>
 
     <nav class="part-jumps" aria-label="קפיצה לחלקי החוזר" data-reveal>
       {
@@ -74,46 +119,9 @@ const audiences = [
       }
     </nav>
 
-    <section class="viewer card-accent" style="--card-accent:var(--gold)" data-reveal>
-      <p class="viewer-status" id="viewer-status" role="status" aria-live="polite">
-        מציג את החוזר המלא — {MAFMAR_TOTAL_PAGES} עמודים
-      </p>
-      <div class="viewer-shell embed-frame" id="viewer-shell">
-        <iframe
-          id="mafmar-frame"
-          src={`${MAFMAR_LOCAL}#page=1&view=FitH`}
-          title="חוזר מפמ״ר תשפ״ז — המסמך הרשמי המלא"
-          loading="lazy"
-        ></iframe>
-      </div>
-      <div class="viewer-pager" role="group" aria-label="דפדוף בחוזר">
-        <button class="btn vpg-prev" id="pg-prev" type="button">→ עמוד קודם</button>
-        <span class="vpg-counter" id="pg-counter" aria-live="polite">עמוד 1 מתוך {MAFMAR_TOTAL_PAGES}</span>
-        <button class="btn vpg-next" id="pg-next" type="button">עמוד הבא ←</button>
-      </div>
-      <div class="viewer-actions" role="group" aria-label="פעולות על החוזר">
-        <a class="btn btn-primary" href={MAFMAR_URL} target="_blank" rel="noopener">
-          פתיחת המקור הרשמי ↗
-        </a>
-        <button class="btn btn-ghost" type="button" id="copy-link">העתקת קישור לקטע הנוכחי</button>
-        <a class="btn btn-whatsapp" id="wa-share" href="#" target="_blank" rel="noopener" aria-label="שיתוף הקטע ב־WhatsApp"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
-        <a class="btn btn-ghost" id="mail-share" href="#">שליחה בדוא״ל</a>
-        <button class="btn btn-ghost" type="button" id="fullscreen-btn" hidden>מסך מלא</button>
-      </div>
-      <p class="viewer-note">
-        מוצג עותק מאומת של החוזר (18 עמודים, הועתק מהמקור הרשמי 03/08/2026). תמיד אפשר —
-        <a href={MAFMAR_URL} target="_blank" rel="noopener">לפתוח את המקור הרשמי ישירות</a>.
-      </p>
-    </section>
-
     <section class="sections-block" aria-labelledby="maf-title">
       <div class="section-head" data-reveal>
-        <p class="eyebrow">ניווט בחוזר</p>
-        <h2 id="maf-title">ניווט מדויק בתוך החוזר</h2>
-        <p class="lede">
-          בחירת מקטע פותחת את החוזר בדיוק בעמוד ההתחלה המאומת שלו. הקישור בסרגל הכתובת
-          מתעדכן — אפשר לשתף כל מקטע ישירות.
-        </p>
+        <h2 id="maf-title">ניווט בחוזר</h2>
       </div>
 
       {
@@ -139,7 +147,6 @@ const audiences = [
                           עמודים {s.startPage}–{s.endPage} · מתוך חוזר מפמ״ר תשפ״ז
                         </span>
                         {s.note && <span class="maf-note">{s.note}</span>}
-                        <span class="maf-replaces">מחליף: {s.replaces}</span>
                       </span>
                     </button>
                   </li>
@@ -151,7 +158,7 @@ const audiences = [
     </section>
 
     <section class="obsolete card-accent" style="--card-accent:var(--terracotta)" data-reveal>
-      <h2>מה התבטל מהשנה שעברה — לפי החוזר החדש עצמו</h2>
+      <h2>מה התבטל מהשנה שעברה</h2>
       <ul>
         {
           mafmarObsoletes.map((o) => (
@@ -163,16 +170,18 @@ const audiences = [
           ))
         }
       </ul>
-      <p class="obsolete-note">
-        המקורות הישנים של תשפ״ו הוסרו מהאתר ואינם מוצגים — החוזר החדש הוא מקור האמת
-        השנתי היחיד.
-      </p>
     </section>
 
     <nav class="back-nav" aria-label="ניווט חזרה">
       <a class="btn btn-ghost" href="/chativat-beynayim/">לשער חטיבת הביניים</a>
       <a class="btn btn-ghost" href="/">לעמוד הראשי</a>
     </nav>
+
+    <ArtBanner
+      art="golden"
+      alt="איור אמנותי: ירושלים זהובה בשקיעה — מגדל דוד, גשר המיתרים וגופים גאומטריים זוהרים"
+      position="center 45%"
+    />
   </div>
 </Base>
 
@@ -186,7 +195,7 @@ const audiences = [
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
     gap: 0.9rem;
-    margin-block-end: 1.6rem;
+    margin-block: clamp(1.6rem, 3.5vw, 2.4rem) 0;
   }
 
   .part-btn {
@@ -238,19 +247,134 @@ const audiences = [
   }
 
 
-  /* קו-אור אלכסוני על הזכוכית — ספקולר עדין */
+  /* ===== עמוד שלם ממש, ממורכז, לדפדוף (הוראת יניב, 06/08/2026) =====
+     קודם המסגרת קיבלה גובה חלון קבוע ורוחב מלא, ולכן ה-PDF נפרס על רוחב
+     גדול מהגובה שהוקצה לו והוצג רק חלק מהעמוד. עכשיו המסגרת עצמה נושאת
+     את יחס העמוד האמיתי של המסמך (A4), והרוחב נגזר מהגובה הפנוי — כך
+     שברוחב הזה עמוד שלם נכנס בשלמותו, המסגרת ממורכזת, וכפתורי עמוד
+     קודם/הבא מדפדפים עמוד-עמוד. */
+  .viewer-stage {
+    display: flex;
+    justify-content: center;
+    padding: clamp(0.9rem, 2vw, 1.4rem);
+  }
+
+  .viewer-shell {
+    /* --pw/--ph מגיעים מהמסמך עצמו (MAFMAR_PAGE_W/H) ולא מניחוש.
+       80dvh נבחר כדי שהעמוד השלם *וגם* כפתורי הדפדוף שמתחתיו ייכנסו
+       יחד למסך — רואים עמוד מלא ומדפדפים בלי לגלול. */
+    --fit-h: clamp(560px, 80dvh, 1120px);
+    inline-size: min(100%, calc(var(--fit-h) * var(--pw) / var(--ph)));
+    aspect-ratio: var(--pw) / var(--ph);
+    block-size: auto;
+    margin-inline: auto;
+  }
 
   /* המידות והרקע מגיעים מ-.embed-frame > iframe; כאן רק מה שייחודי */
   .viewer-shell iframe {
     display: block;
-    border-radius: 16px;
+    border-radius: var(--embed-inner-radius);
     background: #fff;
+    /* חשיפה בעדינות כשה-PDF חי — במקום הבזק לבן (8.9) */
+    opacity: 0;
+    transition: opacity 460ms var(--ease);
   }
 
-  .viewer-shell { block-size: var(--embed-full-height); }
+  .viewer-shell.is-loaded iframe { opacity: 1; }
 
-  .viewer-shell:fullscreen { block-size: 100%; border-radius: 0; padding: 0; }
+  /* display:block היה גובר על hidden — הכלל הזה סוגר את הפרצה (8.26) */
+  .viewer-shell iframe[hidden] { display: none; }
+
+  .viewer-shell:fullscreen {
+    inline-size: 100%;
+    block-size: 100%;
+    aspect-ratio: auto;
+    border-radius: 0;
+    padding: 0;
+  }
+
   .viewer-shell:fullscreen iframe { border-radius: 0; }
+
+  /* שלד טעינה — לעולם אינו חוסם לחיצה בהטמעה (8.9, 3.29) */
+  .viewer-skel {
+    position: absolute;
+    inset: var(--embed-pad);
+    border-radius: var(--embed-inner-radius);
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    overflow: hidden;
+    background: linear-gradient(180deg, #fffdf9 0%, #fbf6ec 100%);
+    opacity: 1;
+    transition: opacity 420ms var(--ease);
+  }
+
+  .viewer-skel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgb(212 175 92 / 0.16) 48%, rgb(255 255 255 / 0.55) 50%, rgb(212 175 92 / 0.16) 52%, transparent 70%);
+    background-size: 220% 100%;
+    animation: viewer-shimmer 1.5s ease-in-out infinite;
+  }
+
+  .viewer-shell.is-loaded .viewer-skel { opacity: 0; }
+
+  .viewer-skel-spin {
+    position: relative;
+    z-index: 1;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: 50%;
+    border: 3px solid rgb(212 175 92 / 0.26);
+    border-block-start-color: var(--gold-deep);
+    animation: viewer-spin 0.9s linear infinite;
+  }
+
+  .viewer-skel-txt {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--gold-deep);
+  }
+
+  @keyframes viewer-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+  @keyframes viewer-spin { to { transform: rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .viewer-shell iframe { opacity: 1; transition: none; }
+    .viewer-skel { transition: none; }
+    .viewer-skel::before { animation: none; background: none; }
+    .viewer-skel-spin { animation: none; }
+  }
+
+  /* דפדפן בלי מציג PDF מובנה (8.8, 8.26): כרטיס פתיחה אמיתי — והוא
+     היחיד על הדף, לעולם לא מתחת להטמעה חיה. */
+  .viewer-open-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    inline-size: 100%;
+    min-block-size: min(78svh, 720px);
+    padding: clamp(1.4rem, 4vw, 2.4rem);
+    text-align: center;
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--embed-radius);
+  }
+
+  .viewer-open-card p { margin: 0; color: var(--ink-soft); }
+
+  /* display:flex היה גובר על hidden — הכלל הזה סוגר את הפרצה (8.26) */
+  .viewer-open-card[hidden],
+  .viewer-pager[hidden] { display: none !important; }
 
   /* דפדוף חוברת (3.29): אותם צבעי ניווט של הספר */
   .viewer-pager {
@@ -282,13 +406,6 @@ const audiences = [
   }
 
   .vpg-counter { font-weight: 800; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-
-  .viewer-note {
-    margin: 0;
-    padding: 0.6rem 1.3rem 1.1rem;
-    color: var(--ink-faint);
-    font-size: 0.88rem;
-  }
 
   /* אינדקס המקטעים */
   .sections-block { margin-block-start: clamp(2.6rem, 6vw, 4rem); }
@@ -353,13 +470,6 @@ const audiences = [
 
   .maf-note { font-size: 0.84rem; color: var(--ink-soft); }
 
-  .maf-replaces {
-    font-size: 0.8rem;
-    color: var(--ink-faint);
-    border-inline-start: 2px solid var(--line);
-    padding-inline-start: 0.55rem;
-  }
-
   /* מה התבטל */
   .obsolete {
     margin-block-start: clamp(2.4rem, 5vw, 3.4rem);
@@ -388,21 +498,50 @@ const audiences = [
 
   .obs-page { color: var(--ink-faint); font-size: 0.85rem; }
 
-  .obsolete-note {
-    margin: 1.1rem 0 0;
-    font-size: 0.88rem;
-    color: var(--ink-faint);
+  .back-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-block: 2.4rem clamp(2rem, 4vw, 3rem);
   }
-
-  .back-nav { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-block-start: 2.4rem; }
 </style>
 
 <script>
-  import { MAFMAR_LOCAL } from '../data/mafmar';
+  import { MAFMAR_LOCAL, MAFMAR_VIEW, MAFMAR_TOTAL_PAGES } from '../data/mafmar';
 
   const frame = document.getElementById('mafmar-frame') as HTMLIFrameElement;
   const status = document.getElementById('viewer-status')!;
   const shell = document.getElementById('viewer-shell')!;
+  const skel = document.getElementById('viewer-skel')!;
+  const openCard = document.getElementById('viewer-open-card') as HTMLElement;
+  const openLink = document.getElementById('open-card-link') as HTMLAnchorElement;
+
+  /** כתובת המסמך בעמוד מבוקש — מקור אחד לכל מקום שמדפדף */
+  const pageSrc = (page: number) => `${MAFMAR_LOCAL}#page=${page}&${MAFMAR_VIEW}`;
+
+  /** כרטיס הפתיחה מפנה תמיד לעמוד שנבחר בפועל */
+  const aimOpenCard = (page: number) => {
+    openLink.href = `${MAFMAR_LOCAL}#page=${page}`;
+    openLink.textContent = page > 1 ? `פתיחת החוזר בעמוד ${page} ↗` : 'פתיחת החוזר ↗';
+  };
+
+  /* דפדפן בלי מציג PDF מובנה (בעיקר אנדרואיד): כרטיס פתיחה אמיתי במקום
+     מסגרת ריקה — והוא היחיד על הדף (8.8, 8.26). גם הדפדוף יורד, כי אין
+     מה לדפדף בתוך העמוד — הכרטיס מפנה לעמוד המבוקש עצמו (5.13). */
+  const stage = document.querySelector<HTMLElement>('.viewer-stage')!;
+  const pager = document.querySelector<HTMLElement>('.viewer-pager')!;
+  const hasPdfViewer = !('pdfViewerEnabled' in navigator) || navigator.pdfViewerEnabled === true;
+  if (!hasPdfViewer) {
+    shell.hidden = true;
+    pager.hidden = true;
+    openCard.hidden = false;
+    skel.remove();
+  }
+
+  /* שלד הטעינה נחשף בעדינות; רשת ביטחון שלא משאירה שלד תקוע (8.9) */
+  const reveal = () => shell.classList.add('is-loaded');
+  frame.addEventListener('load', reveal);
+  window.setTimeout(reveal, 8000);
   const copyBtn = document.getElementById('copy-link') as HTMLButtonElement;
   const wa = document.getElementById('wa-share') as HTMLAnchorElement;
   const mail = document.getElementById('mail-share') as HTMLAnchorElement;
@@ -418,7 +557,7 @@ const audiences = [
   };
 
   let curPage = 1;
-  const TOTAL = 18;
+  const TOTAL = MAFMAR_TOTAL_PAGES;
   const pgPrev = document.getElementById('pg-prev') as HTMLButtonElement;
   const pgNext = document.getElementById('pg-next') as HTMLButtonElement;
   const pgCounter = document.getElementById('pg-counter')!;
@@ -433,7 +572,8 @@ const audiences = [
     curPage = page;
     paintPager();
     // טעינה מחדש של ה־iframe בעמוד המבוקש — כך #page נאכף גם אחרי ניווט קודם
-    frame.src = `${MAFMAR_LOCAL}#page=${page}&view=FitH`;
+    frame.src = pageSrc(page);
+    aimOpenCard(page);
     currentLabel = label;
     status.textContent = `מציג: ${label}`;
     document.querySelectorAll('.maf-item.is-active').forEach((el) => el.classList.remove('is-active'));
@@ -444,7 +584,8 @@ const audiences = [
       history.replaceState(null, '', location.pathname);
     }
     updateShare();
-    frame.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // בלי גלילה מונפשת (5.25)
+    stage.scrollIntoView({ block: 'start' });
   };
 
   document.querySelectorAll<HTMLButtonElement>('[data-goto]').forEach((btn) => {
@@ -457,7 +598,8 @@ const audiences = [
   const flipTo = (n: number) => {
     if (n < 1 || n > TOTAL) return;
     curPage = n;
-    frame.src = `${MAFMAR_LOCAL}#page=${n}&view=FitH`;
+    frame.src = pageSrc(n);
+    aimOpenCard(n);
     paintPager();
   };
   pgPrev.addEventListener('click', () => flipTo(curPage - 1));

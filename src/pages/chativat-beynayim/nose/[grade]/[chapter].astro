@@ -1,0 +1,27 @@
+---
+/**
+ * עמוד הנושא (הוראת יניב, 06/08/2026): רשימת הנושאים שבתצוגת החומרים
+ * מובילה לכאן, וכאן רשימת המשימות של הנושא. כל משימה מובילה לעמוד
+ * המשימה המחולק (8.2).
+ */
+import Base from '../../../../layouts/Base.astro';
+import ChapterIndex from '../../../../components/ChapterIndex.astro';
+import { chapterPaths, gradeBySlug } from '../../../../data/choveret';
+
+export function getStaticPaths() {
+  return chapterPaths.map(({ grade, chapter }) => ({
+    params: { grade: grade.slug, chapter: chapter.id },
+    props: { gradeSlug: grade.slug, chapterId: chapter.id },
+  }));
+}
+
+const { gradeSlug, chapterId } = Astro.props;
+const grade = gradeBySlug(gradeSlug)!;
+const chapter = grade.chapters.find((c) => c.id === chapterId)!;
+
+const description = `${chapter.title} — ${chapter.items.length} משימות ב${grade.title}, מחוז ירושלים.`;
+---
+
+<Base title={`${chapter.title} — ${grade.title} — מחוז ירושלים`} description={description}>
+  <ChapterIndex grade={grade} chapter={chapter} />
+</Base>

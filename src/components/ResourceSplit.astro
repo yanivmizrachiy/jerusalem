@@ -9,6 +9,7 @@
 import Breadcrumbs from './Breadcrumbs.astro';
 import MafmarRange from './MafmarRange.astro';
 import {
+  chapterHref,
   gradeHref,
   gradeMaterialsHref,
   gradeLabel,
@@ -45,6 +46,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
       { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
       { label: gradeLabel(grade), href: gradeHref(grade.slug) },
       { label: 'חומרים להוראה', href: gradeMaterialsHref(grade.slug) },
+      { label: chapter.title, href: chapterHref(grade.slug, chapter.id) },
       { label: item.title },
     ]}
   />
@@ -54,7 +56,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
       <p class="res-eyebrow">
         <a href={gradeHref(grade.slug)}>{gradeLabel(grade)}</a>
         <span aria-hidden="true">·</span>
-        <a href={`${gradeMaterialsHref(grade.slug)}#${chapter.id}`}>{chapter.title}</a>
+        <a href={chapterHref(grade.slug, chapter.id)}>{chapter.title}</a>
       </p>
 
       <h1 class="res-title">{item.title}</h1>
@@ -134,8 +136,8 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
         }
       </nav>
 
-      <a class="btn btn-ghost res-back" href={`${gradeMaterialsHref(grade.slug)}#${chapter.id}`}>
-        חזרה לחומרים של {grade.title}
+      <a class="btn btn-ghost res-back" href={chapterHref(grade.slug, chapter.id)}>
+        חזרה ל{chapter.title}
       </a>
     </aside>
 
