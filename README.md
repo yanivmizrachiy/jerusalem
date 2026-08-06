@@ -38,7 +38,8 @@ src/
   data/        התוכן כ-TypeScript מוקלד: משאבים, צוות, שכבות חט״ב, יחידות, הודעות
   layouts/     Base.astro — SEO, canonical, פונטים, RTL
   lib/         proxyGuard — משמר זמן-הריצה של ההטמעות
-tests/         סוללת הקבלה: site, interactions, responsive, a11y
+tests/         סוללת הקבלה: site, ux, interactions, responsive, a11y,
+               embed-production-guards, grade-navigation-regression
 public/        מדיה, מסמכי PDF קנוניים, פונטים, robots.txt
 RULES.md       חוקת הפרויקט — כל הדרישות הממוספרות; מחייבת כל שינוי
 RECOVERY/      מסמכי ביקורת ושחזור
