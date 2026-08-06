@@ -88,8 +88,8 @@
   --embed-radius: 22px;
   --embed-inner-radius: 14px;
   --embed-pad: 8px;
-  --embed-border: rgb(212 175 92 / 0.5);
-  --embed-shadow: 0 26px 60px -30px rgb(31 41 61 / 0.5);
+  --embed-border: rgb(212 175 92 / 0.7);
+  --embed-shadow: 0 26px 60px -30px rgb(31 41 61 / 0.5), 0 0 28px -6px rgb(212 175 92 / 0.35);
   /* גובה סביבת עבודה מחולקת — מנוצל רוב גובה החלון, עם רצפה שימושית */
   --embed-workspace-min: 600px;
   /* גובה הטמעה ברוחב מלא (המחשות, אתרים, חוזר מלא) */

@@ -192,10 +192,11 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   /* ===== חצי-חצי במסך רחב: המשאב מימין, הפעולות משמאל (8.2) =====
      לוח המידע קודם ב-DOM כדי שה-h1 של המשאב יופיע לפני כותרות המשנה
      שבתוך ההטמעה (סדר כותרות תקין לקורא מסך), והסדר החזותי נשמר
-     באמצעות order: ההטמעה בעמודה הראשונה — הימנית ב-RTL. */
+     באמצעות order: ההטמעה בעמודה הראשונה — הימנית ב-RTL.
+     יחס ~1.75:1 — פאנל צדדי רחב פי ~2 מהקודם (הוראת יניב, 08/2026). */
   .res-split {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 0.65fr 1.35fr;
     gap: var(--embed-column-gap);
     margin-block-start: clamp(1.4rem, 3vw, 2.4rem);
     align-items: start;
@@ -223,8 +224,8 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   .res-view[data-kind='doc'] .res-frame iframe,
   .res-view[data-kind='drive'] .res-frame iframe {
     aspect-ratio: 1 / 1.414;
-    min-block-size: 640px;
-    max-block-size: 1180px;
+    min-block-size: 460px;
+    max-block-size: 1320px;
   }
 
   .res-view[data-kind='canva'] .res-frame iframe,
@@ -237,8 +238,8 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   .res-view[data-kind='maf'] :global(.mrange.is-fill .mrange-shell) {
     aspect-ratio: 1 / 1.3;
     block-size: auto;
-    min-block-size: 620px;
-    max-block-size: 1120px;
+    min-block-size: 460px;
+    max-block-size: 1280px;
   }
 
   /* פריט מהחוזר ממלא את הצד שלו באותו אופן */
