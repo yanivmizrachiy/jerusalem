@@ -19,6 +19,7 @@ export const ALL: APIRoute = async ({ params, request }) => {
   const site = segments.shift() ?? '';
   const origin = SITES[site];
   if (!origin) return new Response('Not found', { status: 404 });
+  const allowedOrigin = new URL(origin).origin;
 
   const base = `/api/em/${site}/`;
   const path = `/${segments.join('/')}`;
@@ -54,9 +55,9 @@ export const ALL: APIRoute = async ({ params, request }) => {
     });
   }
 
-  // ה-allowlist חייב לחול גם על סוף שרשרת ההפניות, אחרת redirect במקור
-  // מוציא אותנו אל דומיין שלא אושר — ואנחנו מגישים אותו מה-origin שלנו
-  if (upstream.url && !upstream.url.startsWith(origin)) {
+  // ה-allowlist חייב לחול גם על סוף שרשרת ההפניות. בודקים origin אמיתי,
+  // לא startsWith: דומיין עוין ששם המארח שלו מתחיל בשם המותר אינו מורשה.
+  if (upstream.url && new URL(upstream.url).origin !== allowedOrigin) {
     return new Response('היעד הסופי אינו ברשימת ההיתר.', {
       status: 502,
       headers: { 'content-type': 'text/plain; charset=utf-8' },
