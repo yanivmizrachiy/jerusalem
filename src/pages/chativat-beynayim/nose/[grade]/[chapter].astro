@@ -19,6 +19,10 @@ const { gradeSlug, chapterId } = Astro.props;
 const grade = gradeBySlug(gradeSlug)!;
 const chapter = grade.chapters.find((c) => c.id === chapterId)!;
 
+if (chapter.materials === false) {
+  return Astro.redirect(chapter.redirectHref ?? `/chativat-beynayim/kita-${grade.slug}/chomarim/`, 301);
+}
+
 const description = `${chapter.title} — ${chapter.items.length} משימות ב${grade.title}, מחוז ירושלים.`;
 ---
 

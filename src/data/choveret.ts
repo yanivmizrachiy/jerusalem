@@ -4,10 +4,31 @@
  * השלישים בשער, עמוד שכבה לכל כיתה, ועמוד משאב מחולק (הטמעה מול פעולות).
  * מבנה הנתונים נשאר כשהיה — שכבות, פרקים ופריטים — ואין רשימות חומרים
  * מקבילות בעמודי ה-astro; הכול נגזר מכאן.
+ *
+ * בנייה מאוחדת (2026-08-07):
+ * - קטלוג המקור המנורמל שומר 146 רשומות קישור, 145 משאבי מקור קנוניים
+ *   ושמונה שורות מקור ללא קישור, בלי להמציא כתובות חסרות.
+ * - כל משאב מקור מוגדר פעם אחת ב-source-materials.ts ויכול לקבל כמה הצבות
+ *   לפי שכבה, נושא ואוסף.
+ * - פריטי קטלוג ישנים שלא נמצאו בחילוץ המבוקר נשמרים במפורש כ-needsReview
+ *   במקום להימחק או לקבל שיוך מומצא.
  */
-import { grade7Resources } from './resources';
 import { MAFMAR_URL, MAFMAR_LOCAL, mafmarSections } from './mafmar';
 import { hafifaUnit, mishvaotUnit } from './units';
+import {
+  sourceCatalogConservation,
+  sourceLinkLedger,
+  sourceMaterialResources,
+  sourceMaterialsForCollection,
+  sourceMaterialsForTopic,
+  sourceNeedsReviewResources,
+  sourceNoLinkRows,
+  sourceUpperSecondaryTransitionResources,
+  type SourceDeliveryMode,
+  type SourceGrade,
+  type SourceMaterialResource,
+  type SourcePedagogicalType,
+} from './source-materials';
 
 export type ItemKind = 'site' | 'doc' | 'drive' | 'pdf' | 'canva' | 'flip' | 'maf' | 'link';
 
@@ -24,8 +45,8 @@ export interface ChoveretItem {
   download?: string;
   kind: ItemKind;
   /**
-   * שדה היסטורי של רכיב החוברת הפרטי (RULES 4.14). **אין להשתמש בו בפריטי
-   * החומרים**: כל משימה ברשימת המשימות חייבת להוביל לעמוד המשימה המחולק
+   * שדה היסטורי של רכיב החוברת הפרטי (RULES 4.14). אין להשתמש בו בפריטי
+   * החומרים: כל משימה ברשימת המשימות חייבת להוביל לעמוד המשימה המחולק
    * (הוראת יניב, 06/08/2026). יעדים שאינם משימה — יחידות ועמודים ייעודיים —
    * חיים ב-`pages` של השכבה ולא בתוך הנושאים.
    */
@@ -37,6 +58,17 @@ export interface ChoveretItem {
    * את הנוסח "מתוך חוזר מפמ״ר תשפ״ז, עמ׳ N" — אותו נוסח בכל השכבות.
    */
   source?: string;
+  /** סיווג פדגוגי מנורמל של משאבי המקור החדשים */
+  resourceType?: SourcePedagogicalType;
+  /** אופן המסירה: דיגיטלי, להדפסה או משולב */
+  delivery?: SourceDeliveryMode;
+  /** שכבות, נושאי מקור ואוספים — מידע לולידציה ולדוחות שימור */
+  grades?: SourceGrade[];
+  sourceTopicIds?: string[];
+  collections?: string[];
+  sourceRecordIds?: string[];
+  needsReview?: boolean;
+  reviewReason?: string;
 }
 
 export interface ChoveretChapter {
@@ -47,6 +79,12 @@ export interface ChoveretChapter {
   /** גוון כהה של אותו צבע — לטקסט קטן על לבן (AA) */
   dark: string;
   items: ChoveretItem[];
+  /** נושא לימודי, אוסף פדגוגי או פרק מנהלי שאינו מוצג בחומרים */
+  kind?: 'topic' | 'collection' | 'administrative';
+  /** `false` משמר את המשאבים והמסלולים אך מוציא את הפרק מ"חומרים להוראה" */
+  materials?: boolean;
+  /** יעד תאימות למסלול ישן של פרק שאינו מוצג עוד */
+  redirectHref?: string;
 }
 
 /**
@@ -81,6 +119,8 @@ export interface ChoveretGrade {
   /** יחידות ועמודים ייעודיים — מוצגים בעמוד המבוא, מחוץ לרשימת הנושאים */
   pages?: GradePage[];
 }
+
+// ===== Factory functions for existing items =====
 
 const docPreview = (id: string) => `https://docs.google.com/document/d/${id}/preview`;
 const docExport = (id: string) => `https://docs.google.com/document/d/${id}/export?format=pdf`;
@@ -184,7 +224,7 @@ const maf = (id: string, sectionId: string, note: string, title?: string): Chove
 /** ייחוס אחיד — אותו נוסח בכל השכבות, עם עמוד המקור המדויק בחוזר */
 const hz = (page: number) => `מתוך חוזר מפמ״ר תשפ״ז, עמ׳ ${page}`;
 
-/** מסמך רשמי שהחוזר מקשר אליו — אומת: 200, ‏%PDF אמיתי, בלי XFO/CSP חוסמים */
+/** מסמך רשמי שהחוזר מקשר אליו — אומת: 200, %PDF אמיתי, בלי XFO/CSP חוסמים */
 const hozerPdf = (id: string, url: string, title: string, note: string, page: number): ChoveretItem => ({
   id,
   title,
@@ -208,7 +248,7 @@ const hozerSite = (id: string, url: string, title: string, note: string, page: n
 });
 
 /**
- * יעד שהחוזר מקשר אליו אך חוסם הטמעה (‏X-Frame-Options/CSP) — כרטיס פתיחה
+ * יעד שהחוזר מקשר אליו אך חוסם הטמעה (X-Frame-Options/CSP) — כרטיס פתיחה
  * אמיתי ולא מסגרת ריקה (RULES 8.8, 8.26).
  */
 const hozerLink = (id: string, url: string, title: string, note: string, page: number): ChoveretItem => ({
@@ -220,16 +260,126 @@ const hozerLink = (id: string, url: string, title: string, note: string, page: n
   source: hz(page),
 });
 
-const siteItems: ChoveretItem[] = [...grade7Resources]
-  .sort((a, b) => a.order - b.order)
-  .map((r) => ({
-    id: r.id,
-    title: r.title,
-    note: r.short,
-    url: r.url,
-    embed: r.embedUrl ?? r.url,
-    kind: 'site' as const,
-  }));
+// ===== Factory functions for extracted items =====
+
+/**
+ * משאב שנשאב ממסמכי משרד החינוך — משחקים וחומרי תוכנית.
+ * `source` מציין את המסמך שממנו נשאב הפריט.
+ */
+const extractedDrive = (
+  id: string,
+  fileId: string,
+  title: string,
+  note: string,
+  source = 'מתוך מסמך משרד החינוך'
+): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url: `https://drive.google.com/file/d/${fileId}/view`,
+  embed: `https://drive.google.com/file/d/${fileId}/preview`,
+  download: `https://drive.google.com/uc?export=download&id=${fileId}`,
+  kind: 'drive',
+  source,
+});
+
+const extractedDoc = (
+  id: string,
+  docId: string,
+  title: string,
+  note: string,
+  source = 'מתוך מסמך משרד החינוך'
+): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url: `https://docs.google.com/document/d/${docId}/edit`,
+  embed: `https://docs.google.com/document/d/${docId}/preview`,
+  download: `https://docs.google.com/document/d/${docId}/export?format=pdf`,
+  kind: 'doc',
+  source,
+});
+
+const extractedPdf = (
+  id: string,
+  url: string,
+  title: string,
+  note: string,
+  source = 'מתוך מסמך משרד החינוך'
+): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url,
+  embed: `${url}${PDF_VIEW}`,
+  download: url,
+  kind: 'pdf',
+  source,
+});
+
+const extractedLink = (
+  id: string,
+  url: string,
+  title: string,
+  note: string,
+  source = 'מתוך מסמך משרד החינוך'
+): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url,
+  kind: 'link',
+  source,
+});
+
+const extractedSite = (
+  id: string,
+  url: string,
+  title: string,
+  note: string,
+  source = 'מתוך מסמך משרד החינוך'
+): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url,
+  embed: url,
+  kind: 'site',
+  source,
+});
+
+// ===== Existing live-site items =====
+
+/** שלושת האתרים שהיו בפרק `sites` — מפוצלים לפי התחום המתמטי שלהם.
+ * misparim (מספרים מכוונים) → אלגברה.
+ * tzirim (מערכת צירים) → אלגברה.
+ * zaviyot (זוויות) → גאומטריה.
+ * הכל מופיע רק פעם אחת בניווט, מסודר לפי תחום מתמטי, ללא קטגוריית "אתר חי". */
+const misparimItem: ChoveretItem = {
+  id: 'misparim',
+  title: 'מספרים מכוונים',
+  note: 'סביבה אינטראקטיבית להוראת מספרים מכוונים — מהצגת המושג ועד תרגול.',
+  url: 'https://misparim.vercel.app/',
+  embed: '/api/em/misparim/',
+  kind: 'site',
+};
+const tzirimItem: ChoveretItem = {
+  id: 'tzirim',
+  title: 'מערכת צירים — רביע ראשון',
+  note: 'סביבה להיכרות ראשונה עם מערכת צירים — נקודות ושיעורים ברביע הראשון.',
+  url: 'https://yanivmizrachiy.github.io/coordinate-first-quadrant/',
+  kind: 'site',
+};
+const zaviyotItem: ChoveretItem = {
+  id: 'zaviyot',
+  title: 'אתר זוויות',
+  note: 'יחידה מלאה להוראת זוויות: מושגים, סוגים, מדידה ותרגול.',
+  url: 'https://zaviyot.vercel.app/',
+  embed: '/api/em/zaviyot/',
+  kind: 'site',
+};
+
+// ===== Shared items used across multiple chapters =====
 
 /* ===== חומרים משותפים לכל חט״ב (RULES 3.31, הוראת יניב 06/08/2026) =====
  * מה שמשרת באמת את שלוש הכיתות מוגדר פעם אחת כאן ומופיע בעמוד כל כיתה
@@ -319,15 +469,18 @@ const sadnatHachana = drive(
   'סדנה מוכנה להכנת התלמידים לקראת מבחן.'
 );
 
-/** משחקים משותפים (בכל שכבה) */
-const mischakimPrisot = doc(
-  'mischakim-prisot',
-  '1AQNue5voom-CuO3opIJMjQoIzy5Ryl1dXPLd-c8IW-M',
-  'משחקים הצמודים לפריסות ההוראה',
-  'לכל שלב בפריסת ההוראה — המשחק המתאים, מוכן לשיעור.'
-);
-const mischakimTavnit: ChoveretItem = {
-  id: 'mischakim-tavnit',
+/** משחקים משותפים (בכל שכבה) — משמשים גם כפריטים בפרקי המשחקים החדשים */
+const mishakimSharedDocs: ChoveretItem[] = [
+  extractedDoc(
+    'mishakim-prisot',
+    '1AQNue5voom-CuO3opIJMjQoIzy5Ryl1dXPLd-c8IW-M',
+    'משחקים הצמודים לפריסות ההוראה',
+    'לכל שלב בפריסת ההוראה — המשחק המתאים, מוכן לשיעור.',
+    'מתוך משחקים מתמטיקה — משרד החינוך, תשפ״ז'
+  ),
+];
+const mishakimTavnit: ChoveretItem = {
+  id: 'mishakim-tavnit',
   title: 'משחקים לכיתות ז׳–ח׳ — תבנית',
   note: 'מאגר משחקים לפי נושאים — זוויות, מלבן, חפיפה, משוואות ופונקציות — מאת שילת דדשי, מדריכה אזורית במחוז. פתיחה במקור מאפשרת ליצור עותק לעריכה.',
   url: 'https://www.canva.com/design/DAF3dEaqSG8/TPgg_h9hz37GX09p6A4rWQ/edit',
@@ -383,11 +536,12 @@ const rohavShared: ChoveretItem[] = [
     embed: 'https://docs.google.com/spreadsheets/d/1l8-7V7DMQSMkWNCFj3Y1OTnrJmaoOuRPWFkIP0a0_OE/preview',
     kind: 'doc',
   },
-  doc(
+  extractedDoc(
     'ruach-tochnit',
     '1RYQQdKawSDPYYCDlUrm2MzcrNskv1SZQKHTNf8JJPuo',
     'חומרים ברוח התוכנית החדשה',
-    'ריכוז חומרים מעודכנים ברוח התוכנית.'
+    'ריכוז חומרים מעודכנים ברוח התוכנית.',
+    'מתוך חומרים לחטב ברוח תכנית הלימודים החדשה'
   ),
   canva(
     'sheelot-chashiva',
@@ -404,42 +558,519 @@ const kvatzimNosim = doc(
   'מאגר הנושאים והקישורים להכנה למבחן תנופה.'
 );
 
-/* בוני פרקים משותפים — פרק טרי לכל שכבה, עם פריטי המקור המשותפים (RULES 3.31) */
-const noschaotChapter = (items: ChoveretItem[]): ChoveretChapter => ({
-  id: 'noschaot',
-  title: 'דפי הנוסחאות הרשמיים',
-  color: '#be185d',
-  dark: '#9d174d',
-  items,
+// ===== Chapter builders and normalized source integration =====
+
+const uniqueItems = (items: ChoveretItem[]): ChoveretItem[] => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+};
+
+const sourceToItem = (resource: SourceMaterialResource): ChoveretItem => ({
+  id: resource.id,
+  title: resource.title,
+  note: resource.note,
+  url: resource.url,
+  embed: resource.embed,
+  download: resource.download,
+  kind: resource.kind,
+  source: resource.source,
+  resourceType: resource.resourceType,
+  delivery: resource.delivery,
+  grades: resource.grades,
+  sourceTopicIds: resource.sourceTopicIds,
+  collections: resource.collections,
+  sourceRecordIds: resource.sourceRecordIds,
+  needsReview: resource.needsReview,
+  reviewReason: resource.reviewReason,
 });
-const mivchanimChapter = (items: ChoveretItem[]): ChoveretChapter => ({
-  id: 'mivchanim',
-  title: 'מבחנים והערכה',
-  color: '#c2410c',
-  dark: '#9a3412',
-  items,
+
+const sourceTopicItems = (grade: SourceGrade, chapterId: string) =>
+  sourceMaterialsForTopic(grade, chapterId).map(sourceToItem);
+
+const sourceCollectionItems = (grade: SourceGrade, chapterId: string) =>
+  sourceMaterialsForCollection(grade, chapterId).map(sourceToItem);
+
+/**
+ * ארבעה יעדים שהופיעו בקטלוג העבודה המקומי אך אינם קיימים ב-146 רשומות
+ * החילוץ המבוקר. הם נשמרים, מקבלים שכבה ונושא מפורשים לפי מיקומם ההיסטורי,
+ * ומסומנים לבדיקה במקום להימחק או להיות מוצגים כמשאב מאומת.
+ */
+const legacyNeedsReview = (
+  id: string,
+  fileId: string,
+  title: string,
+  note: string,
+  sourceTopicId: string
+): ChoveretItem => ({
+  id,
+  title,
+  note,
+  url: `https://drive.google.com/file/d/${fileId}/view`,
+  embed: `https://drive.google.com/file/d/${fileId}/preview`,
+  download: `https://drive.google.com/uc?export=download&id=${fileId}`,
+  kind: 'drive',
+  source: 'נשמר מהקטלוג המקומי שקדם למיזוג המקורות',
+  resourceType: 'game',
+  delivery: 'printable',
+  grades: ['z'],
+  sourceTopicIds: [sourceTopicId],
+  collections: ['mischakim'],
+  needsReview: true,
+  reviewReason: 'היעד הופיע בקטלוג המקומי אך לא נמצא במסמכי המקור שחולצו; יש לאמת את תוכן הקובץ ואת הכותרת לפני הסרת סימון הבדיקה.',
 });
-const mischakimChapter = (items: ChoveretItem[]): ChoveretChapter => ({
-  id: 'mischakim',
-  title: 'משחקים לאורך השנה',
-  color: '#059669',
-  dark: '#047857',
-  items,
+
+const legacyDistributionWar = legacyNeedsReview(
+  'legacy-distribution-war',
+  '0B58MLTJub4KV2xIZjJMTXZxR05sZ2t5QjV2bGx5T2t6OUFN',
+  'מלחמה אלגברית — חוק הפילוג',
+  'קלפים מוגדלים למלחמה אלגברית בנושא חוק הפילוג.',
+  'z-expressions'
+);
+const legacyTrianglesRectangles = legacyNeedsReview(
+  'legacy-triangles-rectangles',
+  '1Hygy1Ar3pH9OBUrMLl4v8m2mY8vP3eXjR',
+  'סביב משולשים ומלבנים',
+  'משאב ותיק שסווג במערכת צירים; התוכן והשיוך המדויק דורשים אימות.',
+  'z-coordinate-system'
+);
+const legacyEquationsPuzzle = legacyNeedsReview(
+  'legacy-equations-puzzle',
+  '0B58MLTJub4KS2xIZjJMTXZxR05sZ2t5QjV2bGx5T2t6OUFN',
+  'משחק משוואות — פאזל',
+  'פאזל לתרגול משוואות.',
+  'z-equations'
+);
+const legacyEquationsCards = legacyNeedsReview(
+  'legacy-equations-cards',
+  '0B58MLTJub4KMGxfT2xHVzREVFBMcEk0elBoRE4yU212OFh3',
+  'תרגילי משוואות — קלפים',
+  'קלפים לתרגול משוואות.',
+  'z-equations'
+);
+
+export const legacyNeedsReviewItems: ChoveretItem[] = [
+  legacyDistributionWar,
+  legacyTrianglesRectangles,
+  legacyEquationsPuzzle,
+  legacyEquationsCards,
+];
+
+const topicChapter = (
+  id: string,
+  title: string,
+  color: string,
+  dark: string,
+  items: ChoveretItem[]
+): ChoveretChapter => ({
+  id,
+  title,
+  color,
+  dark,
+  kind: 'topic',
+  items: uniqueItems(items),
 });
-const haasharaChapter = (): ChoveretChapter => ({
-  id: 'haashara',
-  title: 'העשרה ואתרים',
-  color: '#7c3aed',
-  dark: '#6d28d9',
-  items: [...haasharaItems],
+
+const collectionChapter = (
+  id: string,
+  title: string,
+  color: string,
+  dark: string,
+  items: ChoveretItem[]
+): ChoveretChapter => ({
+  id,
+  title,
+  color,
+  dark,
+  kind: 'collection',
+  items: uniqueItems(items),
 });
-const rohavChapter = (items: ChoveretItem[]): ChoveretChapter => ({
-  id: 'rohav',
-  title: 'משאבי רוחב ולמידה דיגיטלית',
-  color: '#0d9488',
-  dark: '#0f766e',
-  items,
+
+const administrativeChapter = (
+  id: string,
+  title: string,
+  redirectHref: string,
+  items: ChoveretItem[]
+): ChoveretChapter => ({
+  id,
+  title,
+  color: '#64748b',
+  dark: '#475569',
+  kind: 'administrative',
+  materials: false,
+  redirectHref,
+  items: uniqueItems(items),
 });
+
+const noschaotChapter = (letter: string, items: ChoveretItem[]) =>
+  collectionChapter('noschaot', `דפי נוסחאות לכיתה ${letter}`, '#be185d', '#9d174d', items);
+
+const mivchanimChapter = (letter: string, items: ChoveretItem[]) =>
+  collectionChapter('mivchanim', `מבחנים לכיתה ${letter}`, '#c2410c', '#9a3412', items);
+
+const sikumimChapter = (grade: SourceGrade, letter: string) =>
+  collectionChapter(
+    'sikumim',
+    `משימות סיכום לשכבת ${letter}`,
+    '#2563eb',
+    '#1d4ed8',
+    sourceCollectionItems(grade, 'sikumim')
+  );
+
+const mishakimChapter = (grade: SourceGrade, letter: string, items: ChoveretItem[]) =>
+  collectionChapter(
+    'mischakim',
+    `משחקים לכיתה ${letter}`,
+    '#059669',
+    '#047857',
+    [...items, ...sourceCollectionItems(grade, 'mischakim')]
+  );
+
+const haasharaChapter = (grade: SourceGrade, letter: string) =>
+  collectionChapter(
+    'haashara',
+    `העשרה מתמטית לכיתה ${letter}`,
+    '#7c3aed',
+    '#6d28d9',
+    [...haasharaItems, ...sourceCollectionItems(grade, 'haashara')]
+  );
+
+const maagarimChapter = (grade: SourceGrade, letter: string, items: ChoveretItem[]) =>
+  collectionChapter(
+    'maagarim',
+    `מאגרי הוראה לכיתה ${letter}`,
+    '#0d9488',
+    '#0f766e',
+    [...items, ...sourceCollectionItems(grade, 'maagarim')]
+  );
+
+// ===== Existing topic resources retained from the pre-migration catalog =====
+
+const mechuvanimTavnit = canva(
+  'mechuvanim-tavnit',
+  'https://www.canva.com/design/DAF4MgAMjRg/e6QN_h0zEVqOJPtRQjyJHw/edit',
+  'פעולות במספרים מכוונים — תבנית',
+  'תבנית עבודה לפעולות במספרים מכוונים.'
+);
+const pilug = canva(
+  'pilug',
+  'https://www.canva.com/design/DAGPDbvr6iU/7he5iyBvtlJgsjic2Ucy4A/view',
+  'חוק הפילוג ושיטת הרשת',
+  'תבנית הוראה ויזואלית לחוק הפילוג.'
+);
+const ahuzim = canva(
+  'ahuzim',
+  'https://www.canva.com/design/DAF9_Xrvh6Q/mVYOMINxUghHUcwfpt2-eg/view',
+  'הוראת אחוזים — מצגת',
+  'מצגת ויזואלית להוראת אחוזים.'
+);
+const kavitFlip: ChoveretItem = {
+  id: 'kavit-flip',
+  title: 'חוברת פונקציה קווית',
+  note: 'חוברת דפדוף אינטראקטיבית לנושא הפונקציה הקווית.',
+  url: 'https://heyzine.com/flip-book/8a267e4232.html',
+  embed: 'https://heyzine.com/flip-book/8a267e4232.html',
+  kind: 'flip',
+};
+const kavitTavnit = canva(
+  'kavit-tavnit',
+  'https://www.canva.com/design/DAFzg6Naayw/KeCuPV3438_wq4WHOOylwg/edit',
+  'הוראת פונקציה קווית — תבנית',
+  'תבנית הוראה ויזואלית לפונקציה הקווית.'
+);
+const dema = canva(
+  'dema',
+  'https://www.canva.com/design/DAGZcMbg0x8/WM5X1ydiUJ4XtX2Z9Sh9cA/view',
+  'מבחני דמה למהלך השנה',
+  'אוסף מבחני דמה מוכנים לשימוש.'
+);
+const kdamAnaliza = doc(
+  'kdam-analiza',
+  '1E4K9BLDyxieZkniWbBwNVV0TWNitIdkt',
+  'קדם־אנליזה — מגרף לתכונות',
+  'משימות לפיתוח חוש לפונקציות ולקריאת תכונות מתוך גרף.'
+);
+const sheelotT = doc(
+  'sheelot-t',
+  '11Prx5DTCwHhYFqLTWduW6v3SOZH9jYTrOglg5HkDSck',
+  'שאלות קצרות ט׳',
+  'מאגר שאלות קצרות לתרגול שוטף.'
+);
+
+// ===== Exact top-level topic index required for Grades 7–9 =====
+
+const Z_A = '#dc2626', Z_A_D = '#b91c1c';
+const Z_G = '#0891b2', Z_G_D = '#0e7490';
+
+const z_directed_numbers = topicChapter(
+  'z-directed-numbers',
+  'מספרים מכוונים',
+  Z_A,
+  Z_A_D,
+  [misparimItem, ...sourceTopicItems('z', 'z-directed-numbers')]
+);
+const z_coordinate_system = topicChapter(
+  'z-coordinate-system',
+  'מערכת צירים',
+  Z_A,
+  Z_A_D,
+  [tzirimItem, legacyTrianglesRectangles, ...sourceTopicItems('z', 'z-coordinate-system')]
+);
+const z_expressions = topicChapter(
+  'z-expressions',
+  'ביטויים אלגבריים וחוק הפילוג',
+  Z_A,
+  Z_A_D,
+  [mechuvanimTavnit, pilug, legacyDistributionWar, ...sourceTopicItems('z', 'z-expressions')]
+);
+const z_equations = topicChapter(
+  'z-equations',
+  'משוואות',
+  Z_A,
+  Z_A_D,
+  [legacyEquationsPuzzle, legacyEquationsCards, ...sourceTopicItems('z', 'z-equations')]
+);
+const z_percentages = topicChapter(
+  'z-percentages',
+  'אחוזים',
+  Z_A,
+  Z_A_D,
+  [ahuzim, ...sourceTopicItems('z', 'z-percentages')]
+);
+const z_order = topicChapter(
+  'z-order-operations',
+  'סדר פעולות חשבון',
+  Z_A,
+  Z_A_D,
+  sourceTopicItems('z', 'z-order-operations')
+);
+const z_angles = topicChapter(
+  'z-angles',
+  'זוויות',
+  Z_G,
+  Z_G_D,
+  [zaviyotItem, ...sourceTopicItems('z', 'z-angles')]
+);
+const z_areas = topicChapter(
+  'z-areas-perimeters',
+  'שטחים והיקפים',
+  Z_G,
+  Z_G_D,
+  sourceTopicItems('z', 'z-areas-perimeters')
+);
+const z_box = topicChapter('z-box-cube', 'תיבה וקובייה', Z_G, Z_G_D, sourceTopicItems('z', 'z-box-cube'));
+const z_circle = topicChapter('z-circle', 'מעגל', Z_G, Z_G_D, sourceTopicItems('z', 'z-circle'));
+
+const H_A = '#059669', H_A_D = '#047857';
+const H_G = '#0891b2', H_G_D = '#0e7490';
+
+const h_linear = topicChapter(
+  'h-linear-function',
+  'פונקציה קווית',
+  H_A,
+  H_A_D,
+  [kavitFlip, kavitTavnit, dema, ...sourceTopicItems('h', 'h-linear-function')]
+);
+const h_equations = topicChapter('h-equations', 'משוואות', H_A, H_A_D, sourceTopicItems('h', 'h-equations'));
+const h_systems = topicChapter('h-systems', 'מערכת משוואות', H_A, H_A_D, sourceTopicItems('h', 'h-systems'));
+const h_percentages = topicChapter(
+  'h-percentages',
+  'אחוזים ושאלות מילוליות',
+  H_A,
+  H_A_D,
+  sourceTopicItems('h', 'h-percentages')
+);
+const h_inequalities = topicChapter(
+  'h-inequalities',
+  'אי־שוויונות',
+  H_A,
+  H_A_D,
+  sourceTopicItems('h', 'h-inequalities')
+);
+const h_stats = topicChapter(
+  'h-statistics',
+  'סטטיסטיקה וקריאת גרפים',
+  H_A,
+  H_A_D,
+  sourceTopicItems('h', 'h-statistics')
+);
+const h_congruent = topicChapter(
+  'h-congruent',
+  'חפיפת משולשים',
+  H_G,
+  H_G_D,
+  sourceTopicItems('h', 'h-congruent')
+);
+const h_similar = topicChapter(
+  'h-similar',
+  'דמיון משולשים',
+  H_G,
+  H_G_D,
+  sourceTopicItems('h', 'h-similar')
+);
+const h_parallel = topicChapter(
+  'h-parallel',
+  'ישרים מקבילים',
+  H_G,
+  H_G_D,
+  sourceTopicItems('h', 'h-parallel')
+);
+const h_pythagoras = topicChapter(
+  'h-areas-pythagoras',
+  'שטחים, היקפים ומשפט פיתגורס',
+  H_G,
+  H_G_D,
+  sourceTopicItems('h', 'h-areas-pythagoras')
+);
+const h_coordinate_geometry = topicChapter(
+  'h-coordinate-geometry',
+  'גאומטריה במערכת צירים',
+  H_G,
+  H_G_D,
+  sourceTopicItems('h', 'h-coordinate-geometry')
+);
+const h_angles = topicChapter('h-angles', 'זוויות', H_G, H_G_D, sourceTopicItems('h', 'h-angles'));
+
+const T_A = '#ea580c', T_A_D = '#b45309';
+const T_G = '#7c3aed', T_G_D = '#6d28d9';
+
+const t_technique = topicChapter(
+  't-technique',
+  'טכניקה אלגברית',
+  T_A,
+  T_A_D,
+  sourceTopicItems('t', 't-technique')
+);
+const t_preanalysis = topicChapter(
+  't-preanalysis',
+  'פונקציות וקדם־אנליזה',
+  T_A,
+  T_A_D,
+  [kdamAnaliza, ...sourceTopicItems('t', 't-preanalysis')]
+);
+const t_quadratic = topicChapter(
+  't-quadratic',
+  'פונקציה ריבועית',
+  T_A,
+  T_A_D,
+  sourceTopicItems('t', 't-quadratic')
+);
+const t_literacy = topicChapter(
+  't-literacy',
+  'קריאת גרפים ומשימות אורייניות',
+  T_A,
+  T_A_D,
+  [sheelotT, ...sourceTopicItems('t', 't-literacy')]
+);
+const t_quadrilaterals = topicChapter(
+  't-quadrilaterals',
+  'מרובעים',
+  T_G,
+  T_G_D,
+  sourceTopicItems('t', 't-quadrilaterals')
+);
+const t_kite = topicChapter('t-kite', 'דלתון', T_G, T_G_D, sourceTopicItems('t', 't-kite'));
+const t_trapezoid = topicChapter('t-trapezoid', 'טרפז', T_G, T_G_D, sourceTopicItems('t', 't-trapezoid'));
+const t_parallelogram = topicChapter(
+  't-parallelogram',
+  'מקבילית',
+  T_G,
+  T_G_D,
+  sourceTopicItems('t', 't-parallelogram')
+);
+const t_rect_rhomb = topicChapter(
+  't-rectangle-rhombus',
+  'מלבן ומעוין',
+  T_G,
+  T_G_D,
+  sourceTopicItems('t', 't-rectangle-rhombus')
+);
+const t_coordinate_geometry = topicChapter(
+  't-coordinate-geometry',
+  'גאומטריה במערכת צירים',
+  T_G,
+  T_G_D,
+  sourceTopicItems('t', 't-coordinate-geometry')
+);
+const t_simi_pyt = topicChapter(
+  't-similarity-pythagoras',
+  'דמיון משולשים ומשפט פיתגורס',
+  T_G,
+  T_G_D,
+  sourceTopicItems('t', 't-similarity-pythagoras')
+);
+const t_proofs = topicChapter(
+  't-proofs',
+  'משפטים והוכחות בגאומטריה',
+  T_G,
+  T_G_D,
+  sourceTopicItems('t', 't-proofs')
+);
+
+// ===== Resources intentionally kept outside Grade 9 Teaching Materials =====
+
+const kdamAlgebra = hozerPdf(
+  'kdam-algebra',
+  'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/algebraic%20profile%204%20unit.pdf',
+  'טכניקה אלגברית — הכנה ל־4 יח״ל',
+  'דרישות המינימום בטכניקה אלגברית לקראת לימודי 4 יח״ל בחטיבה העליונה.',
+  8
+);
+const kdamFunctions = hozerPdf(
+  'kdam-functions',
+  'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/functions%20profile%204%20unit.pdf',
+  'פונקציות — הכנה ל־4 יח״ל',
+  'דרישות המינימום בפונקציות לקראת לימודי 4 יח״ל בחטיבה העליונה.',
+  8
+);
+const kdamGeometry = hozerPdf(
+  'kdam-geometry',
+  'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/geometry%20profile%204%20units.pdf',
+  'גאומטריה — הכנה ל־4 יח״ל',
+  'דרישות המינימום בגאומטריה לקראת לימודי 4 יח״ל בחטיבה העליונה.',
+  8
+);
+const graphTeacher = hozerPdf(
+  'graph-teacher',
+  'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpav/graph-teacher.pdf',
+  'מתכונות לגרף ובחזרה — מדריך למורה',
+  'חומר מעבר בקדם־אנליזה לקראת החטיבה העליונה.',
+  8
+);
+
+export const upperSecondaryTransitionItems: ChoveretItem[] = uniqueItems([
+  kdamAlgebra,
+  kdamFunctions,
+  kdamGeometry,
+  graphTeacher,
+  ...sourceUpperSecondaryTransitionResources.map(sourceToItem),
+]);
+
+const mifratTnufa = pdf(
+  'mifrat-tnufa',
+  'https://meyda.education.gov.il/files/Rama/Mifrat_Math_LangH_9_26.pdf',
+  'מפרט מבחן תנופה — ראמ״ה',
+  'המפרט הרשמי של מבחן תנופה ט׳ (25.11.26).'
+);
+const tnufaRama = hozerLink(
+  'tnufa-rama',
+  'https://rama.edu.gov.il/assessments/tnufa-math-9-2026',
+  'עמוד מבחן תנופה באתר ראמ״ה',
+  'העמוד הרשמי של מבחן תנופה במתמטיקה לכיתה ט׳.',
+  8
+);
+const tnufaMankal = hozerLink(
+  'tnufa-mankal',
+  'https://apps.education.gov.il/Mankal/horaa.aspx?siduri=589#_Toc256000008',
+  'מבחן תנופה — חוזר מנכ״ל',
+  'הפרטים המלאים על מבחן תנופה בחוזר מנכ״ל.',
+  8
+);
+
+// ===== Final catalog =====
 
 export const choveret: ChoveretGrade[] = [
   {
@@ -459,67 +1090,57 @@ export const choveret: ChoveretGrade[] = [
       },
     ],
     chapters: [
-      {
-        id: 'hozer',
-        title: 'מהחוזר הרשמי',
-        color: '#d90429',
-        dark: '#b3001b',
-        items: [
-          maf('maf-02', 'MAF-02', ''),
-          hozerLink(
-            'tochnit-limudim-z',
-            'https://pop.education.gov.il/tchumey_daat/matmatika/chativat-beynayim/teaching-mathematics/tohnit-limudim/',
-            'תוכנית הלימודים המעודכנת ז׳–ח׳',
-            'עדכון תוכנית הלימודים לכיתות ז׳ ו-ח׳ פורסם במרחב הפדגוגי; בתשפ״ז כל תלמידי ז׳ לומדים לפיו.',
-            3
-          ),
-          gov(
-            'prisot-pdf',
-            'plan%26prisa.pdf',
-            '/docs/plan-prisa-tashpaz.pdf',
-            'פריסות ההוראה תשפ״ז',
-            'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳. החוזר מבקש לשמור את הקישור ולא להוריד כקובץ — חומרי הוראה יתווספו לפריסות במהלך השנה.',
-            hz(3)
-          ),
-          maf('maf-05-z', 'MAF-05', '', 'משימות הערכה ומבחן מפמ״ר ז׳'),
-          maf('maf-06-z', 'MAF-06', '', 'Moodle — הפלטפורמה המחייבת בז׳'),
-          maf('maf-08-z', 'MAF-08', '', 'ספרי הלימוד החדשים'),
-          ...sharedHozer,
-        ],
-      },
-      {
-        id: 'sites',
-        title: 'האתרים החיים של השכבה',
-        color: '#1d7ed8',
-        dark: '#155fa8',
-        items: siteItems,
-      },
-      {
-        id: 'tichnun',
-        title: 'תכנון והוראה',
-        color: '#ea580c',
-        dark: '#b45309',
-        items: [
-          gov('tochnit-z', 'plan_7.pdf', '/docs/plan-7-tashpaz.pdf', 'תוכנית הוראה ז׳', 'התוכנית הרשמית לתשפ״ז — חלוקת הנושאים והשעות לפי חודשים.'),
-          gov('prisa-z', 'prisa_7.pdf', '/docs/prisa-7-tashpaz.pdf', 'פריסת הוראה ז׳', 'הפריסה הרשמית לתשפ״ז — פירוט הנושאים וחומרי הלמידה לאורך השנה.'),
-          canva('ahuzim', 'https://www.canva.com/design/DAF9_Xrvh6Q/mVYOMINxUghHUcwfpt2-eg/view', 'הוראת אחוזים — מצגת', 'מצגת הוראה מלאה לנושא האחוזים.'),
-          canva('pilug', 'https://www.canva.com/design/DAGPDbvr6iU/7he5iyBvtlJgsjic2Ucy4A/view', 'חוק הפילוג ושיטת הרשת', 'תבנית הוראה ויזואלית לחוק הפילוג.'),
-          canva('mechuvanim-tavnit', 'https://www.canva.com/design/DAF4MgAMjRg/e6QN_h0zEVqOJPtRQjyJHw/edit', 'פעולות במספרים מכוונים — תבנית', 'תבנית עבודה לפעולות במספרים מכוונים.'),
-        ],
-      },
-      noschaotChapter([
+      administrativeChapter('hozer', 'מהחוזר הרשמי', '/hozer-mafmar/', [
+        maf('maf-02', 'MAF-02', ''),
+        hozerLink(
+          'tochnit-limudim-z',
+          'https://pop.education.gov.il/tchumey_daat/matmatika/chativat-beynayim/teaching-mathematics/tohnit-limudim/',
+          'תוכנית הלימודים המעודכנת ז׳–ח׳',
+          'עדכון תוכנית הלימודים לכיתות ז׳ ו-ח׳ פורסם במרחב הפדגוגי; בתשפ״ז כל תלמידי ז׳ לומדים לפיו.',
+          3
+        ),
+        gov(
+          'prisot-pdf',
+          'plan%26prisa.pdf',
+          '/docs/plan-prisa-tashpaz.pdf',
+          'פריסות ההוראה תשפ״ז',
+          'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳.',
+          hz(3)
+        ),
+        maf('maf-05-z', 'MAF-05', '', 'משימות הערכה ומבחן מפמ״ר ז׳'),
+        maf('maf-06-z', 'MAF-06', '', 'Moodle — הפלטפורמה המחייבת בז׳'),
+        maf('maf-08-z', 'MAF-08', '', 'ספרי הלימוד החדשים'),
+        ...sharedHozer,
+      ]),
+      z_directed_numbers,
+      z_coordinate_system,
+      z_expressions,
+      z_equations,
+      z_percentages,
+      z_order,
+      z_angles,
+      z_areas,
+      z_box,
+      z_circle,
+      administrativeChapter('tichnun', 'תכנון והוראה', '/chativat-beynayim/kita-z/#ma-melamdim', [
+        gov('tochnit-z', 'plan_7.pdf', '/docs/plan-7-tashpaz.pdf', 'תוכנית הוראה ז׳', 'התוכנית הרשמית לתשפ״ז — חלוקת הנושאים והשעות לפי חודשים.'),
+        gov('prisa-z', 'prisa_7.pdf', '/docs/prisa-7-tashpaz.pdf', 'פריסת הוראה ז׳', 'הפריסה הרשמית לתשפ״ז — פירוט הנושאים וחומרי הלמידה לאורך השנה.'),
+      ]),
+      noschaotChapter('ז׳', [
         drive('noschaot-z', '1nJdVkTlZvnulYiabkeVZG0BT6ek1lU0c', 'דף נוסחאות כיתה ז׳', 'דף הנוסחאות הרשמי לכיתה ז׳ — לצפייה, להורדה ולהדפסה.'),
         noschaotCopy,
       ]),
-      mivchanimChapter([mivchanimHanchayot, sadnatHachana]),
-      mischakimChapter([
-        mischakimPrisot,
-        mischakimTavnit,
+      mivchanimChapter('ז׳', [mivchanimHanchayot, sadnatHachana]),
+      sikumimChapter('z', 'ז׳'),
+      mishakimChapter('z', 'ז׳', [
+        ...mishakimSharedDocs,
+        mishakimTavnit,
         hanukkaChoveret,
-        folder('hanukka-z', '1CO-6MbihZaNkHT34kbYuB3YKliuOitgV', 'משחקי חנוכה לכיתה ז׳ — תיקייה', 'תיקיית Drive עם משחקי חנוכה לכיתה ז׳ — כל קובץ נפתח בלחיצה.'),
+        ...legacyNeedsReviewItems,
+        folder('hanukka-z', '1CO-6MbihZaNkHT34kbYuB3YKliuOitgV', 'משחקי חנוכה לכיתה ז׳ — תיקייה', 'תיקיית Drive עם משחקי חנוכה לכיתה ז׳.'),
       ]),
-      haasharaChapter(),
-      rohavChapter([...rohavShared]),
+      haasharaChapter('z', 'ז׳'),
+      maagarimChapter('z', 'ז׳', [...rohavShared]),
     ],
   },
   {
@@ -539,81 +1160,71 @@ export const choveret: ChoveretGrade[] = [
       },
     ],
     chapters: [
-      {
-        id: 'hozer',
-        title: 'מהחוזר הרשמי',
-        color: '#d90429',
-        dark: '#b3001b',
-        items: [
-          maf('maf-03', 'MAF-03', ''),
-          hozerLink(
-            'tochnit-limudim-h',
-            'https://pop.education.gov.il/tchumey_daat/matmatika/chativat-beynayim/teaching-mathematics/tohnit-limudim/',
-            'תוכנית הלימודים המעודכנת ז׳–ח׳',
-            'עדכון תוכנית הלימודים לכיתות ז׳ ו-ח׳ פורסם במרחב הפדגוגי; כיתה ח׳ לומדת לפי פריסה ארצית מיוחדת המותאמת לו.',
-            3
-          ),
-          gov(
-            'prisot-pdf-h',
-            'plan%26prisa.pdf',
-            '/docs/plan-prisa-tashpaz.pdf',
-            'פריסות ההוראה תשפ״ז',
-            'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳. החוזר מבקש לשמור את הקישור ולא להוריד כקובץ — חומרי הוראה יתווספו לפריסות במהלך השנה.',
-            hz(3)
-          ),
-          maf('maf-05-h', 'MAF-05', '', 'משימות הערכה ומבחן מפמ״ר ח׳'),
-          maf('maf-06-h', 'MAF-06', '', 'Moodle — הפלטפורמה המחייבת בח׳'),
-          maf('maf-09-h', 'MAF-09', '', 'חלוקה לרמות והדרכה'),
-          ...sharedHozer,
-        ],
-      },
-      {
-        id: 'tichnun',
-        title: 'תכנון והוראה',
-        color: '#ea580c',
-        dark: '#b45309',
-        items: [
-          gov('tochnit-h', 'plan_8.pdf', '/docs/plan-8-tashpaz.pdf', 'תוכנית הוראה ח׳', 'התוכנית הרשמית לתשפ״ז — מותאמת לתוכנית המעודכנת שנלמדה בכיתה ז׳.'),
-          gov('prisa-h', 'prisa_8.pdf', '/docs/prisa-8-tashpaz.pdf', 'פריסת הוראה ח׳', 'הפריסה הרשמית לתשפ״ז — שנת המעבר בין התוכנית הקיימת למעודכנת.'),
-          {
-            id: 'ishi-plus',
-            title: 'תוכנית אישי פלוס',
-            note: 'קובץ התוכנית המלא מכונן Drive.',
-            url: 'https://drive.google.com/file/d/11qeHERvoqEVXI2G8L0FxME6rHHw4w_KC/view',
-            embed: 'https://drive.google.com/file/d/11qeHERvoqEVXI2G8L0FxME6rHHw4w_KC/preview',
-            download: 'https://drive.google.com/uc?export=download&id=11qeHERvoqEVXI2G8L0FxME6rHHw4w_KC',
-            kind: 'drive',
-          },
-          {
-            id: 'kavit-flip',
-            title: 'חוברת פונקציה קווית',
-            note: 'חוברת דפדוף אינטראקטיבית לנושא הפונקציה הקווית.',
-            url: 'https://heyzine.com/flip-book/8a267e4232.html',
-            embed: 'https://heyzine.com/flip-book/8a267e4232.html',
-            kind: 'flip',
-          },
-          canva('kavit-tavnit', 'https://www.canva.com/design/DAFzg6Naayw/KeCuPV3438_wq4WHOOylwg/edit', 'הוראת פונקציה קווית — תבנית', 'תבנית הוראה ויזואלית לפונקציה הקווית.'),
-          canva('dema', 'https://www.canva.com/design/DAGZcMbg0x8/WM5X1ydiUJ4XtX2Z9Sh9cA/view', 'מבחני דמה למהלך השנה', 'אוסף מבחני דמה מוכנים לשימוש.'),
-        ],
-      },
-      noschaotChapter([
+      administrativeChapter('hozer', 'מהחוזר הרשמי', '/hozer-mafmar/', [
+        maf('maf-03', 'MAF-03', ''),
+        hozerLink(
+          'tochnit-limudim-h',
+          'https://pop.education.gov.il/tchumey_daat/matmatika/chativat-beynayim/teaching-mathematics/tohnit-limudim/',
+          'תוכנית הלימודים המעודכנת ז׳–ח׳',
+          'עדכון תוכנית הלימודים לכיתות ז׳ ו-ח׳ פורסם במרחב הפדגוגי.',
+          3
+        ),
+        gov(
+          'prisot-pdf-h',
+          'plan%26prisa.pdf',
+          '/docs/plan-prisa-tashpaz.pdf',
+          'פריסות ההוראה תשפ״ז',
+          'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳.',
+          hz(3)
+        ),
+        maf('maf-05-h', 'MAF-05', '', 'משימות הערכה ומבחן מפמ״ר ח׳'),
+        maf('maf-06-h', 'MAF-06', '', 'Moodle — הפלטפורמה המחייבת בח׳'),
+        maf('maf-09-h', 'MAF-09', '', 'חלוקה לרמות והדרכה'),
+        ...sharedHozer,
+      ]),
+      h_linear,
+      h_equations,
+      h_systems,
+      h_percentages,
+      h_inequalities,
+      h_stats,
+      h_congruent,
+      h_similar,
+      h_parallel,
+      h_pythagoras,
+      h_coordinate_geometry,
+      h_angles,
+      administrativeChapter('tichnun', 'תכנון והוראה', '/chativat-beynayim/kita-h/#ma-melamdim', [
+        gov('tochnit-h', 'plan_8.pdf', '/docs/plan-8-tashpaz.pdf', 'תוכנית הוראה ח׳', 'התוכנית הרשמית לתשפ״ז — מותאמת לתוכנית המעודכנת שנלמדה בכיתה ז׳.'),
+        gov('prisa-h', 'prisa_8.pdf', '/docs/prisa-8-tashpaz.pdf', 'פריסת הוראה ח׳', 'הפריסה הרשמית לתשפ״ז — שנת המעבר בין התוכנית הקיימת למעודכנת.'),
+        {
+          id: 'ishi-plus',
+          title: 'תוכנית אישי פלוס',
+          note: 'קובץ התוכנית המלא מכונן Drive.',
+          url: 'https://drive.google.com/file/d/11qeHERvoqEVXI2G8L0FxME6rHHw4w_KC/view',
+          embed: 'https://drive.google.com/file/d/11qeHERvoqEVXI2G8L0FxME6rHHw4w_KC/preview',
+          download: 'https://drive.google.com/uc?export=download&id=11qeHERvoqEVXI2G8L0FxME6rHHw4w_KC',
+          kind: 'drive',
+        },
+      ]),
+      noschaotChapter('ח׳', [
         drive('noschaot-h', '1hf30qH4SbS7UxRlkmrFiitDhdoDFt90B', 'דף נוסחאות כיתה ח׳', 'דף הנוסחאות הרשמי לכיתה ח׳ — לצפייה, להורדה ולהדפסה.'),
         noschaotCopy,
       ]),
-      mivchanimChapter([
+      mivchanimChapter('ח׳', [
         doc('meitzav-demo', '1-F8gCF7V9X1afsr2D5vOLdgq8DC1OzlH', 'מבחן דמוי מיצ״ב', 'מבחן מלא במתכונת מיצ״ב — מוכן להדפסה ולהעברה בכיתה.'),
         doc('meitzav-machvan', '10eruHhJRK6HX3nvD17tAypCTqNoC83WD', 'מחוון למבחן דמוי מיצ״ב', 'המחוון המלא של המבחן — ניקוד מפורט לכל שאלה.'),
         mivchanimHanchayot,
         sadnatHachana,
       ]),
-      mischakimChapter([
-        mischakimPrisot,
-        mischakimTavnit,
+      sikumimChapter('h', 'ח׳'),
+      mishakimChapter('h', 'ח׳', [
+        ...mishakimSharedDocs,
+        mishakimTavnit,
         hanukkaChoveret,
-        folder('hanukka-h', '1Sv2iLXVFe_QYhe_3hEIAqCuN_YrlLM7A', 'משחקי חנוכה לכיתה ח׳ — תיקייה', 'תיקיית Drive עם משחקי חנוכה לכיתה ח׳ — כל קובץ נפתח בלחיצה.'),
       ]),
-      haasharaChapter(),
-      rohavChapter([...rohavShared]),
+      haasharaChapter('h', 'ח׳'),
+      maagarimChapter('h', 'ח׳', [...rohavShared]),
     ],
   },
   {
@@ -626,136 +1237,108 @@ export const choveret: ChoveretGrade[] = [
     title: 'מתמטיקה לכיתה ט׳',
     pages: [
       {
+        title: 'הכנה למעבר ל־4 יח״ל',
+        note: 'חומרי המעבר נשמרו באזור נפרד ואינם מופיעים בתוך חומרי כיתה ט׳.',
+        href: '/chativat-beynayim/maavar-4-yahal/',
+        count: upperSecondaryTransitionItems.length,
+      },
+      {
         title: 'שער החטיבה העליונה',
         note: 'כל חומרי החטיבה העליונה באתר — ההמשך הטבעי של כיתה ט׳.',
         href: '/chativa-elyona/',
       },
     ],
     chapters: [
-      {
-        id: 'hozer',
-        title: 'מהחוזר הרשמי',
-        color: '#d90429',
-        dark: '#b3001b',
-        items: [
-          maf('maf-04', 'MAF-04', ''),
-          maf('maf-10', 'MAF-10', ''),
-          hozerPdf(
-            'tochnit-limudim-t',
-            'https://meyda.education.gov.il/files/Curriculum/math_7_9.pdf',
-            'תוכנית הלימודים ז׳–ט׳ (לפני העדכון)',
-            'בתשפ״ז תלמידי כיתה ט׳ לומדים על פי תוכנית הלימודים שלפני העדכון — זהו המסמך המחייב עבורם.',
-            3
-          ),
-          gov(
-            'prisot-pdf-t',
-            'plan%26prisa.pdf',
-            '/docs/plan-prisa-tashpaz.pdf',
-            'פריסות ההוראה תשפ״ז',
-            'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳. החוזר מבקש לשמור את הקישור ולא להוריד כקובץ — חומרי הוראה יתווספו לפריסות במהלך השנה.',
-            hz(3)
-          ),
-          maf('maf-05-t', 'MAF-05', '', 'מבחן תנופה והערכה בחט״ב'),
-          maf('maf-06-t', 'MAF-06', '', 'Moodle — שני מרחבים בכיתה ט׳'),
-          ...sharedHozer,
-        ],
-      },
-      {
-        id: 'tichnun',
-        title: 'תכנון והוראה',
-        color: '#ea580c',
-        dark: '#b45309',
-        items: [
-          gov('tochnit-t', 'plan_9A.pdf', '/docs/plan-9a-tashpaz.pdf', 'תוכנית הוראה ט׳', 'התוכנית הרשמית לתשפ״ז — חלוקת הנושאים והשעות לפי חודשים.'),
-          gov('prisa-t', 'prisa_9A.pdf', '/docs/prisa-9a-tashpaz.pdf', 'פריסת הוראה ט׳', 'הפריסה הרשמית לתשפ״ז — עם דגשי ההכנה לרמת 4 יח״ל.'),
-          gov('tochnit-t-m', 'plan_9B.pdf', '/docs/plan-9b-tashpaz.pdf', 'תוכנית ט׳ מצומצמת', 'המסלול המצומצם הרשמי לתשפ״ז (עד 25% מהשכבה; החוזר, עמ׳ 7).'),
-          gov('prisa-t-m', 'prisa_9B.pdf', '/docs/prisa-9b-tashpaz.pdf', 'פריסת ט׳ מצומצמת', 'הפריסה הרשמית לתשפ״ז למסלול המצומצם — לקראת 3 יח״ל.'),
-          doc('kdam-analiza', '1E4K9BLDyxieZkniWbBwNVV0TWNitIdkt', 'קדם־אנליזה — מגרף לתכונות', 'החומר המחוזי לקדם־אנליזה.'),
-          doc('sheelot-t', '11Prx5DTCwHhYFqLTWduW6v3SOZH9jYTrOglg5HkDSck', 'שאלות קצרות ט׳', 'מאגר שאלות קצרות לתרגול שוטף.'),
-        ],
-      },
-      {
-        id: 'yahal4',
-        title: 'הכנה ל־4 יח״ל',
-        color: '#0d9488',
-        dark: '#0f766e',
-        items: [
-          hozerPdf(
-            'kdam-algebra',
-            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/algebraic%20profile%204%20unit.pdf',
-            'טכניקה אלגברית',
-            'מסמך הדרכה להוראה בכיתה ט׳ עבור תלמידים המיועדים ללמוד עד 4 יח״ל — מפרט את דרישות המינימום בטכניקה האלגברית.',
-            8
-          ),
-          hozerPdf(
-            'kdam-functions',
-            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/functions%20profile%204%20unit.pdf',
-            'פונקציות',
-            'מסמך הדרכה להוראה בכיתה ט׳ עבור תלמידים המיועדים ללמוד עד 4 יח״ל — מפרט את דרישות המינימום בפונקציות.',
-            8
-          ),
-          hozerPdf(
-            'kdam-geometry',
-            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpah/geometry%20profile%204%20units.pdf',
-            'גאומטריה',
-            'מסמך הדרכה להוראה בכיתה ט׳ עבור תלמידים המיועדים ללמוד עד 4 יח״ל — מפרט את דרישות המינימום בגאומטריה.',
-            8
-          ),
-          hozerPdf(
-            'graph-teacher',
-            'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpav/graph-teacher.pdf',
-            'מתכונות לגרף ובחזרה — מדריך למורה',
-            'חומרי ההוראה לנושא קדם־אנליזה בכיתה ט׳ — הנושא שמפתח חוש לפונקציות לקראת החטיבה העליונה.',
-            8
-          ),
-        ],
-      },
-      {
-        id: 'hamshech',
-        title: 'מבחן תנופה והמעבר לחטיבה העליונה',
-        color: '#7c3aed',
-        dark: '#6d28d9',
-        items: [
-          pdf('mifrat-tnufa', 'https://meyda.education.gov.il/files/Rama/Mifrat_Math_LangH_9_26.pdf', 'מפרט מבחן תנופה — ראמ״ה', 'המפרט הרשמי של מבחן תנופה ט׳ (25.11.26).'),
-          hozerLink(
-            'tnufa-rama',
-            'https://rama.edu.gov.il/assessments/tnufa-math-9-2026',
-            'עמוד מבחן תנופה באתר ראמ״ה',
-            'מבחן תנופה לתלמידי כיתה ט׳ יתקיים ב-25.11.26; מפרט המבחן מתפרסם באתר ראמ״ה סמוך לפתיחת שנת הלימודים.',
-            8
-          ),
-          hozerLink(
-            'tnufa-mankal',
-            'https://apps.education.gov.il/Mankal/horaa.aspx?siduri=589#_Toc256000008',
-            'מבחן תנופה — חוזר מנכ״ל',
-            'הפרטים המלאים על מבחן תנופה מופיעים בחוזר מנכ״ל, בסעיף שאליו החוזר מפנה ישירות.',
-            8
-          ),
-        ],
-      },
-      noschaotChapter([
+      administrativeChapter('hozer', 'מהחוזר הרשמי', '/hozer-mafmar/', [
+        maf('maf-04', 'MAF-04', ''),
+        maf('maf-10', 'MAF-10', ''),
+        hozerPdf(
+          'tochnit-limudim-t',
+          'https://meyda.education.gov.il/files/Curriculum/math_7_9.pdf',
+          'תוכנית הלימודים ז׳–ט׳ (לפני העדכון)',
+          'בתשפ״ז תלמידי כיתה ט׳ לומדים על פי תוכנית הלימודים שלפני העדכון.',
+          3
+        ),
+        gov(
+          'prisot-pdf-t',
+          'plan%26prisa.pdf',
+          '/docs/plan-prisa-tashpaz.pdf',
+          'פריסות ההוראה תשפ״ז',
+          'טבלת התוכניות והפריסות הרשמית לכל שכבות ז׳–ט׳.',
+          hz(3)
+        ),
+        gov('tochnit-t', 'plan_9A.pdf', '/docs/plan-9a-tashpaz.pdf', 'תוכנית הוראה ט׳', 'התוכנית הרשמית לתשפ״ז — מותאמת לכיתה ט׳ לפני העדכון.'),
+        gov('prisa-t', 'prisa_9A.pdf', '/docs/prisa-9a-tashpaz.pdf', 'פריסת הוראה ט׳', 'הפריסה הרשמית לתשפ״ז — פירוט הנושאים וחומרי הלמידה לאורך השנה.'),
+        maf('maf-05-t', 'MAF-05', '', 'מבחן תנופה והערכה בחט״ב'),
+        maf('maf-06-t', 'MAF-06', '', 'Moodle — שני מרחבים בכיתה ט׳'),
+        ...sharedHozer,
+      ]),
+      t_technique,
+      t_preanalysis,
+      t_quadratic,
+      t_literacy,
+      t_quadrilaterals,
+      t_kite,
+      t_trapezoid,
+      t_parallelogram,
+      t_rect_rhomb,
+      t_coordinate_geometry,
+      t_simi_pyt,
+      t_proofs,
+      administrativeChapter('yahal4', 'הכנה ל־4 יח״ל', '/chativat-beynayim/maavar-4-yahal/', upperSecondaryTransitionItems),
+      administrativeChapter('hamshech', 'מבחן תנופה והמעבר לחטיבה העליונה', '/chativat-beynayim/nose/t/mivchanim/', []),
+      noschaotChapter('ט׳', [
         drive('noschaot-t', '1UJJeoCAomVPNp4PN3FsBhCbfaqcSxL1G', 'דף נוסחאות כיתה ט׳', 'דף הנוסחאות הרשמי לכיתה ט׳ — לצפייה, להורדה ולהדפסה.'),
       ]),
-      mivchanimChapter([mivchanimHanchayot, sadnatHachana]),
-      mischakimChapter([mischakimPrisot, hanukkaChoveret]),
-      haasharaChapter(),
-      rohavChapter([...rohavShared, kvatzimNosim]),
+      mivchanimChapter('ט׳', [
+        mifratTnufa,
+        tnufaRama,
+        tnufaMankal,
+        kvatzimNosim,
+        mivchanimHanchayot,
+        sadnatHachana,
+      ]),
+      sikumimChapter('t', 'ט׳'),
+      mishakimChapter('t', 'ט׳', [...mishakimSharedDocs, hanukkaChoveret]),
+      haasharaChapter('t', 'ט׳'),
+      maagarimChapter('t', 'ט׳', [...rohavShared]),
     ],
   },
 ];
 
-/** כל פריטי הקורא (בלי פריטי pageHref) — ל-getStaticPaths */
-export const readerItems = choveret.flatMap((g) =>
-  g.chapters.flatMap((ch) =>
-    ch.items
-      .filter((it) => !it.pageHref)
-      .map((it) => ({ grade: g, chapter: ch, item: it }))
+/** הפרקים המוצגים ב"חומרים להוראה" — ללא חוזר, תכנון או שער מעבר */
+export const materialChapters = (grade: ChoveretGrade) =>
+  grade.chapters.filter((chapter) => chapter.materials !== false);
+
+const uniqueEntriesByItemId = (
+  entries: { grade: ChoveretGrade; chapter: ChoveretChapter; item: ChoveretItem }[]
+) => {
+  const seen = new Set<string>();
+  return entries.filter(({ grade, item }) => {
+    const key = `${grade.slug}:${item.id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+/** כל פריטי הקורא, כולל פרקים מנהליים מוסתרים — מסלול קנוני אחד לכל פריט ושכבה */
+export const readerItems = uniqueEntriesByItemId(
+  choveret.flatMap((grade) =>
+    grade.chapters.flatMap((chapter) =>
+      chapter.items
+        .filter((item) => !item.pageHref)
+        .map((item) => ({ grade, chapter, item }))
+    )
   )
 );
 
-/** מניין אמיתי לכרטיסי השער (3.27) — נגזר מהנתונים עצמם, לעולם לא ידני */
+/** מניין משאבים קנוניים שמוצגים בחומרי כל שכבה — ללא ספירת הצבה כפולה */
 export const gradeCounts = Object.fromEntries(
-  choveret.map((g) => [g.slug, g.chapters.reduce((n, c) => n + c.items.length, 0)])
+  choveret.map((grade) => [
+    grade.slug,
+    new Set(materialChapters(grade).flatMap((chapter) => chapter.items.map((item) => item.id))).size,
+  ])
 ) as Record<string, number>;
 
 /** הכתובת הקנונית של עמוד השכבה */
@@ -766,57 +1349,98 @@ export const itemHref = (gradeSlug: string, item: ChoveretItem) =>
   item.pageHref ?? `/chativat-beynayim/reader/${gradeSlug}/${item.id}/`;
 
 /** התווית הגלויה של השכבה — "כיתה ז׳" */
-export const gradeLabel = (g: ChoveretGrade) => `כיתה ${g.letter}`;
+export const gradeLabel = (grade: ChoveretGrade) => `כיתה ${grade.letter}`;
 
-export const gradeBySlug = (slug: string) => choveret.find((g) => g.slug === slug);
+export const gradeBySlug = (slug: string) => choveret.find((grade) => grade.slug === slug);
 
-/** תצוגת החומרים של השכבה — מסלול-בן של עמוד המבוא בכל אחת משלוש הכיתות */
+/** תצוגת החומרים של השכבה — מסלול-בן של עמוד המבוא */
 export const gradeMaterialsHref = (slug: string) => `/chativat-beynayim/kita-${slug}/chomarim/`;
 
-/**
- * עמוד הנושא (הוראת יניב, 06/08/2026): תצוגת החומרים היא רשימת נושאים
- * בלבד, וכל נושא נפתח בעמוד משלו ובו רשימת המשימות שלו.
- */
+/** עמוד נושא או אוסף */
 export const chapterHref = (gradeSlug: string, chapterId: string) =>
   `/chativat-beynayim/nose/${gradeSlug}/${chapterId}/`;
 
-/** כל צמדי שכבה-נושא — ל-getStaticPaths של עמוד הנושא */
+/**
+ * כל צמדי שכבה־פרק: גם פרקים מנהליים נבנים כדי שמסלולים ישנים יפנו
+ * ב־301 ליעד הנכון במקום להפוך ל־404.
+ */
 export const chapterPaths = choveret.flatMap((grade) =>
   grade.chapters.map((chapter) => ({ grade, chapter }))
 );
 
-/** הנושא הקודם והבא בתוך אותה שכבה — לפי סדר הפרקים (5.12) */
-export function chapterNeighbours(g: ChoveretGrade, chapterId: string) {
-  const i = g.chapters.findIndex((c) => c.id === chapterId);
+/** הנושא/האוסף הקודם והבא בתוך תצוגת החומרים בלבד */
+export function chapterNeighbours(grade: ChoveretGrade, chapterId: string) {
+  const chapters = materialChapters(grade);
+  const index = chapters.findIndex((chapter) => chapter.id === chapterId);
   return {
-    prev: i > 0 ? g.chapters[i - 1] : undefined,
-    next: i >= 0 && i < g.chapters.length - 1 ? g.chapters[i + 1] : undefined,
+    prev: index > 0 ? chapters[index - 1] : undefined,
+    next: index >= 0 && index < chapters.length - 1 ? chapters[index + 1] : undefined,
   };
 }
 
-/** התוכנית והפריסה הראשיות של השכבה — הפריטים עצמם ממקור הנתונים */
-export function gradeMainDocs(g: ChoveretGrade) {
-  const all = g.chapters.flatMap((ch) => ch.items.map((item) => ({ chapter: ch, item })));
-  const byId = (id?: string) => (id ? all.find((e) => e.item.id === id) : undefined);
-  return { plan: byId(g.mainPlan), prisa: byId(g.mainPrisa) };
+/** התוכנית והפריסה הראשיות של השכבה — גם כשהן בפרק מנהלי מוסתר */
+export function gradeMainDocs(grade: ChoveretGrade) {
+  const all = grade.chapters.flatMap((chapter) => chapter.items.map((item) => ({ chapter, item })));
+  const byId = (id?: string) => (id ? all.find((entry) => entry.item.id === id) : undefined);
+  return { plan: byId(grade.mainPlan), prisa: byId(grade.mainPrisa) };
 }
 
-/**
- * סדר הקריאה של שכבה — כל פריטי המשאב שלה לפי סדר הפרקים. זהו הסדר
- * הפדגוגי שעליו נשען ניווט קודם/הבא (5.12), ולא סדר אלפביתי או מקרי.
- */
-export const gradeReading = (g: ChoveretGrade) =>
-  g.chapters.flatMap((ch) => ch.items.filter((it) => !it.pageHref).map((item) => ({ chapter: ch, item })));
+/** סדר קריאה פדגוגי: רק המשאבים המוצגים בחומרים, ללא כפילויות אוסף/נושא */
+export const gradeReading = (grade: ChoveretGrade) => {
+  const entries = materialChapters(grade).flatMap((chapter) =>
+    chapter.items
+      .filter((item) => !item.pageHref)
+      .map((item) => ({ grade, chapter, item }))
+  );
+  return uniqueEntriesByItemId(entries);
+};
 
 /** השכן הקודם והבא של פריט בתוך השכבה */
-export function itemNeighbours(g: ChoveretGrade, itemId: string) {
-  const list = gradeReading(g);
-  const i = list.findIndex((e) => e.item.id === itemId);
-  return { prev: i > 0 ? list[i - 1] : undefined, next: i >= 0 && i < list.length - 1 ? list[i + 1] : undefined };
+export function itemNeighbours(grade: ChoveretGrade, itemId: string) {
+  const list = gradeReading(grade);
+  const index = list.findIndex((entry) => entry.item.id === itemId);
+  return {
+    prev: index > 0 ? list[index - 1] : undefined,
+    next: index >= 0 && index < list.length - 1 ? list[index + 1] : undefined,
+  };
 }
 
+/** דוח שימור בר־בדיקה, נגזר מן הקטלוג ולא ממספר ידני */
+const finalCanonicalIds = new Set([
+  ...choveret.flatMap((grade) => grade.chapters.flatMap((chapter) => chapter.items.map((item) => item.id))),
+  ...sourceNeedsReviewResources.map((resource) => resource.id),
+  ...legacyNeedsReviewItems.map((item) => item.id),
+]);
+
+export const materialsConservationReport = {
+  ...sourceCatalogConservation,
+  sourceLinkLedgerRecords: sourceLinkLedger.length,
+  sourceNoLinkRows: sourceNoLinkRows.length,
+  existingCanonicalResources: [...finalCanonicalIds].filter(
+    (id) => !id.startsWith('src-') && !legacyNeedsReviewItems.some((item) => item.id === id)
+  ).length,
+  sourceCanonicalResources: sourceMaterialResources.length,
+  retainedLegacyReviewResources: legacyNeedsReviewItems.length,
+  finalCanonicalResourcesIncludingReview: finalCanonicalIds.size,
+  visibleCanonicalByGrade: gradeCounts,
+  unresolvedReviewResources: [
+    ...sourceNeedsReviewResources.map((resource) => ({
+      id: resource.id,
+      title: resource.title,
+      reason: resource.reviewReason,
+    })),
+    ...legacyNeedsReviewItems.map((item) => ({
+      id: item.id,
+      title: item.title,
+      reason: item.reviewReason,
+    })),
+  ],
+  equation:
+    'existing canonical resources + canonical source resources + retained legacy review resources = final canonical resources; source duplicate merge, exclusions and unresolved evidence are recorded explicitly',
+} as const;
+
 export const kindLabel: Record<ItemKind, string> = {
-  site: 'אתר חי',
+  site: 'פעילות אינטראקטיבית',
   doc: 'מסמך',
   drive: 'קובץ',
   pdf: 'PDF',

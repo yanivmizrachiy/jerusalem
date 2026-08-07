@@ -15,6 +15,7 @@ import {
   gradeMainDocs,
   gradeMaterialsHref,
   itemHref,
+  materialChapters,
   type ChoveretGrade,
 } from '../data/choveret';
 
@@ -25,7 +26,7 @@ interface Props {
 const { grade } = Astro.props;
 const { plan, prisa } = gradeMainDocs(grade);
 const letter = grade.letter;
-const movedChapterIds = grade.chapters.map((chapter) => chapter.id).join(',');
+const movedChapterIds = materialChapters(grade).map((chapter) => chapter.id).join(',');
 ---
 
 <div class="container grade-intro" style={`--grade:${grade.color}; --grade-dark:${grade.dark}`}>

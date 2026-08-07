@@ -70,10 +70,16 @@ test('כרטיסי צוות: קישורי WhatsApp ודוא״ל תקינים ו�
 });
 
 test('ניווט פדגוגי: משוואות משולבת בשרשרת ז׳ (5.12)', async ({ page }) => {
-  await page.goto('/chativat-beynayim/misparim-mechuvanim/');
-  await expect(
-    page.locator('.pager a', { hasText: 'הוראת משוואות ללא מספרים שליליים' })
-  ).toBeVisible();
+  // mishvaot.astro הוא עמוד ייעודי מלא (UnitPlaylist) — הקודם/הבא מפנים לכתובות קנוניות
+  await page.goto('/chativat-beynayim/mishvaot/');
+  const prev = page.locator('.pager-link', { hasText: 'מספרים מכוונים' });
+  await expect(prev).toBeVisible();
+  await expect(prev).toHaveAttribute('href', '/chativat-beynayim/reader/z/misparim/');
+  const next = page.locator('.pager-link', { hasText: 'אתר זוויות' });
+  await expect(next).toBeVisible();
+  await expect(next).toHaveAttribute('href', '/chativat-beynayim/reader/z/zaviyot/');
+  // כפתור חזרה לכיתה
+  await expect(page.locator('a.btn-ghost', { hasText: 'חזרה לכיתה' })).toBeVisible();
 });
 
 test('כפתורי WhatsApp אמיתיים: כל כפתור מוביל ישירות למספר הנכון (7.16)', async ({ page }) => {

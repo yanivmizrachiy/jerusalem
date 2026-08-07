@@ -1,19 +1,30 @@
 ---
-import Base from '../../layouts/Base.astro';
-import ResourcePageShell from '../../components/ResourcePageShell.astro';
-import { grade7Resources } from '../../data/resources';
-
-const resource = grade7Resources.find((r) => r.id === 'zaviyot')!;
-const next = grade7Resources.find((r) => r.id === 'tzirim')!;
+/**
+ * עמוד משאב קנוני של זוויות — מיוצר מ-choveret.ts
+ * דרך reader/[grade]/[item].astro (RULES 3.29, הוראת יניב 05/08/2026).
+ * הכתובת הישנה (/zaviyot/) מפנה לכתובת הקנונית
+ * כדי שקישורים ששותפו בעבר ימשיכו לעבוד.
+ */
+const target = '/chativat-beynayim/reader/z/zaviyot/';
 ---
 
-<Base
-  title={`${resource.title} — חטיבת ביניים — מחוז ירושלים`}
-  description={resource.short}
->
-  <ResourcePageShell
-    resource={resource}
-    prev={{ label: 'הוראת משוואות ללא מספרים שליליים', href: '/chativat-beynayim/mishvaot/' }}
-    next={{ label: next.title, href: next.path }}
-  />
-</Base>
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>אתר זוויות — מחוז ירושלים</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://jerusalem-virid.vercel.app/chativat-beynayim/reader/z/zaviyot/" />
+    <meta http-equiv="refresh" content={`0;url=${target}`} />
+    <script is:inline define:vars={{ target }}>
+      location.replace(target);
+    </script>
+  </head>
+  <body>
+    <p style="font-family: system-ui, sans-serif; padding: 2rem; text-align: center;">
+      העמוד עבר לכתובת החדשה —
+      <a href={target}>מעבר מיידי</a>
+    </p>
+  </body>
+</html>

@@ -8,13 +8,14 @@
  */
 import Breadcrumbs from './Breadcrumbs.astro';
 import GradeNav from './GradeNav.astro';
-import { chapterHref, gradeCounts, gradeHref, gradeLabel, type ChoveretGrade } from '../data/choveret';
+import { chapterHref, gradeCounts, gradeHref, gradeLabel, materialChapters, type ChoveretGrade } from '../data/choveret';
 
 interface Props {
   grade: ChoveretGrade;
 }
 
 const { grade } = Astro.props;
+const chapters = materialChapters(grade);
 ---
 
 <div class="container grade-page" style={`--grade:${grade.color}; --grade-dark:${grade.dark}`}>
@@ -29,14 +30,14 @@ const { grade } = Astro.props;
 
   <header class="grade-head" data-reveal>
     <h1 class="grade-title">{grade.title}</h1>
-    <p class="grade-count">{grade.chapters.length} נושאים · {gradeCounts[grade.slug]} קבצים, קישורים ופעילויות</p>
+    <p class="grade-count">{chapters.length} נושאים ואוספים · {gradeCounts[grade.slug]} משאבים קנוניים</p>
     <span class="grade-rule" aria-hidden="true"></span>
   </header>
 
   <ul class="topics" aria-label="נושאי הלימוד">
     {
-      grade.chapters.map((ch) => (
-        <li id={ch.id} style={`--ch:${ch.color}; --ch-dark:${ch.dark}`}>
+      chapters.map((ch) => (
+        <li id={ch.id} data-kind={ch.kind ?? 'topic'} style={`--ch:${ch.color}; --ch-dark:${ch.dark}`}>
           <a class="topic" href={chapterHref(grade.slug, ch.id)}>
             <span class="topic-dot" aria-hidden="true" />
             <span class="topic-text">
@@ -109,6 +110,17 @@ const { grade } = Astro.props;
     box-shadow: 0 1px 0 color-mix(in srgb, var(--line) 60%, transparent);
     transition: transform 320ms var(--ease-lift), box-shadow 320ms var(--ease), border-color 320ms var(--ease),
       background-color 320ms var(--ease);
+  }
+
+
+  .topics li[data-kind='collection'] .topic {
+    min-block-size: 96px;
+    background: color-mix(in srgb, var(--ch) 5%, #fff);
+    border-inline-start-width: 9px;
+  }
+
+  .topics li[data-kind='collection'] .topic-title {
+    font-size: clamp(1.35rem, 3vw, 2rem);
   }
 
   .topic:hover {

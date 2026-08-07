@@ -33,6 +33,10 @@ const site = 'https://jerusalem-virid.vercel.app';
 const canonical = `${site}${itemHref(grade.slug, item)}`;
 const copyTarget = item.url.startsWith('/') ? `${site}${item.url}` : item.url;
 const { prev, next } = itemNeighbours(grade, item.id);
+const chapterBackHref =
+  chapter.materials === false
+    ? (chapter.redirectHref ?? gradeMaterialsHref(grade.slug))
+    : chapterHref(grade.slug, chapter.id);
 const waText = `${item.title} — ${grade.title} — ${canonical}`;
 ---
 
@@ -46,7 +50,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
       { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
       { label: gradeLabel(grade), href: gradeHref(grade.slug) },
       { label: 'חומרים להוראה', href: gradeMaterialsHref(grade.slug) },
-      { label: chapter.title, href: chapterHref(grade.slug, chapter.id) },
+      { label: chapter.title, href: chapterBackHref },
       { label: item.title },
     ]}
   />
@@ -56,7 +60,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
       <p class="res-eyebrow">
         <a href={gradeHref(grade.slug)}>{gradeLabel(grade)}</a>
         <span aria-hidden="true">·</span>
-        <a href={chapterHref(grade.slug, chapter.id)}>{chapter.title}</a>
+        <a href={chapterBackHref}>{chapter.title}</a>
       </p>
 
       <h1 class="res-title">{item.title}</h1>
@@ -204,7 +208,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
         }
       </nav>
 
-      <a class="btn btn-ghost res-back" href={chapterHref(grade.slug, chapter.id)}>
+      <a class="btn btn-ghost res-back" href={chapterBackHref}>
         חזרה ל{chapter.title}
       </a>
     </aside>

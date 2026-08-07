@@ -2,8 +2,13 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * סוללת הקבלה (RULES §19, 21.16–21.17): דפדפן אמיתי, דסקטופ ומובייל,
- * מול build הפקה אמיתי (astro preview על dist).
+ * מול build הפקה אמיתי שמוגש ישירות מפלט אדפטר Vercel.
+ *
+ * PW_PORT מאפשר לריצת הסיום לבחור פורט פנוי ולא לבדוק בטעות שרת ישן.
  */
+const port = Number(process.env.PW_PORT ?? 4321);
+const baseURL = `http://127.0.0.1:${port}`;
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -11,14 +16,14 @@ export default defineConfig({
   reporter: [['list']],
   timeout: 45_000,
   use: {
-    baseURL: 'http://127.0.0.1:4321',
+    baseURL,
     trace: 'retain-on-failure',
   },
   webServer: {
-    // אדפטר Vercel אינו תומך ב-astro preview — מגישים את הפלט הסטטי ישירות
-    command: 'npm run serve:dist',
-    url: 'http://127.0.0.1:4321',
-    reuseExistingServer: !process.env.CI,
+    // אין למחזר שרת קיים: שרת ישן עלול לבדוק build שאינו שייך לעץ העבודה הנוכחי.
+    command: `npx serve .vercel/output/static -l ${port} --no-clipboard`,
+    url: baseURL,
+    reuseExistingServer: false,
     timeout: 60_000,
   },
   projects: [
