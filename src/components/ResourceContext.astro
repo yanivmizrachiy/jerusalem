@@ -2,10 +2,9 @@
 /**
  * משמר הקשר לעמוד משאב קנוני.
  *
- * משאב יכול להיות מוצב בכמה נושאים, אבל יש לו URL קנוני יחיד. כרטיס נושא
- * מוסיף `?from=<chapter>` בלבד; הרכיב מאמת שהמשאב באמת שייך לפרק הזה ואז
- * מעדכן את פירורי הלחם וכפתור החזרה בצד הלקוח. canonical ושיתוף נשארים
- * נקיים ויציבים בלי query string.
+ * משאב יכול להיות מוצב בכמה נושאים, אבל יש לו URL קנוני יחיד. ההקשר
+ * נשמר ב-sessionStorage רגע לפני הניווט, ובכניסה לעמוד מאומת שוב מול
+ * הפרקים שבהם המשאב באמת מפורסם. document.referrer הוא fallback טבעי.
  */
 import { chapterHref, type ChoveretGrade, type ChoveretItem } from '../data/choveret';
 
@@ -30,36 +29,78 @@ const contexts = grade.chapters
   }));
 ---
 
-<script is:inline define:vars={{ contexts }}>
-  (() => {
-    const from = new URL(location.href).searchParams.get('from');
-    if (!from) return;
-    const context = contexts.find((entry) => entry.id === from);
-    if (!context) return;
+<span hidden data-resource-contexts={JSON.stringify(contexts)}></span>
 
-    const page = document.querySelector('.res-page');
-    if (page instanceof HTMLElement) {
-      page.style.setProperty('--ch', context.color);
-      page.style.setProperty('--ch-dark', context.dark);
-      page.dataset.resourceContext = context.id;
+<script>
+  interface ResourceContextEntry {
+    id: string;
+    title: string;
+    href: string;
+    color: string;
+    dark: string;
+  }
+
+  const payload = document.querySelector<HTMLElement>('[data-resource-contexts]');
+  if (payload) {
+    let contexts: ResourceContextEntry[] = [];
+    try {
+      contexts = JSON.parse(payload.dataset.resourceContexts ?? '[]') as ResourceContextEntry[];
+    } catch {
+      contexts = [];
     }
 
-    const crumb = document.querySelector('.crumbs li:nth-last-child(2) a');
-    if (crumb instanceof HTMLAnchorElement) {
-      crumb.href = context.href;
-      crumb.textContent = context.title;
+    let referrerPath = '';
+    try {
+      referrerPath = document.referrer ? new URL(document.referrer).pathname : '';
+    } catch {
+      referrerPath = '';
     }
 
-    const eyebrow = document.querySelector('.res-eyebrow a:last-of-type');
-    if (eyebrow instanceof HTMLAnchorElement) {
-      eyebrow.href = context.href;
-      eyebrow.textContent = context.title;
+    const storageKey = `resource-context:${location.pathname}`;
+    let storedId = '';
+    try {
+      storedId = sessionStorage.getItem(storageKey) ?? '';
+    } catch {
+      storedId = '';
     }
 
-    const back = document.querySelector('.res-back');
-    if (back instanceof HTMLAnchorElement) {
-      back.href = context.href;
-      back.textContent = `חזרה ל${context.title}`;
+    // referrer עדיף על state ישן; בכל מקרה ההקשר נבחר רק מתוך allowlist
+    // שנגזר מהדאטה של המשאב והשכבה הנוכחיים.
+    const context =
+      contexts.find((entry) => entry.href === referrerPath) ??
+      contexts.find((entry) => entry.id === storedId);
+
+    if (context) {
+      try {
+        sessionStorage.setItem(storageKey, context.id);
+      } catch {
+        // אין תלות חובה ב-storage; העמוד עדיין תקין עם ההקשר ברירת המחדל.
+      }
+
+      const page = document.querySelector('.res-page');
+      if (page instanceof HTMLElement) {
+        page.style.setProperty('--ch', context.color);
+        page.style.setProperty('--ch-dark', context.dark);
+        page.dataset.resourceContext = context.id;
+      }
+
+      const crumb = document.querySelector('.crumbs li:nth-last-child(2) a');
+      if (crumb instanceof HTMLAnchorElement) {
+        crumb.href = context.href;
+        crumb.textContent = context.title;
+      }
+
+      const eyebrow = document.querySelector('.res-eyebrow a:last-of-type');
+      if (eyebrow instanceof HTMLAnchorElement) {
+        eyebrow.href = context.href;
+        eyebrow.textContent = context.title;
+      }
+
+      const back = document.querySelector('.res-back');
+      if (back instanceof HTMLAnchorElement) {
+        back.href = context.href;
+        back.textContent = `חזרה ל${context.title}`;
+      }
     }
-  })();
+  }
 </script>
