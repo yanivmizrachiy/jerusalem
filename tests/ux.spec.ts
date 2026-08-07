@@ -1154,10 +1154,28 @@ test('חוזר מפמ״ר: מסך מחולק 50/50 — החוזר מימין, ל
         )
     );
 
-    const view = (await page.locator('.res-view').boundingBox())!;
-    const panel = (await page.locator('.res-panel').boundingBox())!;
-    const shell = (await page.locator('#viewer-shell').boundingBox())!;
-    const frame = (await page.locator('#mafmar-frame').boundingBox())!;
+    // מדידה אטומית אחת (הוראת יניב, 06/08/2026). `.res-split` בעמוד הזה נושא
+    // `data-reveal`, שמנפיש על ההורה של שני החצאים `translateY(26px) → 0` למשך
+    // 700ms. ארבע קריאות `boundingBox()` נפרדות הן ארבע פניות פרוטוקול, ותחת
+    // `--workers=4` ההורה זז ביניהן — כך נולד הפרש מדומה של עד ~8px בין
+    // `view.y` ל-`panel.y` בלי שום תזוזה אמיתית בפריסה (נמדד: ההורה ב-
+    // `matrix(1,0,0,1,0,6.60–8.17)` ברגע המדידה; הכשלים היו 3.005 / 4.515 / 7.343).
+    // קריאה אחת מודדת את ארבעתן באותו frame, ולכן תזוזת ההורה משותפת ומתבטלת.
+    // הסובלנות נשארה `<= 3` — החוזה לא הוחלש, רק הוסר ארטיפקט הדגימה.
+    // אין להמתין ל-`document.getAnimations()` כאן: באתר יש אנימציות אינסופיות
+    // (`logo-spin`, פס התקדמות הגלילה, טבעת/הילת האורבים) וההמתנה לא תסתיים.
+    const { view, panel, shell, frame } = await page.evaluate(() => {
+      const rect = (sel: string) => {
+        const { x, y, width, height } = document.querySelector(sel)!.getBoundingClientRect();
+        return { x, y, width, height };
+      };
+      return {
+        view: rect('.res-view'),
+        panel: rect('.res-panel'),
+        shell: rect('#viewer-shell'),
+        frame: rect('#mafmar-frame'),
+      };
+    });
 
     // חצי-חצי מדויק: שתי העמודות שוות ברוחב ומתחילות באותו קו עליון
     expect(Math.abs(view.width - panel.width), `${size.width}: שני הצדדים שווים ברוחב`).toBeLessThanOrEqual(3);
@@ -1330,38 +1348,142 @@ test('חוזר מפמ״ר: ניגודיות AA בכיתובים הקטנים ו�
   expect(bad, 'כל כיתוב עובר את סף הניגודיות הנדרש').toEqual([]);
 });
 
-test('סרטון הפתיחה רץ בכל כניסה לעמוד הראשי, גם בחזרה מזיכרון הניווט (6.2)', async ({ page }) => {
-  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
-  await page.goto('/');
+/* ===== סרטון הפתיחה — פעם אחת בכל session של הטאב (6.2.1, 6.6) =====
+   מחליף את "רץ בכל כניסה" (06/08/2026): לאחר שנצפה, כל חזרה ל"ראשי" באותו
+   session מציגה מיד את מצב הצוות, בלי ניגון ובלי הבזק של הווידאו/ה-poster. */
 
-  const state = () =>
-    page.evaluate(() => {
-      const v = document.getElementById('hero-video') as HTMLVideoElement;
-      const m = document.getElementById('hero-media')!;
-      return {
-        t: v.currentTime,
-        ended: m.classList.contains('is-ended'),
-        ending: m.classList.contains('is-ending'),
-        done: document.documentElement.classList.contains('hero-done'),
-      };
-    });
+/* הבדיקות אינן מורידות ואינן מנגנות וידאו אמיתי: `play/pause/load` ממוקים
+   וסופרים קריאות, ובקשת ה-mp4 נחסמת. כך נבדק בדיוק מה שהחוזה דורש — **האם
+   נעשה ניסיון ניגון** — בלי תלות בפענוח מדיה, בלי הורדה, ובזמן קבוע.
+   שום assertion לא הוחלש: הדרישה "לא ינוגן" נמדדת ישירות במונה. */
+type HeroState = {
+  play: number; src: string; videoDisplay: string; ended: boolean;
+  done: boolean; seenClass: boolean; seenKey: string | null; afterOpacity: string;
+};
 
-  // הסרטון מתנגן בכניסה
-  await expect.poll(async () => (await state()).t, { message: 'הסרטון מתקדם בכניסה' }).toBeGreaterThan(0.1);
+const armHero = async (p: import('@playwright/test').Page) => {
+  await p.addInitScript(() => {
+    sessionStorage.setItem('ycc-splash', '1');
+    const w = window as unknown as { __heroPlay: number };
+    w.__heroPlay = 0;
+    const proto = HTMLMediaElement.prototype;
+    proto.play = function () {
+      w.__heroPlay += 1;
+      return Promise.resolve();
+    };
+    proto.pause = function () {};
+    proto.load = function () {};
+  });
+  await p.route('**/media/hero-*.mp4', (route) => route.abort());
+};
 
-  // מדמים את מה שקורה בחזרה מזיכרון הניווט: העמוד משוחזר קפוא בסוף הסרטון
-  await page.evaluate(() => {
-    const v = document.getElementById('hero-video') as HTMLVideoElement;
-    const m = document.getElementById('hero-media')!;
-    v.pause();
-    m.classList.add('is-ending', 'is-ended');
-    document.documentElement.classList.add('hero-done');
-    dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+const heroState = (p: import('@playwright/test').Page): Promise<HeroState> =>
+  p.evaluate(() => {
+    const v = document.getElementById('hero-video') as HTMLVideoElement | null;
+    const m = document.getElementById('hero-media');
+    const after = m?.querySelector('.hero-after') as HTMLElement | null;
+    return {
+      play: (window as unknown as { __heroPlay?: number }).__heroPlay ?? 0,
+      src: v ? v.getAttribute('src') || '' : '',
+      videoDisplay: v ? getComputedStyle(v).display : 'absent',
+      ended: !!m?.classList.contains('is-ended'),
+      done: document.documentElement.classList.contains('hero-done'),
+      seenClass: document.documentElement.classList.contains('hero-seen'),
+      seenKey: sessionStorage.getItem('jerusalem.heroSeen.v1'),
+      afterOpacity: after ? getComputedStyle(after).opacity : '0',
+    };
   });
 
-  const after = await state();
-  expect(after.ended, 'מצב הסיום נוקה — לא נוחתים ישר על הצוות').toBe(false);
-  expect(after.ending, 'גם הדעיכה אופסה').toBe(false);
-  expect(after.done, 'hero-done הוסר כדי שהפתיחה תתחיל מחדש').toBe(false);
-  await expect.poll(async () => (await state()).t, { message: 'הסרטון רץ שוב מההתחלה' }).toBeGreaterThan(0.1);
+const endHero = (p: import('@playwright/test').Page) =>
+  p.evaluate(() => document.getElementById('hero-video')!.dispatchEvent(new Event('ended')));
+
+test('סרטון הפתיחה: בכניסה ראשונה בטאב הוא רשאי לרוץ (6.2.1)', async ({ page }) => {
+  await armHero(page);
+  await page.goto('/');
+
+  const s = await heroState(page);
+  expect(s.seenKey, 'טאב חדש — המפתח עדיין ריק').toBeNull();
+  expect(s.src, 'נטען מקור וידאו אמיתי').toContain('/media/hero-');
+  expect(s.play, 'נעשה ניסיון ניגון').toBeGreaterThan(0);
+});
+
+test('סרטון הפתיחה: אחרי שנצפה, חזרה ל"ראשי" מציגה מיד את הצוות בלי ניגון (6.2.1)', async ({ page }) => {
+  await armHero(page);
+  await page.goto('/');
+  await endHero(page);
+  await expect.poll(async () => (await heroState(page)).seenKey, { message: 'הסיום נשמר' }).toBe('1');
+
+  // יוצאים לעמוד אחר וחוזרים ל"ראשי" — בדיוק התלונה של יניב
+  await page.goto('/shearim/');
+  await page.goto('/');
+
+  const s = await heroState(page);
+  expect(s.seenClass, 'hero-seen נקבע ב-bootstrap שלפני ה-paint').toBe(true);
+  expect(s.done, 'hero-done מיידי').toBe(true);
+  expect(s.ended, 'מצב הצוות מיד').toBe(true);
+  expect(s.afterOpacity, 'הצוות גלוי מיד ובלי דהייה').toBe('1');
+  expect(s.src, 'לא נטען src — אין בקשת וידאו כלל').toBe('');
+  expect(s.videoDisplay, 'הווידאו אינו מוצג — אין הבזק poster').toBe('none');
+  expect(s.play, 'לא נעשה שום ניסיון ניגון').toBe(0);
+});
+
+test('סרטון הפתיחה: רענון באותו session אינו מפעיל אותו מחדש (6.2.1)', async ({ page }) => {
+  await armHero(page);
+  await page.goto('/');
+  await endHero(page);
+  await expect.poll(async () => (await heroState(page)).seenKey).toBe('1');
+
+  await page.reload();
+
+  const s = await heroState(page);
+  expect(s.seenClass, 'גם אחרי reload — מצב נצפה').toBe(true);
+  expect(s.ended).toBe(true);
+  expect(s.src, 'אין טעינת וידאו ברענון').toBe('');
+  expect(s.play, 'אין ניגון ברענון').toBe(0);
+});
+
+test('סרטון הפתיחה: bfcache/history back אינם מאפסים אותו (6.2.1)', async ({ page }) => {
+  await armHero(page);
+  await page.goto('/');
+  await endHero(page);
+  await expect.poll(async () => (await heroState(page)).seenKey, { message: 'הסיום נשמר' }).toBe('1');
+  const before = (await heroState(page)).play;
+
+  // מדמים שחזור מזיכרון הניווט
+  await page.evaluate(() =>
+    dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))
+  );
+
+  const after = await heroState(page);
+  expect(after.ended, 'מצב הסיום לא נוקה').toBe(true);
+  expect(after.done, 'hero-done לא הוסר').toBe(true);
+  expect(after.play, 'לא נעשה ניסיון ניגון נוסף').toBe(before);
+});
+
+test('סרטון הפתיחה: Browser Context חדש רשאי להציג אותו שוב (6.2.1)', async ({ page, browser }) => {
+  await armHero(page);
+  await page.goto('/');
+  const base = new URL(page.url()).origin;
+  await endHero(page);
+  await expect.poll(async () => (await heroState(page)).seenKey).toBe('1');
+
+  const ctx = await browser.newContext({ baseURL: base });
+  const fresh = await ctx.newPage();
+  await armHero(fresh);
+  await fresh.goto('/');
+
+  const s = await heroState(fresh);
+  expect(s.seenKey, 'session חדש — המפתח ריק').toBeNull();
+  expect(s.src, 'נטען מקור וידאו בטאב החדש').toContain('/media/hero-');
+  expect(s.play, 'רץ שוב בטאב חדש').toBeGreaterThan(0);
+  await ctx.close();
+});
+
+test('סרטון הפתיחה: ה-bootstrap יושב ב-head לפני הגוף — אין הבזק (6.2.1)', async ({ page }) => {
+  const res = await page.request.get('/');
+  const html = await res.text();
+  const boot = html.indexOf('jerusalem.heroSeen.v1');
+  const body = html.indexOf('<body');
+  expect(boot, 'ה-bootstrap קיים ב-HTML המוגש').toBeGreaterThan(-1);
+  expect(boot, 'ה-bootstrap קודם ל-<body> — כלומר רץ לפני ה-paint').toBeLessThan(body);
 });

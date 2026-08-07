@@ -64,6 +64,19 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
         } catch {}
       });
     </script>
+    {/* סרטון הפתיחה — פעם אחת בכל session של הטאב (RULES 6.2.1, 6.6).
+        הבדיקה חייבת לרוץ **לפני ה-paint הראשון**: משתמש שכבר צפה בסרטון וחוזר
+        ל"ראשי" באותו session אמור לנחות ישר על מצב הצוות, בלי הבזק של הווידאו,
+        של ה-poster או של מצב הביניים. סקריפט בסוף הרכיב רץ מאוחר מדי — עד שהוא
+        פועל הדפדפן כבר צבע פריים אחד עם הווידאו. לכן זה יושב ב-<head>, לפני
+        הגוף, ומסמן את <html> בלבד; ה-CSS של HeroVideo נשען על הסימון הזה. */}
+    <script is:inline>
+      try {
+        if (sessionStorage.getItem('jerusalem.heroSeen.v1') === '1') {
+          document.documentElement.classList.add('hero-seen', 'hero-done');
+        }
+      } catch {}
+    </script>
     <slot name="head" />
   </head>
   <body>

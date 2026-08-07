@@ -66,7 +66,7 @@
 | שינוי ניווט עליון | `src/components/SiteHeader.astro` | מצב פעיל, יעדי מגע, גלישה צרה וקישורי עוגן |
 | שינוי תחתית האתר | `src/components/SiteFooter.astro` | פס כחול־כהה יחיד שסוגר את המסך (7.24): בלי ניווט תחתון ובלי "חזרה לראש העמוד"; הירוק של הווטסאפ צמוד לו דרך `main:has(> .wa-band-wrap:last-child) + .site-footer` |
 | שינוי הפס העליון והתאריך | `src/components/DateBar.astro` | אזור זמן ירושלים, עברי/לועזי, reduced motion ומובייל |
-| שינוי סרטון הפתיחה | `src/components/HeroVideo.astro` + `public/media/` | desktop/mobile, poster, preload, משקל, autoplay ו־reduced motion |
+| שינוי סרטון הפתיחה | `src/components/HeroVideo.astro` + `public/media/` | desktop/mobile, poster, preload, משקל, autoplay ו־reduced motion. **מלכודת:** הסרטון רץ **פעם אחת בכל session של הטאב** (RULES 6.2.1, 6.6) — המפתח `jerusalem.heroSeen.v1` ב-`sessionStorage`. הסימון לפני ה-paint נעשה ב-bootstrap שב-`<head>` של `Base.astro` ומוסיף `html.hero-seen`; סקריפט בסוף הרכיב מאוחר מדי ויגרום להבזק. **אסור** ש-`pageshow` עם `persisted` יאפס `is-ended`/`hero-done`/`currentTime` כשהמפתח קיים — זה בדיוק הבאג שגרם לסרטון לחזור בכל לחיצה על "ראשי" |
 | שינוי עמוד שכבה | `src/components/GradeIndex.astro` | סרגל הקפיצה הדביק, כרטיסי הקבצים, מעבר בין שכבות, מקלדת ומטרות מגע |
 | שינוי עמוד משאב | `src/components/ResourceSplit.astro` | חלוקת המסך, הטמעה עצלה, לוח פעולות, קודם/הבא, נייד ו־reduced motion. **שתי מלכודות מדודות:** `.res-panel` חייב להישאר נמוך מ-`.res-view` (כל שורה נוספת של אורבים מוסיפה ~120px), ואסור להנפיש `translate`/`transform` על `.res-panel` או `.res-view` — זה מזיז את התיבה הנמדדת ושובר את "אותו קו עליון" גם ב-`/hozer-mafmar/`, שחולק את אותן מחלקות |
 | שינוי צבעים/טיפוגרפיה | `src/styles/global.css` | ניגודיות, focus, RTL, כל רוחבי המסך ורגרסיה גלובלית |
