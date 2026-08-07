@@ -43,5 +43,7 @@ Desktop.ini
 *.tmp
 *.temp
 
-# Local Claude Code state
+# Local Claude Code state and migration evidence
 .claude/
+claude-evidence*/
+finish-materials-migration.ps1
