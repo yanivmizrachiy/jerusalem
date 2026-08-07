@@ -1,5 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { choveret, materialChapters, materialsConservationReport } from '../src/data/choveret';
+import {
+  sourceCatalogConservation,
+  sourceLinkLedger,
+  sourceMaterialResources,
+  sourceNoLinkRows,
+} from '../src/data/source-materials';
 
 /**
  * בדיקות הקבלה של תיקון ה-UX המלא (RULES 19.34, הוראת יניב 04–05/08/2026):
@@ -10,6 +17,73 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 // מצבי מסך נבדקים במפורש דרך setViewportSize בפרויקט הדסקטופ; אין צורך
 // בהרצה כפולה בפרופיל המובייל (מצב צר נבדק בבדיקה ייעודית)
 test.skip(({ isMobile }) => isMobile === true, 'רץ בפרויקט הדסקטופ עם viewports מפורשים');
+
+/* ===== קטלוג חומרי ההוראה ===== */
+
+test('קטלוג המקור נשמר במלואו ומדווח על כל חריגה', () => {
+  expect(sourceLinkLedger).toHaveLength(146);
+  expect(sourceMaterialResources).toHaveLength(145);
+  expect(sourceNoLinkRows).toHaveLength(8);
+  expect(sourceCatalogConservation.safeDuplicateMerges).toBe(1);
+  expect(sourceCatalogConservation.excludedFromTeachingMaterials).toBe(2);
+  expect(materialsConservationReport.finalCanonicalResourcesIncludingReview).toBeGreaterThan(145);
+});
+
+test('לכל שכבה רשימת נושאי־על ואוספים מדויקת — ללא פרקים מנהליים', () => {
+  const expected = {
+    z: [
+      'z-directed-numbers',
+      'z-coordinate-system',
+      'z-expressions',
+      'z-equations',
+      'z-percentages',
+      'z-order-operations',
+      'z-angles',
+      'z-areas-perimeters',
+      'z-box-cube',
+      'z-circle',
+    ],
+    h: [
+      'h-linear-function',
+      'h-equations',
+      'h-systems',
+      'h-percentages',
+      'h-inequalities',
+      'h-statistics',
+      'h-congruent',
+      'h-similar',
+      'h-parallel',
+      'h-areas-pythagoras',
+      'h-coordinate-geometry',
+      'h-angles',
+    ],
+    t: [
+      't-technique',
+      't-preanalysis',
+      't-quadratic',
+      't-literacy',
+      't-quadrilaterals',
+      't-kite',
+      't-trapezoid',
+      't-parallelogram',
+      't-rectangle-rhombus',
+      't-coordinate-geometry',
+      't-similarity-pythagoras',
+      't-proofs',
+    ],
+  } as const;
+
+  for (const grade of choveret) {
+    const chapters = materialChapters(grade);
+    const topicIds = chapters.filter((chapter) => chapter.kind === 'topic').map((chapter) => chapter.id);
+    expect(topicIds).toEqual(expected[grade.slug as keyof typeof expected]);
+
+    for (const required of ['mivchanim', 'sikumim', 'mischakim']) {
+      expect(chapters.some((chapter) => chapter.id === required), `${grade.slug}: ${required}`).toBe(true);
+    }
+    expect(chapters.some((chapter) => ['hozer', 'tichnun', 'yahal4', 'hamshech'].includes(chapter.id))).toBe(false);
+  }
+});
 
 /* ===== עמוד הבית ===== */
 
@@ -255,14 +329,45 @@ test('עמוד מבוא: מה אנחנו מלמדים, תוכנית ופריסה
   }
 });
 
-test('כיתה ט׳: הכפתורים הראשיים הם המסלול הראשי, והמצומצם נשמר בחומרים', async ({ page }) => {
+test('כיתה ט׳: הכפתורים הראשיים מקשרים לנתיבים הנכונים', async ({ page }) => {
   await page.goto('/chativat-beynayim/kita-t/');
-  await expect(page.locator('[data-main-plan]')).toHaveAttribute('href', /\/reader\/t\/tochnit-t\/$/);
-  await expect(page.locator('[data-main-prisa]')).toHaveAttribute('href', /\/reader\/t\/prisa-t\/$/);
-  await page.goto('/chativat-beynayim/nose/t/tichnun/');
-  for (const id of ['tochnit-t-m', 'prisa-t-m']) {
-    await expect(page.locator(`a.rcard[href="/chativat-beynayim/reader/t/${id}/"]`)).toHaveCount(1);
+  const plan = page.locator('[data-main-plan]');
+  await expect(plan).toBeVisible();
+  const href = await plan.getAttribute('href');
+  expect(href).toContain('/reader/t/tochnit-t/');
+  const prisa = page.locator('[data-main-prisa]');
+  await expect(prisa).toBeVisible();
+  const prisaHref = await prisa.getAttribute('href');
+  expect(prisaHref).toContain('/reader/t/prisa-t/');
+});
+
+test('האוספים הגדולים מוצגים בכל שכבה, ותנופה מופיע רק במבחנים של ט׳', async ({ page }) => {
+  const expectedTitles = {
+    z: ['מבחנים לכיתה ז׳', 'משימות סיכום לשכבת ז׳', 'משחקים לכיתה ז׳'],
+    h: ['מבחנים לכיתה ח׳', 'משימות סיכום לשכבת ח׳', 'משחקים לכיתה ח׳'],
+    t: ['מבחנים לכיתה ט׳', 'משימות סיכום לשכבת ט׳', 'משחקים לכיתה ט׳'],
+  } as const;
+
+  for (const slug of ['z', 'h', 't'] as const) {
+    await page.goto(`/chativat-beynayim/kita-${slug}/chomarim/`);
+    const titles = await page.locator('.topics .topic-title').allTextContents();
+    for (const title of expectedTitles[slug]) expect(titles).toContain(title);
+
+    const hrefs = await page
+      .locator('.topics .topic')
+      .evaluateAll((links) => links.map((link) => (link as HTMLAnchorElement).getAttribute('href') ?? ''));
+    expect(hrefs.some((href) => /\/(hozer|tichnun|yahal4|hamshech)\/$/.test(href))).toBe(false);
   }
+
+  await page.goto('/chativat-beynayim/nose/t/mivchanim/');
+  for (const id of ['mifrat-tnufa', 'tnufa-rama', 'tnufa-mankal', 'kvatzim-nosim']) {
+    await expect(page.locator(`a.rcard[href="/chativat-beynayim/reader/t/${id}/"]`), id).toHaveCount(1);
+  }
+
+  await page.goto('/chativat-beynayim/kita-t/chomarim/');
+  await expect(page.locator('.topics')).not.toContainText('הכנה ל־4 יח״ל');
+  const transition = await page.request.get('/chativat-beynayim/maavar-4-yahal/');
+  expect(transition.status()).toBe(200);
 });
 
 test('כל משימה בכל נושא בכל שכבה מובילה לעמוד משימה מחולק (3.30)', async ({ page }) => {
@@ -309,20 +414,18 @@ test('כל משימה בכל נושא בכל שכבה מובילה לעמוד מ
   }
 });
 
-test('משימת חוזר: עמוד משימה מחולק עם טווח העמודים — לא קפיצה לעמוד החוזר (3.30)', async ({ page }) => {
+test('משימת חוזר נשמרת במסלול הקנוני אך אינה מוצגת כנושא בחומרים (3.30)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/chativat-beynayim/nose/z/hozer/');
-
-  const maf = page.locator('a.rcard[href="/chativat-beynayim/reader/z/maf-05-z/"]');
-  await expect(maf).toHaveCount(1);
-  await maf.click();
-  await page.waitForURL('**/reader/z/maf-05-z/');
+  await page.goto('/chativat-beynayim/reader/z/maf-05-z/');
 
   await expect(page.locator('h1.res-title')).toHaveText('משימות הערכה ומבחן מפמ״ר ז׳');
   await expect(page.locator('.mrange')).toHaveCount(1);
   const view = (await page.locator('.res-view').boundingBox())!;
   const panel = (await page.locator('.res-panel').boundingBox())!;
   expect(Math.abs(view.width - panel.width), 'חצי-חצי').toBeLessThanOrEqual(1);
+
+  await page.goto('/chativat-beynayim/nose/z/hozer/');
+  await page.waitForURL('**/hozer-mafmar/');
 });
 
 test('יחידות ועמודים ייעודיים עברו לעמוד המבוא — ולא נמחקו (3.30)', async ({ page }) => {
@@ -409,19 +512,34 @@ test('עמוד משאב: חצי-חצי — הטמעה מימין, פעולות �
 });
 
 test('עמוד משאב: ניווט קודם/הבא בתוך השכבה וחזרה לפרק (5.12)', async ({ page }) => {
-  await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
+  // משאב חומרים אמיתי ומוצג — מספרים מכוונים בכיתה ז׳
+  await page.goto('/chativat-beynayim/reader/z/misparim/');
   const pager = page.locator('.res-pager a.pager-link');
   expect(await pager.count(), 'יש שכן אחד לפחות').toBeGreaterThan(0);
-  const href = await pager.first().getAttribute('href');
-  expect(href).toMatch(/^\/chativat-beynayim\/reader\/z\//);
-  // חזרה אל הנושא שממנו הגענו
-  await expect(page.locator('.res-back')).toHaveAttribute('href', /^\/chativat-beynayim\/nose\/z\/[a-z0-9-]+\/$/);
+  const hrefs = await pager.evaluateAll((links) =>
+    links.map((link) => link.getAttribute('href') ?? '')
+  );
+  for (const href of hrefs) {
+    expect(href, 'כל שכן הוא משאב בתוך אותה שכבה').toMatch(/^\/chativat-beynayim\/reader\/z\//);
+  }
+  // חזרה אל הנושא שממנו הגיע המשתמש
+  await expect(page.locator('.res-back')).toHaveAttribute(
+    'href',
+    '/chativat-beynayim/nose/z/z-directed-numbers/'
+  );
+});
+
+test('עמוד משאב מחוץ לסדר הקריאה: חזרה לאזור "מה אנחנו מלמדים?" (3.30)', async ({ page }) => {
+  // תוכנית ההוראה נמצאת באזור "מה אנחנו מלמדים?" — לא כנושא בחומרים,
+  // ולכן אין לה שכנים בסדר הקריאה של החומרים.
+  await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
+  await expect(page.locator('.res-back')).toHaveAttribute('href', '/chativat-beynayim/kita-z/#ma-melamdim');
 });
 
 test('עמוד משאב במסך רחב: פס גלילה אחד — העמוד עצמו אינו נגלל (הוראת יניב, 06/08)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   for (const route of [
-    '/chativat-beynayim/reader/z/misparim/', // אתר חי מוטמע — כאן נוצר פס הגלילה הכפול
+    '/chativat-beynayim/reader/z/misparim/', // אלגברה — סביבה אינטראקטיבית מוטמעת
     '/chativat-beynayim/reader/t/sheelot-t/', // מסמך
     '/chativat-beynayim/reader/z/maf-02/', // טווח מהחוזר
   ]) {
@@ -959,7 +1077,7 @@ for (const [w, h] of [
     await page.setViewportSize({ width: w, height: h });
     for (const route of [
       '/chativat-beynayim/reader/z/tochnit-z/', // PDF
-      '/chativat-beynayim/reader/z/misparim/', // אתר חי
+      '/chativat-beynayim/reader/z/misparim/', // אלגברה — פעילות אינטראקטיבית
       '/chativat-beynayim/reader/z/maf-02/', // מקטע מהחוזר
     ]) {
       await page.goto(route);
@@ -1022,7 +1140,7 @@ test('הטמעות אתר שלם גדולות ומרווחות — לא קורס
   await page.setViewportSize({ width: 1440, height: 900 });
   for (const [route, sel] of [
     ['/chativat-beynayim/', '.mam-frame'],
-    ['/chativat-beynayim/misparim-mechuvanim/', '.semb-frame'],
+    ['/chativat-beynayim/reader/z/misparim/', '.res-frame'],
   ] as const) {
     await page.goto(route);
     const frame = (await page.locator(sel).boundingBox())!;
@@ -1042,7 +1160,7 @@ test('כל ההטמעות חולקות את אותה מסגרת (.embed-frame) �
   for (const [route, sel] of [
     ['/chativat-beynayim/reader/z/tochnit-z/', '.res-frame'],
     ['/chativat-beynayim/', '.mam-frame'],
-    ['/chativat-beynayim/misparim-mechuvanim/', '.semb-frame'],
+    ['/chativat-beynayim/reader/z/misparim/', '.res-frame'],
     ['/hozer-mafmar/', '.viewer-shell'],
   ] as const) {
     await page.goto(route);

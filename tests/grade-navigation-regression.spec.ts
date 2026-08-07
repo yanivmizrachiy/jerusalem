@@ -9,13 +9,26 @@ test.describe('תיקוני ניווט בעמודי השכבות', () => {
     expect(current.pathname).toBe('/chativat-beynayim/kita-z/');
     expect(current.hash).toBe('#hamchashot');
 
-    await page.goto('/chativat-beynayim/kita-z/#tichnun', { waitUntil: 'domcontentloaded' });
+    // עוגן של פרק חומרים אמיתי — מספרים מכוונים בכיתה ז׳ — עובר לתצוגת החומרים
+    await page.goto('/chativat-beynayim/kita-z/#z-directed-numbers', { waitUntil: 'domcontentloaded' });
     await page.waitForURL(
-      (url) => url.pathname === '/chativat-beynayim/kita-z/chomarim/' && url.hash === '#tichnun'
+      (url) =>
+        url.pathname === '/chativat-beynayim/kita-z/chomarim/' && url.hash === '#z-directed-numbers'
     );
 
     current = new URL(page.url());
     expect(current.pathname).toBe('/chativat-beynayim/kita-z/chomarim/');
+    expect(current.hash).toBe('#z-directed-numbers');
+  });
+
+  test('עוגן של תכנון והוראה נשאר בעמוד המבוא — התוכנית אינה נושא בחומרים', async ({ page }) => {
+    // "תכנון והוראה" הוא פרק מנהלי: התוכנית והפריסה חיות ב"מה אנחנו מלמדים?"
+    // ולכן #tichnun אינו מופנה לתצוגת החומרים (RULES 3.30).
+    await page.goto('/chativat-beynayim/kita-z/#tichnun', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(250);
+
+    const current = new URL(page.url());
+    expect(current.pathname).toBe('/chativat-beynayim/kita-z/');
     expect(current.hash).toBe('#tichnun');
   });
 

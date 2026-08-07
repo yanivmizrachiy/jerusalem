@@ -1,0 +1,99 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import {
+  gradeHref,
+  itemHref,
+  kindLabel,
+  upperSecondaryTransitionItems,
+} from '../../data/choveret';
+---
+
+<Base
+  title="הכנה למעבר ל־4 יח״ל — כיתה ט׳ — מחוז ירושלים"
+  description="חומרי מעבר מכיתה ט׳ ללימודי 4 יח״ל בחטיבה העליונה, באזור נפרד מחומרי ההוראה של כיתה ט׳."
+>
+  <div class="container transition-page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
+        { label: 'כיתה ט׳', href: gradeHref('t') },
+        { label: 'הכנה למעבר ל־4 יח״ל' },
+      ]}
+    />
+
+    <header class="transition-head">
+      <p class="eyebrow">אזור מעבר נפרד</p>
+      <h1>הכנה למעבר ל־4 יח״ל</h1>
+      <p>
+        החומרים נשמרו במלואם, אך אינם מופיעים בתוך “חומרים להוראה” של כיתה ט׳.
+        הם מיועדים להכנה לקראת החטיבה העליונה.
+      </p>
+    </header>
+
+    <ul class="resources" aria-label="חומרי הכנה ל־4 יח״ל">
+      {
+        upperSecondaryTransitionItems.map((item) => (
+          <li>
+            <a href={itemHref('t', item)}>
+              <span class="kind">{kindLabel[item.kind]}</span>
+              <strong>{item.title}</strong>
+              <span>{item.note}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <a class="back" href={gradeHref('t')}>חזרה לכיתה ט׳</a>
+  </div>
+</Base>
+
+<style>
+  .transition-page { padding-block: 1.2rem 3rem; }
+  .transition-head { max-width: 850px; margin-block: 1rem 2rem; }
+  .eyebrow { margin: 0 0 0.35rem; color: var(--ink-faint); font-weight: 700; }
+  h1 {
+    margin: 0;
+    color: var(--navy);
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3.4rem);
+  }
+  .transition-head > p:last-child {
+    max-width: 72ch;
+    color: var(--ink-soft);
+    line-height: 1.75;
+  }
+  .resources {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.9rem;
+  }
+  .resources a {
+    display: grid;
+    gap: 0.35rem;
+    min-block-size: 88px;
+    padding: 1.2rem 1.35rem;
+    border: 1px solid var(--line);
+    border-inline-start: 7px solid var(--gold-deep);
+    border-radius: var(--radius-lg, 18px);
+    background: #fff;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .resources a:hover { border-color: var(--gold-deep); }
+  .resources strong { color: var(--navy); font-size: 1.2rem; }
+  .resources span:last-child { color: var(--ink-soft); line-height: 1.55; }
+  .kind { color: var(--ink-faint); font-size: 0.85rem; font-weight: 700; }
+  .back {
+    display: inline-flex;
+    margin-block-start: 2rem;
+    min-block-size: 44px;
+    align-items: center;
+    color: var(--navy);
+    font-weight: 700;
+  }
+</style>
