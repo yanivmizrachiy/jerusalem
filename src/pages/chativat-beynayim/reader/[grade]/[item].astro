@@ -2,21 +2,36 @@
 /**
  * עמוד המשאב הקנוני (RULES 8.2; הוראת יניב 05/08/2026): כתובת יציבה
  * לשיתוף לכל קובץ — המשאב מוטמע בצד אחד של המסך והפעולות בצד השני.
+ * פריט `needsReview` אינו מקבל route פומבי עד לאימות אנושי.
+ *
+ * `publicGrade` מסנן את ה-quarantine גם לפני חישוב קודם/הבא ב-ResourceSplit,
+ * כך שעמוד פומבי לעולם אינו מפנה לשכן שה-route שלו חסום.
  */
 import Base from '../../../../layouts/Base.astro';
+import ResourceContext from '../../../../components/ResourceContext.astro';
 import ResourceSplit from '../../../../components/ResourceSplit.astro';
+import { isPublishableMaterial } from '../../../../data/publishing';
 import { choveret, readerItems } from '../../../../data/choveret';
 
 export function getStaticPaths() {
-  return readerItems.map(({ grade, item }) => ({
-    params: { grade: grade.slug, item: item.id },
-    props: { gradeSlug: grade.slug, itemId: item.id },
-  }));
+  return readerItems
+    .filter(({ item }) => isPublishableMaterial(item))
+    .map(({ grade, item }) => ({
+      params: { grade: grade.slug, item: item.id },
+      props: { gradeSlug: grade.slug, itemId: item.id },
+    }));
 }
 
 const { gradeSlug, itemId } = Astro.props;
 const grade = choveret.find((g) => g.slug === gradeSlug)!;
-const chapter = grade.chapters.find((c) => c.items.some((i) => i.id === itemId))!;
+const publicGrade = {
+  ...grade,
+  chapters: grade.chapters.map((currentChapter) => ({
+    ...currentChapter,
+    items: currentChapter.items.filter(isPublishableMaterial),
+  })),
+};
+const chapter = publicGrade.chapters.find((c) => c.items.some((i) => i.id === itemId))!;
 const item = chapter.items.find((i) => i.id === itemId)!;
 
 // פריטי החוזר אינם נושאים note (הכותרת והטווח מדברים בעד עצמם), ובלי
@@ -26,5 +41,6 @@ const description =
 ---
 
 <Base title={`${item.title} — ${grade.title} — מחוז ירושלים`} description={description}>
-  <ResourceSplit grade={grade} chapter={chapter} item={item} />
+  <ResourceSplit grade={publicGrade} chapter={chapter} item={item} />
+  <ResourceContext grade={publicGrade} item={item} />
 </Base>

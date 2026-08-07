@@ -4,8 +4,13 @@
  * כל משימה היא כרטיס לחיץ אחד שמוביל לעמוד המשימה — הטמעה בצד אחד
  * ולוח פעולות בצד השני (8.2). בתחתית: מעבר לנושא הקודם/הבא באותה
  * שכבה (5.12) וחזרה לרשימת הנושאים.
+ *
+ * `needsReview` הוא quarantine: נשמר בקטלוג אך לעולם אינו נחשף כאן.
+ * למשאב רב־נושאי נשמר href קנוני נקי; הקשר הנושא נשמר מקומית רגע לפני
+ * הניווט, כדי לא ליצור כתובת קנונית נוספת ולא לשבור קישורים קיימים.
  */
 import Breadcrumbs from './Breadcrumbs.astro';
+import { publishableItems } from '../data/publishing';
 import {
   chapterHref,
   chapterNeighbours,
@@ -25,6 +30,7 @@ interface Props {
 
 const { grade, chapter } = Astro.props;
 const { prev, next } = chapterNeighbours(grade, chapter.id);
+const items = publishableItems(chapter.items);
 ---
 
 <div
@@ -44,15 +50,15 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
   <header class="chapter-head" data-reveal>
     <p class="chapter-eyebrow">{grade.title}</p>
     <h1 class="chapter-title">{chapter.title}</h1>
-    <p class="chapter-n">{chapter.items.length} משימות</p>
+    <p class="chapter-n">{items.length} משימות</p>
     <span class="chapter-rule" aria-hidden="true"></span>
   </header>
 
   <ul class="cards">
     {
-      chapter.items.map((item) => (
+      items.map((item) => (
         <li>
-          <a class="rcard" href={itemHref(grade.slug, item)}>
+          <a class="rcard" href={itemHref(grade.slug, item)} data-resource-context={chapter.id}>
             <span class="rcard-top">
               <span class="rcard-kind">{kindLabel[item.kind]}</span>
               <span class="rcard-go" aria-hidden="true">
@@ -78,11 +84,7 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
     <div class="chapter-sides">
       {
         prev ? (
-          <a
-            class="pager-link"
-            href={chapterHref(grade.slug, prev.id)}
-            style={`--p:${prev.color}`}
-          >
+          <a class="pager-link" href={chapterHref(grade.slug, prev.id)} style={`--p:${prev.color}`}>
             <span class="pager-tag">הנושא הקודם</span>
             <span class="pager-title">{prev.title}</span>
           </a>
@@ -92,11 +94,7 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
       }
       {
         next ? (
-          <a
-            class="pager-link"
-            href={chapterHref(grade.slug, next.id)}
-            style={`--p:${next.color}`}
-          >
+          <a class="pager-link" href={chapterHref(grade.slug, next.id)} style={`--p:${next.color}`}>
             <span class="pager-tag">הנושא הבא</span>
             <span class="pager-title">{next.title}</span>
           </a>
@@ -115,7 +113,6 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
   }
 
   .chapter-head { max-width: 820px; margin-block: 0.8rem 1.6rem; }
-
   .chapter-eyebrow { margin: 0 0 0.3rem; color: var(--ink-faint); font-size: 0.95rem; font-weight: 600; }
 
   .chapter-title {
@@ -163,7 +160,6 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
     transition: transform 320ms var(--ease-lift), box-shadow 320ms var(--ease), border-color 320ms var(--ease);
   }
 
-  /* חוט הצבע של הנושא על קצה הכרטיס */
   .rcard::before {
     content: '';
     position: absolute;
@@ -181,7 +177,6 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
   }
 
   .rcard:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-
   .rcard-top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
 
   .rcard-kind {
@@ -197,7 +192,6 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
   .rcard-go { color: var(--ch-dark); opacity: 0.65; transition: translate 320ms var(--ease), opacity 320ms var(--ease); }
   .rcard-go svg { inline-size: 28px; block-size: auto; display: block; }
   .rcard:hover .rcard-go { translate: -6px 0; opacity: 1; }
-
   .rcard-title { font-family: var(--font-display); font-size: 1.08rem; line-height: 1.35; color: var(--navy); }
 
   .rcard-note {
@@ -213,7 +207,6 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
 
   .rcard-source { color: var(--ink-faint); font-size: 0.78rem; margin-block-start: auto; padding-block-start: 0.3rem; }
 
-  /* ===== ניווט בין הנושאים ===== */
   .chapter-nav {
     display: flex;
     flex-wrap: wrap;
@@ -244,7 +237,6 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
 
   .pager-link:hover { border-color: color-mix(in srgb, var(--p) 45%, var(--line)); }
   .pager-link:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-
   .pager-tag { font-size: 0.78rem; font-weight: 700; color: var(--gold-deep); }
   .pager-title { font-weight: 600; }
   .pager-spacer { display: none; }
@@ -261,3 +253,18 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
     .rcard:hover .rcard-go { translate: 0; }
   }
 </style>
+
+<script>
+  document.querySelectorAll<HTMLAnchorElement>('a.rcard[data-resource-context]').forEach((link) => {
+    link.addEventListener('click', () => {
+      const contextId = link.dataset.resourceContext;
+      if (!contextId) return;
+      try {
+        const target = new URL(link.href, location.href);
+        sessionStorage.setItem(`resource-context:${target.pathname}`, contextId);
+      } catch {
+        // sessionStorage חסום/לא זמין — ה-referrer בעמוד היעד עדיין משמש fallback.
+      }
+    });
+  });
+</script>
