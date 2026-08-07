@@ -2,8 +2,11 @@ import { expect, test } from '@playwright/test';
 import {
   chapterHref,
   choveret,
+  itemHref,
   legacyNeedsReviewItems,
   materialChapters,
+  type ChoveretGrade,
+  type ChoveretItem,
 } from '../src/data/choveret';
 import { publishableItems } from '../src/data/publishing';
 import {
@@ -80,17 +83,43 @@ test('needsReview אינו מקבל route reader פומבי', async ({ request }
 });
 
 test('multi-placement: canonical נשאר יחיד אבל חזרה זוכרת את הנושא שממנו נפתח המשאב', async ({ page }) => {
-  const itemId = 'src-curriculum-d45210f8a97c';
-  const chapterId = 'z-expressions';
-  const chapterPath = `/chativat-beynayim/nose/z/${chapterId}/`;
+  type Placement = {
+    grade: ChoveretGrade;
+    item: ChoveretItem;
+    chapterIds: string[];
+  };
+
+  const placements = new Map<string, Placement>();
+  for (const grade of choveret) {
+    for (const chapter of materialChapters(grade)) {
+      for (const item of publishableItems(chapter.items)) {
+        const href = itemHref(grade.slug, item);
+        if (!href.startsWith(`/chativat-beynayim/reader/${grade.slug}/`)) continue;
+        const key = `${grade.slug}:${item.id}`;
+        const current = placements.get(key) ?? { grade, item, chapterIds: [] };
+        if (!current.chapterIds.includes(chapter.id)) current.chapterIds.push(chapter.id);
+        placements.set(key, current);
+      }
+    }
+  }
+
+  const candidate = [...placements.values()].find((entry) => entry.chapterIds.length > 1);
+  expect(candidate, 'בקטלוג קיים לפחות משאב פומבי אחד שמוצב ביותר מנושא אחד').toBeTruthy();
+
+  const { grade, item, chapterIds } = candidate!;
+  // בוחרים בכוונה placement שאינו הראשון — כדי להוכיח שהעמוד לא נופל
+  // אוטומטית להקשר ברירת המחדל של אותו משאב.
+  const chapterId = chapterIds[1];
+  const chapterPath = chapterHref(grade.slug, chapterId);
+  const readerPath = itemHref(grade.slug, item);
 
   await page.goto(chapterPath);
-  const card = page.locator(`a.rcard[href*="/reader/z/${itemId}/"]`);
+  const card = page.locator(`a.rcard[href="${readerPath}"]`);
   await expect(card).toHaveCount(1);
-  await expect(card).toHaveAttribute('href', new RegExp(`/reader/z/${itemId}/\\?from=${chapterId}$`));
+  await expect(card).toHaveAttribute('data-resource-context', chapterId);
 
   await card.click();
-  await page.waitForURL((url) => url.pathname === `/chativat-beynayim/reader/z/${itemId}/` && url.searchParams.get('from') === chapterId);
+  await page.waitForURL((url) => url.pathname === readerPath && url.search === '');
 
   await expect(page.locator('.res-page')).toHaveAttribute('data-resource-context', chapterId);
   await expect(page.locator('.res-back')).toHaveAttribute('href', chapterPath);
@@ -98,5 +127,5 @@ test('multi-placement: canonical נשאר יחיד אבל חזרה זוכרת א
   await expect(page.locator('.crumbs li:nth-last-child(2) a')).toHaveAttribute('href', chapterPath);
 
   const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
-  expect(canonical, 'canonical לא מקבל את פרמטר ההקשר').not.toContain('?from=');
+  expect(canonical, 'canonical נשאר URL יחיד בלי state ניווט').toBe(`https://jerusalem-virid.vercel.app${readerPath}`);
 });
