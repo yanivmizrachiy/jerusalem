@@ -2,13 +2,15 @@ import { expect, test } from '@playwright/test';
 import {
   chapterHref,
   choveret,
+  gradeHref,
   itemHref,
+  itemNeighbours,
   legacyNeedsReviewItems,
   materialChapters,
   type ChoveretGrade,
   type ChoveretItem,
 } from '../src/data/choveret';
-import { publishableItems } from '../src/data/publishing';
+import { publishableItems, publishedGradeCount } from '../src/data/publishing';
 import {
   sourceMaterialPlacements,
   sourceMaterialResources,
@@ -20,6 +22,12 @@ import {
  * אין כאן הבדל device; בדיקות ה-UI הממוקדות בהמשך רצות בדפדפן דסקטופ אחד.
  */
 test.skip(({ isMobile }) => isMobile === true, 'בדיקת integrity אחת מספיקה — הנתונים זהים בכל device');
+
+const reviewIds = () =>
+  new Set([
+    ...sourceNeedsReviewResources.map((resource) => resource.id),
+    ...legacyNeedsReviewItems.map((resource) => resource.id),
+  ]);
 
 test('קטלוג המקור: מזהים ייחודיים וכל placement מצביע למשאב ולפרק אמיתיים', () => {
   const byId = new Map(sourceMaterialResources.map((resource) => [resource.id, resource]));
@@ -45,11 +53,8 @@ test('קטלוג המקור: מזהים ייחודיים וכל placement מצב
 });
 
 test('needsReview נשמר בקטלוג אך אינו מופיע בכרטיסי החומרים', async ({ page }) => {
-  const reviewIds = new Set([
-    ...sourceNeedsReviewResources.map((resource) => resource.id),
-    ...legacyNeedsReviewItems.map((resource) => resource.id),
-  ]);
-  expect(reviewIds.size, 'יש quarantine אמיתי לבדיקה').toBeGreaterThan(0);
+  const quarantined = reviewIds();
+  expect(quarantined.size, 'יש quarantine אמיתי לבדיקה').toBeGreaterThan(0);
 
   for (const grade of choveret) {
     for (const chapter of materialChapters(grade)) {
@@ -59,7 +64,7 @@ test('needsReview נשמר בקטלוג אך אינו מופיע בכרטיסי 
       await expect(cards, `${grade.slug}/${chapter.id}: מספר הכרטיסים הפומביים`).toHaveCount(expectedVisible.length);
 
       const hrefs = await cards.evaluateAll((anchors) => anchors.map((anchor) => (anchor as HTMLAnchorElement).href));
-      for (const reviewId of reviewIds) {
+      for (const reviewId of quarantined) {
         expect(hrefs.some((href) => href.includes(`/reader/${grade.slug}/${reviewId}/`)), `${reviewId} אינו פומבי`).toBe(false);
       }
     }
@@ -67,18 +72,67 @@ test('needsReview נשמר בקטלוג אך אינו מופיע בכרטיסי 
 });
 
 test('needsReview אינו מקבל route reader פומבי', async ({ request }) => {
-  const reviewIds = new Set([
-    ...sourceNeedsReviewResources.map((resource) => resource.id),
-    ...legacyNeedsReviewItems.map((resource) => resource.id),
-  ]);
+  const quarantined = reviewIds();
 
   for (const grade of choveret) {
     const rawIds = new Set(grade.chapters.flatMap((chapter) => chapter.items.map((item) => item.id)));
-    for (const reviewId of reviewIds) {
+    for (const reviewId of quarantined) {
       if (!rawIds.has(reviewId)) continue;
       const response = await request.get(`/chativat-beynayim/reader/${grade.slug}/${reviewId}/`, { maxRedirects: 0 });
       expect(response.status(), `${grade.slug}/${reviewId}: route של quarantine אינו נבנה`).toBe(404);
     }
+  }
+});
+
+test('כל המונים הציבוריים סופרים רק חומרים שפורסמו', async ({ page }) => {
+  await page.goto('/chativat-beynayim/');
+  for (const grade of choveret) {
+    const expected = publishedGradeCount(grade);
+    await expect(
+      page.locator(`a.third[href="${gradeHref(grade.slug)}"] .third-count`),
+      `שער חטיבת הביניים — ${grade.slug}`
+    ).toContainText(`${expected} קבצים, קישורים ופעילויות`);
+  }
+
+  for (const grade of choveret) {
+    const expected = publishedGradeCount(grade);
+    await page.goto(gradeHref(grade.slug));
+    await expect(page.locator('.band-materials .band-count'), `עמוד מבוא שכבה — ${grade.slug}`).toContainText(
+      `${expected} קבצים, קישורים ופעילויות`
+    );
+  }
+});
+
+test('pager של משאב פומבי אינו יכול להפנות למשאב quarantine', async ({ page }) => {
+  const quarantined = reviewIds();
+  let candidate: { grade: ChoveretGrade; item: ChoveretItem } | undefined;
+
+  for (const grade of choveret) {
+    const seen = new Set<string>();
+    for (const chapter of materialChapters(grade)) {
+      for (const item of publishableItems(chapter.items)) {
+        if (seen.has(item.id) || item.pageHref) continue;
+        seen.add(item.id);
+        const raw = itemNeighbours(grade, item.id);
+        if ([raw.prev, raw.next].some((entry) => entry?.item.needsReview === true)) {
+          candidate = { grade, item };
+          break;
+        }
+      }
+      if (candidate) break;
+    }
+    if (candidate) break;
+  }
+
+  expect(candidate, 'יש לפחות מקרה שבו סדר הקטלוג הגולמי סמוך ל-needsReview').toBeTruthy();
+  const readerPath = itemHref(candidate!.grade.slug, candidate!.item);
+  await page.goto(readerPath);
+
+  const pagerHrefs = await page
+    .locator('.res-pager a.pager-link')
+    .evaluateAll((anchors) => anchors.map((anchor) => (anchor as HTMLAnchorElement).getAttribute('href') ?? ''));
+  for (const reviewId of quarantined) {
+    expect(pagerHrefs.some((href) => href.includes(`/reader/${candidate!.grade.slug}/${reviewId}/`)), `${reviewId} לא מופיע ב-pager`).toBe(false);
   }
 });
 
