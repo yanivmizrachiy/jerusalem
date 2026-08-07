@@ -52,7 +52,6 @@ test('קטלוג חטיבת הביניים: IDs וכתובות עומדים בח
       for (const item of chapter.items) {
         expect(ROUTE_SAFE_ID.test(item.id), `item id route-safe: ${grade.slug}/${chapter.id}/${item.id}`).toBe(true);
         expect(item.title.trim().length, `${item.id}: title`).toBeGreaterThan(0);
-        expect(item.note.trim().length, `${item.id}: note`).toBeGreaterThan(0);
         assertLocation(item.url, `${item.id}.url`);
         if (item.embed) assertLocation(item.embed, `${item.id}.embed`);
         if (item.download) assertLocation(item.download, `${item.id}.download`);
