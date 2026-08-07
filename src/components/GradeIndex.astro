@@ -8,14 +8,18 @@
  */
 import Breadcrumbs from './Breadcrumbs.astro';
 import GradeNav from './GradeNav.astro';
-import { chapterHref, gradeCounts, gradeHref, gradeLabel, materialChapters, type ChoveretGrade } from '../data/choveret';
+import { publishableItems, publishedGradeCount } from '../data/publishing';
+import { chapterHref, gradeHref, gradeLabel, materialChapters, type ChoveretGrade } from '../data/choveret';
 
 interface Props {
   grade: ChoveretGrade;
 }
 
 const { grade } = Astro.props;
-const chapters = materialChapters(grade);
+const chapters = materialChapters(grade)
+  .map((chapter) => ({ chapter, count: publishableItems(chapter.items).length }))
+  .filter(({ count }) => count > 0);
+const publishedCount = publishedGradeCount(grade);
 ---
 
 <div class="container grade-page" style={`--grade:${grade.color}; --grade-dark:${grade.dark}`}>
@@ -30,19 +34,19 @@ const chapters = materialChapters(grade);
 
   <header class="grade-head" data-reveal>
     <h1 class="grade-title">{grade.title}</h1>
-    <p class="grade-count">{chapters.length} נושאים ואוספים · {gradeCounts[grade.slug]} משאבים קנוניים</p>
+    <p class="grade-count">{chapters.length} נושאים ואוספים · {publishedCount} משאבים קנוניים</p>
     <span class="grade-rule" aria-hidden="true"></span>
   </header>
 
   <ul class="topics" aria-label="נושאי הלימוד">
     {
-      chapters.map((ch) => (
+      chapters.map(({ chapter: ch, count }) => (
         <li id={ch.id} data-kind={ch.kind ?? 'topic'} style={`--ch:${ch.color}; --ch-dark:${ch.dark}`}>
           <a class="topic" href={chapterHref(grade.slug, ch.id)}>
             <span class="topic-dot" aria-hidden="true" />
             <span class="topic-text">
               <span class="topic-title">{ch.title}</span>
-              <span class="topic-n">{ch.items.length} משימות</span>
+              <span class="topic-n">{count} משימות</span>
             </span>
             <span class="topic-go" aria-hidden="true">
               <svg viewBox="0 0 34 12" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -84,7 +88,6 @@ const chapters = materialChapters(grade);
     background: linear-gradient(90deg, var(--grade), color-mix(in srgb, var(--gold) 70%, transparent));
   }
 
-  /* ===== רשימת הנושאים — המסך הראשון, ורק היא ===== */
   .topics {
     list-style: none;
     margin: 0;
@@ -111,7 +114,6 @@ const chapters = materialChapters(grade);
     transition: transform 320ms var(--ease-lift), box-shadow 320ms var(--ease), border-color 320ms var(--ease),
       background-color 320ms var(--ease);
   }
-
 
   .topics li[data-kind='collection'] .topic {
     min-block-size: 96px;
@@ -163,7 +165,6 @@ const chapters = materialChapters(grade);
   .topic-go svg { inline-size: 34px; block-size: auto; display: block; }
   .topic:hover .topic-go { translate: -8px 0; opacity: 1; }
 
-  /* ===== כל השאר — ממש למטה ===== */
   .grade-tail { margin-block-start: clamp(5rem, 18vh, 11rem); }
 
   @media (prefers-reduced-motion: reduce) {
