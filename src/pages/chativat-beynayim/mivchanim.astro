@@ -1,30 +1,7 @@
 ---
 /**
- * העמוד המרוכז של המבחנים הוחלף בפרקי "דפי הנוסחאות הרשמיים" ו"מבחן
- * דמוי מיצ״ב והנחיות" שבעמוד "משותף לכל השכבות"
- * (RULES 1.10, 3.13, 3.29 — הוראת יניב, 05/08/2026). הכתובת הישנה
- * נשארת חיה לקישורים ששותפו, ומפנה מיידית לעמוד החדש.
+ * כתובת legacy שנשמרת לקישורים ישנים. חומרי הבחינות נמצאים כיום
+ * בפרק המבחנים של כיתה ח׳, ולכן השרת מפנה לשם ב-301 אמיתי.
  */
-const target = '/chativat-beynayim/nose/h/mivchanim/';
+return Astro.redirect('/chativat-beynayim/nose/h/mivchanim/', 301);
 ---
-
-<!doctype html>
-<html lang="he" dir="rtl">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>החומרים עברו לעמוד המשותף — מחוז ירושלים</title>
-    <meta name="robots" content="noindex" />
-    <link rel="canonical" href="https://jerusalem-virid.vercel.app/chativat-beynayim/" />
-    <meta http-equiv="refresh" content={`0;url=${target}`} />
-    <script is:inline define:vars={{ target }}>
-      location.replace(target);
-    </script>
-  </head>
-  <body>
-    <p style="font-family: system-ui, sans-serif; padding: 2rem; text-align: center;">
-      חומרי הבחינות וההערכה עברו לעמוד המבחנים של כיתה ח׳ —
-      <a href={target}>מעבר מיידי</a>
-    </p>
-  </body>
-</html>
