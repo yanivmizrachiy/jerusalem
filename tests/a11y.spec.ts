@@ -16,7 +16,7 @@ const pages = [
 ];
 
 for (const route of pages) {
-  test(`axe נקי (serious+critical): ${route}`, async ({ page }) => {
+  test(`axe נקי לפי WCAG 2.2 AA: ${route}`, async ({ page }) => {
     await page.goto(route);
     await page.waitForLoadState('networkidle').catch(() => {});
     const results = await new AxeBuilder({ page })
@@ -25,12 +25,11 @@ for (const route of pages) {
       .exclude('iframe')
       .analyze();
 
-    const severe = results.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
-    );
-    const detail = severe
-      .map((v) => `${v.id}: ${v.nodes.length} nodes (${v.nodes[0]?.target})`)
+    // WCAG conformance נקבע לפי הכלל שנכשל, לא לפי דירוג impact של axe.
+    // לכן כל violation תחת תגיות ה-AA שבחרנו הוא כשל build, גם אם impact=moderate/minor.
+    const detail = results.violations
+      .map((v) => `${v.id} [${v.impact ?? 'unknown'}]: ${v.nodes.length} nodes (${v.nodes[0]?.target})`)
       .join('\n');
-    expect(severe, detail).toHaveLength(0);
+    expect(results.violations, detail).toHaveLength(0);
   });
 }
