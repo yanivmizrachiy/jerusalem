@@ -11,9 +11,9 @@
 - **[Astro](https://astro.build) 7** — אתר סטטי (`output: 'static'`) עם אדפטר Vercel;
   שני מסלולי שרת בלבד (`prerender = false`) — נקודות הפרוקסי.
 - **Playwright** — סוללת קבלה מלאה (דסקטופ + מובייל) מול build הפקה אמיתי,
-  כולל בדיקות נגישות (axe), רספונסיביות ואינטראקציות ליבה.
-- **GitHub Actions** — שער איכות על כל push ו־PR: ‏`astro check` ‏→ build ‏→ הסוללה המלאה.
-- **Vercel** — פריסה אוטומטית מ־main.
+  כולל בדיקות נגישות (axe), רספונסיביות ואינטראקציות ליבה; שער הקבלה רץ עם `retries=0`.
+- **GitHub Actions** — שער איכות על כל push ו־PR דרך אותה פקודה מקומית: `npm run quality`.
+- **Vercel** — פריסה אוטומטית מ־main; `verify:deploy` מאמת את הקומיט החי רק אחרי `quality` ירוק.
 
 ## פקודות
 
@@ -23,7 +23,10 @@
 | `npm run dev` | שרת פיתוח (פורט 4322, או `PORT` מהסביבה) |
 | `npm run build` | build הפקה אל `dist/` + ‏`.vercel/output/` |
 | `npm run check` | ‏typecheck של כל קבצי ה־Astro |
-| `npm test` | סוללת הקבלה המלאה (דורש build קודם; מגישה את הפלט הסטטי על פורט 4321) |
+| `npm test` | סוללת הקבלה המלאה מול build קיים, ללא retries |
+| `npm run audit:repo` | סריקת זבל מנוהל, סודות, סמני conflict והתנגשויות נתיבים |
+| `npm run quality` | שער סיום יחיד: repo-health → check → build → Playwright `retries=0`, עם פורט פנוי אוטומטי |
+| `npm run verify:deploy` | אימות פרודקשן: commit, מסלולים קנוניים, redirects וסמנים חיים |
 
 ## מבנה
 
@@ -38,6 +41,7 @@ src/
   data/        התוכן כ-TypeScript מוקלד: משאבים, צוות, שכבות חט״ב, יחידות, הודעות
   layouts/     Base.astro — SEO, canonical, פונטים, RTL
   lib/         proxyGuard — משמר זמן-הריצה של ההטמעות
+scripts/       שערי quality, repo-health ואימות פרודקשן
 tests/         סוללת הקבלה: site, ux, interactions, responsive, a11y,
                embed-production-guards, grade-navigation-regression
 public/        מדיה, מסמכי PDF קנוניים, פונטים, robots.txt
@@ -56,8 +60,8 @@ RECOVERY/      מסמכי ביקורת ושחזור
 
 1. **RULES.md היא המקור המחייב** — כל שינוי חייב לכבד את הסעיפים הממוספרים,
    וסטייה מתועדת שם לפני המיזוג.
-2. **אפס רגרסיות** — שער האיכות (`astro check`, ‏build וסוללת Playwright המלאה)
-   חייב להיות ירוק לפני כל מיזוג ל־main; הבדיקות בודקות התנהגות אמיתית, לא הנחות.
+2. **אפס רגרסיות** — `npm run quality` הוא חוזה הסיום המקומי וה־CI: repo-health,
+   typecheck, build וסוללת Playwright מלאה עם `retries=0`. הוא חייב להיות ירוק לפני כל מיזוג ל־main.
 3. **התוכן חי ב־`src/data/`** — עדכוני משאבים, צוות והודעות נעשים שם, לא ב־HTML.
 4. **מסמכי ההקשר כפופים למקורות האמת** — `CLAUDE.md` ו־`docs/PROJECT_CONTEXT.md`
    מסייעים להתמצאות, אך אינם רשאים לסתור את `RULES.md`, את הקוד הפעיל או את הבדיקות.

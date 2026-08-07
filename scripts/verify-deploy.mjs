@@ -1,13 +1,13 @@
 /**
  * אימות פריסה אמיתי (RULES 1.14, 4.6): לא "כנראה נפרס" — אלא הוכחה.
  *
- * שלב א׳: ממתין עד שהפרודקשן מגיש את חותם הבנייה של הקומיט שנמזג
- *         (<meta name="build-commit">, מוזרק מ-VERCEL_GIT_COMMIT_SHA).
- * שלב ב׳: מוודא שכל המסלולים הקנוניים מחזירים 200 ושהסמנים המחייבים
- *         של החוברת, הלוח והעמוד הראשי באמת נמצאים ב-HTML החי.
+ * שלב א׳: ממתין עד שהפרודקשן מגיש את חותם הבנייה של הקומיט שנמזג.
+ * שלב ב׳: מוודא שמסלולים קנוניים מחזירים 200, מסלולי תאימות מחזירים
+ *         redirect אמיתי, והסמנים המחייבים קיימים ב-markup החי.
+ * שלב ג׳: בודק אינווריאנטים מבניים מרכזיים ולא רק נוכחות מחרוזות.
  *
- * שימוש:  node scripts/verify-deploy.mjs [--sha <7 תווים>] [--base <url>]
- * יציאה 0 = הפריסה אומתה; יציאה 1 = לא אומתה (חוסם דיווח הצלחה).
+ * שימוש: node scripts/verify-deploy.mjs [--sha <7 תווים>] [--base <url>]
+ * יציאה 0 = הפריסה אומתה; יציאה 1 = לא אומתה.
  */
 
 const args = process.argv.slice(2);
@@ -20,7 +20,7 @@ const BASE = (argOf('base', process.env.VERIFY_BASE_URL ?? 'https://jerusalem-vi
 const SHA = (argOf('sha', process.env.VERIFY_SHA ?? '')).slice(0, 7);
 const TIMEOUT_MS = Number(argOf('timeout', '300')) * 1000;
 
-/** המסלולים שחייבים לחיות אחרי כל פריסה */
+/** מסלולים קנוניים שחייבים להחזיר 200 אחרי כל פריסה */
 const ROUTES = [
   '/',
   '/shearim/',
@@ -35,17 +35,27 @@ const ROUTES = [
   '/chativat-beynayim/kita-z/chomarim/',
   '/chativat-beynayim/kita-h/chomarim/',
   '/chativat-beynayim/kita-t/chomarim/',
-  '/chativat-beynayim/nose/z/tichnun/',
+  '/chativat-beynayim/nose/z/z-directed-numbers/',
   '/chativat-beynayim/reader/z/tochnit-z/',
+];
+
+/** מסלולי תאימות שאסור להסוות כ-200 באמצעות follow */
+const REDIRECTS = [
+  {
+    path: '/chativat-beynayim/nose/z/tichnun/',
+    status: 301,
+    target: '/chativat-beynayim/kita-z/#ma-melamdim',
+    what: 'פרק התכנון המנהלי נשאר מחוץ לחומרים',
+  },
 ];
 
 /** סמנים מחייבים: אם אחד מהם נעלם — רגרסיה שקטה בפרודקשן */
 const MARKERS = [
   { path: '/chativat-beynayim/', needle: 'split3', what: 'מסך השלישים של חטיבת הביניים (3.26)' },
-  { path: '/chativat-beynayim/kita-z/', needle: 'מה אנחנו מלמדים?', what: 'אזור המבוא של השכבה (הוראת יניב 06/08)' },
+  { path: '/chativat-beynayim/kita-z/', needle: 'מה אנחנו מלמדים?', what: 'אזור המבוא של השכבה (06/08)' },
   { path: '/chativat-beynayim/kita-z/', needle: 'חומרים להוראה', what: 'אזור החומרים בעמוד המבוא (06/08)' },
   { path: '/chativat-beynayim/kita-z/chomarim/', needle: 'class="topics"', what: 'רשימת הנושאים בתצוגת החומרים (3.29)' },
-  { path: '/chativat-beynayim/nose/z/tichnun/', needle: 'class="rcard"', what: 'כרטיסי הקבצים בעמוד הנושא (3.29)' },
+  { path: '/chativat-beynayim/nose/z/z-directed-numbers/', needle: 'class="rcard"', what: 'כרטיסי קבצים בנושא לימודי אמיתי (3.29)' },
   { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'res-panel', what: 'לוח הפעולות בעמוד המשאב (3.29, 8.2)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
@@ -53,15 +63,30 @@ const MARKERS = [
   { path: '/shearim/', needle: 'split-rule', what: 'המסך המחולק חצי-חצי בבחירת החטיבה (7.29)' },
 ];
 
-const get = async (path) => {
-  const res = await fetch(BASE + path, { redirect: 'follow', headers: { 'cache-control': 'no-cache' } });
-  return { status: res.status, html: await res.text() };
+const get = async (path, redirect = 'follow') => {
+  const res = await fetch(BASE + path, {
+    redirect,
+    headers: { 'cache-control': 'no-cache' },
+  });
+  return {
+    status: res.status,
+    html: await res.text(),
+    location: res.headers.get('location') ?? '',
+  };
+};
+
+const normalizedLocation = (location) => {
+  try {
+    const u = new URL(location, BASE);
+    return `${u.pathname}${u.search}${u.hash}`;
+  } catch {
+    return location;
+  }
 };
 
 /**
  * ה-HTML בלי <style>/<script>. Astro מטביע גיליונות סגנונות בעמודים קטנים,
- * ולכן חיפוש מחרוזת ב-HTML הגולמי עובר ירוק גם כשהרכיב נמחק מה-DOM —
- * נמדד: 36 מופעים של 'wa-band' בעמוד הראשי, 26 מהם בתוך <style>.
+ * ולכן חיפוש ב-HTML הגולמי עלול לעבור ירוק גם כשהרכיב נמחק מה-DOM.
  */
 const markup = (html) => html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
 
@@ -98,7 +123,7 @@ if (SHA) {
   console.log('· ללא --sha: מדלג על אימות הקומיט, בודק תוכן בלבד');
 }
 
-// ===== שלב ב׳: מסלולים וסמנים =====
+// ===== שלב ב׳: מסלולים קנוניים, redirects וסמנים =====
 const cache = new Map();
 const fetchOnce = async (path) => {
   if (!cache.has(path)) cache.set(path, await get(path));
@@ -112,6 +137,24 @@ for (const path of ROUTES) {
     else fail(`${path} החזיר ${status}`);
   } catch (e) {
     fail(`${path} נכשל: ${e.message}`);
+  }
+}
+
+for (const { path, status: expectedStatus, target, what } of REDIRECTS) {
+  try {
+    const response = await get(path, 'manual');
+    const actualTarget = normalizedLocation(response.location);
+    if (response.status !== expectedStatus) {
+      fail(`${what}: ${path} החזיר ${response.status} במקום ${expectedStatus}`);
+      continue;
+    }
+    if (actualTarget !== target) {
+      fail(`${what}: Location=${actualTarget || 'חסר'} במקום ${target}`);
+      continue;
+    }
+    console.log(`✓ ${expectedStatus} ${path} → ${target}`);
+  } catch (e) {
+    fail(`בדיקת redirect "${what}" נכשלה: ${e.message}`);
   }
 }
 
@@ -131,17 +174,14 @@ try {
   const { html } = await fetchOnce('/chativat-beynayim/');
   const m = markup(html);
 
-  // שער חטיבת הביניים: בדיוק שלושה שלישים (3.26) — מונע קריסה שקטה
-  // לשניים או לארבעה, ומונע חזרה של החוברת המדפדפת
   const thirds = countOf(m, /class="third[ "]/g);
-  if (thirds === 3) console.log(`✓ שער חטיבת הביניים — שלושה שלישים בדיוק (3.26)`);
+  if (thirds === 3) console.log('✓ שער חטיבת הביניים — שלושה שלישים בדיוק (3.26)');
   else fail(`שער חטיבת הביניים: ${thirds} שלישים במקום 3 (3.26)`);
 
   const booklet = countOf(m, /data-book|stf__item|flip-host/g);
   if (booklet) fail(`נמצאו ${booklet} שרידי חוברת מדפדפת — המודל הישן חזר (3.29)`);
   else console.log('✓ אין שרידי חוברת מדפדפת (3.29)');
 
-  // תצוגת החומרים של כל שכבה מגישה רשימת נושאים; הקבצים חיים בעמוד הנושא
   for (const [slug, path] of [
     ['z', '/chativat-beynayim/kita-z/chomarim/'],
     ['h', '/chativat-beynayim/kita-h/chomarim/'],
@@ -149,20 +189,18 @@ try {
   ]) {
     const g = markup((await fetchOnce(path)).html);
     const topics = countOf(g, /class="topic"/g);
-    const links = [...g.matchAll(/href="(\/chativat-beynayim\/nose\/[^"]+)"/g)].map((m) => m[1]);
+    const links = [...g.matchAll(/href="(\/chativat-beynayim\/nose\/[^"]+)"/g)].map((match) => match[1]);
     if (topics > 0 && links.length > 0) console.log(`✓ שכבה ${slug} — ${topics} נושאים (3.29)`);
     else fail(`שכבה ${slug}: ${topics} נושאים ו-${links.length} קישורי נושא (3.29)`);
 
-    // הנושא הראשון של כל שכבה באמת מגיש כרטיסי קבצים
     const first = markup((await fetchOnce(links[0])).html);
     const cards = countOf(first, /class="rcard"/g);
     if (cards > 0) console.log(`✓ ${links[0]} — ${cards} כרטיסים (3.29)`);
     else fail(`${links[0]}: אין כרטיסי קבצים בעמוד הנושא (3.29)`);
   }
 
-  // הטמעות PDF בלי סרגל הדפדפן השחור (8.26)
   const reader = markup((await fetchOnce('/chativat-beynayim/reader/z/tochnit-z/')).html);
-  const pdfs = [...reader.matchAll(/data-esrc="([^"]+)"/g)].map((x) => x[1]).filter((u) => /\.pdf(\?|#|$)/i.test(u));
+  const pdfs = [...reader.matchAll(/data-esrc="([^"]+)"/g)].map((match) => match[1]).filter((u) => /\.pdf(\?|#|$)/i.test(u));
   const bare = pdfs.filter((u) => !u.includes('toolbar=0'));
   if (bare.length) fail(`${bare.length} הטמעות PDF בלי toolbar=0 — סרגל שחור חוזר (8.26)`);
   else console.log(`✓ ${pdfs.length} הטמעות PDF עם מסגור נייבי-זהב (8.26)`);

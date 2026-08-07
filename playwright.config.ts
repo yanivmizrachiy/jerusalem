@@ -5,6 +5,7 @@ import { defineConfig, devices } from '@playwright/test';
  * מול build הפקה אמיתי שמוגש ישירות מפלט אדפטר Vercel.
  *
  * PW_PORT מאפשר לריצת הסיום לבחור פורט פנוי ולא לבדוק בטעות שרת ישן.
+ * retries=0 הוא חלק מחוזה האיכות: כשל ראשון הוא כשל, לא flaky שמותר למזג.
  */
 const port = Number(process.env.PW_PORT ?? 4321);
 const baseURL = `http://127.0.0.1:${port}`;
@@ -12,7 +13,7 @@ const baseURL = `http://127.0.0.1:${port}`;
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
-  retries: 1,
+  retries: 0,
   reporter: [['list']],
   timeout: 45_000,
   use: {

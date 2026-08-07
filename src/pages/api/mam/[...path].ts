@@ -10,6 +10,7 @@ import { injectGuard, injectGoldScrollbar } from '../../../lib/proxyGuard';
 export const prerender = false;
 
 const ORIGIN = 'https://mamhishim.my.canva.site';
+const ALLOWED_ORIGIN = new URL(ORIGIN).origin;
 
 export const ALL: APIRoute = async ({ params, request }) => {
   const path = params.path ? `/${params.path}` : '/';
@@ -35,8 +36,9 @@ export const ALL: APIRoute = async ({ params, request }) => {
     });
   }
 
-  // ה-allowlist חייב לחול גם על סוף שרשרת ההפניות
-  if (upstream.url && !upstream.url.startsWith(ORIGIN)) {
+  // ה-allowlist חל גם על סוף שרשרת ההפניות ובודק origin אמיתי,
+  // לא prefix טקסטואלי של הכתובת.
+  if (upstream.url && new URL(upstream.url).origin !== ALLOWED_ORIGIN) {
     return new Response('היעד הסופי אינו ברשימת ההיתר.', {
       status: 502,
       headers: { 'content-type': 'text/plain; charset=utf-8' },
