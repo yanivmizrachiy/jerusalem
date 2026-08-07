@@ -1,0 +1,65 @@
+---
+/**
+ * משמר הקשר לעמוד משאב קנוני.
+ *
+ * משאב יכול להיות מוצב בכמה נושאים, אבל יש לו URL קנוני יחיד. כרטיס נושא
+ * מוסיף `?from=<chapter>` בלבד; הרכיב מאמת שהמשאב באמת שייך לפרק הזה ואז
+ * מעדכן את פירורי הלחם וכפתור החזרה בצד הלקוח. canonical ושיתוף נשארים
+ * נקיים ויציבים בלי query string.
+ */
+import { chapterHref, type ChoveretGrade, type ChoveretItem } from '../data/choveret';
+
+interface Props {
+  grade: ChoveretGrade;
+  item: ChoveretItem;
+}
+
+const { grade, item } = Astro.props;
+const contexts = grade.chapters
+  .filter(
+    (chapter) =>
+      chapter.materials !== false &&
+      chapter.items.some((candidate) => candidate.id === item.id && candidate.needsReview !== true)
+  )
+  .map((chapter) => ({
+    id: chapter.id,
+    title: chapter.title,
+    href: chapterHref(grade.slug, chapter.id),
+    color: chapter.color,
+    dark: chapter.dark,
+  }));
+---
+
+<script is:inline define:vars={{ contexts }}>
+  (() => {
+    const from = new URL(location.href).searchParams.get('from');
+    if (!from) return;
+    const context = contexts.find((entry) => entry.id === from);
+    if (!context) return;
+
+    const page = document.querySelector('.res-page');
+    if (page instanceof HTMLElement) {
+      page.style.setProperty('--ch', context.color);
+      page.style.setProperty('--ch-dark', context.dark);
+      page.dataset.resourceContext = context.id;
+    }
+
+    const crumb = document.querySelector('.crumbs li:nth-last-child(2) a');
+    if (crumb instanceof HTMLAnchorElement) {
+      crumb.href = context.href;
+      crumb.textContent = context.title;
+    }
+
+    const eyebrow = document.querySelector('.res-eyebrow a:last-of-type');
+    if (eyebrow instanceof HTMLAnchorElement) {
+      eyebrow.href = context.href;
+      eyebrow.textContent = context.title;
+    }
+
+    const back = document.querySelector('.res-back');
+    if (back instanceof HTMLAnchorElement) {
+      back.href = context.href;
+      back.textContent = `חזרה ל${context.title}`;
+    }
+  })();
+</script>
