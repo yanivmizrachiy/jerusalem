@@ -9,8 +9,8 @@
 import Breadcrumbs from './Breadcrumbs.astro';
 import HamchashotEmbed from './HamchashotEmbed.astro';
 import GradeNav from './GradeNav.astro';
+import { publishedGradeCount } from '../data/publishing';
 import {
-  gradeCounts,
   gradeLabel,
   gradeMainDocs,
   gradeMaterialsHref,
@@ -27,6 +27,7 @@ const { grade } = Astro.props;
 const { plan, prisa } = gradeMainDocs(grade);
 const letter = grade.letter;
 const movedChapterIds = materialChapters(grade).map((chapter) => chapter.id).join(',');
+const materialsCount = publishedGradeCount(grade);
 ---
 
 <div class="container grade-intro" style={`--grade:${grade.color}; --grade-dark:${grade.dark}`}>
@@ -74,7 +75,7 @@ const movedChapterIds = materialChapters(grade).map((chapter) => chapter.id).joi
   >
     <span class="band-title">חומרים להוראה</span>
     <span class="band-sub">דפי עבודה, מבחנים, משחקים, קישורים ועוד...</span>
-    <span class="band-count">{gradeCounts[grade.slug]} קבצים, קישורים ופעילויות</span>
+    <span class="band-count">{materialsCount} קבצים, קישורים ופעילויות</span>
   </a>
 
   {
