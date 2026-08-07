@@ -10,7 +10,8 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import ArtBanner from '../../components/ArtBanner.astro';
 import HamchashotEmbed from '../../components/HamchashotEmbed.astro';
 import { whatsappCommunity } from '../../data/resources';
-import { choveret, gradeCounts, gradeHref } from '../../data/choveret';
+import { publishedGradeCount } from '../../data/publishing';
+import { choveret, gradeHref } from '../../data/choveret';
 
 // חותמת עדכון אמת (3.25): זמן הבנייה בפועל — מתחדשת אוטומטית בכל פריסה
 const stamp = Object.fromEntries(
@@ -28,7 +29,7 @@ const stamp = Object.fromEntries(
 );
 const updatedLine = `מאגר הקבצים עודכן ב${stamp.weekday}, ${Number(stamp.day)}/${Number(stamp.month)}/${stamp.year}, בשעה ${stamp.hour}:${stamp.minute}`;
 
-// שלושת השלישים נגזרים מהנתונים — כולל המניין האמיתי (3.27)
+// שלושת השלישים נגזרים מהנתונים — כולל מניין החומרים הפומביים בלבד (3.27)
 const thirds = choveret;
 ---
 
@@ -58,7 +59,7 @@ const thirds = choveret;
           <span class="third-inner">
             <span class="third-mark" aria-hidden="true" />
             <h2 class="third-title">{g.title}</h2>
-            <span class="third-count">{gradeCounts[g.slug]} קבצים, קישורים ופעילויות</span>
+            <span class="third-count">{publishedGradeCount(g)} קבצים, קישורים ופעילויות</span>
             <span class="third-cta" aria-hidden="true">
               <svg viewBox="0 0 44 16" fill="none" stroke="currentColor" stroke-width="1.4">
                 <path d="M43 8H2M9 1.5 2 8l7 6.5" stroke-linecap="round" stroke-linejoin="round" />
