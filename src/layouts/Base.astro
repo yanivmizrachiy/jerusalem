@@ -48,14 +48,15 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     <link rel="preconnect" href="https://www.youtube-nocookie.com" />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
     <link rel="apple-touch-icon" href="/apple-touch-180.png" />
-    {/* מעבר "התחל" → בחירת החטיבה: החלקה מכוונת במקום עמעום (RTL). מסמן את
-        המעבר / → /shearim/ בלבד, וה-CSS (global.css) מחליק את העמוד ימינה ואת
-        הבא משמאל. Chromium בלבד (View Transitions ל-MPA); דפדפן אחר מנווט רגיל. */}
+    {/* מעבר "התחל" → בחירת החטיבה: החלקה מכוונת במקום עמעום (RTL). */}
     <script is:inline>
       addEventListener('pagereveal', (e) => {
         if (!e.viewTransition) return;
         try {
-          const from = window.navigation?.activation?.from?.url;
+          const nav = (window as Window & {
+            navigation?: { activation?: { from?: { url?: string } } };
+          }).navigation;
+          const from = nav?.activation?.from?.url;
           if (from && new URL(from).pathname === '/' && location.pathname === '/shearim/') {
             const root = document.documentElement;
             root.classList.add('vt-forward');
@@ -64,12 +65,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
         } catch {}
       });
     </script>
-    {/* סרטון הפתיחה — פעם אחת בכל session של הטאב (RULES 6.2.1, 6.6).
-        הבדיקה חייבת לרוץ **לפני ה-paint הראשון**: משתמש שכבר צפה בסרטון וחוזר
-        ל"ראשי" באותו session אמור לנחות ישר על מצב הצוות, בלי הבזק של הווידאו,
-        של ה-poster או של מצב הביניים. סקריפט בסוף הרכיב רץ מאוחר מדי — עד שהוא
-        פועל הדפדפן כבר צבע פריים אחד עם הווידאו. לכן זה יושב ב-<head>, לפני
-        הגוף, ומסמן את <html> בלבד; ה-CSS של HeroVideo נשען על הסימון הזה. */}
+    {/* סרטון הפתיחה — פעם אחת בכל session של הטאב (RULES 6.2.1, 6.6). */}
     <script is:inline>
       try {
         if (sessionStorage.getItem('jerusalem.heroSeen.v1') === '1') {
@@ -121,7 +117,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
           body.style.transition = 'opacity 150ms ease';
           body.style.opacity = '0';
           setTimeout(() => {
-            location.hash = sel; // קפיצה מיידית בזמן שהמסך חשוך; :target נשמר
+            location.hash = sel;
             body.style.transition = 'opacity 280ms ease';
             body.style.opacity = '1';
           }, 160);
