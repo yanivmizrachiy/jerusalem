@@ -48,7 +48,7 @@ test('נגן יחידה: החלפת משאב, hash עמוק ותווית סוג 
 });
 
 test('אחרי הסרטון מופיע צוות ההדרכה — לא תוכן אחר (6.5)', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' }); // מדלג ישר למצב הסיום
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   const after = page.locator('#hero-after');
   await expect(after.locator('h1')).toHaveText('צוות הדרכה');
@@ -59,7 +59,6 @@ test('אחרי הסרטון מופיע צוות ההדרכה — לא תוכן �
 });
 
 test('כרטיסי צוות: קישורי WhatsApp ודוא״ל תקינים ונפרדים (7.16–7.18)', async ({ page }) => {
-  // הפרטים נחשפים רק בעוגן אישי — אין כפילות צוות בעמוד (הוראת 03/08/2026)
   await page.goto('/');
   await expect(page.locator('[data-team-details]')).toBeHidden();
   await page.goto('/#tzevet-ayelet');
@@ -69,17 +68,12 @@ test('כרטיסי צוות: קישורי WhatsApp ודוא״ל תקינים ו�
   await expect(ayelet.locator('a[href="tel:+972502721656"]')).toBeVisible();
 });
 
-test('ניווט פדגוגי: משוואות משולבת בשרשרת ז׳ (5.12)', async ({ page }) => {
-  // mishvaot.astro הוא עמוד ייעודי מלא (UnitPlaylist) — הקודם/הבא מפנים לכתובות קנוניות
+test('יחידת המשוואות חוזרת לנושא הקנוני — בלי שכנים מומצאים מהשרשרת הישנה', async ({ page }) => {
   await page.goto('/chativat-beynayim/mishvaot/');
-  const prev = page.locator('.pager-link', { hasText: 'מספרים מכוונים' });
-  await expect(prev).toBeVisible();
-  await expect(prev).toHaveAttribute('href', '/chativat-beynayim/reader/z/misparim/');
-  const next = page.locator('.pager-link', { hasText: 'אתר זוויות' });
-  await expect(next).toBeVisible();
-  await expect(next).toHaveAttribute('href', '/chativat-beynayim/reader/z/zaviyot/');
-  // כפתור חזרה לכיתה
-  await expect(page.locator('a.btn-ghost', { hasText: 'חזרה לכיתה' })).toBeVisible();
+  await expect(page.locator('.pager-link')).toHaveCount(0);
+  const back = page.locator('a.btn-ghost', { hasText: 'חזרה לנושא משוואות בכיתה ז׳' });
+  await expect(back).toBeVisible();
+  await expect(back).toHaveAttribute('href', '/chativat-beynayim/nose/z/z-equations/');
 });
 
 test('כפתורי WhatsApp אמיתיים: כל כפתור מוביל ישירות למספר הנכון (7.16)', async ({ page }) => {
@@ -93,19 +87,15 @@ test('כפתורי WhatsApp אמיתיים: כל כפתור מוביל ישיר�
       `כפתור WhatsApp של ${m.name}`
     ).toHaveCount(1);
   }
-  // "מה צפוי?": הלוגו העגול + כיתוב ירוק יחיד — שניהם ישירות לקבוצה (7.20)
   await page.evaluate(() => document.documentElement.classList.add('hero-done'));
   await expect(page.locator(`.rail a[href="${whatsappCommunity.url}"]`)).toHaveCount(2);
-  // רצועת ההצטרפות בתחתית העמוד — כולה קישור אחד ישירות לקבוצה, עם הכיתובים (7.27)
   const band = page.locator(`a.wa-band[href="${whatsappCommunity.url}"]`);
   await expect(band).toHaveCount(1);
   await expect(band.locator('.wa-band-title')).toHaveText('הצטרפו לקבוצת המורים בווטסאפ');
   await expect(band.locator('.wa-band-sub')).toContainText('קבוצה של מורים למתמטיקה בחטיבת הביניים');
-  // הכפתורים האישיים של יניב רז — פייסבוק והאתר האישי (7.25–7.26)
   const yaniv = team.find((m) => m.facebook)!;
   await expect(page.locator(`#tzevet a.btn-facebook[href="${yaniv.facebook}"]`)).toHaveCount(1);
   await expect(page.locator(`#tzevet a.btn-site[href="${yaniv.website}"]`)).toHaveCount(1);
-  // עוגן אישי: המסך הפותח מקשר לכרטיס של כל חבר צוות, לא לראש הרשימה (6.5)
   for (const m of team) {
     await expect(page.locator(`.hero-after a[href="#tzevet-${m.slug}"]`)).toHaveCount(1);
     await expect(page.locator(`article#tzevet-${m.slug}`)).toHaveCount(1);
