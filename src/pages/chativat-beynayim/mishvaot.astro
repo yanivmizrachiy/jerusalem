@@ -29,16 +29,8 @@ import { mishvaotUnit } from '../../data/units';
       <UnitPlaylist unit={mishvaotUnit} />
     </div>
 
-    <nav class="pager-nav" aria-label="ניווט בין נושאים">
-      <a class="pager-link" href="/chativat-beynayim/reader/z/misparim/">
-        <span class="pager-tag">הנושא הקודם</span>
-        <span class="pager-title">מספרים מכוונים</span>
-      </a>
-      <a class="btn btn-ghost" href="/chativat-beynayim/kita-z/">חזרה לכיתה ז׳</a>
-      <a class="pager-link" href="/chativat-beynayim/reader/z/zaviyot/">
-        <span class="pager-tag">הנושא הבא</span>
-        <span class="pager-title">אתר זוויות</span>
-      </a>
+    <nav class="back-nav" aria-label="חזרה לנושא">
+      <a class="btn btn-ghost" href="/chativat-beynayim/nose/z/z-equations/">חזרה לנושא משוואות בכיתה ז׳</a>
     </nav>
   </div>
 </Base>
@@ -46,10 +38,5 @@ import { mishvaotUnit } from '../../data/units';
 <style>
   .page { padding-block-start: 1.6rem; }
   .page-head { max-width: 680px; margin-block: 1.6rem 2rem; }
-  .pager-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-block-start: clamp(2.2rem, 5vw, 3rem); }
-  .pager-link { display: flex; flex-direction: column; gap: 0.15rem; color: var(--ink); padding: 0.7rem 1rem; border-radius: var(--radius); border: 1px solid var(--line); background: #fff; min-inline-size: 200px; transition: transform 300ms var(--ease), box-shadow 300ms var(--ease); }
-  .pager-link:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
-  .pager-tag { font-size: 0.78rem; font-weight: 700; color: var(--gold-deep); }
-  .pager-title { font-weight: 600; }
-  @media (max-width: 720px) { .pager-nav { flex-direction: column; align-items: stretch; } .pager-link { min-inline-size: 0; } }
+  .back-nav { display: flex; justify-content: center; margin-block-start: clamp(2.2rem, 5vw, 3rem); }
 </style>
