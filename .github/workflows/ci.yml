@@ -1,5 +1,5 @@
-# שער האיכות האוטומטי (RULES 21.14–21.15): typecheck, build והסוללה המלאה על כל push,
-# ואחרי מיזוג ל-main — אימות שהפרודקשן באמת מגיש את הקומיט הזה (RULES 1.14, 4.6).
+# שער האיכות האוטומטי (RULES 21.14–21.17): חוזה יחיד, fail-closed, על כל PR ועל main.
+# אחרי מיזוג ל-main מאמתים גם שהפרודקשן באמת מגיש את הקומיט שנבדק.
 name: CI
 
 on:
@@ -7,9 +7,8 @@ on:
     branches: [main]
   pull_request:
 
-# ביטול ריצה קודמת רק ב-PR. על main כל ריצה מסיימת, אחרת verify-production
-# מבוטל בשקט (GitHub מדווח "cancelled" ולא "failure") והפריסה נשארת לא-מאומתת.
-# אינו מעכב את הפריסה עצמה — Vercel פורס מה-push ישירות, לא מ-Actions (RULES 4.15).
+# ביטול ריצה קודמת רק ב-PR. על main כל ריצה מסיימת כדי שאימות הפרודקשן
+# של כל קומיט שנכנס ל-main לא ייעלם בשקט.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -25,13 +24,13 @@ jobs:
           node-version: 22
           cache: npm
       # npm 11 — אותה גרסה שמייצרת את הלוקפייל בסביבת העבודה; בלעדיה
-      # לוקפייל שנוצר מקומית נדחה כאן ב-EUSAGE (נתפס ב-04/08/2026)
+      # לוקפייל שנוצר מקומית עלול להידחות כאן ב-EUSAGE.
       - run: npm i -g npm@11
       - run: npm ci --no-audit --no-fund
-      - run: npx astro check
-      - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test
+      # מקור אמת יחיד: repo-health → check → build → Playwright עם retries=0
+      # ופורט פנוי אוטומטי. אותה פקודה מיועדת גם להרצה מקומית.
+      - run: npm run quality
       - name: Upload traces on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -40,12 +39,10 @@ jobs:
           path: test-results/
           retention-days: 7
 
-  # אימות פריסה: רץ רק אחרי מיזוג ל-main, ממתין ל-Vercel ומוכיח שהקומיט חי
+  # אימות פריסה רץ רק אם שער quality עבר. אם quality נכשל — אין "אימות הצלחה"
+  # לפריסה של אותו קומיט. הגנת main צריכה לחייב quality לפני merge.
   verify-production:
-    # always() — Vercel פורס מה-push ל-main בלי קשר ל-Actions (RULES 4.15),
-    # ולכן הפרודקשן חייב אימות גם כשהסוללה נפלה או הבהבה. בלי זה בדיקה
-    # מהבהבת אחת משאירה פריסה חיה שאיש לא אימת.
-    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 12
