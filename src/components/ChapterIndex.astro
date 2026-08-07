@@ -4,8 +4,12 @@
  * כל משימה היא כרטיס לחיץ אחד שמוביל לעמוד המשימה — הטמעה בצד אחד
  * ולוח פעולות בצד השני (8.2). בתחתית: מעבר לנושא הקודם/הבא באותה
  * שכבה (5.12) וחזרה לרשימת הנושאים.
+ *
+ * `needsReview` הוא quarantine: נשמר בקטלוג אך לעולם אינו נחשף כאן.
+ * `from` שומר את הקשר הנושא בלי ליצור כתובת קנונית נוספת למשאב.
  */
 import Breadcrumbs from './Breadcrumbs.astro';
+import { publishableItems } from '../data/publishing';
 import {
   chapterHref,
   chapterNeighbours,
@@ -25,6 +29,9 @@ interface Props {
 
 const { grade, chapter } = Astro.props;
 const { prev, next } = chapterNeighbours(grade, chapter.id);
+const items = publishableItems(chapter.items);
+const contextHref = (item: (typeof items)[number]) =>
+  `${itemHref(grade.slug, item)}?from=${encodeURIComponent(chapter.id)}`;
 ---
 
 <div
@@ -44,15 +51,15 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
   <header class="chapter-head" data-reveal>
     <p class="chapter-eyebrow">{grade.title}</p>
     <h1 class="chapter-title">{chapter.title}</h1>
-    <p class="chapter-n">{chapter.items.length} משימות</p>
+    <p class="chapter-n">{items.length} משימות</p>
     <span class="chapter-rule" aria-hidden="true"></span>
   </header>
 
   <ul class="cards">
     {
-      chapter.items.map((item) => (
+      items.map((item) => (
         <li>
-          <a class="rcard" href={itemHref(grade.slug, item)}>
+          <a class="rcard" href={contextHref(item)}>
             <span class="rcard-top">
               <span class="rcard-kind">{kindLabel[item.kind]}</span>
               <span class="rcard-go" aria-hidden="true">
@@ -163,7 +170,6 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
     transition: transform 320ms var(--ease-lift), box-shadow 320ms var(--ease), border-color 320ms var(--ease);
   }
 
-  /* חוט הצבע של הנושא על קצה הכרטיס */
   .rcard::before {
     content: '';
     position: absolute;
@@ -213,7 +219,6 @@ const { prev, next } = chapterNeighbours(grade, chapter.id);
 
   .rcard-source { color: var(--ink-faint); font-size: 0.78rem; margin-block-start: auto; padding-block-start: 0.3rem; }
 
-  /* ===== ניווט בין הנושאים ===== */
   .chapter-nav {
     display: flex;
     flex-wrap: wrap;
