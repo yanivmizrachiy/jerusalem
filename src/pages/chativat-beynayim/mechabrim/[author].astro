@@ -1,10 +1,10 @@
 ---
-import Base from '../../../../layouts/Base.astro';
-import Breadcrumbs from '../../../../components/Breadcrumbs.astro';
-import { pageAuthors, authorsForResource, type AuthorRecord } from '../../../../data/authors';
-import { itemHref, readerItems, gradeLabel, type ChoveretChapter, type ChoveretGrade, type ChoveretItem } from '../../../../data/choveret';
-import { isPublishableMaterial } from '../../../../data/publishing';
-import { resourceDisplayLabel } from '../../../../data/resource-labels';
+import Base from '../../../layouts/Base.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import { pageAuthors, authorsForResource, type AuthorRecord } from '../../../data/authors';
+import { canonicalReaderItems } from '../../../data/canonical-content';
+import { itemHref, gradeLabel, type ChoveretChapter, type ChoveretGrade, type ChoveretItem } from '../../../data/choveret';
+import { resourceDisplayLabel } from '../../../data/resource-labels';
 
 interface AuthorEntry {
   grade: ChoveretGrade;
@@ -14,9 +14,8 @@ interface AuthorEntry {
 
 const entriesFor = (author: AuthorRecord): AuthorEntry[] => {
   const seen = new Set<string>();
-  return readerItems.filter(({ grade, item }) => {
-    if (!isPublishableMaterial(item)) return false;
-    if (!authorsForResource(item.id).some((candidate) => candidate.id === author.id)) return false;
+  return canonicalReaderItems.filter(({ grade, item }: AuthorEntry) => {
+    if (!authorsForResource(item.id).some((candidate: AuthorRecord) => candidate.id === author.id)) return false;
     const key = `${grade.slug}:${item.id}`;
     if (seen.has(key)) return false;
     seen.add(key);
@@ -25,10 +24,14 @@ const entriesFor = (author: AuthorRecord): AuthorEntry[] => {
 };
 
 export function getStaticPaths() {
-  return pageAuthors
-    .map((author) => ({ author, entries: entriesFor(author) }))
-    .filter(({ entries }) => entries.length > 0)
-    .map(({ author }) => ({
+  const authorEntries: { author: AuthorRecord; entries: AuthorEntry[] }[] = pageAuthors.map((author: AuthorRecord) => ({
+    author,
+    entries: entriesFor(author),
+  }));
+
+  return authorEntries
+    .filter(({ entries }: { author: AuthorRecord; entries: AuthorEntry[] }) => entries.length > 0)
+    .map(({ author }: { author: AuthorRecord; entries: AuthorEntry[] }) => ({
       params: { author: author.slug },
       props: { author },
     }));
