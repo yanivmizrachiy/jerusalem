@@ -1,7 +1,7 @@
 ---
 import Base from '../../../layouts/Base.astro';
 import Breadcrumbs from '../../../components/Breadcrumbs.astro';
-import { pageAuthors, authorsForResource, type AuthorRecord } from '../../../data/authors';
+import { authorsForResource, type AuthorRecord } from '../../../data/authors';
 import { canonicalReaderItems } from '../../../data/canonical-content';
 import { itemHref, gradeLabel, type ChoveretChapter, type ChoveretGrade, type ChoveretItem } from '../../../data/choveret';
 import { resourceDisplayLabel } from '../../../data/resource-labels';
@@ -23,7 +23,12 @@ const entriesFor = (author: AuthorRecord): AuthorEntry[] => {
   });
 };
 
-export function getStaticPaths() {
+export async function getStaticPaths() {
+  // Astro compiles getStaticPaths in an isolated scope. Load path dependencies
+  // inside the function so the build never relies on frontmatter closures.
+  const { pageAuthors, authorsForResource } = await import('../../../data/authors');
+  const { canonicalReaderItems } = await import('../../../data/canonical-content');
+
   return pageAuthors
     .filter((author) =>
       canonicalReaderItems.some(({ item }) =>
