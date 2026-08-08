@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+// מקור יחיד למסלולי התאימות — הבדיקה נגזרת מאותו קובץ שמזין את astro.config
+import { LEGACY_PATHS, LEGACY_REDIRECTS, trimSlash } from '../src/lib/legacyRedirects.mjs';
 
 /**
  * אזהרת Chromium שאינה בשליטתנו, ולכן מסוננת במחרוזת המדויקת שלה בלבד.
@@ -39,9 +41,6 @@ const routes = [
   '/chativat-beynayim/nose/h/hozer/',
   '/chativat-beynayim/nose/t/yahal4/',
   '/chativat-beynayim/nose/z/noschaot/',
-  '/chativat-beynayim/misparim-mechuvanim/',
-  '/chativat-beynayim/zaviyot/',
-  '/chativat-beynayim/maarechet-tzirim/',
   '/chativat-beynayim/mishvaot/',
   '/chativat-beynayim/hafifat-meshulashim/',
   '/chativa-elyona/',
@@ -76,33 +75,40 @@ for (const route of routes) {
     await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
     await expect(page.locator('main')).toBeVisible();
 
-    // אפס גלילה אופקית (5.8, חוזה הרספונסיביות)
+    // אפס גלילה אופקית (5.8, חוזה הרספונסיביות).
+    // המדידה נלקחת רק אחרי שהגופנים נטענו ואחרי פריים ציור אחד: גופן
+    // התצוגה מחליף מידות טקסט אחרי load, ומדידה מיידית נתנה כשל מהבהב
+    // (נמדד 09/08/2026 — retries=0 הופך הבהוב כזה לחסימת מיזוג אקראית).
+    await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
     );
     expect(overflow, 'גלילה אופקית אסורה').toBeLessThanOrEqual(1);
 
-    // אפס שגיאות console (4.5). מסוננות: תקלות טעינה של מקורות חיצוניים ב-headless
-    // וחסימת iframe על ידי אתר חיצוני — התרחיש שה-fallback שלנו מטפל בו (8.8).
-    const hard = errors.filter(
-      (e) =>
-        !/net::|Failed to load resource|third-party cookie/i.test(e) &&
-        !e.includes(COMPUTE_PRESSURE_DENIED) &&
-        !(
-          /Refused to display|violates the following Content Security Policy/.test(e) &&
-          !/127\.0\.0\.1|localhost/.test(e)
-        )
-    );
+    // אפס שגיאות console (4.5).
+    // מסוננות אך ורק תקלות של מקורות **חיצוניים**: ב-headless מקורות צד
+    // שלישי נחסמים, וזה בדיוק התרחיש שה-fallback שלנו מטפל בו (8.8).
+    // כשל טעינה של נכס משלנו (127.0.0.1) **אינו** מסונן — סינון גורף של
+    // "Failed to load resource" הסתיר עד היום גם 404 של נכס ראשוני.
+    const isFirstParty = (e: string) => /127\.0\.0\.1|localhost/.test(e);
+    const hard = errors.filter((e) => {
+      if (e.includes(COMPUTE_PRESSURE_DENIED)) return false;
+      if (/third-party cookie/i.test(e)) return false;
+      if (/net::|Failed to load resource/i.test(e)) return isFirstParty(e);
+      if (/Refused to display|violates the following Content Security Policy/.test(e)) {
+        return isFirstParty(e);
+      }
+      return true;
+    });
     expect(hard, `שגיאות console: ${hard.join(' | ')}`).toHaveLength(0);
   });
 }
 
-// העמודים המרוכזים של מבחנים ומשחקים הוחלפו בפרקים שבתוך עמודי הכיתות
-// (1.10, 3.29, 3.31); הכתובות הישנות נשארות חיות ומפנות מיידית לפרק
-// הנכון — קישורים ששותפו לא נשברים
+// העמודים המרוכזים של מבחנים הוחלפו בפרקים שבתוך עמודי הכיתות
+// (1.10, 3.29, 3.31); הכתובת הישנה נשארת חיה ומפנה מיידית לפרק הנכון
 const moved: Record<string, string> = {
   '/chativat-beynayim/mivchanim/': '/chativat-beynayim/nose/h/mivchanim/',
-  '/chativat-beynayim/mischakim/': '/chativat-beynayim/nose/z/mischakim/',
 };
 for (const [old, target] of Object.entries(moved)) {
   test(`הפניה לעמוד הנושא: ${old}`, async ({ page }) => {
@@ -113,3 +119,44 @@ for (const [old, target] of Object.entries(moved)) {
     expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);
   });
 }
+
+/**
+ * מסלולי התאימות (src/lib/legacyRedirects.mjs) הם היום הפניית HTTP אמיתית
+ * שנפלטת לשכבת הניתוב של Vercel, ולא עמוד 200 עם meta-refresh.
+ *
+ * שרת הקבצים הסטטי של הסוללה אינו מכיר את שכבת הניתוב, ולכן ה-301 עצמו
+ * מאומת מול הפרודקשן ב-scripts/verify-deploy.mjs. כאן נאכף מה שכן ניתן
+ * להוכיח מקומית, ושתי הבדיקות האלה הן שתופסות נסיגה חזרה ל-meta-refresh:
+ * שאין יותר עמוד תוכן בכתובת הישנה, ושהיעד עצמו חי ואמיתי.
+ */
+for (const [legacy, target] of Object.entries(LEGACY_REDIRECTS)) {
+  test(`מסלול תאימות אינו עמוד 200: ${legacy}`, async ({ page }) => {
+    const res = await page.request.fetch(legacy, { redirect: 'manual' });
+    expect(
+      res.status(),
+      `${legacy} עדיין מוגש כעמוד — ההפניה חזרה להיות meta-refresh`,
+    ).toBe(404);
+  });
+
+  test(`יעד מסלול התאימות חי: ${legacy} → ${target}`, async ({ page }) => {
+    const res = await page.goto(target);
+    expect(res?.status()).toBe(200);
+    await expect(page.locator('h1')).toBeVisible();
+  });
+}
+
+test('מסלולי התאימות אינם מתפרסמים כעמודים קנוניים ב-sitemap (18)', async ({ page }) => {
+  const index = await (await page.request.fetch('/sitemap-index.xml')).text();
+  const files = [...index.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  expect(files.length).toBeGreaterThan(0);
+
+  const urls: string[] = [];
+  for (const file of files) {
+    const xml = await (await page.request.fetch(new URL(file).pathname)).text();
+    urls.push(...[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]));
+  }
+  expect(urls.length).toBeGreaterThan(0);
+
+  const leaked = urls.filter((url) => LEGACY_PATHS.has(trimSlash(new URL(url).pathname) + '/'));
+  expect(leaked, `כתובות שרק מפנות דלפו ל-sitemap: ${leaked.join(', ')}`).toHaveLength(0);
+});
