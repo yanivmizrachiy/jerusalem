@@ -24,14 +24,13 @@ const entriesFor = (author: AuthorRecord): AuthorEntry[] => {
 };
 
 export function getStaticPaths() {
-  const authorEntries: { author: AuthorRecord; entries: AuthorEntry[] }[] = pageAuthors.map((author: AuthorRecord) => ({
-    author,
-    entries: entriesFor(author),
-  }));
-
-  return authorEntries
-    .filter(({ entries }: { author: AuthorRecord; entries: AuthorEntry[] }) => entries.length > 0)
-    .map(({ author }: { author: AuthorRecord; entries: AuthorEntry[] }) => ({
+  return pageAuthors
+    .filter((author) =>
+      canonicalReaderItems.some(({ item }) =>
+        authorsForResource(item.id).some((candidate) => candidate.id === author.id)
+      )
+    )
+    .map((author) => ({
       params: { author: author.slug },
       props: { author },
     }));
