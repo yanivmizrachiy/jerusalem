@@ -3,6 +3,7 @@ import Base from '../../../../layouts/Base.astro';
 import ChapterIndex from '../../../../components/ChapterIndex.astro';
 import { publishableItems } from '../../../../data/publishing';
 import { resourceCountLabel } from '../../../../data/resource-labels';
+import { canonicalGrade } from '../../../../data/canonical-content';
 import { chapterPaths, gradeBySlug, itemHref } from '../../../../data/choveret';
 
 export function getStaticPaths() {
@@ -13,7 +14,8 @@ export function getStaticPaths() {
 }
 
 const { gradeSlug, chapterId } = Astro.props;
-const grade = gradeBySlug(gradeSlug)!;
+const sourceGrade = gradeBySlug(gradeSlug)!;
+const grade = canonicalGrade(sourceGrade);
 const chapter = grade.chapters.find((c) => c.id === chapterId)!;
 
 if (chapter.materials === false) {
@@ -22,7 +24,6 @@ if (chapter.materials === false) {
 
 const publicItems = publishableItems(chapter.items);
 
-// כלל רוחבי: אין עמוד רשימה שמכיל כרטיס יחיד. המסלול הישן נשמר כ־redirect.
 if (publicItems.length === 1) {
   return Astro.redirect(itemHref(grade.slug, publicItems[0]), 301);
 }
