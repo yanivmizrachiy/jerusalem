@@ -1,15 +1,8 @@
 ---
-/**
- * עמוד המבוא של שכבה (הוראת יניב, 06/08/2026) — זהה בז׳, ח׳ וט׳:
- * "מה אנחנו מלמדים?" עם התוכנית והפריסה הרשמיות של תשפ״ז, אזור
- * "חומרים להוראה" שמוביל לתצוגת החומרים של אותה שכבה, ומתחתיו אתר
- * ההמחשות של איילת (רכיב משותף אחד, דרך הפרוקסי — RULES 9.1).
- * כל התוכן נגזר מ-src/data/choveret.ts; אין כאן רשימות מקבילות.
- */
 import Breadcrumbs from './Breadcrumbs.astro';
 import HamchashotEmbed from './HamchashotEmbed.astro';
 import GradeNav from './GradeNav.astro';
-import { publishedGradeCount } from '../data/publishing';
+import { canonicalGrade, canonicalPublishedGradeCount } from '../data/canonical-content';
 import {
   gradeLabel,
   gradeMainDocs,
@@ -23,11 +16,12 @@ interface Props {
   grade: ChoveretGrade;
 }
 
-const { grade } = Astro.props;
+const { grade: sourceGrade } = Astro.props;
+const grade = canonicalGrade(sourceGrade);
 const { plan, prisa } = gradeMainDocs(grade);
 const letter = grade.letter;
 const movedChapterIds = materialChapters(grade).map((chapter) => chapter.id).join(',');
-const materialsCount = publishedGradeCount(grade);
+const materialsCount = canonicalPublishedGradeCount(grade);
 ---
 
 <div class="container grade-intro" style={`--grade:${grade.color}; --grade-dark:${grade.dark}`}>
@@ -81,12 +75,12 @@ const materialsCount = publishedGradeCount(grade);
   {
     grade.pages && grade.pages.length > 0 && (
       <section class="band band-pages" data-reveal aria-labelledby="grade-pages-title">
-        <h2 class="band-title" id="grade-pages-title">יחידות ועמודים ייעודיים</h2>
+        <h2 class="band-title" id="grade-pages-title">קישורים נוספים</h2>
         <div class="doc-row">
-          {grade.pages.map((p) => (
-            <a class="doc-btn" href={p.href} data-grade-page>
-              <span class="doc-name">{p.title}</span>
-              <span class="doc-sub">{p.count ? `${p.count} קבצים · ${p.note}` : p.note}</span>
+          {grade.pages.map((page) => (
+            <a class="doc-btn" href={page.href} data-grade-page>
+              <span class="doc-name">{page.title}</span>
+              <span class="doc-sub">{page.count ? `${page.count} קבצים וקישורים · ${page.note}` : page.note}</span>
             </a>
           ))}
         </div>
@@ -100,8 +94,6 @@ const materialsCount = publishedGradeCount(grade);
 </div>
 
 <script>
-  // רק עוגנים של פרקים שעברו מעמוד השכבה לתצוגת החומרים מופנים למסלול
-  // החדש. עוגנים מקומיים של עמוד המבוא, כגון #hamchashot, נשארים כאן.
   {
     const el = document.querySelector<HTMLAnchorElement>('[data-materials]');
     const moved = new Set((el?.dataset.movedChapters ?? '').split(',').filter(Boolean));
@@ -118,7 +110,6 @@ const materialsCount = publishedGradeCount(grade);
 
 <style>
   .grade-intro { padding-block: 1.2rem 2.6rem; }
-
   .intro-head { max-width: 820px; margin-block: 0.8rem 1.4rem; }
 
   .grade-title {
@@ -138,7 +129,6 @@ const materialsCount = publishedGradeCount(grade);
     background: linear-gradient(90deg, var(--grade), color-mix(in srgb, var(--gold) 70%, transparent));
   }
 
-  /* אזור רחב לכל רוחב התוכן — אותו מבנה בשלוש השכבות */
   .band {
     display: block;
     inline-size: 100%;
@@ -161,13 +151,9 @@ const materialsCount = publishedGradeCount(grade);
   }
 
   .band-sub { display: block; margin-block-start: 0.45rem; color: var(--ink-soft); font-size: clamp(0.95rem, 1.4vw, 1.05rem); }
-
   .band-count { display: block; margin-block-start: 0.35rem; color: var(--ink-faint); font-size: 0.85rem; }
-
   .band-materials { text-decoration: none; color: inherit; }
-
   .band-materials:hover { border-color: color-mix(in srgb, var(--grade) 45%, var(--line)); }
-
   .band-materials:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 
   .doc-row {
@@ -192,10 +178,7 @@ const materialsCount = publishedGradeCount(grade);
   }
 
   .doc-btn:hover { border-color: color-mix(in srgb, var(--grade) 45%, var(--line)); }
-
   .doc-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-
   .doc-name { font-family: var(--font-display); font-size: 1.05rem; color: var(--navy); }
-
   .doc-sub { color: var(--ink-faint); font-size: 0.82rem; }
 </style>
