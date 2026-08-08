@@ -6,6 +6,7 @@
  */
 import type { APIRoute } from 'astro';
 import { injectGuard, injectGoldScrollbar } from '../../../lib/proxyGuard';
+import { ProxyRequestError, copyResponseHeaders, isBodyless, upstreamInit } from '../../../lib/proxyHttp';
 
 export const prerender = false;
 
@@ -17,18 +18,18 @@ export const ALL: APIRoute = async ({ params, request }) => {
   const search = new URL(request.url).search;
   const target = `${ORIGIN}${path}${search}`;
 
+  // הפועל, הגוף וכותרות הסמנטיקה נשמרים (proxyHttp.ts)
+  let init: RequestInit;
+  try {
+    init = await upstreamInit(request);
+  } catch (err) {
+    if (err instanceof ProxyRequestError) return err.response;
+    throw err;
+  }
+
   let upstream: Response;
   try {
-    upstream = await fetch(target, {
-      headers: {
-        'user-agent': request.headers.get('user-agent') ?? 'Mozilla/5.0',
-        accept: request.headers.get('accept') ?? '*/*',
-        'accept-language': 'he,en;q=0.8',
-      },
-      redirect: 'follow',
-      // בלי תקרת זמן בקשה תלויה מחזיקה פונקציה עד לטיים-אאוט של הפלטפורמה
-      signal: AbortSignal.timeout(12_000),
-    });
+    upstream = await fetch(target, init);
   } catch {
     return new Response('המקור אינו זמין כרגע — נסו שוב בעוד רגע.', {
       status: 502,
@@ -48,8 +49,12 @@ export const ALL: APIRoute = async ({ params, request }) => {
   const headers = new Headers();
   const ct = upstream.headers.get('content-type') ?? 'application/octet-stream';
   headers.set('content-type', ct);
-  const cache = upstream.headers.get('cache-control');
-  if (cache) headers.set('cache-control', cache);
+  copyResponseHeaders(upstream, headers);
+
+  // HEAD/204/304 נושאים כותרות בלבד
+  if (isBodyless(request.method, upstream.status)) {
+    return new Response(null, { status: upstream.status, headers });
+  }
 
   if (ct.includes('text/html')) {
     let html = await upstream.text();
