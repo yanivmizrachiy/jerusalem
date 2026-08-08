@@ -1,105 +1,50 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import ArtBanner from '../../components/ArtBanner.astro';
-import MafmarRange from '../../components/MafmarRange.astro';
-
-const levels = [
-  {
-    href: '/chativa-elyona/3-yahal/',
-    title: '3 יח״ל',
-    desc: 'שאלונים 35371 ו־35372, הערכה בית ספרית 35173 והמלצות רצף ההוראה.',
-    accent: 'var(--olive)',
-  },
-  {
-    href: '/chativa-elyona/4-yahal/',
-    title: '4 יח״ל',
-    desc: 'דגשי כיתה י׳, שאלון 35471 (שני נושאים בגאומטריה, ללא פרמטרים) ו־35472.',
-    accent: 'var(--sky)',
-  },
-  {
-    href: '/chativa-elyona/5-yahal/',
-    title: '5 יח״ל',
-    desc: 'שאלון 35571 במספור החדש, קדם אנליזה מוקדמת והמלצות ההוראה.',
-    accent: 'var(--terracotta)',
-  },
-];
 ---
 
 <Base
   title="חטיבה עליונה — מחוז ירושלים"
-  description="שער החטיבה העליונה בתשפ״ז: תוכנית הלימודים החדשה, רמות 3/4/5 יח״ל, בחינות בגרות, נוסחאונים ורשת ביטחון — ישירות מחוזר המפמ״ר."
+  description="עמוד החטיבה העליונה יעודכן בהמשך."
 >
-  <div class="container page">
+  <main class="container placeholder-page">
     <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'חטיבה עליונה' }]} />
 
-    <header class="page-head" data-reveal>
-      <p class="eyebrow">השער של החטיבה העליונה · תשפ״ז</p>
-      <h1>חטיבה עליונה</h1>
-      <p class="lede">
-        שנת מפתח: בתשפ״ז כלל התלמידים נבחנים בשאלוני הבגרות של <strong>התוכנית החדשה</strong>.
-        כאן מרוכזים העקרונות, הרמות, הבחינות והמידע המנהלי — ישירות מהחוזר הרשמי.
-      </p>
-    </header>
-
-    <ArtBanner
-      art="panorama"
-      alt="איור אמנותי בגווני ספיה: לומדים צעירים על חומות ירושלים עם נוסחאות מתמטיות בשוליים"
-      position="center 55%"
-    />
-
-    <div data-reveal>
-      <MafmarRange sectionId="MAF-11" accent="var(--gold)" />
-    </div>
-
-    <section class="section-block" aria-labelledby="levels-title">
-      <h2 id="levels-title" data-reveal>רמות הלימוד</h2>
-      <div class="levels-grid">
-        {
-          levels.map((l, i) => (
-            <a
-              class="card card-accent level-card"
-              style={`--card-accent:${l.accent}; --reveal-delay:${i * 100}ms`}
-              href={l.href}
-              data-reveal
-            >
-              <h3>{l.title}</h3>
-              <p>{l.desc}</p>
-              <span class="level-cta">לעמוד הרמה ←</span>
-            </a>
-          ))
-        }
-      </div>
+    <section class="placeholder" data-reveal aria-labelledby="upper-title">
+      <p class="eyebrow">חטיבה עליונה</p>
+      <h1 id="upper-title">העמוד יתעדכן בהמשך</h1>
+      <p>התוכן לחטיבה העליונה נמצא בתהליך עדכון. בשלב זה הכניסה הציבורית נשארת נקייה ופשוטה.</p>
+      <a class="btn btn-primary" href="/">חזרה לעמוד הראשי</a>
     </section>
-
-    <section class="section-block" data-reveal>
-      <h2>בחינות, נוסחאונים ומידע מנהלי</h2>
-      <div class="chip-links">
-        <a class="btn btn-primary" href="/chativa-elyona/bchinot/">לעמוד הבחינות והמידע המנהלי ←</a>
-        <a class="btn btn-primary" href="/chativa-elyona/homrei-horaa/">חומרי הוראה ומאגרים ←</a>
-        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-18">קמפוס IL — קורסים דיגיטליים</a>
-        <a class="btn btn-ghost" href="/pituach-miktzoi/">פיתוח מקצועי</a>
-      </div>
-    </section>
-  </div>
+  </main>
 </Base>
 
 <style>
-  .page { padding-block-start: 1.6rem; }
-  .page-head { max-width: 680px; margin-block: 1.6rem 2rem; }
-  .section-block { margin-block-start: clamp(2.4rem, 5vw, 3.4rem); }
-  .section-block h2 { margin-block-end: 1.2rem; }
-
-  .levels-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
-    gap: clamp(1rem, 2.4vw, 1.5rem);
+  .placeholder-page { padding-block: 1rem 4rem; }
+  .placeholder {
+    min-block-size: min(62svh, 620px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    max-width: 920px;
+    margin-inline: auto;
+    padding: clamp(2rem, 7vw, 5rem);
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius-lg) + 6px);
+    background:
+      radial-gradient(110% 130% at 85% -10%, rgb(110 159 195 / 0.13), transparent 58%),
+      radial-gradient(100% 120% at 10% 110%, rgb(176 141 62 / 0.14), transparent 60%),
+      var(--paper);
+    box-shadow: var(--shadow-soft);
   }
-
-  .level-card { display: flex; flex-direction: column; gap: 0.5rem; padding: 1.7rem 1.5rem 1.4rem; color: var(--ink); }
-  .level-card h3 { margin: 0; font-size: 1.5rem; }
-  .level-card p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
-  .level-cta { margin-block-start: auto; padding-block-start: 0.8rem; font-weight: 700; color: var(--gold-deep); }
-
-  .chip-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .eyebrow { margin: 0 0 0.45rem; color: var(--gold-deep); font-weight: 850; }
+  h1 {
+    margin: 0;
+    color: var(--navy);
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 7vw, 5rem);
+    line-height: 1.03;
+  }
+  .placeholder p:not(.eyebrow) { max-width: 58ch; margin-block: 1rem 1.6rem; color: var(--ink-soft); font-size: clamp(1rem, 2vw, 1.15rem); line-height: 1.75; }
 </style>
