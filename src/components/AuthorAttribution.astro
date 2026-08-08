@@ -1,0 +1,47 @@
+---
+import { authorsForResource } from '../data/authors';
+
+interface Props {
+  resourceId: string;
+}
+
+const { resourceId } = Astro.props;
+const authors = authorsForResource(resourceId);
+---
+
+{authors.length > 0 && (
+  <div class="authors" aria-label="יוצרי המשאב">
+    {authors.map((author) => (
+      <div class="author-entry">
+        {author.pageEligible ? (
+          <a class="author-name" href={`/chativat-beynayim/mechabrim/${author.slug}/`}>{author.name}</a>
+        ) : (
+          <span class="author-name is-static">{author.name}</span>
+        )}
+        {author.role && <span class="author-role">{author.role}</span>}
+      </div>
+    ))}
+  </div>
+)}
+
+<style>
+  .authors { display: grid; gap: 0.45rem; margin-block-start: 0.9rem; }
+  .author-entry { display: flex; flex-direction: column; align-items: flex-start; gap: 0.12rem; }
+  .author-name {
+    min-block-size: 44px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--gold-deep);
+    font-family: var(--font-body);
+    font-weight: 900;
+    font-size: 1.02rem;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    text-decoration: none;
+    border-radius: 8px;
+  }
+  a.author-name:hover { text-decoration: underline; text-underline-offset: 0.22em; }
+  a.author-name:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .author-name.is-static { min-block-size: auto; }
+  .author-role { max-width: 54ch; color: var(--ink-faint); font-size: 0.76rem; line-height: 1.45; }
+</style>
