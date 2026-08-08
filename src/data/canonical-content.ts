@@ -1,6 +1,7 @@
 import { choveret, materialChapters, type ChoveretChapter, type ChoveretGrade, type ChoveretItem, type ItemKind } from './choveret';
 import { hafifaUnit, mishvaotUnit, toEmbed, type Unit, type UnitResource } from './units';
 import { isPublishableMaterial } from './publishing';
+import { supplementalItemsForChapter } from './project-supplements';
 
 const unitKindToItemKind = (resource: UnitResource): ItemKind => {
   if (resource.kind === 'drive') return 'drive';
@@ -33,12 +34,13 @@ const uniqueById = (items: readonly ChoveretItem[]): ChoveretItem[] => {
 };
 
 /**
- * מקור התצוגה הקנוני לנושא. יחידות legacy ששייכות לנושא רגיל מוזגות כאן
- * אל הנושא במקום להישאר כ"עמוד ייעודי" נפרד.
+ * מקור התצוגה הקנוני לנושא. יחידות legacy ששייכות לנושא רגיל ומשאבי מוצר
+ * שנוספו לאחר בניית קטלוג המקור מוזגים כאן, בלי לגעת בנתוני החילוץ עצמם.
  */
 export function canonicalChapterItems(chapter: ChoveretChapter): ChoveretItem[] {
-  const extra = legacyUnitItems[chapter.id as keyof typeof legacyUnitItems] ?? [];
-  return uniqueById([...chapter.items, ...extra]);
+  const legacy = legacyUnitItems[chapter.id as keyof typeof legacyUnitItems] ?? [];
+  const supplemental = supplementalItemsForChapter(chapter.id);
+  return uniqueById([...chapter.items, ...legacy, ...supplemental]);
 }
 
 export function canonicalChapter(chapter: ChoveretChapter): ChoveretChapter {
@@ -49,7 +51,6 @@ export function canonicalGrade(grade: ChoveretGrade): ChoveretGrade {
   return {
     ...grade,
     chapters: grade.chapters.map(canonicalChapter),
-    // שני העמודים הישנים הפכו לתוכן של הנושא הקנוני ולכן אינם מוצגים כחריגים.
     pages: grade.pages?.filter((page) => !['/chativat-beynayim/mishvaot/', '/chativat-beynayim/hafifat-meshulashim/'].includes(page.href)),
   };
 }
