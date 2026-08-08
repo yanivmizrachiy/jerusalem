@@ -1,16 +1,12 @@
 ---
 /**
- * עמוד הנושא (הוראת יניב, 06/08/2026): רשימת המשימות של נושא אחד.
- * כל משימה היא כרטיס לחיץ אחד שמוביל לעמוד המשימה — הטמעה בצד אחד
- * ולוח פעולות בצד השני (8.2). בתחתית: מעבר לנושא הקודם/הבא באותה
- * שכבה (5.12) וחזרה לרשימת הנושאים.
- *
- * `needsReview` הוא quarantine: נשמר בקטלוג אך לעולם אינו נחשף כאן.
- * למשאב רב־נושאי נשמר href קנוני נקי; הקשר הנושא נשמר מקומית רגע לפני
- * הניווט, כדי לא ליצור כתובת קנונית נוספת ולא לשבור קישורים קיימים.
+ * עמוד הנושא: רשימת המשאבים של נושא אחד.
+ * כל משאב הוא כרטיס לחיץ שמוביל לעמוד המשאב — הטמעה בצד אחד
+ * ולוח פעולות בצד השני. `needsReview` נשמר בקטלוג אך אינו נחשף כאן.
  */
 import Breadcrumbs from './Breadcrumbs.astro';
 import { publishableItems } from '../data/publishing';
+import { resourceCountLabel, resourceDisplayLabel } from '../data/resource-labels';
 import {
   chapterHref,
   chapterNeighbours,
@@ -18,7 +14,6 @@ import {
   gradeLabel,
   gradeMaterialsHref,
   itemHref,
-  kindLabel,
   type ChoveretChapter,
   type ChoveretGrade,
 } from '../data/choveret';
@@ -50,7 +45,7 @@ const items = publishableItems(chapter.items);
   <header class="chapter-head" data-reveal>
     <p class="chapter-eyebrow">{grade.title}</p>
     <h1 class="chapter-title">{chapter.title}</h1>
-    <p class="chapter-n">{items.length} משימות</p>
+    <p class="chapter-n">{resourceCountLabel(items)}</p>
     <span class="chapter-rule" aria-hidden="true"></span>
   </header>
 
@@ -60,7 +55,7 @@ const items = publishableItems(chapter.items);
         <li>
           <a class="rcard" href={itemHref(grade.slug, item)} data-resource-context={chapter.id}>
             <span class="rcard-top">
-              <span class="rcard-kind">{kindLabel[item.kind]}</span>
+              <span class="rcard-kind">{resourceDisplayLabel(item)}</span>
               <span class="rcard-go" aria-hidden="true">
                 <svg viewBox="0 0 28 12" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path d="M27 6H2M8 1 2 6l6 5" stroke-linecap="round" stroke-linejoin="round" />
