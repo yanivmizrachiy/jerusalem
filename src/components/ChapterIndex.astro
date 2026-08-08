@@ -1,11 +1,7 @@
 ---
-/**
- * עמוד הנושא: רשימת המשאבים של נושא אחד.
- * כל משאב הוא כרטיס לחיץ שמוביל לעמוד המשאב — הטמעה בצד אחד
- * ולוח פעולות בצד השני. `needsReview` נשמר בקטלוג אך אינו נחשף כאן.
- */
 import Breadcrumbs from './Breadcrumbs.astro';
 import { publishableItems } from '../data/publishing';
+import { primaryResourceId } from '../data/primary-resources';
 import { resourceCountLabel, resourceDisplayLabel } from '../data/resource-labels';
 import {
   chapterHref,
@@ -26,6 +22,9 @@ interface Props {
 const { grade, chapter } = Astro.props;
 const { prev, next } = chapterNeighbours(grade, chapter.id);
 const items = publishableItems(chapter.items);
+const primaryId = primaryResourceId(chapter.id);
+const primary = primaryId ? items.find((item) => item.id === primaryId) : undefined;
+const secondaryItems = primary ? items.filter((item) => item.id !== primary.id) : items;
 ---
 
 <div
@@ -49,27 +48,56 @@ const items = publishableItems(chapter.items);
     <span class="chapter-rule" aria-hidden="true"></span>
   </header>
 
-  <ul class="cards">
-    {
-      items.map((item) => (
-        <li>
-          <a class="rcard" href={itemHref(grade.slug, item)} data-resource-context={chapter.id}>
-            <span class="rcard-top">
-              <span class="rcard-kind">{resourceDisplayLabel(item)}</span>
-              <span class="rcard-go" aria-hidden="true">
-                <svg viewBox="0 0 28 12" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M27 6H2M8 1 2 6l6 5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </span>
-            </span>
-            <span class="rcard-title">{item.title}</span>
-            {item.note && <span class="rcard-note">{item.note}</span>}
-            {item.source && <span class="rcard-source">{item.source}</span>}
+  {primary && (
+    <section class="primary-resource" data-reveal aria-labelledby="primary-resource-title">
+      <div class="primary-copy">
+        <p class="primary-kicker">המשאב המרכזי בנושא</p>
+        <h2 id="primary-resource-title">{primary.title}</h2>
+        <span class="primary-kind">{resourceDisplayLabel(primary)}</span>
+        {primary.note && <p>{primary.note}</p>}
+        <a class="btn btn-primary" href={itemHref(grade.slug, primary)} data-resource-context={chapter.id}>
+          לדף המשאב והפעולות
+        </a>
+      </div>
+
+      <div class="primary-view embed-frame">
+        {primary.embed ? (
+          <iframe
+            src={primary.embed}
+            title={`${primary.title} — תצוגה מרכזית`}
+            loading="lazy"
+            allow="fullscreen; clipboard-write"
+          />
+        ) : (
+          <a class="primary-open" href={itemHref(grade.slug, primary)} data-resource-context={chapter.id}>
+            <strong>{primary.title}</strong>
+            <span>פתיחת המשאב המרכזי</span>
           </a>
-        </li>
-      ))
-    }
-  </ul>
+        )}
+      </div>
+    </section>
+  )}
+
+  {secondaryItems.length > 0 && (
+    <section class="secondary-resources" aria-labelledby={primary ? 'secondary-title' : undefined}>
+      {primary && <h2 id="secondary-title">חומרים נוספים בנושא</h2>}
+      <ul class="cards">
+        {secondaryItems.map((item) => (
+          <li>
+            <a class="rcard" href={itemHref(grade.slug, item)} data-resource-context={chapter.id}>
+              <span class="rcard-top">
+                <span class="rcard-kind">{resourceDisplayLabel(item)}</span>
+                <span class="rcard-go" aria-hidden="true">←</span>
+              </span>
+              <span class="rcard-title">{item.title}</span>
+              {item.note && <span class="rcard-note">{item.note}</span>}
+              {item.source && <span class="rcard-source">{item.source}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 
   <nav class="chapter-nav" aria-label="ניווט בין הנושאים">
     <a class="btn btn-ghost" href={gradeMaterialsHref(grade.slug)} data-to-topics>
@@ -77,171 +105,84 @@ const items = publishableItems(chapter.items);
     </a>
 
     <div class="chapter-sides">
-      {
-        prev ? (
-          <a class="pager-link" href={chapterHref(grade.slug, prev.id)} style={`--p:${prev.color}`}>
-            <span class="pager-tag">הנושא הקודם</span>
-            <span class="pager-title">{prev.title}</span>
-          </a>
-        ) : (
-          <span class="pager-spacer" />
-        )
-      }
-      {
-        next ? (
-          <a class="pager-link" href={chapterHref(grade.slug, next.id)} style={`--p:${next.color}`}>
-            <span class="pager-tag">הנושא הבא</span>
-            <span class="pager-title">{next.title}</span>
-          </a>
-        ) : (
-          <span class="pager-spacer" />
-        )
-      }
+      {prev ? (
+        <a class="pager-link" href={chapterHref(grade.slug, prev.id)} style={`--p:${prev.color}`}>
+          <span class="pager-tag">→ הנושא הקודם</span>
+          <span class="pager-title">{prev.title}</span>
+        </a>
+      ) : <span class="pager-spacer" />}
+      {next ? (
+        <a class="pager-link" href={chapterHref(grade.slug, next.id)} style={`--p:${next.color}`}>
+          <span class="pager-tag">הנושא הבא ←</span>
+          <span class="pager-title">{next.title}</span>
+        </a>
+      ) : <span class="pager-spacer" />}
     </div>
   </nav>
 </div>
 
 <style>
-  .chapter-page {
-    padding-block: 1.2rem 2.6rem;
-    --ch-ink: color-mix(in srgb, var(--ch-dark) 76%, #10141c);
-  }
-
+  .chapter-page { padding-block: 1.2rem 2.6rem; --ch-ink: color-mix(in srgb, var(--ch-dark) 76%, #10141c); }
   .chapter-head { max-width: 820px; margin-block: 0.8rem 1.6rem; }
   .chapter-eyebrow { margin: 0 0 0.3rem; color: var(--ink-faint); font-size: 0.95rem; font-weight: 600; }
-
-  .chapter-title {
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: clamp(1.9rem, 4.6vw, 3rem);
-    line-height: 1.1;
-    color: var(--ch-dark);
-  }
-
+  .chapter-title { margin: 0; font-family: var(--font-display); font-size: clamp(1.9rem, 4.6vw, 3rem); line-height: 1.1; color: var(--ch-dark); }
   .chapter-n { margin: 0.45rem 0 0; color: var(--ink-faint); font-size: 0.95rem; }
+  .chapter-rule { display: block; margin-block-start: 1rem; block-size: 3px; inline-size: 128px; border-radius: 3px; background: linear-gradient(90deg, var(--ch), color-mix(in srgb, var(--gold) 70%, transparent)); }
 
-  .chapter-rule {
-    display: block;
-    margin-block-start: 1rem;
-    block-size: 3px;
-    inline-size: 128px;
-    border-radius: 3px;
-    background: linear-gradient(90deg, var(--ch), color-mix(in srgb, var(--gold) 70%, transparent));
-  }
-
-  .cards {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .primary-resource {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 285px), 1fr));
-    gap: clamp(0.8rem, 1.6vw, 1.1rem);
+    grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.6fr);
+    gap: clamp(1rem, 2.5vw, 1.6rem);
+    align-items: stretch;
+    margin-block: 0 2rem;
+    padding: clamp(1rem, 2.2vw, 1.35rem);
+    border: 1px solid color-mix(in srgb, var(--ch) 42%, var(--line));
+    border-radius: calc(var(--radius-lg) + 4px);
+    background: linear-gradient(145deg, color-mix(in srgb, var(--ch) 5%, #fff), var(--paper));
+    box-shadow: var(--shadow-soft);
   }
+  .primary-copy { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0.65rem; padding: clamp(0.3rem, 1vw, 0.8rem); }
+  .primary-kicker { margin: 0; color: var(--gold-deep); font-size: 0.8rem; font-weight: 850; }
+  .primary-copy h2 { margin: 0; color: var(--navy); font-family: var(--font-display); font-size: clamp(1.55rem, 3.5vw, 2.45rem); line-height: 1.12; }
+  .primary-copy > p:not(.primary-kicker) { margin: 0; color: var(--ink-soft); line-height: 1.7; }
+  .primary-kind { padding: 0.2rem 0.65rem; border-radius: 999px; background: color-mix(in srgb, var(--ch) 10%, #fff); color: var(--ch-ink); font-size: 0.76rem; font-weight: 800; }
+  .primary-view { min-block-size: clamp(430px, 55vw, 680px); overflow: hidden; }
+  .primary-view iframe { inline-size: 100%; block-size: 100%; min-block-size: inherit; border: 0; background: #fff; }
+  .primary-open { min-block-size: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.45rem; padding: 2rem; background: var(--navy); color: var(--paper); text-align: center; text-decoration: none; border-radius: var(--embed-inner-radius); }
+  .primary-open strong { font-family: var(--font-display); font-size: clamp(1.35rem, 3vw, 2rem); }
+  .primary-open span { color: #e8c877; font-weight: 800; }
 
-  .rcard {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-    block-size: 100%;
-    min-block-size: 44px;
-    padding: 1rem 1.1rem 1.15rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--line);
-    background: #fff;
-    text-decoration: none;
-    color: var(--ink);
-    position: relative;
-    overflow: hidden;
-    transition: transform 320ms var(--ease-lift), box-shadow 320ms var(--ease), border-color 320ms var(--ease);
-  }
-
-  .rcard::before {
-    content: '';
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0;
-    inline-size: 3px;
-    background: var(--ch);
-    opacity: 0.85;
-  }
-
-  .rcard:hover {
-    transform: translateY(-4px);
-    border-color: color-mix(in srgb, var(--ch) 42%, var(--line));
-    box-shadow: 0 20px 44px -26px color-mix(in srgb, var(--ch) 80%, transparent);
-  }
-
+  .secondary-resources > h2 { margin: 0 0 0.9rem; color: var(--navy); font-family: var(--font-display); font-size: clamp(1.35rem, 3vw, 1.9rem); }
+  .cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 285px), 1fr)); gap: clamp(0.8rem, 1.6vw, 1.1rem); }
+  .rcard { display: flex; flex-direction: column; gap: 0.45rem; block-size: 100%; min-block-size: 44px; padding: 1rem 1.1rem 1.15rem; border-radius: var(--radius); border: 1px solid var(--line); background: #fff; text-decoration: none; color: var(--ink); position: relative; overflow: hidden; transition: transform 320ms var(--ease-lift), box-shadow 320ms var(--ease), border-color 320ms var(--ease); }
+  .rcard::before { content: ''; position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: 3px; background: var(--ch); opacity: 0.85; }
+  .rcard:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--ch) 42%, var(--line)); box-shadow: 0 20px 44px -26px color-mix(in srgb, var(--ch) 80%, transparent); }
   .rcard:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
   .rcard-top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
-
-  .rcard-kind {
-    align-self: flex-start;
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--ch) 9%, #fff);
-    color: var(--ch-ink);
-    font-size: 0.75rem;
-    font-weight: 700;
-  }
-
-  .rcard-go { color: var(--ch-dark); opacity: 0.65; transition: translate 320ms var(--ease), opacity 320ms var(--ease); }
-  .rcard-go svg { inline-size: 28px; block-size: auto; display: block; }
+  .rcard-kind { align-self: flex-start; padding: 0.2rem 0.6rem; border-radius: 999px; background: color-mix(in srgb, var(--ch) 9%, #fff); color: var(--ch-ink); font-size: 0.75rem; font-weight: 700; }
+  .rcard-go { color: var(--ch-dark); opacity: 0.7; font-size: 1.2rem; transition: translate 320ms var(--ease), opacity 320ms var(--ease); }
   .rcard:hover .rcard-go { translate: -6px 0; opacity: 1; }
   .rcard-title { font-family: var(--font-display); font-size: 1.08rem; line-height: 1.35; color: var(--navy); }
-
-  .rcard-note {
-    color: var(--ink-soft);
-    font-size: 0.88rem;
-    line-height: 1.6;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
+  .rcard-note { color: var(--ink-soft); font-size: 0.88rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .rcard-source { color: var(--ink-faint); font-size: 0.78rem; margin-block-start: auto; padding-block-start: 0.3rem; }
 
-  .chapter-nav {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-block-start: clamp(2.4rem, 6vw, 3.6rem);
-    padding-block-start: 1.6rem;
-    border-block-start: 1px solid var(--line);
-  }
-
+  .chapter-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-block-start: clamp(2.4rem, 6vw, 3.6rem); padding-block-start: 1.6rem; border-block-start: 1px solid var(--line); }
   .chapter-sides { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem; }
-
-  .pager-link {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    min-inline-size: 200px;
-    min-block-size: 44px;
-    justify-content: center;
-    padding: 0.75rem 1.05rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--line);
-    background: #fff;
-    color: var(--ink);
-    text-decoration: none;
-  }
-
+  .pager-link { display: flex; flex-direction: column; gap: 0.15rem; min-inline-size: 200px; min-block-size: 44px; justify-content: center; padding: 0.75rem 1.05rem; border-radius: var(--radius); border: 1px solid var(--line); background: #fff; color: var(--ink); text-decoration: none; }
   .pager-link:hover { border-color: color-mix(in srgb, var(--p) 45%, var(--line)); }
   .pager-link:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
   .pager-tag { font-size: 0.78rem; font-weight: 700; color: var(--gold-deep); }
   .pager-title { font-weight: 600; }
   .pager-spacer { display: none; }
 
+  @media (max-width: 900px) {
+    .primary-resource { grid-template-columns: 1fr; }
+    .primary-view { min-block-size: clamp(420px, 72svh, 640px); order: -1; }
+  }
   @media (max-width: 720px) {
-    .chapter-nav { flex-direction: column; align-items: stretch; }
-    .chapter-sides { flex-direction: column; align-items: stretch; }
+    .chapter-nav, .chapter-sides { flex-direction: column; align-items: stretch; }
     .pager-link { min-inline-size: 0; }
   }
-
   @media (prefers-reduced-motion: reduce) {
     .rcard, .rcard-go { transition: none; }
     .rcard:hover { transform: none; }
@@ -250,7 +191,7 @@ const items = publishableItems(chapter.items);
 </style>
 
 <script>
-  document.querySelectorAll<HTMLAnchorElement>('a.rcard[data-resource-context]').forEach((link) => {
+  document.querySelectorAll<HTMLAnchorElement>('a[data-resource-context]').forEach((link) => {
     link.addEventListener('click', () => {
       const contextId = link.dataset.resourceContext;
       if (!contextId) return;
