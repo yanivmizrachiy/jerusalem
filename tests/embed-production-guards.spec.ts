@@ -5,7 +5,19 @@ import { expect, test } from '@playwright/test';
  * המטרה: למנוע חזרה של viewer נמוך שמציג רק חצי עמוד, ולוודא שכל
  * פעולות האתר נשארות בחצי השמאלי ולא זולגות אל אזור ההטמעה.
  */
-test.skip(({ isMobile }) => isMobile === true, 'רץ בפרויקט הדסקטופ עם viewports מפורשים');
+/**
+ * חלוקת הפרויקטים (תוקן 09/08/2026): הקובץ כולו דילג על פרופיל המובייל,
+ * ולכן הבדיקה שכותרתה "בנייד" רצה בכרום דסקטופ עם viewport צר בלבד —
+ * בלי מגע ובלי userAgent של מובייל. מעכשיו היא רצה בפרופיל Pixel 7
+ * האמיתי, ושאר הבדיקות בפרויקט הדסקטופ בלבד.
+ */
+test.beforeEach(({ isMobile }, testInfo) => {
+  const wantsMobile = testInfo.title.includes('בנייד');
+  test.skip(
+    wantsMobile !== (isMobile === true),
+    wantsMobile ? 'רץ בפרופיל המובייל האמיתי בלבד' : 'רץ בפרויקט הדסקטופ בלבד',
+  );
+});
 
 const desktopViewports = [
   { width: 1440, height: 900 },
@@ -101,6 +113,9 @@ test('כל פעולות עמוד המשאב נמצאות רק בחצי השמא�
 
 test('בנייד ההטמעה ראשונה, גבוהה ונוחה, והפעולות אחריה', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  // מוודא שאנחנו באמת בפרופיל מכשיר ולא ב-viewport צר של דסקטופ
+  const touch = await page.evaluate(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0);
+  expect(touch, 'בדיקת נייד חייבת לרוץ בפרופיל מכשיר אמיתי').toBe(true);
   await page.goto('/chativat-beynayim/reader/z/misparim/');
 
   const view = (await page.locator('.res-view').boundingBox())!;

@@ -14,9 +14,29 @@ import {
  * עמודי האינטרנט של חטיבת הביניים וכותרת ה-Lovable של לוח השנה.
  */
 
-// מצבי מסך נבדקים במפורש דרך setViewportSize בפרויקט הדסקטופ; אין צורך
-// בהרצה כפולה בפרופיל המובייל (מצב צר נבדק בבדיקה ייעודית)
-test.skip(({ isMobile }) => isMobile === true, 'רץ בפרויקט הדסקטופ עם viewports מפורשים');
+/**
+ * חלוקת הפרויקטים (תוקן 09/08/2026): עד כה הקובץ כולו דילג על פרופיל
+ * המובייל, וכל בדיקה שכותרתה "בנייד" רצה בכרום דסקטופ עם setViewportSize
+ * בלבד. ‏viewport צר אינו מכשיר: אין בו מגע, אין userAgent של מובייל ואין
+ * DPR אמיתי — ולכן דווקא הקביעות על "מטרת מגע" ועל התנהגות נייד נבדקו
+ * בסביבה שאינה נייד.
+ *
+ * מעכשיו בדיקה שכותרתה "בנייד" רצה **רק** בפרופיל Pixel 7 האמיתי, וכל
+ * השאר רצות **רק** בפרויקט הדסקטופ. אין הרצה כפולה, ואין דילוג שמסתיר כשל.
+ */
+test.beforeEach(({ isMobile }, testInfo) => {
+  const wantsMobile = testInfo.title.includes('בנייד');
+  test.skip(
+    wantsMobile !== (isMobile === true),
+    wantsMobile ? 'רץ בפרופיל המובייל האמיתי בלבד' : 'רץ בפרויקט הדסקטופ בלבד',
+  );
+});
+
+/** בדיקת נייד חייבת לרוץ על מכשיר מגע אמיתי — שלא תידרדר בשקט חזרה לדסקטופ צר. */
+const assertRealMobile = async (page: Page) => {
+  const touch = await page.evaluate(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0);
+  expect(touch, 'בדיקת נייד חייבת לרוץ בפרופיל מכשיר אמיתי, לא ב-viewport צר').toBe(true);
+};
 
 /* ===== קטלוג חומרי ההוראה ===== */
 
@@ -230,6 +250,7 @@ test('שער חטיבת הביניים: שלושה שלישים שווים, בל
 
 test('שער חטיבת הביניים בנייד: השלישים נערמים ונשארים גדולים (19.32)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await assertRealMobile(page);
   await page.goto('/chativat-beynayim/');
   const thirds = page.locator('.split3 .third');
   await expect(thirds).toHaveCount(3);
@@ -371,6 +392,11 @@ test('האוספים הגדולים מוצגים בכל שכבה, ותנופה �
 });
 
 test('כל משימה בכל נושא בכל שכבה מובילה לעמוד משימה מחולק (3.30)', async ({ page }) => {
+  // הבדיקה מנווטת בפועל לכל הנושאים בשלוש השכבות ולמדגם משימות — כ-60
+  // ניווטים. סולו היא לוקחת ~10 שניות, אבל תחת ריצה מקבילה מלאה היא חצתה
+  // את תקרת 45 השניות ונפלה כ-flake (נמדד 09/08/2026). ‏retries=0 הוא חלק
+  // מחוזה האיכות, ולכן התקציב מורחב במקום להחזיר ניסיונות חוזרים.
+  test.slow();
   await page.setViewportSize({ width: 1440, height: 900 });
   let tasks = 0;
   const sample: string[] = [];
@@ -469,6 +495,7 @@ test('החומרים המשותפים חולקו לשלוש הכיתות ואי�
 
 test('עמוד מבוא בנייד: הכול נגיש בלי גלילה אופקית (19.32)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await assertRealMobile(page);
   await page.goto('/chativat-beynayim/kita-h/');
   await expect(page.locator('#ma-melamdim .band-title')).toBeVisible();
   await expect(page.locator('[data-materials]')).toBeVisible();
@@ -556,6 +583,7 @@ test('עמוד משאב במסך רחב: פס גלילה אחד — העמוד �
 
 test('עמוד משאב בנייד: ההטמעה לפני ההסבר (8.6)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await assertRealMobile(page);
   await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
   const view = (await page.locator('.res-view').boundingBox())!;
   const panel = (await page.locator('.res-panel').boundingBox())!;
@@ -832,6 +860,7 @@ test('בחירת החטיבה: ריחוף על כפתור החזרה אינו מ
 
 test('בחירת החטיבה בנייד: החצאים נערמים בלי גלילה אופקית (05/08)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await assertRealMobile(page);
   await page.goto('/shearim/');
   const halves = page.locator('.split .half');
   const a = (await halves.nth(0).boundingBox())!;
@@ -1207,6 +1236,7 @@ test('UnitPlaylist: שתי עמודות שוות והרשימה באמת גול�
 
 test('בנייד: ההטמעה ראשונה, בלי גלילה אופקית ובלי scrollbar בלוח המידע (8.6)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await assertRealMobile(page);
   await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
   const view = (await page.locator('.res-view').boundingBox())!;
   const panel = (await page.locator('.res-panel').boundingBox())!;
