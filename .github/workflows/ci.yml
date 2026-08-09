@@ -1,11 +1,16 @@
 # שער האיכות האוטומטי (RULES 21.14–21.17): חוזה יחיד, fail-closed, על כל PR ועל main.
-# אחרי מיזוג ל-main מאמתים גם שהפרודקשן באמת מגיש את הקומיט שנבדק.
+# אחרי מיזוג ל-main מאמתים גם שהפרודקשן באמת מגיש בדיוק את הקומיט שנבדק.
 name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
+
+# ברירת המחדל של ה-workflow היא read-only. כל שינוי עתידי שיצטרך כתיבה חייב
+# לבקש הרשאה מפורשת ב-job עצמו ולא לקבל אותה בירושה במקרה.
+permissions:
+  contents: read
 
 # ביטול ריצה קודמת רק ב-PR. על main כל ריצה מסיימת כדי שאימות הפרודקשן
 # של כל קומיט שנכנס ל-main לא ייעלם בשקט.
@@ -41,7 +46,7 @@ jobs:
         if: always()
         run: npm audit --omit=dev --audit-level=high || true
       - run: npx playwright install --with-deps chromium
-      # מקור אמת יחיד: repo-health → check → build → Playwright עם retries=0
+      # מקור אמת יחיד: repo-health → dead-code hygiene → check → build → Playwright עם retries=0
       # ופורט פנוי אוטומטי. אותה פקודה מיועדת גם להרצה מקומית.
       - run: npm run quality
       - name: Upload traces on failure
