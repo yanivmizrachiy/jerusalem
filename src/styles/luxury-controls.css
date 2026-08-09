@@ -1,0 +1,139 @@
+/* ============================================================
+   Luxury interaction layer — controls only
+   Loaded after global.css so every existing .btn keeps its semantics while
+   receiving one consistent premium state system (RULES 5.14, 5.19, 5.21).
+   ============================================================ */
+
+:root {
+  --control-glass: color-mix(in srgb, #fff 84%, var(--paper-soft) 16%);
+  --control-line: color-mix(in srgb, var(--gold) 24%, var(--line));
+  --control-shadow: 0 12px 30px -20px rgb(31 41 61 / 0.42);
+  --control-shadow-hover: 0 20px 44px -22px rgb(31 41 61 / 0.46);
+}
+
+.btn {
+  --btn-accent: var(--gold);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  box-shadow: var(--control-shadow);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Fine metallic highlight: visible only as feedback, never as a permanent
+   decorative animation. It does not change geometry or intercept clicks. */
+.btn::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(110deg, transparent 0 36%, rgb(255 255 255 / 0.42) 48%, transparent 60%),
+    radial-gradient(70% 130% at 100% 0%, color-mix(in srgb, var(--btn-accent) 16%, transparent), transparent 68%);
+  translate: 34% 0;
+  opacity: 0;
+  transition: opacity 260ms var(--ease), translate 520ms var(--ease-lift);
+}
+
+.btn:hover,
+.btn:focus-visible {
+  box-shadow: var(--control-shadow-hover);
+}
+
+.btn:hover::before,
+.btn:focus-visible::before {
+  translate: 0 0;
+  opacity: 1;
+}
+
+.btn-primary {
+  --btn-accent: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 28%, transparent);
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 0.08), transparent 46%),
+    linear-gradient(160deg, #344158 0%, var(--navy) 46%, #151e2e 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    inset 0 -1px 0 rgb(212 175 92 / 0.22),
+    var(--control-shadow);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 0.12), transparent 46%),
+    linear-gradient(160deg, #3a4962 0%, #26344d 48%, #172235 100%);
+  color: #fff;
+  border-color: color-mix(in srgb, var(--gold) 58%, transparent);
+}
+
+.btn-ghost {
+  --btn-accent: var(--sky);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.88), rgb(255 255 255 / 0.68)),
+    var(--control-glass);
+  border-color: var(--control-line);
+  color: var(--ink);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    var(--control-shadow);
+}
+
+.btn-ghost:hover,
+.btn-ghost:focus-visible {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--btn-accent) 46%, var(--line));
+  background: color-mix(in srgb, var(--btn-accent) 7%, #fff);
+}
+
+/* Explicit state hooks. Components can opt in without inventing new visual
+   languages. Existing buttons are unaffected until a state is actually set. */
+.btn[aria-busy='true'] {
+  cursor: progress;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sky) 40%, transparent), var(--control-shadow);
+}
+
+.btn[data-state='success'] {
+  --btn-accent: var(--olive);
+  border-color: color-mix(in srgb, var(--olive) 55%, var(--line));
+  background-color: color-mix(in srgb, var(--olive) 11%, #fff);
+}
+
+.btn[data-state='error'] {
+  --btn-accent: var(--terracotta);
+  border-color: color-mix(in srgb, var(--terracotta) 58%, var(--line));
+  background-color: color-mix(in srgb, var(--terracotta) 10%, #fff);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  box-shadow: none;
+  filter: saturate(0.55);
+}
+
+/* Shared premium treatment for button groups. Individual components may set
+   --btn-accent per action; the group stays calm and aligned. */
+.lux-control-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--gold) 18%, var(--line));
+  border-radius: calc(var(--radius) + 8px);
+  background: color-mix(in srgb, #fff 78%, var(--paper-soft));
+  box-shadow: inset 0 1px 0 #fff, 0 14px 34px -30px rgb(31 41 61 / 0.5);
+}
+
+@media (hover: hover) {
+  .btn:hover { transform: translateY(-2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn::before {
+    transition-duration: 1ms !important;
+  }
+  .btn::before { display: none; }
+}
