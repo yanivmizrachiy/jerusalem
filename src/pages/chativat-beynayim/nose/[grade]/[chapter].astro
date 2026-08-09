@@ -11,20 +11,21 @@ import { chapterPaths, gradeBySlug, gradeMaterialsHref, itemHref } from '../../.
 /**
  * נושא בלי אף משאב ציבורי אינו route ציבורי. נתוני המקור נשמרים בקטלוג,
  * אבל quarantine אינו אמור לייצר עמוד 200 ריק או כתובת sitemap ריקה.
- * נושאי materials=false נשמרים כאן כי הם מסלולי תאימות שמפנים ליעד שלהם.
+ * Astro מריץ getStaticPaths בסקופ מבודד, לכן החישוב נשאר בתוך הפונקציה
+ * ומשתמש רק ב-imports — לא ב-const חיצוני שנעלם בזמן prerender.
  */
-const publishableChapterPaths = chapterPaths.filter(({ grade, chapter }) => {
-  const canonical = canonicalGrade(grade).chapters.find((candidate) => candidate.id === chapter.id);
-  if (!canonical) return false;
-  if (canonical.materials === false) return true;
-  return publishableItems(canonical.items).length > 0;
-});
-
 export function getStaticPaths() {
-  return publishableChapterPaths.map(({ grade, chapter }) => ({
-    params: { grade: grade.slug, chapter: chapter.id },
-    props: { gradeSlug: grade.slug, chapterId: chapter.id },
-  }));
+  return chapterPaths
+    .filter(({ grade, chapter }) => {
+      const canonical = canonicalGrade(grade).chapters.find((candidate) => candidate.id === chapter.id);
+      if (!canonical) return false;
+      if (canonical.materials === false) return true;
+      return publishableItems(canonical.items).length > 0;
+    })
+    .map(({ grade, chapter }) => ({
+      params: { grade: grade.slug, chapter: chapter.id },
+      props: { gradeSlug: grade.slug, chapterId: chapter.id },
+    }));
 }
 
 const { gradeSlug, chapterId } = Astro.props;
