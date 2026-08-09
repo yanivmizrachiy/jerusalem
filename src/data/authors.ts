@@ -64,6 +64,86 @@ export const authors: AuthorRecord[] = [
     kind: 'person',
     pageEligible: true,
   },
+  {
+    id: 'sagit-rasouli',
+    slug: 'sagit-rasouli',
+    name: 'שגית רסולי',
+    aliases: ['שגית רסולי'],
+    kind: 'person',
+    pageEligible: true,
+  },
+  {
+    id: 'rasha-salameh',
+    slug: 'rasha-salameh',
+    name: 'רשא סלאמה',
+    aliases: ['רשא סלאמה'],
+    kind: 'person',
+    pageEligible: true,
+  },
+  {
+    id: 'atara-carballo',
+    slug: 'atara-carballo',
+    name: 'עטרה קרבלו',
+    aliases: ['עטרה קרבלו'],
+    kind: 'person',
+    pageEligible: true,
+  },
+  {
+    id: 'elizhar-levi',
+    slug: 'elizhar-levi',
+    name: 'אליזהר לוי',
+    aliases: ['אליזהר לוי'],
+    kind: 'person',
+    pageEligible: true,
+  },
+  {
+    id: 'elinor-levi',
+    slug: 'elinor-levi',
+    name: 'אלינור לוי',
+    aliases: ['אלינור לוי'],
+    kind: 'person',
+    pageEligible: true,
+  },
+  {
+    id: 'osnat-gabbay',
+    slug: 'osnat-gabbay',
+    name: 'אסנת גבאי',
+    aliases: ['אסנת גבאי'],
+    kind: 'person',
+    pageEligible: true,
+  },
+  {
+    id: 'merav-arbel',
+    slug: 'merav-arbel',
+    name: 'מירב ארבל',
+    aliases: ['מירב ארבל'],
+    kind: 'person',
+    pageEligible: true,
+  },
+  {
+    id: 'shiran-peretz',
+    slug: 'shiran-peretz',
+    name: 'שירן פרץ',
+    aliases: ['שירן פרץ'],
+    kind: 'person',
+    pageEligible: true,
+  },
+  {
+    id: 'regina-cholsky',
+    slug: 'regina-cholsky',
+    name: "רגינה צ'ולסקי",
+    aliases: ["רגינה צ'ולסקי"],
+    kind: 'person',
+    pageEligible: true,
+  },
+  {
+    id: 'revital-izik',
+    slug: 'revital-izik',
+    name: 'ד״ר רויטל איזיק',
+    aliases: ['ד״ר רויטל איזיק', 'ד"ר רויטל איזיק'],
+    kind: 'person',
+    pageEligible: true,
+  },
 ];
 
 const byId = new Map(authors.map((author) => [author.id, author]));
@@ -79,7 +159,7 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'al-haretzef': ['michal-david'],
   'mishakim-tavnit': ['shilat-dadashi'],
 
-  // ייחוס מפורש בקטלוג המשחקים השמור: סמיון ויינר.
+  // סמיון ויינר.
   'src-game-z-78f405097bb9': ['semion-wiener'],
   'src-game-z-9927455e10df': ['semion-wiener'],
   'src-game-z-c6276f21e166': ['semion-wiener'],
@@ -132,6 +212,23 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'src-game-t-84a73f3b5de9': ['batya-mirzaev'],
   'src-game-t-6a25b23e0c4e': ['batya-mirzaev'],
   'src-game-t-3b8a123059d1': ['batya-mirzaev'],
+
+  // מחברים נוספים שאומתו במפורש בקטלוג המקור.
+  'src-game-z-3ae158381dbe': ['sagit-rasouli'],
+  'src-game-h-7a1e51bbee6f': ['sagit-rasouli'],
+  'src-game-t-76669b599f22': ['sagit-rasouli'],
+  'src-curriculum-71f88b7ed752': ['sagit-rasouli'],
+  'src-curriculum-b3e599064912': ['sagit-rasouli'],
+  'src-curriculum-f3d7f73d5789': ['sagit-rasouli'],
+  'src-curriculum-ba33882d0751': ['sagit-rasouli'],
+  'src-game-z-101d82415598': ['rasha-salameh'],
+  'src-game-h-b928fe90f53f': ['atara-carballo'],
+  'src-game-h-a6b435cade25': ['atara-carballo'],
+  'src-game-z-463d12bf9544': ['elizhar-levi'],
+  'src-game-z-65da3d977eff': ['elinor-levi'],
+  'src-game-t-f96bc54899bb': ['osnat-gabbay', 'merav-arbel', 'shiran-peretz'],
+  'src-game-t-ee9cbe3251c4': ['osnat-gabbay', 'merav-arbel', 'shiran-peretz'],
+  'src-game-t-d0d5af728b47': ['regina-cholsky', 'revital-izik'],
 };
 
 export function authorById(id: string): AuthorRecord | undefined {
