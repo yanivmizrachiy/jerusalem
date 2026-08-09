@@ -59,8 +59,14 @@ for (const viewport of desktopViewports) {
 
 test('מסמך מוטמע מקבל יחס עמוד מלא ולא viewer אופקי נמוך', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  // מסמך ציבורי מאומת של משרד החינוך; sheelot-t נשמר במקור אך ב-quarantine עד ייחוס.
-  await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
+  // מסמך Google ציבורי ומיוחס (משרד החינוך). המשאב שנבדק כאן קודם נשמר במקור
+  // אך נמצא ב-quarantine עד שתימצא ראיית ייחוס (24.1).
+  //
+  // נמדד 09/08/2026: אסור להחליף כאן ב-PDF. בדפדפן הבדיקה אין מציג PDF
+  // מובנה (`navigator.pdfViewerEnabled === false`), ולכן משאב PDF מסתיר את
+  // ההטמעה ומציג במקומה את כרטיס הפתיחה — בדיוק כנדרש ב-8.8. יחס העמוד של
+  // מסמך מוטמע נבדק על משאב מאותה משפחת הטמעה בלבד.
+  await page.goto('/chativat-beynayim/reader/t/ruach-tochnit/');
 
   const view = (await page.locator('.res-view').boundingBox())!;
   const iframe = page.locator('.res-frame iframe');
