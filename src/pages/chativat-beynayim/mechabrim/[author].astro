@@ -2,26 +2,47 @@
 import Base from '../../../layouts/Base.astro';
 import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import { authorsForResource, type AuthorRecord } from '../../../data/authors';
-import { canonicalReaderItems } from '../../../data/canonical-content';
-import { itemHref, gradeLabel, type ChoveretChapter, type ChoveretGrade, type ChoveretItem } from '../../../data/choveret';
+import { canonicalGrades } from '../../../data/canonical-content';
+import { isPublishableMaterial } from '../../../data/publishing';
+import {
+  itemHref,
+  gradeLabel,
+  materialChapters,
+  type ChoveretChapter,
+  type ChoveretGrade,
+  type ChoveretItem,
+} from '../../../data/choveret';
 import { resourceDisplayLabel } from '../../../data/resource-labels';
 import { visibleResourceNote, visibleResourceTitle } from '../../../data/resource-copy';
 
 interface AuthorEntry {
   grade: ChoveretGrade;
-  chapter: ChoveretChapter;
   item: ChoveretItem;
+  chapters: ChoveretChapter[];
 }
 
 const entriesFor = (author: AuthorRecord): AuthorEntry[] => {
-  const seen = new Set<string>();
-  return canonicalReaderItems.filter(({ grade, item }: AuthorEntry) => {
-    if (!authorsForResource(item.id).some((candidate: AuthorRecord) => candidate.id === author.id)) return false;
-    const key = `${grade.slug}:${item.id}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  const entries = new Map<string, AuthorEntry>();
+
+  for (const grade of canonicalGrades) {
+    for (const chapter of materialChapters(grade)) {
+      for (const item of chapter.items) {
+        if (item.pageHref || !isPublishableMaterial(item)) continue;
+        if (!authorsForResource(item.id).some((candidate) => candidate.id === author.id)) continue;
+
+        const key = `${grade.slug}:${item.id}`;
+        const existing = entries.get(key);
+        if (existing) {
+          if (!existing.chapters.some((candidate) => candidate.id === chapter.id)) existing.chapters.push(chapter);
+          continue;
+        }
+
+        entries.set(key, { grade, item, chapters: [chapter] });
+      }
+    }
+  }
+
+  return [...entries.values()];
 };
 
 export async function getStaticPaths() {
@@ -50,11 +71,15 @@ const gradeGroups = ['z', 'h', 't']
     const grade = gradeEntries[0]?.grade;
     if (!grade) return undefined;
 
-    const chapters = [...new Map(gradeEntries.map((entry) => [entry.chapter.id, entry.chapter])).values()]
+    // כל משאב מופיע פעם אחת בלבד. אם הוא מוצב בכמה נושאים, הוא מקובץ
+    // תחת הנושא הראשון בסדר הקנוני ומציג על הכרטיס את כל שיוכי הנושא.
+    const chapterOrder = materialChapters(grade);
+    const chapters = chapterOrder
       .map((chapter) => ({
         chapter,
-        entries: gradeEntries.filter((entry) => entry.chapter.id === chapter.id),
-      }));
+        entries: gradeEntries.filter((entry) => entry.chapters[0]?.id === chapter.id),
+      }))
+      .filter(({ entries }) => entries.length > 0);
 
     return { grade, chapters };
   })
@@ -75,7 +100,7 @@ const gradeGroups = ['z', 'h', 't']
     />
 
     <header class="author-head" data-reveal>
-      <p class="eyebrow">מחבר/ת ויוצר/ת תוכן</p>
+      <p class="eyebrow">יוצר/ת תוכן</p>
       <h1>{author.name}</h1>
       {author.role && <p class="author-role">{author.role}</p>}
       <p class="author-count">{entries.length} קבצים וקישורים באתר</p>
@@ -94,14 +119,17 @@ const gradeGroups = ['z', 'h', 't']
               <section class="topic-group">
                 <h3>{chapter.title}</h3>
                 <div class="resource-grid">
-                  {chapterEntries.map(({ item }) => {
+                  {chapterEntries.map(({ item, chapters: placements }) => {
                     const title = visibleResourceTitle(item);
                     const note = visibleResourceNote(item);
                     return (
-                      <a href={itemHref(grade.slug, item)}>
+                      <a href={itemHref(grade.slug, item)} data-topic-count={placements.length}>
                         <span class="type-pill">{resourceDisplayLabel(item)}</span>
                         <strong>{title}</strong>
-                        {note && <span>{note}</span>}
+                        {note && <span class="resource-note">{note}</span>}
+                        <span class="topic-tags" aria-label="נושאים">
+                          {placements.map((placement) => <span>{placement.title}</span>)}
+                        </span>
                       </a>
                     );
                   })}
@@ -138,8 +166,8 @@ const gradeGroups = ['z', 'h', 't']
   .topic-groups { display: grid; gap: 1.8rem; }
   .topic-group h3 { margin: 0 0 0.75rem; color: var(--grade-dark); font-size: 1.1rem; }
   .resource-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 0.8rem; }
-  .resource-grid a {
-    min-block-size: 128px;
+  .resource-grid > a {
+    min-block-size: 148px;
     display: flex;
     flex-direction: column;
     gap: 0.45rem;
@@ -150,9 +178,11 @@ const gradeGroups = ['z', 'h', 't']
     color: var(--ink);
     text-decoration: none;
   }
-  .resource-grid a:hover { border-color: color-mix(in srgb, var(--grade) 42%, var(--line)); box-shadow: var(--shadow-soft); }
-  .resource-grid a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  .resource-grid > a:hover { border-color: color-mix(in srgb, var(--grade) 42%, var(--line)); box-shadow: var(--shadow-soft); }
+  .resource-grid > a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
   .resource-grid strong { color: var(--navy); }
-  .resource-grid a > span:last-child:not(.type-pill) { color: var(--ink-soft); font-size: 0.87rem; line-height: 1.55; }
+  .resource-note { color: var(--ink-soft); font-size: 0.87rem; line-height: 1.55; }
   .type-pill { align-self: flex-start; padding: 0.18rem 0.55rem; border-radius: 999px; background: var(--paper-soft); color: var(--gold-deep); font-size: 0.73rem; font-weight: 800; }
+  .topic-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-block-start: auto; }
+  .topic-tags > span { padding: 0.14rem 0.45rem; border-radius: 999px; background: color-mix(in srgb, var(--grade) 7%, #fff); color: var(--grade-dark); font-size: 0.7rem; font-weight: 750; }
 </style>
