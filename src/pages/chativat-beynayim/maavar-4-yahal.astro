@@ -4,9 +4,9 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import {
   gradeHref,
   itemHref,
-  kindLabel,
   upperSecondaryTransitionItems,
 } from '../../data/choveret';
+import { resourceDisplayLabel } from '../../data/resource-labels';
 ---
 
 <Base
@@ -37,7 +37,7 @@ import {
         upperSecondaryTransitionItems.map((item) => (
           <li>
             <a href={itemHref('t', item)}>
-              <span class="kind">{kindLabel[item.kind]}</span>
+              <span class="kind">{resourceDisplayLabel(item)}</span>
               <strong>{item.title}</strong>
               <span>{item.note}</span>
             </a>

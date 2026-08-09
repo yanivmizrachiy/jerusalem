@@ -5,7 +5,7 @@ import ArtBanner from '../../components/ArtBanner.astro';
 import HamchashotEmbed from '../../components/HamchashotEmbed.astro';
 import MiddleSchoolQuickLinks from '../../components/MiddleSchoolQuickLinks.astro';
 import { whatsappCommunity } from '../../data/resources';
-import { publishedGradeCount } from '../../data/publishing';
+import { canonicalPublishedGradeCount } from '../../data/canonical-content';
 import { choveret, gradeHref } from '../../data/choveret';
 
 const stamp = Object.fromEntries(
@@ -53,7 +53,7 @@ const thirds = choveret;
           <span class="third-inner">
             <span class="third-mark" aria-hidden="true" />
             <h2 class="third-title">{g.title}</h2>
-            <span class="third-count">{publishedGradeCount(g)} קבצים, קישורים ופעילויות</span>
+            <span class="third-count">{canonicalPublishedGradeCount(g)} קבצים, קישורים ופעילויות</span>
             <span class="third-cta" aria-hidden="true">
               <svg viewBox="0 0 44 16" fill="none" stroke="currentColor" stroke-width="1.4">
                 <path d="M43 8H2M9 1.5 2 8l7 6.5" stroke-linecap="round" stroke-linejoin="round" />

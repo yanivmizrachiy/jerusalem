@@ -1,5 +1,5 @@
 # שער האיכות האוטומטי (RULES 21.14–21.17): חוזה יחיד, fail-closed, על כל PR ועל main.
-# אחרי מיזוג ל-main מאמתים גם שהפרודקשן באמת מגיש את הקומיט שנבדק.
+# אחרי מיזוג ל-main מאמתים גם שהפרודקשן באמת מגיש בדיוק את הקומיט שנבדק.
 name: CI
 
 on:
@@ -7,8 +7,11 @@ on:
     branches: [main]
   pull_request:
 
-# ביטול ריצה קודמת רק ב-PR. על main כל ריצה מסיימת כדי שאימות הפרודקשן
-# של כל קומיט שנכנס ל-main לא ייעלם בשקט.
+# ברירת המחדל של ה-workflow היא read-only. כל שינוי עתידי שיצטרך כתיבה חייב
+# לבקש הרשאה מפורשת ב-job עצמו ולא לקבל אותה בירושה במקרה.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -23,26 +26,16 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      # גרסת npm מוצמדת ב-package.json (packageManager) ונקראת ממנו, כדי
-      # ששרשרת ההתקנה תהיה זהה בכל ריצה. ‏npm@11 צף התקין גרסה אחרת בכל
-      # פעם, והלוקפייל שנוצר מקומית נדחה כאן ב-EUSAGE.
       - name: התקנת גרסת npm המוצמדת
         run: npm i -g "npm@$(node -p "require('./package.json').packageManager.split('@')[1]")"
       - run: npm ci --no-audit --no-fund
-      # שער תלויות בעל רעש נמוך: חוסם אך ורק פגיעוּת Critical בתלויות
-      # ההפקה. נמדד 09/08/2026 שקיימות 4 פגיעוּיות High פתוחות
-      # (path-to-regexp דרך @astrojs/vercel) — הן נכסי בנייה וניתוב ואינן
-      # נשלחות לדפדפן, ושדרוגן דורש שדרוג אדפטר. לכן High מדווח ואינו
-      # חוסם, ו-Critical חוסם: היום יש 0 כאלה, כך שהשער fail-closed מבלי
-      # לצבוע את הצינור אדום ביום הראשון.
       - name: פגיעוּת Critical בתלויות הפקה חוסמת
         run: npm audit --omit=dev --audit-level=critical
       - name: דוח פגיעוּיות High (מדווח, אינו חוסם)
         if: always()
         run: npm audit --omit=dev --audit-level=high || true
       - run: npx playwright install --with-deps chromium
-      # מקור אמת יחיד: repo-health → check → build → Playwright עם retries=0
-      # ופורט פנוי אוטומטי. אותה פקודה מיועדת גם להרצה מקומית.
+      # מקור אמת יחיד: repo-health → dead-code hygiene → ModEL rebuild → check → build → Playwright, retries=0.
       - run: npm run quality
       - name: Upload traces on failure
         if: failure()
@@ -52,8 +45,6 @@ jobs:
           path: test-results/
           retention-days: 7
 
-  # אימות פריסה רץ רק אם שער quality עבר. אם quality נכשל — אין "אימות הצלחה"
-  # לפריסה של אותו קומיט. הגנת main צריכה לחייב quality לפני merge.
   verify-production:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: quality

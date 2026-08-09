@@ -12,9 +12,32 @@ test('פס התאריך: גימטריה עברית ולועזי בלי אפסי�
 });
 
 test('הספירה לאחור אמיתית ומדויקת (7.20)', async ({ page }) => {
+  const opening = Date.UTC(2026, 8, 1);
+  const dayInJerusalem = (d: Date) => {
+    const p = Object.fromEntries(
+      new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Jerusalem',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      })
+        .formatToParts(d)
+        .map((x) => [x.type, x.value])
+    );
+    return Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day));
+  };
+  const days = Math.round((opening - dayInJerusalem(new Date())) / 86_400_000);
+  const expected =
+    days > 1
+      ? `עוד ${days} ימים לפתיחת שנת הלימודים תשפ״ז`
+      : days === 1
+        ? 'מחר נפתחת שנת הלימודים תשפ״ז!'
+        : days === 0
+          ? 'היום נפתחת שנת הלימודים תשפ״ז — בהצלחה!'
+          : 'שנת הלימודים תשפ״ז בעיצומה — בהצלחה!';
+
   await page.goto('/');
-  const el = page.locator('[data-countdown]');
-  await expect(el).toHaveText(/עוד \d+ ימים לפתיחת|מחר נפתחת|היום נפתחת|בעיצומה/, { timeout: 10_000 });
+  await expect(page.locator('[data-countdown]')).toHaveText(expected, { timeout: 10_000 });
 });
 
 test('חוזר מפמ״ר: קפיצת MAF מעדכנת hash, סטטוס ו-iframe (9.3.11–9.3.12)', async ({ page }) => {

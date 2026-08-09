@@ -48,6 +48,8 @@ const freePort = () =>
   });
 
 run(process.execPath, ['scripts/repo-health.mjs']);
+run(process.execPath, ['scripts/hygiene-dead-code.mjs']);
+run(process.execPath, ['scripts/verify-moodle-logo-rebuild.mjs']);
 run(npm, ['run', 'check']);
 run(npm, ['run', 'build']);
 
@@ -84,4 +86,4 @@ run(npx, ['playwright', 'test', '--retries=0', ...(workers ? [`--workers=${worke
   env: { ...process.env, PW_PORT: String(port) },
 });
 
-console.log('\nQUALITY PASSED: repo-health + check + build + Playwright (retries=0).');
+console.log('\nQUALITY PASSED: repo-health + dead-code hygiene + ModEL logo rebuild + check + build + Playwright (retries=0).');
