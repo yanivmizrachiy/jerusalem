@@ -17,6 +17,40 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # מעבר חד-פעמי ומוגבל לענף הניקיון: מסיר pageHref רק אם הסקריפט מוכיח
+  # שאין אף assignment ושקיימים בדיוק ארבעת שרידי ה-legacy הידועים.
+  dormant-page-href-autofix:
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/repo-hygiene-final2-20260809' && github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: התקנת גרסת npm המוצמדת
+        run: npm i -g "npm@$(node -p "require('./package.json').packageManager.split('@')[1]")"
+      - run: npm ci --no-audit --no-fund
+      - name: Remove dormant pageHref only after proof
+        run: node scripts/remove-dormant-page-href.mjs
+      - name: Typecheck transformed catalog
+        run: npm run check
+      - run: git diff --check
+      - name: Commit proven removal
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/choveret.ts
+          git commit -m "chore: remove dormant pageHref routing field"
+          git push origin HEAD:${{ github.head_ref }}
+
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 15
