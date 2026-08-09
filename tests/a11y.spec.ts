@@ -15,12 +15,33 @@ const pages = [
   '/luach/',
 ];
 
+/**
+ * במהלך סריקת הנגישות חוסמים בקשות למקורות חיצוניים.
+ *
+ * הסיבה נמדדה 09/08/2026: בעמודים העשירים (חפיפת משולשים, בחינות חט״ע)
+ * נטענות עשרות הטמעות חיצוניות חיות, כל אחת תהליך רינדור משלה. ‏axe עובר
+ * על העץ בזמן שהן נטענות, צריכת הזיכרון מתפוצצת, והבדיקה נפלה ב-135
+ * שניות עם "Target page, context or browser has been closed" — קריסת
+ * רינדור, לא הפרת נגישות.
+ *
+ * זה אינו ריכוך של הקביעה: תוכן מוטמע חיצוני ממילא מוחרג מהסריקה (8.8),
+ * וה-markup שלנו — כולל **אלמנט** ה-iframe ושמו הנגיש — נבדק במלואו,
+ * וגם בבדיקה הייעודית שבהמשך הקובץ.
+ */
+const blockThirdParty = async (page: import('@playwright/test').Page) => {
+  await page.route('**/*', (route) => {
+    const url = new URL(route.request().url());
+    const local = url.hostname === '127.0.0.1' || url.hostname === 'localhost';
+    return local ? route.continue() : route.abort();
+  });
+};
+
 for (const route of pages) {
   test(`axe נקי (serious+critical): ${route}`, async ({ page }) => {
-    // סריקת axe מלאה על עמוד עשיר (למשל יחידת חפיפת המשולשים, 26 משאבים)
-    // חוצה את תקרת 45 השניות תחת ריצה מקבילה, בעוד סולו היא ~9 שניות.
+    // סריקת axe מלאה על עמוד עשיר היא ממושכת גם בלי מקורות חיצוניים.
     // ‏retries=0 הוא חלק מחוזה האיכות, ולכן מרחיבים תקציב ולא מחזירים ניסיונות.
     test.slow();
+    await blockThirdParty(page);
     await page.goto(route);
     await page.waitForLoadState('networkidle').catch(() => {});
     const results = await new AxeBuilder({ page })
