@@ -152,8 +152,14 @@ html {
   background: linear-gradient(180deg, var(--gold) 0%, var(--gold-deep) 100%);
 }
 
-/* עיגון גלילה: כותרות ועוגנים לא נבלעים מתחת ל־header הדביק */
-[id] { scroll-margin-block-start: calc(var(--header-h) + 1.2rem); }
+/* עיגון גלילה: כותרות ועוגנים לא נבלעים מתחת ל־header הדביק.
+   --header-h הוא ערך עיצוב קבוע (76px) המשמש כרצפת גובה לכותרת, אבל
+   הכותרת בפועל גבוהה ממנו כשהניווט נשבר לשתי שורות — נמדד 09/08/2026:
+   ב-360px היא 154px, והעוגן נחת 59px מתחתיה (5.17).
+   --header-real-h הוא הגובה הנמדד בזמן ריצה (SiteHeader.astro) ומשמש
+   **רק** לחישוב מרווח הגלילה. הוא במכוון אינו נוגע ב-min-block-size של
+   הכותרת, כדי שלא תיווצר לולאת משוב שמכווצת או מנפחת אותה. */
+[id] { scroll-margin-block-start: calc(var(--header-real-h, var(--header-h)) + 1.2rem); }
 
 /* מעברי עמוד חלקים בין דפים — ללא JavaScript, עם כבוד לרגישי תנועה */
 @media not (prefers-reduced-motion: reduce) {
