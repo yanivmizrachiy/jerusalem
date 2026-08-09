@@ -29,6 +29,15 @@ const embedLayoutByResourceId: Readonly<Record<string, EmbedLayout>> = {
     aspectRatio: '16 / 10',
     minHeight: 'clamp(620px, 72vw, 960px)',
   },
+
+  // Historical screenshot recovered from the project library: Grade 8 → systems of
+  // equations → "משחק התאמות". The embedded Google Slides page "משחק בשני שלבים"
+  // is visibly widescreen (16:9), so the generic portrait document fallback is wrong.
+  'src-game-h-7a1e51bbee6f': {
+    orientation: 'landscape',
+    aspectRatio: '16 / 9',
+    minHeight: 'clamp(300px, 28vw, 520px)',
+  },
 };
 
 const kindDefault = (item: ChoveretItem): EmbedLayout => {
