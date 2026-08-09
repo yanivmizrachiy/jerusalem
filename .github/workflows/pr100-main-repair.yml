@@ -1,10 +1,9 @@
 name: Repair PR100 from current main
 
 on:
-  push:
+  pull_request:
     branches: [main]
-    paths:
-      - .github/workflows/pr100-main-repair.yml
+    types: [reopened]
 
 permissions:
   contents: write
@@ -17,6 +16,7 @@ concurrency:
 
 jobs:
   repair:
+    if: github.event.pull_request.number == 100
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -46,7 +46,6 @@ jobs:
           PR_SHA="$(git rev-parse origin/feat/hero-actions)"
           SOURCE_SHA="$(git rev-parse origin/backup/pr100-pre-repair-20260810)"
           export BASE_SHA PR_SHA SOURCE_SHA
-
           echo "BASE_SHA=$BASE_SHA" >> "$GITHUB_ENV"
           echo "PR_SHA=$PR_SHA" >> "$GITHUB_ENV"
           echo "SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
@@ -62,16 +61,12 @@ jobs:
           from pathlib import Path
           import os, re, subprocess
 
-          # First visit: no blocking splash and no legacy start button.
           p = Path('src/pages/index.astro')
-          s = p.read_text()
-          s = s.replace("import SplashIntro from '../components/SplashIntro.astro';\n", '')
-          s = s.replace('  <SplashIntro />\n', '')
+          s = p.read_text().replace("import SplashIntro from '../components/SplashIntro.astro';\n", '').replace('  <SplashIntro />\n', '')
           if 'SplashIntro' in s or 'start-btn' in s:
               raise SystemExit('stale SplashIntro/start-btn remains in homepage')
           p.write_text(s)
 
-          # P2: keep all three lead actions compact and visible on narrow mobile screens.
           p = Path('src/components/HeroVideo.astro')
           s = p.read_text()
           old = '''  @media (max-width: 700px) {
@@ -112,20 +107,17 @@ jobs:
               raise SystemExit('expected PR100 mobile block not found')
           p.write_text(s.replace(old, new, 1))
 
-          # Base: preserve current-main imports/navigation, remove only heroSeen bootstrap.
           p = Path('src/layouts/Base.astro')
           s = p.read_text()
           start = s.find('    {/* סרטון הפתיחה — פעם אחת בכל session של הטאב')
           end = s.find('    <slot name="head" />', start)
           if start < 0 or end < 0:
               raise SystemExit('legacy heroSeen bootstrap block not found safely')
-          repl = '    {/* העמוד הראשי עולה מיד — אין מנגנון "נצפה" ואין bootstrap של הסתרה\n        (RULES 6.2, הוראת יניב 10/08/2026). */}\n'
-          s = s[:start] + repl + s[end:]
+          s = s[:start] + '    {/* העמוד הראשי עולה מיד — אין מנגנון "נצפה" ואין bootstrap של הסתרה\n        (RULES 6.2, הוראת יניב 10/08/2026). */}\n' + s[end:]
           if 'jerusalem.heroSeen.v1' in s:
               raise SystemExit('heroSeen bootstrap survived')
           p.write_text(s)
 
-          # Global CSS: preserve current-main luxury/table work; remove only hero-done gate.
           p = Path('src/styles/global.css')
           s = p.read_text()
           start = s.find('/* ---------- פתיחת העמוד הראשי: שום כפתור פעולה עד שהתמונה נעלמת ----------')
@@ -142,7 +134,6 @@ jobs:
               raise SystemExit('hero-done gate survived')
           p.write_text(s)
 
-          # Deploy verification: homepage moves to hero-actions; #98 choice-card must survive.
           p = Path('scripts/verify-deploy.mjs')
           s = p.read_text()
           old = "{ path: '/', needle: 'start-btn', what: 'כפתור ההתחלה בעמוד הראשי (7.28)' }"
@@ -154,15 +145,13 @@ jobs:
               raise SystemExit('#98 choice-card deploy marker was lost')
           p.write_text(s)
 
-          # Interactions: real immediate homepage; no synthetic hero-done reveal.
           p = Path('tests/interactions.spec.ts')
           s = p.read_text()
           old = "test('אחרי הסרטון מופיע צוות ההדרכה — לא תוכן אחר (6.5)', async ({ page }) => {\n  await page.emulateMedia({ reducedMotion: 'reduce' }); // מדלג ישר למצב הסיום\n"
           new = "test('המסך הראשוני מציג את צוות ההדרכה מיד — לא תוכן אחר (6.5)', async ({ page }) => {\n"
           if old not in s:
               raise SystemExit('expected interaction hero test prelude not found')
-          s = s.replace(old, new, 1)
-          s = s.replace("  await page.evaluate(() => document.documentElement.classList.add('hero-done'));\n", '', 1)
+          s = s.replace(old, new, 1).replace("  await page.evaluate(() => document.documentElement.classList.add('hero-done'));\n", '', 1)
           p.write_text(s)
 
           p = Path('tests/responsive.spec.ts')
@@ -170,10 +159,8 @@ jobs:
           old = "        // בעמוד הבית הניווט והפס נחשפים רק אחרי שתמונת הפתיחה נעלמה (6.3)\n        await page.evaluate(() => document.documentElement.classList.add('hero-done'));\n"
           if old not in s:
               raise SystemExit('expected responsive hero-done bypass not found')
-          s = s.replace(old, '', 1)
-          p.write_text(s)
+          p.write_text(s.replace(old, '', 1))
 
-          # PROJECT_CONTEXT: replace only the obsolete hero row.
           p = Path('docs/PROJECT_CONTEXT.md')
           s = p.read_text()
           rows = (
@@ -185,53 +172,36 @@ jobs:
               raise SystemExit('PROJECT_CONTEXT hero row not found')
           p.write_text(s)
 
-          # RULES: transplant only PR100-owned contracts, preserving newer contracts.
           main = Path('RULES.md').read_text()
           feat = subprocess.check_output(['git', 'show', f"{os.environ['SOURCE_SHA']}:RULES.md"], text=True)
-
-          def section(text, start_heading, next_heading):
-              a = text.index(start_heading)
-              b = text.index(next_heading, a)
-              return text[a:b]
-
+          def section(text, a, b):
+              i = text.index(a); j = text.index(b, i); return text[i:j]
           main = main.replace(section(main, '# 6.', '# 7.'), section(feat, '# 6.', '# 7.'), 1)
-
           def replace_entry(dst, src, num, nxt):
               pat = re.compile(rf'(?ms)^{re.escape(num)}\..*?(?=^{re.escape(nxt)}\.)')
               sm, dm = pat.search(src), pat.search(dst)
-              if not sm or not dm:
-                  raise SystemExit(f'RULES entry not found: {num}')
+              if not sm or not dm: raise SystemExit(f'RULES entry not found: {num}')
               return dst[:dm.start()] + sm.group(0) + dst[dm.end():]
-
           for num, nxt in [('3.2','3.3'), ('7.28','7.29'), ('19.10','19.11'), ('22.6','22.7')]:
               main = replace_entry(main, feat, num, nxt)
-
           def get_entry(text, num, nxt):
               pat = re.compile(rf'(?ms)^{re.escape(num)}\..*?(?=^{re.escape(nxt)}\.)')
               m = pat.search(text)
-              if not m:
-                  raise SystemExit(f'RULES entry not found: {num}')
+              if not m: raise SystemExit(f'RULES entry not found: {num}')
               return m
-
           fm, mm = get_entry(feat, '19.34', '19.35'), get_entry(main, '19.34', '19.35')
           fsec, msec = fm.group(0), mm.group(0)
           fb, mb = re.search(r'(?m)^- עמוד הבית:.*$', fsec), re.search(r'(?m)^- עמוד הבית:.*$', msec)
-          if not fb or not mb:
-              raise SystemExit('RULES 19.34 homepage bullet not found')
+          if not fb or not mb: raise SystemExit('RULES 19.34 homepage bullet not found')
           merged = msec[:mb.start()] + fb.group(0) + msec[mb.end():]
           main = main[:mm.start()] + merged + main[mm.end():]
-
-          if 'תנועה רציפה מלמטה למעלה' not in main:
-              raise SystemExit('#99 continuous notices contract lost')
-          if 'כרטיסי בחירה קטנים' not in main and 'כרטיסי יוקרה קטנים' not in main:
-              raise SystemExit('#98 compact choice-card contract lost')
+          if 'תנועה רציפה מלמטה למעלה' not in main: raise SystemExit('#99 continuous notices contract lost')
+          if 'כרטיסי בחירה קטנים' not in main and 'כרטיסי יוקרה קטנים' not in main: raise SystemExit('#98 compact cards contract lost')
           Path('RULES.md').write_text(main)
           PY
 
       - name: Install pinned toolchain
-        shell: bash
         run: |
-          set -euo pipefail
           npm i -g "npm@$(node -p "require('./package.json').packageManager.split('@')[1]")"
           npm ci --no-audit --no-fund
 
@@ -242,11 +212,9 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import ts from 'typescript';
-
           const targetPath = 'tests/ux.spec.ts';
           let target = fs.readFileSync(targetPath, 'utf8');
           const source = fs.readFileSync('/tmp/pr100-ux.spec.ts', 'utf8');
-
           const tests = (text) => {
             const sf = ts.createSourceFile('x.ts', text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
             const out = [];
@@ -269,7 +237,6 @@ jobs:
             const t = one(target, to), s = one(source, from);
             target = target.slice(0, t.start) + source.slice(s.start, s.end) + target.slice(t.end);
           };
-
           replaceTest('ה-hero מלא:', 'העמוד הראשי עולה מיד: hero בהיר');
           replaceTest('ה-poster והווידאו באותן מידות', 'הסרטון קבוע וממוסגר:');
           replaceTest('כרטיס צוות: חץ אחד בעיגול בלי כיתוב');
@@ -278,16 +245,13 @@ jobs:
           replaceTest('תמונת הפתיחה פרוסה עד תחתית המסך', 'המסך הראשוני פרוס עד תחתית החלון');
           replaceTest('ניווט עליון: "ישראל ריאלית"');
           replaceTest('פתיחה נקייה: אין כפתורי פעולה', 'העמוד עולה מיד: ניווט, פס וכפתורים גלויים');
-
           const oldMarker = '/* ===== סרטון הפתיחה — פעם אחת בכל session של הטאב';
           const newMarker = '/* ===== הסרטון — לוח קבוע במסך הראשוני';
           const oldAt = target.indexOf(oldMarker), newAt = source.indexOf(newMarker);
           if (oldAt < 0 || newAt < 0) throw new Error('hero test section marker missing');
           target = target.slice(0, oldAt) + source.slice(newAt);
-
           target = target.replace(/^\s*await page\.addInitScript\(\(\) => sessionStorage\.setItem\('ycc-splash', '1'\)\);\n/gm, '');
           target = target.replace(/^\s*sessionStorage\.setItem\('ycc-splash', '1'\);\n/gm, '');
-
           target += `
 
           for (const vp of [{ width: 360, height: 740 }, { width: 390, height: 844 }]) {
@@ -309,13 +273,7 @@ jobs:
             });
           }
           `;
-
-          for (const guard of [
-            'שני כרטיסי יוקרה קטנים וצבעוניים',
-            'ריחוף מרים את הכרטיס בעדינות',
-            'הכרטיסים נערמים בלי גלילה אופקית',
-            'rail-track',
-          ]) {
+          for (const guard of ['שני כרטיסי יוקרה קטנים וצבעוניים','ריחוף מרים את הכרטיס בעדינות','הכרטיסים נערמים בלי גלילה אופקית','rail-track']) {
             if (!target.includes(guard)) throw new Error(`lost newer-main UX coverage: ${guard}`);
           }
           if (target.includes('ycc-splash')) throw new Error('stale ycc-splash bypass remains');
@@ -324,7 +282,6 @@ jobs:
           git diff --check
 
       - name: Fail-closed contract audit
-        shell: bash
         run: |
           set -euo pipefail
           ! grep -q 'SplashIntro' src/pages/index.astro
@@ -354,10 +311,7 @@ jobs:
           git fetch origin main feat/hero-actions
           test "$(git rev-parse origin/main)" = "$BASE_SHA" || { echo 'main advanced during verification' >&2; exit 1; }
           test "$(git rev-parse origin/feat/hero-actions)" = "$PR_SHA" || { echo 'PR100 head advanced during verification' >&2; exit 1; }
-
-          git add RULES.md docs/PROJECT_CONTEXT.md scripts/verify-deploy.mjs \
-            src/components/HeroVideo.astro src/layouts/Base.astro src/pages/index.astro \
-            src/styles/global.css tests/interactions.spec.ts tests/responsive.spec.ts tests/ux.spec.ts
+          git add RULES.md docs/PROJECT_CONTEXT.md scripts/verify-deploy.mjs src/components/HeroVideo.astro src/layouts/Base.astro src/pages/index.astro src/styles/global.css tests/interactions.spec.ts tests/responsive.spec.ts tests/ux.spec.ts
           git diff --cached --check
           git commit -m "fix(pr100): reconcile immediate homepage with current main"
           NEW_SHA="$(git rev-parse HEAD)"
