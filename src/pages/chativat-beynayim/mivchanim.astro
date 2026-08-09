@@ -3,11 +3,20 @@ import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { choveret, gradeHref, gradeLabel, itemHref, type ChoveretItem } from '../../data/choveret';
 import { publishableItems } from '../../data/publishing';
-import { resourceDisplayLabel } from '../../data/resource-labels';
+import { resourceCountLabel, resourceDisplayLabel } from '../../data/resource-labels';
+import { visibleResourceNote, visibleResourceTitle } from '../../data/resource-copy';
+
+const examPriority = (item: ChoveretItem) => {
+  if (item.resourceType === 'test') return 0;
+  if (item.resourceType === 'assessment-guide') return 1;
+  if (item.resourceType === 'formula-sheet') return 2;
+  if (item.resourceType === 'worksheet') return 3;
+  return 4;
+};
 
 const examGroups = choveret.map((grade) => {
   const chapter = grade.chapters.find((candidate) => candidate.id === 'mivchanim');
-  const items = publishableItems(chapter?.items ?? []);
+  const items = [...publishableItems(chapter?.items ?? [])].sort((a, b) => examPriority(a) - examPriority(b));
   return { grade, chapter, items };
 });
 
@@ -31,14 +40,14 @@ const isTnufaSpec = (item: ChoveretItem) => isTnufa(item) && item.title.includes
     <header class="exams-head" data-reveal>
       <p class="eyebrow">כיתות ז׳–ט׳</p>
       <h1>מאגר מבחנים לחטיבת הביניים</h1>
-      <p>המבחנים וחומרי ההערכה שכבר קיימים באתר, מסודרים לפי שכבה. כל פריט נשאר מחובר לדף המשאב הקנוני שלו.</p>
+      <p>המבחנים וחומרי ההערכה שכבר קיימים באתר, מסודרים לפי שכבה. בכל שכבה המבחנים עצמם מופיעים לפני חומרי ההנחיה וההכנה.</p>
     </header>
 
     <nav class="grade-jump" aria-label="מעבר מהיר לשכבה">
       {examGroups.map(({ grade, items }) => (
         <a href={`#grade-${grade.slug}`} style={`--grade:${grade.color}`}>
           <strong>מבחנים לכיתה {grade.letter}</strong>
-          <span>{items.length} פריטים במאגר</span>
+          <span>{resourceCountLabel(items)}</span>
         </a>
       ))}
     </nav>
@@ -70,21 +79,24 @@ const isTnufaSpec = (item: ChoveretItem) => isTnufa(item) && item.title.includes
                 {tnufaSpec && (
                   <a class="tnufa-spec" href={itemHref(grade.slug, tnufaSpec)}>
                     <span class="spec-label">המפרט — מתחילים כאן</span>
-                    <strong>{tnufaSpec.title}</strong>
-                    {tnufaSpec.note && <span>{tnufaSpec.note}</span>}
+                    <strong>{visibleResourceTitle(tnufaSpec)}</strong>
+                    {visibleResourceNote(tnufaSpec) && <span>{visibleResourceNote(tnufaSpec)}</span>}
                     <span class="spec-action">פתיחת המפרט וההטמעה</span>
                   </a>
                 )}
 
                 {tnufaMore.length > 0 && (
                   <div class="tnufa-more" aria-label="חומרים נוספים למבחן תנופה">
-                    {tnufaMore.map((item) => (
-                      <a href={itemHref(grade.slug, item)}>
-                        <span class="type-pill">{resourceDisplayLabel(item)}</span>
-                        <strong>{item.title}</strong>
-                        {item.note && <span>{item.note}</span>}
-                      </a>
-                    ))}
+                    {tnufaMore.map((item) => {
+                      const note = visibleResourceNote(item);
+                      return (
+                        <a href={itemHref(grade.slug, item)}>
+                          <span class="type-pill">{resourceDisplayLabel(item)}</span>
+                          <strong>{visibleResourceTitle(item)}</strong>
+                          {note && <span>{note}</span>}
+                        </a>
+                      );
+                    })}
                   </div>
                 )}
               </section>
@@ -92,13 +104,16 @@ const isTnufaSpec = (item: ChoveretItem) => isTnufa(item) && item.title.includes
 
             {regularItems.length > 0 ? (
               <div class="exam-grid">
-                {regularItems.map((item) => (
-                  <a class="exam-card" href={itemHref(grade.slug, item)}>
-                    <span class="type-pill">{resourceDisplayLabel(item)}</span>
-                    <strong>{item.title}</strong>
-                    {item.note && <span>{item.note}</span>}
-                  </a>
-                ))}
+                {regularItems.map((item) => {
+                  const note = visibleResourceNote(item);
+                  return (
+                    <a class="exam-card" href={itemHref(grade.slug, item)}>
+                      <span class="type-pill">{resourceDisplayLabel(item)}</span>
+                      <strong>{visibleResourceTitle(item)}</strong>
+                      {note && <span>{note}</span>}
+                    </a>
+                  );
+                })}
               </div>
             ) : (
               <p class="empty">אין כרגע פריטים נוספים לשכבה זו.</p>
