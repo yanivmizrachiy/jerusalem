@@ -779,3 +779,153 @@ html.hero-done .rail {
   .orb-face { transition-duration: 1ms; }
   .embed-frame::before { display: none; }
 }
+
+/* ---------- טבלאות היוקרה — ריכוז הנושאים וריכוז המשימות (הוראת יניב, 10/08/2026) ---------- */
+/* מקור עיצוב יחיד (5.1) לשתי הטבלאות: רשימת הנושאים בתצוגת החומרים
+   (GradeIndex) ורשימת המשימות בעמוד הנושא (ChapterIndex). המבנה המחויב:
+   .luxt > .luxt-head (כותרות עמודות, ויזואלי בלבד) + ul > li > a — כל שורה
+   היא קישור אחד שלם. צבע השורה חי ב---rowc על ה-li; רוחבי העמודות
+   ב---luxt-cols על המעטפת, והשיבוץ לאזורים נעשה ברכיב עצמו. */
+
+.luxt {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--line) 90%, transparent);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: 0 34px 74px -58px rgb(31 41 61 / 0.55);
+  overflow: clip; /* לא hidden — כדי שכותרות העמודות יוכלו להישאר דביקות */
+}
+
+/* חוט זהב עדין בקצה העליון של הטבלה */
+.luxt::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: 3px;
+  z-index: 7;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold) 80%, transparent), transparent);
+}
+
+.luxt-head {
+  position: sticky;
+  inset-block-start: var(--header-h);
+  z-index: 6;
+  display: grid;
+  grid-template-columns: var(--luxt-cols);
+  align-items: center;
+  column-gap: clamp(0.7rem, 1.6vw, 1.2rem);
+  padding: 0.68rem clamp(0.95rem, 2.2vw, 1.6rem);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 15%, #fffdf6), color-mix(in srgb, var(--gold) 7%, #fffdf6));
+  border-block-end: 1px solid color-mix(in srgb, var(--gold) 36%, transparent);
+  color: var(--navy);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.luxt > ul { list-style: none; margin: 0; padding: 0; }
+
+.luxt > ul > li { --rowc-ink: color-mix(in srgb, var(--rowc, var(--gold)) 52%, #1c2433); }
+
+.luxt > ul > li + li { border-block-start: 1px solid color-mix(in srgb, var(--line) 52%, transparent); }
+
+.luxt > ul > li > a {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--luxt-cols);
+  align-items: center;
+  column-gap: clamp(0.7rem, 1.6vw, 1.2rem);
+  min-block-size: 76px;
+  padding: 0.85rem clamp(0.95rem, 2.2vw, 1.6rem);
+  color: var(--ink);
+  text-decoration: none;
+  background-color: #fff;
+  transition: background-color 280ms var(--ease), box-shadow 280ms var(--ease);
+}
+
+/* זברה עדינה */
+.luxt > ul > li:nth-child(even) > a { background-color: color-mix(in srgb, var(--paper-soft) 42%, #fff); }
+
+/* פס הצבע של השורה בקצה הפתיחה — מתעבה בריחוף */
+.luxt > ul > li > a::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 5px;
+  background: var(--rowc, var(--gold));
+  opacity: 0.92;
+  transition: inline-size 280ms var(--ease);
+}
+
+.luxt > ul > li > a:hover,
+.luxt > ul > li > a:focus-visible {
+  background-color: color-mix(in srgb, var(--rowc, var(--gold)) 7%, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rowc, var(--gold)) 26%, transparent);
+}
+
+.luxt > ul > li > a:hover::before,
+.luxt > ul > li > a:focus-visible::before { inline-size: 9px; }
+
+.luxt > ul > li > a:focus-visible { outline: 3px solid var(--gold); outline-offset: -4px; border-radius: 12px; }
+
+/* תא המספר הסידורי */
+.luxt-idx {
+  display: grid;
+  place-items: center;
+  inline-size: 2.45rem;
+  block-size: 2.45rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--rowc, var(--gold)) 13%, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rowc, var(--gold)) 34%, transparent);
+  color: var(--rowc-ink);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition: transform 280ms var(--ease-lift);
+}
+
+.luxt > ul > li > a:hover .luxt-idx { transform: scale(1.07); }
+
+/* גלולת המידע — מניין אמיתי או סוג המשאב */
+.luxt-pill {
+  justify-self: start;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rowc, var(--gold)) 11%, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rowc, var(--gold)) 30%, transparent);
+  color: var(--rowc-ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* חץ המעבר */
+.luxt-go {
+  justify-self: end;
+  color: var(--rowc-ink);
+  opacity: 0.55;
+  transition: translate 280ms var(--ease), opacity 280ms var(--ease);
+}
+.luxt-go svg { inline-size: 30px; block-size: auto; display: block; }
+.luxt > ul > li > a:hover .luxt-go { translate: -8px 0; opacity: 1; }
+
+/* כניסה מדורגת דרך מנגנון data-reveal הקיים — עלייה קטנה בלבד, כדי לא
+   להזיז מדידות פריסה (המרווח אל .grade-nav נבדק ב-ux.spec) */
+.luxt > ul > li[data-reveal] { transform: translateY(14px); }
+.luxt > ul > li[data-reveal].in { transform: none; }
+
+@media (max-width: 700px) {
+  .luxt-head { display: none; }
+  .luxt > ul > li > a { min-block-size: 64px; padding-block: 0.8rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luxt > ul > li > a, .luxt > ul > li > a::before, .luxt-idx, .luxt-go { transition: none; }
+  .luxt > ul > li > a:hover .luxt-idx { transform: none; }
+  .luxt > ul > li > a:hover .luxt-go { translate: 0; }
+  .luxt > ul > li[data-reveal] { opacity: 1; transform: none; transition: none; }
+}

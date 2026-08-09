@@ -14,6 +14,7 @@ import {
   itemHref,
   type ChoveretChapter,
   type ChoveretGrade,
+  type ChoveretItem,
 } from '../data/choveret';
 
 interface Props {
@@ -28,6 +29,39 @@ const primaryId = primaryResourceId(chapter.id);
 const primary = primaryId ? items.find((item) => item.id === primaryId) : undefined;
 const secondaryItems = primary ? items.filter((item) => item.id !== primary.id) : items;
 const isLinearBooklet = chapter.id === 'h-linear-function' && primary?.id === 'kavit-flip';
+
+/**
+ * צבע השורה בטבלת המשימות — לפי הסיווג הפדגוגי, עם נפילה לסוג הטכני.
+ * כל הצבעים מסדרת 5.19; פריט כללי יורש את צבע הנושא, כך שהטבלה צבעונית
+ * אך לעולם לא חורגת מהפלטה.
+ */
+const resourceRowColor = (item: ChoveretItem): string => {
+  const byType: Partial<Record<string, string>> = {
+    game: 'var(--terracotta)',
+    worksheet: 'var(--olive)',
+    test: 'var(--rose)',
+    'assessment-guide': 'var(--rose)',
+    presentation: 'var(--lilac)',
+    'summary-task': 'var(--amber)',
+    'formula-sheet': 'var(--gold)',
+    'interactive-activity': 'var(--sky)',
+    'teaching-unit': 'var(--navy)',
+    'teacher-guide': 'var(--navy)',
+    'resource-repository': 'var(--gold)',
+    'multi-activity-collection': 'var(--gold)',
+  };
+  const byKind: Partial<Record<string, string>> = {
+    site: 'var(--sky)',
+    canva: 'var(--lilac)',
+    flip: 'var(--amber)',
+    maf: 'var(--gold)',
+  };
+  return (
+    (item.resourceType && byType[item.resourceType]) ??
+    byKind[item.kind] ??
+    'var(--ch)'
+  );
+};
 ---
 
 <div
@@ -89,24 +123,37 @@ const isLinearBooklet = chapter.id === 'h-linear-function' && primary?.id === 'k
   {secondaryItems.length > 0 && (
     <section class="secondary-resources" aria-labelledby={primary ? 'secondary-title' : undefined}>
       {primary && <h2 id="secondary-title">חומרים נוספים בנושא</h2>}
-      <ul class="cards">
-        {secondaryItems.map((item) => {
-          const title = visibleResourceTitle(item);
-          const note = visibleResourceNote(item);
-          return (
-            <li>
-              <a class="rcard" href={itemHref(grade.slug, item)} data-resource-context={chapter.id}>
-                <span class="rcard-top">
-                  <span class="rcard-kind">{resourceDisplayLabel(item)}</span>
-                  <span class="rcard-go" aria-hidden="true">←</span>
-                </span>
-                <span class="rcard-title">{title}</span>
-                {note && <span class="rcard-note">{note}</span>}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
+      <div class="luxt tasks-table">
+        <div class="luxt-head" aria-hidden="true">
+          <span>מס׳</span>
+          <span>החומר</span>
+          <span>סוג</span>
+          <span></span>
+        </div>
+        <ul class="cards">
+          {secondaryItems.map((item, i) => {
+            const title = visibleResourceTitle(item);
+            const note = visibleResourceNote(item);
+            return (
+              <li data-reveal style={`--rowc:${resourceRowColor(item)}; --reveal-delay:${Math.min(i * 40, 320)}ms`}>
+                <a class="rcard" href={itemHref(grade.slug, item)} data-resource-context={chapter.id}>
+                  <span class="luxt-idx" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                  <span class="rcard-main">
+                    <span class="rcard-title">{title}</span>
+                    {note && <span class="rcard-note">{note}</span>}
+                  </span>
+                  <span class="rcard-kind luxt-pill">{resourceDisplayLabel(item)}</span>
+                  <span class="rcard-go luxt-go" aria-hidden="true">
+                    <svg viewBox="0 0 34 12" fill="none" stroke="currentColor" stroke-width="1.6">
+                      <path d="M33 6H2M8 1 2 6l6 5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </section>
   )}
 
@@ -165,18 +212,37 @@ const isLinearBooklet = chapter.id === 'h-linear-function' && primary?.id === 'k
   .primary-open strong { font-family: var(--font-display); font-size: clamp(1.35rem, 3vw, 2rem); }
   .primary-open span { color: #e8c877; font-weight: 800; }
 
+  /* ===== טבלת המשימות — עמודות: מס׳ | החומר | סוג | חץ ===== */
   .secondary-resources > h2 { margin: 0 0 0.9rem; color: var(--navy); font-family: var(--font-display); font-size: clamp(1.35rem, 3vw, 1.9rem); }
-  .cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 285px), 1fr)); gap: clamp(0.8rem, 1.6vw, 1.1rem); }
-  .rcard { display: flex; flex-direction: column; gap: 0.45rem; block-size: 100%; min-block-size: 44px; padding: 1rem 1.1rem 1.15rem; border-radius: var(--radius); border: 1px solid var(--line); background: #fff; text-decoration: none; color: var(--ink); position: relative; overflow: hidden; transition: transform 320ms var(--ease-lift), box-shadow 320ms var(--ease), border-color 320ms var(--ease); }
-  .rcard::before { content: ''; position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: 3px; background: var(--ch); opacity: 0.85; }
-  .rcard:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--ch) 42%, var(--line)); box-shadow: 0 20px 44px -26px color-mix(in srgb, var(--ch) 80%, transparent); }
-  .rcard:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-  .rcard-top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
-  .rcard-kind { align-self: flex-start; padding: 0.2rem 0.6rem; border-radius: 999px; background: color-mix(in srgb, var(--ch) 9%, #fff); color: var(--ch-ink); font-size: 0.75rem; font-weight: 700; }
-  .rcard-go { color: var(--ch-dark); opacity: 0.7; font-size: 1.2rem; transition: translate 320ms var(--ease), opacity 320ms var(--ease); }
-  .rcard:hover .rcard-go { translate: -6px 0; opacity: 1; }
-  .rcard-title { font-family: var(--font-display); font-size: 1.08rem; line-height: 1.35; color: var(--navy); }
-  .rcard-note { color: var(--ink-soft); font-size: 0.88rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* עמודת הסוג ברוחב קבוע — כדי שהגלולות יתיישרו כעמודה אמיתית */
+  .tasks-table { --luxt-cols: 3.3rem minmax(0, 1fr) clamp(9.5rem, 13vw, 11.5rem) 3.2rem; }
+
+  .rcard { grid-template-areas: 'idx main kind go'; }
+  .rcard .luxt-idx { grid-area: idx; }
+  .rcard-main { grid-area: main; display: flex; flex-direction: column; gap: 0.3rem; min-inline-size: 0; }
+  .rcard-kind { grid-area: kind; }
+  .rcard-go { grid-area: go; }
+
+  .rcard-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+    line-height: 1.3;
+    color: var(--navy);
+    transition: color 280ms var(--ease);
+  }
+  .rcard:hover .rcard-title { color: var(--rowc-ink); }
+
+  .rcard-note {
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 
   .chapter-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-block-start: clamp(2.4rem, 6vw, 3.6rem); padding-block-start: 1.6rem; border-block-start: 1px solid var(--line); }
   .chapter-sides { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem; }
@@ -195,10 +261,12 @@ const isLinearBooklet = chapter.id === 'h-linear-function' && primary?.id === 'k
     .chapter-nav, .chapter-sides { flex-direction: column; align-items: stretch; }
     .pager-link { min-inline-size: 0; }
   }
+  @media (max-width: 700px) {
+    .tasks-table { --luxt-cols: 2.6rem minmax(0, 1fr) 2.1rem; }
+    .rcard { grid-template-areas: 'idx main go' '. kind go'; row-gap: 0.4rem; }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .rcard, .rcard-go { transition: none; }
-    .rcard:hover { transform: none; }
-    .rcard:hover .rcard-go { translate: 0; }
+    .rcard-title { transition: none; }
   }
 </style>
 
