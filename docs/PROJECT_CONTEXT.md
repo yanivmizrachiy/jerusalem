@@ -76,6 +76,7 @@
 | שינוי כותרת לוח השנה | `src/pages/luach.astro` + `public/media/art/calendar/` | הנכס המקורי מ-Lovable בלבד (RULES 23.14, hash מתועד); נגזרות מהמקור בלבד |
 | באנר שדורש תמונה מלאה | `ArtBanner` עם `fullImage` + `width`/`height` אמיתיים | יחס טבעי, בלי חיתוך תחתית, בלי Ken Burns (RULES 5.24) |
 | התנהגות חזרה מכרטיס צוות | `src/components/TeamSection.astro` | כפתור "חזרה לתצוגה הקודמת" משחזר hash וגלילה (RULES 6.5) |
+| הוספת לוגו סביבה למשאב | `src/data/resource-branding.ts` + `public/media/brands/` | מיפוי **לפי מזהה בלבד** (RULES 24.6) — לא לפי כותרת, שם קובץ או דומיין; הנכס נגזר מהמקור דרך `scripts/build-moodle-logo.mjs`; alt מחייב, יחס תמונה וגודל לא־דומיננטי. **מיתוג אינו ייחוס** ואינו מוציא משאב מהסגר |
 | שינוי SEO | `src/layouts/Base.astro`, `astro.config.mjs`, `public/robots.txt` | canonical, sitemap, metadata ו־Open Graph |
 | שינוי proxy | `src/lib/proxyGuard.ts` ומסלולי API | allowlist, headers, SSR, 502 והגבלת יעד |
 

@@ -1,0 +1,47 @@
+---
+/**
+ * לוגו הסביבה באזור ה-metadata של עמוד המשאב (הוראת יניב, 09/08/2026).
+ *
+ * מוצג אך ורק למשאבים שממופים במפורש ב-`resource-branding.ts`. משאב בלי
+ * מיפוי אינו מקבל דבר — אין כאן היסק לפי כותרת או לפי דומיין.
+ *
+ * המידות האמיתיות נשלחות ב-`width`/`height` וה-CSS קובע `block-size: auto`,
+ * כך שהיחס נשמר ואין קפיצת layout. הגודל מאוזן ולא דומיננטי: הלוגו מסומן
+ * `aria-hidden` **אינו** — יש לו טקסט חלופי אמיתי — אך הוא נשאר משני
+ * לכותרת ולפעולות.
+ */
+import { brandForResource } from '../data/resource-branding';
+
+interface Props {
+  resourceId: string;
+}
+
+const { resourceId } = Astro.props;
+const brand = brandForResource(resourceId);
+---
+
+{brand && (
+  <p class="resource-brand" data-resource-brand={brand.id}>
+    <img
+      src={brand.src}
+      alt={brand.alt}
+      width={brand.width}
+      height={brand.height}
+      loading="lazy"
+      decoding="async"
+    />
+  </p>
+)}
+
+<style>
+  .resource-brand {
+    margin: 0.9rem 0 0;
+  }
+
+  /* גודל מאוזן: נוכח וברור, אך משני לכותרת המשאב ולוח הפעולות. */
+  .resource-brand img {
+    inline-size: clamp(124px, 32%, 168px);
+    block-size: auto; /* היחס נשמר מתוך width/height האמיתיים */
+    max-inline-size: 100%;
+  }
+</style>

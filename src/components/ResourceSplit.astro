@@ -6,6 +6,7 @@
  */
 import Breadcrumbs from './Breadcrumbs.astro';
 import AuthorAttribution from './AuthorAttribution.astro';
+import ResourceBrand from './ResourceBrand.astro';
 import MafmarRange from './MafmarRange.astro';
 import ResourceActions from './ResourceActions.astro';
 import { embedLayoutFor } from '../data/embed-layout';
@@ -69,6 +70,7 @@ const embedStyle = `--resource-aspect:${embedLayout.aspectRatio ?? 'auto'}; --re
       <h1 class="res-title">{item.title}</h1>
       <p class="res-kind">{semanticKind}</p>
 
+      <ResourceBrand resourceId={item.id} />
       <AuthorAttribution resourceId={item.id} />
 
       {item.note && <p class="res-note">{item.note}</p>}
