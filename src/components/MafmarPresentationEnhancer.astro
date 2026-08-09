@@ -6,6 +6,13 @@
 ---
 
 <style is:global>
+  /* The Mafmar source is A4 portrait (595.32×841.92). The updates page must
+     show a complete page rather than a 16:9 crop/scroll viewport. */
+  .mafmar-feature .mafmar-embeds .pdf-shell {
+    aspect-ratio: 595.32 / 841.92;
+    min-height: 0;
+  }
+
   /* Fullscreen must include the controls, not only the slide stage. */
   .mafmar-deck:fullscreen {
     max-inline-size: none;
