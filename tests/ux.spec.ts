@@ -8,6 +8,7 @@ import {
   sourceNoLinkRows,
 } from '../src/data/source-materials';
 import { hafifaUnit, mishvaotUnit } from '../src/data/units';
+import { LEGACY_REDIRECTS } from '../src/lib/legacyRedirects.mjs';
 
 /**
  * בדיקות הקבלה של תיקון ה-UX המלא (RULES 19.34, הוראת יניב 04–05/08/2026):
@@ -503,13 +504,20 @@ test('יחידות המשוואות והחפיפה נשמרו בתוך הנוש�
       `${slug}: אין עוד כרטיס ייעודי ליחידה בעמוד המבוא`
     ).toHaveCount(0);
 
-    // 2. הכתובת הישנה מגיעה לנושא הקנוני — ולא ל-404 ולא לעמוד נגן
-    await page.goto(legacy);
-    await page.waitForURL((u) => u.pathname === topic, { timeout: 10_000 });
+    // 2. הכתובת הישנה רשומה במקור התאימות היחיד ומפנה לנושא הקנוני.
+    //    ההפניה עצמה היא 301 בשכבת הניתוב, ולכן היא נאכפת מול הפרודקשן
+    //    ב-scripts/verify-deploy.mjs; מקומית נאכף מה שכן ניתן להוכיח —
+    //    שאין יותר עמוד ביניים עם meta-refresh בכתובת הישנה.
+    expect(LEGACY_REDIRECTS[legacy], `${legacy} רשום במקור התאימות`).toBe(topic);
+    const stale = await page.request.fetch(legacy, { redirect: 'manual' });
+    expect(stale.status(), `${legacy} אינו עוד עמוד 200`).toBe(404);
+
+    // 3. הנושא הקנוני חי — בלי נגן יחידה
+    await page.goto(topic);
     await expect(page.locator('h1.chapter-title')).toBeVisible();
     expect(await page.locator('.uplay-viewer, .uplay-list').count(), 'אין נגן יחידה במסלול הזה').toBe(0);
 
-    // 3. הנושא הקנוני מציג בפועל את משאבי היחידה כמשימות לחיצות
+    // 4. הנושא הקנוני מציג בפועל את משאבי היחידה כמשימות לחיצות
     const cardHrefs = new Set(
       await page
         .locator('a.rcard')
@@ -517,7 +525,7 @@ test('יחידות המשוואות והחפיפה נשמרו בתוך הנוש�
     );
     expect(cardHrefs.size, `${topic}: רשימת משימות אמיתית`).toBeGreaterThan(1);
 
-    // 4. אפס אובדן מזהי משאב: כל פריט מהיחידה הישנה קיים כעמוד משימה קנוני
+    // 5. אפס אובדן מזהי משאב: כל פריט מהיחידה הישנה קיים כעמוד משימה קנוני
     const missing: string[] = [];
     for (const resource of unit.resources) {
       const href = `/chativat-beynayim/reader/${slug}/${resource.id}/`;

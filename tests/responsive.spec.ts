@@ -12,7 +12,16 @@ const viewports = [
   { name: 'desktop-1920', width: 1920, height: 1080 },
 ];
 
-const pages = ['/', '/shearim/', '/luach/', '/chativat-beynayim/', '/hozer-mafmar/', '/chativa-elyona/bchinot/'];
+// עמוד הבחינות של החטיבה העליונה התכנס לעמוד כניסה אחד; במקומו נבדק עמוד
+// משאב עשיר עם טווח MAF מוטמע — אותה משפחת רכיבים, כיסוי רספונסיבי זהה.
+const pages = [
+  '/',
+  '/shearim/',
+  '/luach/',
+  '/chativat-beynayim/',
+  '/hozer-mafmar/',
+  '/chativat-beynayim/reader/z/maf-05-z/',
+];
 
 for (const vp of viewports) {
   test.describe(`${vp.name} (${vp.width}px)`, () => {

@@ -42,14 +42,9 @@ const routes = [
   '/chativat-beynayim/nose/h/hozer/',
   '/chativat-beynayim/nose/t/yahal4/',
   '/chativat-beynayim/nose/z/noschaot/',
-  '/chativat-beynayim/mishvaot/',
-  '/chativat-beynayim/hafifat-meshulashim/',
+  // החטיבה העליונה מתכנסת לעמוד כניסה אחד; חמש הכתובות הפנימיות מפנות אליו
+  // דרך LEGACY_REDIRECTS ולכן נאכפות בלולאת התאימות שלמטה, לא כאן.
   '/chativa-elyona/',
-  '/chativa-elyona/3-yahal/',
-  '/chativa-elyona/4-yahal/',
-  '/chativa-elyona/5-yahal/',
-  '/chativa-elyona/bchinot/',
-  '/chativa-elyona/homrei-horaa/',
   '/pituach-miktzoi/',
   '/pituach-miktzoi/ai-geometria/',
   '/hodaot/',

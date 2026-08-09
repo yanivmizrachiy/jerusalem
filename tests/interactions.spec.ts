@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { LEGACY_REDIRECTS } from '../src/lib/legacyRedirects.mjs';
 
 /** אינטראקציות הליבה — התנהגות אמיתית, לא הנחות (19.3) */
 
@@ -38,8 +39,15 @@ test('MafmarRange: דפדוף כלוא לטווח המאומת', async ({ page }
 });
 
 test('חפיפת משולשים: כתובת legacy מגיעה לנושא הקנוני בלי עמוד ייעודי', async ({ page }) => {
-  await page.goto('/chativat-beynayim/hafifat-meshulashim/');
-  await page.waitForURL((url) => url.pathname === '/chativat-beynayim/nose/h/h-congruent/');
+  // הכתובת הישנה היא היום הפניית HTTP אמיתית ולא עמוד עם meta-refresh, ולכן
+  // מקומית נאכף שאין בה עוד עמוד; ההפניה עצמה מאומתת מול הפרודקשן
+  // ב-scripts/verify-deploy.mjs, שנגזר מאותו מקור תאימות.
+  expect(LEGACY_REDIRECTS['/chativat-beynayim/hafifat-meshulashim/']).toBe(
+    '/chativat-beynayim/nose/h/h-congruent/'
+  );
+  expect((await page.request.fetch('/chativat-beynayim/hafifat-meshulashim/', { redirect: 'manual' })).status()).toBe(404);
+
+  await page.goto('/chativat-beynayim/nose/h/h-congruent/');
   await expect(page.locator('h1.chapter-title')).toContainText('חפיפת משולשים');
   expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);
   await expect(page.locator('.uplay-viewer')).toHaveCount(0);
@@ -68,8 +76,10 @@ test('כרטיסי צוות: קישורי WhatsApp ודוא״ל תקינים ו�
 });
 
 test('משוואות: כתובת legacy מגיעה לנושא הקנוני וכל חומרי היחידה נשמרים', async ({ page }) => {
-  await page.goto('/chativat-beynayim/mishvaot/');
-  await page.waitForURL((url) => url.pathname === '/chativat-beynayim/nose/z/z-equations/');
+  expect(LEGACY_REDIRECTS['/chativat-beynayim/mishvaot/']).toBe('/chativat-beynayim/nose/z/z-equations/');
+  expect((await page.request.fetch('/chativat-beynayim/mishvaot/', { redirect: 'manual' })).status()).toBe(404);
+
+  await page.goto('/chativat-beynayim/nose/z/z-equations/');
   await expect(page.locator('h1.chapter-title')).toContainText('משוואות');
   expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);
   await expect(page.locator('.uplay-viewer')).toHaveCount(0);

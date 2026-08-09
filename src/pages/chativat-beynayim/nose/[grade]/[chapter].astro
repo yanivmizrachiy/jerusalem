@@ -4,6 +4,8 @@ import ChapterIndex from '../../../../components/ChapterIndex.astro';
 import { publishableItems } from '../../../../data/publishing';
 import { resourceCountLabel } from '../../../../data/resource-labels';
 import { canonicalGrade } from '../../../../data/canonical-content';
+// `itemHref` נראה ל-astro-check כבלתי בשימוש (רמז ts6133) אך הוא בשימוש
+// בהפניה של נושא בעל משאב יחיד שלמטה — אין להסירו.
 import { chapterPaths, gradeBySlug, itemHref } from '../../../../data/choveret';
 
 export function getStaticPaths() {

@@ -290,10 +290,24 @@ try {
     if (topics > 0 && links.length > 0) console.log(`✓ שכבה ${slug} — ${topics} נושאים (3.29)`);
     else fail(`שכבה ${slug}: ${topics} נושאים ו-${links.length} קישורי נושא (3.29)`);
 
-    const first = markup((await fetchOnce(links[0])).html);
-    const cards = countOf(first, /class="rcard"/g);
-    if (cards > 0) console.log(`✓ ${links[0]} — ${cards} כרטיסים (3.29)`);
-    else fail(`${links[0]}: אין כרטיסי קבצים בעמוד הנושא (3.29)`);
+    // חוזה הנושא (Issue #73): נושא עם 2+ משאבים ציבוריים מציג רשימת כרטיסים,
+    // ונושא עם משאב יחיד מפנה ישירות אל עמוד המשימה. אסור נושא ריק.
+    const first = links[0];
+    const raw = await get(first, 'manual');
+    if (raw.status === LEGACY_REDIRECT_STATUS || raw.status === 308 || raw.status === 302) {
+      const to = normalizedLocation(raw.location);
+      if (!/^\/chativat-beynayim\/reader\/[^/]+\/[^/]+\/$/.test(to)) {
+        fail(`${first}: נושא עם משאב יחיד הפנה ל-${to || 'לא ידוע'} ולא לעמוד משימה (3.30)`);
+      } else if (!markup((await fetchOnce(to)).html).includes('res-panel')) {
+        fail(`${first} → ${to}: היעד אינו עמוד משימה מחולק (8.2)`);
+      } else {
+        console.log(`✓ ${first} — משאב יחיד, מעבר ישיר ל-${to} (3.30)`);
+      }
+    } else {
+      const cards = countOf(markup(raw.html), /class="rcard"/g);
+      if (cards > 1) console.log(`✓ ${first} — ${cards} כרטיסים (3.29)`);
+      else fail(`${first}: ${cards} כרטיסים — נושא שמציג רשימה חייב שתי משימות ומעלה (3.30)`);
+    }
   }
 
   const reader = markup((await fetchOnce('/chativat-beynayim/reader/z/tochnit-z/')).html);

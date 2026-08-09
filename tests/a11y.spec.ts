@@ -10,8 +10,12 @@ const pages = [
   '/chativat-beynayim/kita-z/',
   '/chativat-beynayim/kita-z/chomarim/',
   '/chativat-beynayim/reader/t/sheelot-t/',
-  '/chativat-beynayim/hafifat-meshulashim/',
-  '/chativa-elyona/bchinot/',
+  // הנושא הקנוני של יחידת החפיפה (הכתובת הישנה היא היום הפניה בלבד)
+  '/chativat-beynayim/nose/h/h-congruent/',
+  // תחליף חי לעמוד הבחינות של החטיבה העליונה, שהתכנס לעמוד כניסה אחד:
+  // עמוד משאב עשיר עם טווח MAF מוטמע — אותה משפחת רכיבים בדיוק
+  '/chativat-beynayim/reader/z/maf-05-z/',
+  '/chativa-elyona/',
   '/luach/',
 ];
 

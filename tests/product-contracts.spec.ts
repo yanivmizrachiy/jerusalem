@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { canonicalGrades } from '../src/data/canonical-content';
 import { resourceDisplayLabel } from '../src/data/resource-labels';
+import { LEGACY_REDIRECTS } from '../src/lib/legacyRedirects.mjs';
+import { mafmarSections } from '../src/data/mafmar';
+import { hsUnit } from '../src/data/units';
 
 const grade = (slug: string) => canonicalGrades.find((candidate) => candidate.slug === slug)!;
 
@@ -33,6 +39,40 @@ test('upper secondary is a placeholder and exam repository is a real page', asyn
   await expect(page.getByText('מבחנים לכיתה ז׳', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('מבחנים לכיתה ח׳', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('מבחנים לכיתה ט׳', { exact: true }).first()).toBeVisible();
+});
+
+/**
+ * הכניסה הציבורית לחטיבה העליונה מתכנסת לעמוד אחד. שלוש קביעות נפרדות:
+ * אין עוד עמוד ציבורי בכתובות הפנימיות, הן רשומות במקור התאימות הקנוני
+ * (ומשם נגזרות ההפניה האמיתית וסינון ה-sitemap), והתוכן עצמו נשמר בריפו.
+ */
+const UPPER_SECONDARY_LEGACY = [
+  '/chativa-elyona/3-yahal/',
+  '/chativa-elyona/4-yahal/',
+  '/chativa-elyona/5-yahal/',
+  '/chativa-elyona/bchinot/',
+  '/chativa-elyona/homrei-horaa/',
+];
+
+test('upper-secondary inner routes consolidate to the placeholder', async ({ page }) => {
+  for (const legacy of UPPER_SECONDARY_LEGACY) {
+    expect(LEGACY_REDIRECTS[legacy], `${legacy} רשום במקור התאימות`).toBe('/chativa-elyona/');
+
+    const res = await page.request.fetch(legacy, { redirect: 'manual' });
+    expect(res.status(), `${legacy} אינו עוד עמוד ציבורי`).toBe(404);
+  }
+});
+
+test('upper-secondary source content is preserved, not deleted', () => {
+  const drafts = resolve(fileURLToPath(new URL('../src/drafts/chativa-elyona', import.meta.url)));
+  for (const legacy of UPPER_SECONDARY_LEGACY) {
+    const file = `${legacy.replace('/chativa-elyona/', '').replace(/\/$/, '')}.astro`;
+    expect(existsSync(resolve(drafts, file)), `${file} נשמר ולא נמחק`).toBe(true);
+  }
+
+  // ומקורות הנתונים שהעמודים צורכים חיים כרגיל
+  expect(hsUnit.resources.length, 'מאגרי החטיבה העליונה נשמרו').toBeGreaterThan(0);
+  expect(mafmarSections.length, 'מפת MAF נשמרה').toBeGreaterThan(0);
 });
 
 test('middle-school gateway exposes the full-width test repository entry', async ({ page }) => {

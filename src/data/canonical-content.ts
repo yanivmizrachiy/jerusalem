@@ -51,7 +51,6 @@ export function canonicalGrade(grade: ChoveretGrade): ChoveretGrade {
   return {
     ...grade,
     chapters: grade.chapters.map(canonicalChapter),
-    pages: grade.pages?.filter((page) => !['/chativat-beynayim/mishvaot/', '/chativat-beynayim/hafifat-meshulashim/'].includes(page.href)),
   };
 }
 

@@ -11,6 +11,11 @@
  * `/chativat-beynayim/mivchanim/` **אינו** ברשימה במכוון: המסלול הזה הופך
  * למאגר המבחנים המרכזי של חט״ב ונמצא באחריות ענף המוצר.
  *
+ * החטיבה העליונה מתכנסת בשלב זה לעמוד כניסה אחד (`/chativa-elyona/`,
+ * "העמוד יתעדכן בהמשך"). חמש הכתובות הפנימיות מפנות אליו כאן — ולא נמחקות:
+ * מקורות התוכן שלהן נשמרו במלואם ב-`src/drafts/chativa-elyona/`
+ * (ראו `src/drafts/README.md`), ובנתונים `src/data/mafmar.ts` ו-`units.ts`.
+ *
  * @type {Record<string, string>}
  */
 export const LEGACY_REDIRECTS = {
@@ -18,6 +23,15 @@ export const LEGACY_REDIRECTS = {
   '/chativat-beynayim/zaviyot/': '/chativat-beynayim/reader/z/zaviyot/',
   '/chativat-beynayim/maarechet-tzirim/': '/chativat-beynayim/reader/z/tzirim/',
   '/chativat-beynayim/mischakim/': '/chativat-beynayim/nose/z/mischakim/',
+  // יחידות ההוראה הישנות אינן עוד עמוד־נגן; חומריהן חיים בתוך הנושא הקנוני
+  // (src/data/canonical-content.ts), והכתובת הישנה מפנה אליו בהפניה אמיתית.
+  '/chativat-beynayim/mishvaot/': '/chativat-beynayim/nose/z/z-equations/',
+  '/chativat-beynayim/hafifat-meshulashim/': '/chativat-beynayim/nose/h/h-congruent/',
+  '/chativa-elyona/3-yahal/': '/chativa-elyona/',
+  '/chativa-elyona/4-yahal/': '/chativa-elyona/',
+  '/chativa-elyona/5-yahal/': '/chativa-elyona/',
+  '/chativa-elyona/bchinot/': '/chativa-elyona/',
+  '/chativa-elyona/homrei-horaa/': '/chativa-elyona/',
 };
 
 /** קוד ההפניה המחייב — קבוע, כדי שהבדיקה והפרודקשן ידברו על אותו מספר. */
