@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import ArtBanner from '../../components/ArtBanner.astro';
 import HamchashotEmbed from '../../components/HamchashotEmbed.astro';
+import MiddleSchoolQuickLinks from '../../components/MiddleSchoolQuickLinks.astro';
 import { whatsappCommunity } from '../../data/resources';
 import { publishedGradeCount } from '../../data/publishing';
 import { choveret, gradeHref } from '../../data/choveret';
@@ -35,6 +36,8 @@ const thirds = choveret;
       <h1 class="big-title">מתמטיקה לחטיבת הביניים</h1>
       <p class="updated-line">{updatedLine}</p>
     </header>
+
+    <MiddleSchoolQuickLinks />
   </div>
 
   <section class="split3" aria-label="בחירת שכבה">
