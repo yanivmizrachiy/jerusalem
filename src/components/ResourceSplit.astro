@@ -188,9 +188,6 @@ const planPrisaDoc = planPrisaDocumentFor(item.download);
     align-items: start;
   }
 
-  .res-split.is-web-doc {
-    grid-template-columns: minmax(280px, 0.58fr) minmax(0, 1.42fr);
-  }
 
   .res-view { order: 1; min-inline-size: 0; }
   .res-panel { order: 2; align-self: start; }
@@ -344,8 +341,7 @@ const planPrisaDoc = planPrisaDocumentFor(item.download);
   .res-back { margin-block-start: 1.1rem; inline-size: 100%; justify-content: center; }
 
   @media (max-width: 1099px) {
-    .res-split,
-    .res-split.is-web-doc { grid-template-columns: 1fr; block-size: auto; gap: clamp(1.4rem, 4vw, 2.2rem); }
+    .res-split { grid-template-columns: 1fr; block-size: auto; gap: clamp(1.4rem, 4vw, 2.2rem); }
     .res-view { block-size: auto; }
     .res-panel { block-size: auto; overflow: visible; }
     .res-view[data-orientation] .res-frame iframe {
