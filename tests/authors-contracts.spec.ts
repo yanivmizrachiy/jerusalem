@@ -20,7 +20,8 @@ test('כל author-id משויך קיים במקור האמת ושמות המחב
 });
 
 test('כל קרדיט מפורש בקטלוג המקור מחובר לישות מחבר קנונית', () => {
-  const explicitlyCredited = sourceMaterialResources.filter((resource) => /\bקרדיט(?:ים)?\s*:/u.test(resource.note ?? ''));
+  // אין \b לפני עברית: word-boundary של JavaScript אינו Unicode-aware במובן הדרוש כאן.
+  const explicitlyCredited = sourceMaterialResources.filter((resource) => /קרדיט(?:ים)?\s*:/u.test(resource.note ?? ''));
   expect(explicitlyCredited.length, 'יש קרדיטים מפורשים אמיתיים לבדיקה').toBeGreaterThan(0);
 
   const missing = explicitlyCredited
