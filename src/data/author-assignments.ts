@@ -1,5 +1,17 @@
 export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
+  // מסמכי משרד החינוך שהמקור הקנוני שלהם הוא meyda.education.gov.il והם
+  // נוצרים דרך factory ה-gov הייעודי ב-choveret.ts.
   'mivchanim-hanchayot': ['ministry-of-education'],
+  'prisot-pdf': ['ministry-of-education'],
+  'prisot-pdf-h': ['ministry-of-education'],
+  'prisot-pdf-t': ['ministry-of-education'],
+  'tochnit-z': ['ministry-of-education'],
+  'prisa-z': ['ministry-of-education'],
+  'tochnit-h': ['ministry-of-education'],
+  'prisa-h': ['ministry-of-education'],
+  'tochnit-t': ['ministry-of-education'],
+  'prisa-t': ['ministry-of-education'],
+
   'kavit-flip': ['ayelet-crispin'],
   'al-haretzef': ['michal-david'],
   'mishakim-tavnit': ['shilat-dadashi'],
