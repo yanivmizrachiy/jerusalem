@@ -29,6 +29,39 @@ jobs:
       - name: Probe remaining duplicate/dead exports
         run: node scripts/hygiene-reference-probe.mjs
 
+  # שינוי חד־פעמי ומוגן: רץ רק בענף #91 ורק אחרי שה-probe הוכיח consumer יחיד.
+  grade-count-autofix:
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/final-hygiene-current-main-20260809' && github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: התקנת גרסת npm המוצמדת
+        run: npm i -g "npm@$(node -p "require('./package.json').packageManager.split('@')[1]")"
+      - run: npm ci --no-audit --no-fund
+      - name: Consolidate grade count onto canonical source
+        run: node scripts/consolidate-grade-count.mjs
+      - name: Validate transformed sources
+        run: npm run check
+      - run: git diff --check
+      - name: Commit proven consolidation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/publishing.ts src/pages/chativat-beynayim/index.astro
+          git commit -m "cleanup: consolidate grade counts onto canonical source"
+          git push origin HEAD:${{ github.head_ref }}
+
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 15
