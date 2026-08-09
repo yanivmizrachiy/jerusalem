@@ -40,13 +40,16 @@ const verifiedNoteOverrides: Readonly<Record<string, string>> = {
 /**
  * `קרדיט:` הוא metadata ולא תיאור. משאירים רק את החלק התיאורי של note;
  * הייחוס עצמו עובר למערכת המחברים/מקור הקנונית.
+ *
+ * אין להשתמש ב-\b לפני מילה עברית: JavaScript מגדיר word-boundary לפי
+ * תווי word לטיניים ולכן הוא אינו גבול אמין לטקסט עברי.
  */
 export function visibleResourceNote(item: ResourceCopyInput): string {
   if (item.id && verifiedNoteOverrides[item.id]) return verifiedNoteOverrides[item.id];
 
   const note = collapseSpace(item.note ?? '');
   if (!note) return '';
-  const creditIndex = note.search(/\bקרדיט(?:ים)?\s*:/u);
+  const creditIndex = note.search(/קרדיט(?:ים)?\s*:/u);
   if (creditIndex === 0) return '';
   if (creditIndex > 0) return note.slice(0, creditIndex).trim().replace(/[·|—–-]+$/u, '').trim();
   return note;
