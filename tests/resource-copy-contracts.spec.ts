@@ -32,10 +32,12 @@ test('שם יוצר קנוני אינו משוכפל בשורת המקור', () 
   }
 });
 
-test('עמוד משאב מציג ייחוס יוצר בלי המילים מחבר או קרדיט', async ({ page }) => {
+test('עמוד משאב מציג ייחוס יוצר פעם אחת בתוך לוח המידע, בלי מחבר/קרדיט', async ({ page }) => {
   await page.goto('/chativat-beynayim/reader/z/src-game-z-2240924d847e/');
-  await expect(page.locator('.resource-author-shell')).toContainText('מתמטיקה משולבת — מכון ויצמן');
-  await expect(page.locator('.resource-author-shell')).not.toContainText('קרדיט');
-  await expect(page.locator('.resource-author-shell')).not.toContainText('מחבר:');
-  await expect(page.locator('.resource-author-shell a')).toHaveCount(0);
+  const attribution = page.locator('.res-panel .author-attribution');
+  await expect(attribution).toHaveCount(1);
+  await expect(attribution).toContainText('מתמטיקה משולבת — מכון ויצמן');
+  await expect(attribution).not.toContainText('קרדיט');
+  await expect(attribution).not.toContainText('מחבר:');
+  await expect(attribution.locator('a')).toHaveCount(0);
 });
