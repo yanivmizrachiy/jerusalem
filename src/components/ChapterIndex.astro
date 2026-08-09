@@ -1,8 +1,10 @@
 ---
 import Breadcrumbs from './Breadcrumbs.astro';
+import AuthorAttribution from './AuthorAttribution.astro';
 import { publishableItems } from '../data/publishing';
 import { primaryResourceId } from '../data/primary-resources';
 import { resourceCountLabel, resourceDisplayLabel } from '../data/resource-labels';
+import { visibleResourceNote, visibleResourceTitle } from '../data/resource-copy';
 import {
   chapterHref,
   chapterNeighbours,
@@ -25,6 +27,7 @@ const items = publishableItems(chapter.items);
 const primaryId = primaryResourceId(chapter.id);
 const primary = primaryId ? items.find((item) => item.id === primaryId) : undefined;
 const secondaryItems = primary ? items.filter((item) => item.id !== primary.id) : items;
+const isLinearBooklet = chapter.id === 'h-linear-function' && primary?.id === 'kavit-flip';
 ---
 
 <div
@@ -49,12 +52,17 @@ const secondaryItems = primary ? items.filter((item) => item.id !== primary.id) 
   </header>
 
   {primary && (
-    <section class="primary-resource" data-reveal aria-labelledby="primary-resource-title">
+    <section
+      class:list={['primary-resource', { 'is-linear-booklet': isLinearBooklet }]}
+      data-reveal
+      aria-labelledby="primary-resource-title"
+    >
       <div class="primary-copy">
         <p class="primary-kicker">המשאב המרכזי בנושא</p>
-        <h2 id="primary-resource-title">{primary.title}</h2>
+        <h2 id="primary-resource-title">{visibleResourceTitle(primary)}</h2>
         <span class="primary-kind">{resourceDisplayLabel(primary)}</span>
-        {primary.note && <p>{primary.note}</p>}
+        <AuthorAttribution resourceId={primary.id} />
+        {visibleResourceNote(primary) && <p>{visibleResourceNote(primary)}</p>}
         <a class="btn btn-primary" href={itemHref(grade.slug, primary)} data-resource-context={chapter.id}>
           לדף המשאב והפעולות
         </a>
@@ -64,13 +72,13 @@ const secondaryItems = primary ? items.filter((item) => item.id !== primary.id) 
         {primary.embed ? (
           <iframe
             src={primary.embed}
-            title={`${primary.title} — תצוגה מרכזית`}
+            title={`${visibleResourceTitle(primary)} — תצוגה מרכזית`}
             loading="lazy"
             allow="fullscreen; clipboard-write"
           />
         ) : (
           <a class="primary-open" href={itemHref(grade.slug, primary)} data-resource-context={chapter.id}>
-            <strong>{primary.title}</strong>
+            <strong>{visibleResourceTitle(primary)}</strong>
             <span>פתיחת המשאב המרכזי</span>
           </a>
         )}
@@ -82,19 +90,22 @@ const secondaryItems = primary ? items.filter((item) => item.id !== primary.id) 
     <section class="secondary-resources" aria-labelledby={primary ? 'secondary-title' : undefined}>
       {primary && <h2 id="secondary-title">חומרים נוספים בנושא</h2>}
       <ul class="cards">
-        {secondaryItems.map((item) => (
-          <li>
-            <a class="rcard" href={itemHref(grade.slug, item)} data-resource-context={chapter.id}>
-              <span class="rcard-top">
-                <span class="rcard-kind">{resourceDisplayLabel(item)}</span>
-                <span class="rcard-go" aria-hidden="true">←</span>
-              </span>
-              <span class="rcard-title">{item.title}</span>
-              {item.note && <span class="rcard-note">{item.note}</span>}
-              {item.source && <span class="rcard-source">{item.source}</span>}
-            </a>
-          </li>
-        ))}
+        {secondaryItems.map((item) => {
+          const title = visibleResourceTitle(item);
+          const note = visibleResourceNote(item);
+          return (
+            <li>
+              <a class="rcard" href={itemHref(grade.slug, item)} data-resource-context={chapter.id}>
+                <span class="rcard-top">
+                  <span class="rcard-kind">{resourceDisplayLabel(item)}</span>
+                  <span class="rcard-go" aria-hidden="true">←</span>
+                </span>
+                <span class="rcard-title">{title}</span>
+                {note && <span class="rcard-note">{note}</span>}
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </section>
   )}
@@ -141,12 +152,14 @@ const secondaryItems = primary ? items.filter((item) => item.id !== primary.id) 
     background: linear-gradient(145deg, color-mix(in srgb, var(--ch) 5%, #fff), var(--paper));
     box-shadow: var(--shadow-soft);
   }
+  .primary-resource.is-linear-booklet { grid-template-columns: minmax(220px, 0.52fr) minmax(0, 1.8fr); }
   .primary-copy { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0.65rem; padding: clamp(0.3rem, 1vw, 0.8rem); }
   .primary-kicker { margin: 0; color: var(--gold-deep); font-size: 0.8rem; font-weight: 850; }
   .primary-copy h2 { margin: 0; color: var(--navy); font-family: var(--font-display); font-size: clamp(1.55rem, 3.5vw, 2.45rem); line-height: 1.12; }
   .primary-copy > p:not(.primary-kicker) { margin: 0; color: var(--ink-soft); line-height: 1.7; }
   .primary-kind { padding: 0.2rem 0.65rem; border-radius: 999px; background: color-mix(in srgb, var(--ch) 10%, #fff); color: var(--ch-ink); font-size: 0.76rem; font-weight: 800; }
   .primary-view { min-block-size: clamp(430px, 55vw, 680px); overflow: hidden; }
+  .is-linear-booklet .primary-view { min-block-size: clamp(620px, 72vw, 960px); }
   .primary-view iframe { inline-size: 100%; block-size: 100%; min-block-size: inherit; border: 0; background: #fff; }
   .primary-open { min-block-size: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.45rem; padding: 2rem; background: var(--navy); color: var(--paper); text-align: center; text-decoration: none; border-radius: var(--embed-inner-radius); }
   .primary-open strong { font-family: var(--font-display); font-size: clamp(1.35rem, 3vw, 2rem); }
@@ -164,7 +177,6 @@ const secondaryItems = primary ? items.filter((item) => item.id !== primary.id) 
   .rcard:hover .rcard-go { translate: -6px 0; opacity: 1; }
   .rcard-title { font-family: var(--font-display); font-size: 1.08rem; line-height: 1.35; color: var(--navy); }
   .rcard-note { color: var(--ink-soft); font-size: 0.88rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .rcard-source { color: var(--ink-faint); font-size: 0.78rem; margin-block-start: auto; padding-block-start: 0.3rem; }
 
   .chapter-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-block-start: clamp(2.4rem, 6vw, 3.6rem); padding-block-start: 1.6rem; border-block-start: 1px solid var(--line); }
   .chapter-sides { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem; }
@@ -176,8 +188,8 @@ const secondaryItems = primary ? items.filter((item) => item.id !== primary.id) 
   .pager-spacer { display: none; }
 
   @media (max-width: 900px) {
-    .primary-resource { grid-template-columns: 1fr; }
-    .primary-view { min-block-size: clamp(420px, 72svh, 640px); order: -1; }
+    .primary-resource, .primary-resource.is-linear-booklet { grid-template-columns: 1fr; }
+    .primary-view, .is-linear-booklet .primary-view { min-block-size: clamp(420px, 72svh, 640px); order: -1; }
   }
   @media (max-width: 720px) {
     .chapter-nav, .chapter-sides { flex-direction: column; align-items: stretch; }
