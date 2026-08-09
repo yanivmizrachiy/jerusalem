@@ -1,19 +1,14 @@
 ---
 /**
- * חוזר מפמ״ר תשפ״ז (RULES 9.3): ההטמעה המלאה היחידה של החוזר.
- *
- * פריסה (הוראת יניב, 06/08/2026): מסך מחולק כמו כל עמוד משאב באתר (8.2) —
- * בחצי הימני החוזר עצמו מוטמע חי (עמוד שלם ביחס A4, עם דפדוף עמוד-עמוד),
- * ובחצי השמאלי לוח המידע והפעולות. מתחת לפריסה — מדריך ניווט מסודר: 4
- * כפתורי החלקים, 23 המקטעים (9.3.8, 9.3.20) ומה שהתבטל. התמונה אחרונה.
- * לחיצה על חלק/מקטע במדריך מזיזה את ההטמעה שלמעלה לעמוד הנכון.
- *
- * הטקסט הגלוי נקי מכיתובי דמו (8.25) ומשורת "מחליף" (8.26) — מיפוי
- * ההחלפות חי ב-src/data/mafmar.ts וב-RULES בלבד.
+ * חוזר מפמ״ר תשפ״ז: ההטמעה המלאה היחידה של החוזר.
+ * הפריסה משתמשת באותו חוזה עמוד משאב: צופה מימין ולוח מידע/פעולות
+ * משמאל, ובנייד הצופה קודם. פעולות מגיעות מאותו ResourceActions
+ * שמשמש את יתר משאבי האתר.
  */
 import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import ArtBanner from '../components/ArtBanner.astro';
+import ResourceActions from '../components/ResourceActions.astro';
 import {
   MAFMAR_URL,
   MAFMAR_TOTAL_PAGES,
@@ -33,6 +28,8 @@ const audiences = [
   { key: 'חט״ע', label: 'חטיבה עליונה', accent: 'var(--sky)' },
   { key: 'משותף', label: 'משותף לשתי החטיבות', accent: 'var(--lilac)' },
 ] as const;
+const mafmarCanonical = 'https://jerusalem-virid.vercel.app/hozer-mafmar/';
+const mafmarTitle = 'חוזר מפמ״ר תשפ״ז';
 ---
 
 <Base
@@ -43,37 +40,32 @@ const audiences = [
     <Breadcrumbs
       items={[
         { label: 'ראשי', href: '/' },
-        { label: 'מידע רשמי ומדיניות' },
+        { label: 'מידע ומדיניות' },
         { label: 'חוזר מפמ״ר תשפ״ז' },
       ]}
     />
 
     <div class="res-split" data-reveal>
       <aside class="res-panel">
-        <p class="res-eyebrow">מידע רשמי ומדיניות · תשפ״ז</p>
+        <p class="res-eyebrow">מידע ומדיניות · תשפ״ז</p>
         <h1 class="res-title">חוזר מפמ״ר</h1>
         <p class="res-lede">
           חוזר הפיקוח על הוראת המתמטיקה לשנת הלימודים תשפ״ז — {MAFMAR_TOTAL_PAGES}
           עמודים בארבעה חלקים. דפדפו בחוזר שלצד, או קפצו לחלק ולמקטע מהמדריך שמתחת.
         </p>
 
-        <div class="res-actions" role="group" aria-label="פעולות על החוזר">
-          <a class="btn btn-primary" href={MAFMAR_URL} target="_blank" rel="noopener">
-            פתיחה במקור ↗
-          </a>
-          <a class="btn btn-whatsapp" id="wa-share" href="#" target="_blank" rel="noopener" aria-label="שיתוף החוזר ב־WhatsApp"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
-          <a class="btn btn-gmail" id="mail-share" href="#" aria-label="שליחת החוזר בדוא״ל">
-            <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-              <path fill="#4285F4" d="M1.636 20.5h3.819V11.73L0 7.64v11.223c0 .904.732 1.636 1.636 1.636Z" />
-              <path fill="#34A853" d="M18.545 20.5h3.819c.904 0 1.636-.732 1.636-1.636V7.64l-5.455 4.09Z" />
-              <path fill="#FBBC04" d="M18.545 5.457v6.273L24 7.64V6.275c0-2.023-2.309-3.178-3.927-1.964Z" />
-              <path fill="#EA4335" d="M5.455 11.73V5.457L12 10.366l6.545-4.909v6.273L12 16.639Z" />
-              <path fill="#C5221F" d="M0 6.275v1.365l5.455 4.09V5.457L4.073 4.42C2.309 3.098 0 4.252 0 6.275Z" />
-            </svg>
-          </a>
-          <button class="btn btn-ghost" type="button" id="copy-link">העתקת קישור לקטע הנוכחי</button>
-          <button class="btn btn-ghost" type="button" id="fullscreen-btn" hidden>מסך מלא ⛶</button>
-        </div>
+        <ResourceActions
+          whatsappText={`${mafmarTitle} — ${mafmarCanonical}`}
+          emailSubject={mafmarTitle}
+          emailBody={`${mafmarTitle} — ${mafmarCanonical}`}
+          copyUrl={mafmarCanonical}
+          shareUrl={mafmarCanonical}
+          shareTitle={mafmarTitle}
+          sourceUrl={MAFMAR_URL}
+          fullscreen
+          fullscreenTarget="#viewer-shell"
+          statusTarget="#viewer-status"
+        />
 
         <p class="res-status" id="viewer-status" role="status" aria-live="polite">
           מציג את החוזר המלא — {MAFMAR_TOTAL_PAGES} עמודים
@@ -86,6 +78,7 @@ const audiences = [
             <div
               class="viewer-shell embed-frame"
               id="viewer-shell"
+              aria-busy="true"
               style={`--pw:${MAFMAR_PAGE_W}; --ph:${MAFMAR_PAGE_H}`}
             >
               <iframe
@@ -203,17 +196,12 @@ const audiences = [
 </Base>
 
 <style>
-  /* מיכל רחב במיוחד — הפריסה והמדריך מנצלים את המסך, בלי לגלוש לקצוות (8.2) */
   .page {
     inline-size: var(--embed-page-inline);
     margin-inline: auto;
     padding-block: 1.2rem clamp(2.6rem, 5vw, 4rem);
   }
 
-  /* ===== חצי-חצי במסך רחב: החוזר מימין, לוח הפעולות משמאל (8.2) =====
-     לוח המידע קודם ב-DOM כדי שה-h1 יופיע לפני כותרות המשנה שבתוך
-     ההטמעה (סדר כותרות תקין), והסדר החזותי נשמר ב-order: ההטמעה
-     בעמודה הראשונה — הימנית ב-RTL. בנייד ההטמעה ראשונה (order:1). */
   .res-split {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -225,7 +213,6 @@ const audiences = [
   .res-view { order: 1; min-inline-size: 0; }
   .res-panel { order: 2; align-self: start; }
 
-  /* ===== לוח המידע והפעולות ===== */
   .res-panel {
     padding: var(--embed-panel-padding);
     border-radius: var(--embed-radius);
@@ -252,14 +239,6 @@ const audiences = [
 
   .res-lede { margin: 1rem 0 0; color: var(--ink-soft); line-height: 1.75; }
 
-  .res-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin-block-start: clamp(1.5rem, 2.6vw, 2.1rem);
-  }
-
   .res-status {
     margin: 0.9rem 0 0;
     min-block-size: 1.2rem;
@@ -268,16 +247,10 @@ const audiences = [
     font-weight: 600;
   }
 
-  /* ===== הצופה (הצד הימני) ===== */
   .viewer { display: block; }
 
-  /* ===== עמוד שלם ממש, ביחס A4 (הוראת יניב, 06/08/2026) =====
-     ההטמעה ממלאת את רוחב הצד, וגובהה נגזר מיחס העמוד האמיתי של המסמך
-     (--pw/--ph מ-MAFMAR_PAGE_W/H) — כך נראה עמוד שלם ולא חלק ממנו. */
   .viewer-stage {
     position: relative;
-    /* הכלל הגלובלי scroll-margin חל על [id]; לזה יש class בלבד, ובלי
-       השורה קפיצה למקטע מנחיתה את ראש ההטמעה מתחת לכותרת הדביקה */
     scroll-margin-block-start: calc(var(--header-h) + 1.2rem);
   }
 
@@ -289,12 +262,10 @@ const audiences = [
     margin-inline: auto;
   }
 
-  /* המידות והרקע מגיעים מ-.embed-frame > iframe; כאן רק מה שייחודי */
   .viewer-shell iframe {
     display: block;
     border-radius: var(--embed-inner-radius);
     background: #fff;
-    /* חשיפה בעדינות כשה-PDF חי — במקום הבזק לבן (8.9) */
     opacity: 0;
     transition: opacity 460ms var(--ease);
   }
@@ -311,7 +282,6 @@ const audiences = [
 
   .viewer-shell:fullscreen iframe { border-radius: 0; }
 
-  /* שלד טעינה — לעולם אינו חוסם לחיצה בהטמעה (8.9, 3.29) */
   .viewer-skel {
     position: absolute;
     inset: var(--embed-pad);
@@ -369,8 +339,6 @@ const audiences = [
     .viewer-skel-spin { animation: none; }
   }
 
-  /* דפדפן בלי מציג PDF מובנה (8.8, 8.26): כרטיס פתיחה אמיתי — והוא
-     היחיד על הדף, לעולם לא מתחת להטמעה חיה. */
   .viewer-open-card {
     display: flex;
     flex-direction: column;
@@ -385,10 +353,6 @@ const audiences = [
 
   .viewer-open-card p { margin: 0; color: var(--ink-soft); }
 
-  /* הכלל הגלובלי [hidden]{display:none!important} ב-global.css מטפל
-     בכל הסתרה בעמוד הזה — כולל כרטיס הפתיחה, סרגל הדפדוף וכפתור מסך מלא. */
-
-  /* דפדוף עמוד-עמוד (3.29): צבעי הניווט הבולטים */
   .viewer-pager {
     display: flex;
     align-items: center;
@@ -419,7 +383,6 @@ const audiences = [
 
   .vpg-counter { font-weight: 800; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 
-  /* ===== מדריך הניווט מתחת לפריסה ===== */
   .directory-head {
     margin-block-start: clamp(2.6rem, 6vw, 4rem);
     padding-block-start: clamp(1.6rem, 3vw, 2.4rem);
@@ -427,10 +390,8 @@ const audiences = [
   }
 
   .directory-head h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 1.8rem); color: var(--navy); }
-
   .directory-note { margin: 0.5rem 0 0; color: var(--ink-soft); }
 
-  /* ארבעת כפתורי הקפיצה (9.3.8) */
   .part-jumps {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
@@ -460,12 +421,10 @@ const audiences = [
     font-family: var(--font-display);
     font-size: 0.85rem;
     font-weight: 700;
-    /* הגוון נשמר לזיהוי, מוכהה כדי לעבור 4.5:1 בטקסט קטן (4.7, 21.18) */
     color: color-mix(in srgb, var(--part-accent) 62%, #101a2e);
   }
 
   .part-title { font-weight: 700; font-size: 1.05rem; color: var(--ink); }
-
   .part-page { font-size: 0.85rem; color: var(--ink-faint); }
 
   .part-btn.is-active {
@@ -473,9 +432,7 @@ const audiences = [
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--part-accent) 35%, transparent);
   }
 
-  /* אינדקס המקטעים */
   .sections-block { margin-block-start: clamp(2rem, 4vw, 2.8rem); }
-
   .aud-group { margin-block-end: 2rem; }
 
   .aud-title {
@@ -524,20 +481,15 @@ const audiences = [
     font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.04em;
-    /* כנ״ל — 0.72rem מודגש נחשב טקסט קטן ודורש 4.5:1 (4.7, 21.18) */
     color: color-mix(in srgb, var(--aud-accent) 62%, #101a2e);
     padding-block-start: 0.2rem;
   }
 
   .maf-text { display: flex; flex-direction: column; gap: 0.25rem; }
-
   .maf-title { font-weight: 700; color: var(--ink); line-height: 1.4; }
-
   .maf-meta { font-size: 0.82rem; color: var(--ink-faint); }
-
   .maf-note { font-size: 0.84rem; color: var(--ink-soft); }
 
-  /* מה התבטל */
   .obsolete {
     margin-block-start: clamp(2.4rem, 5vw, 3.4rem);
     background: #fff;
@@ -547,7 +499,6 @@ const audiences = [
   }
 
   .obsolete h2 { font-size: 1.3rem; margin-block-end: 1rem; }
-
   .obsolete ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.55rem; }
 
   .obs-btn {
@@ -562,7 +513,6 @@ const audiences = [
   }
 
   .obs-btn:hover { color: var(--terracotta); }
-
   .obs-page { color: var(--ink-faint); font-size: 0.85rem; }
 
   .back-nav {
@@ -572,7 +522,6 @@ const audiences = [
     margin-block: 2.4rem clamp(2rem, 4vw, 3rem);
   }
 
-  /* ===== נייד: ההטמעה ראשונה, ההסבר והפעולות אחריה (8.6) ===== */
   @media (max-width: 1099px) {
     .res-split { grid-template-columns: 1fr; gap: clamp(1.4rem, 4vw, 2.2rem); }
     .viewer-pager { justify-content: center; }
@@ -588,47 +537,49 @@ const audiences = [
   const skel = document.getElementById('viewer-skel')!;
   const openCard = document.getElementById('viewer-open-card') as HTMLElement;
   const openLink = document.getElementById('open-card-link') as HTMLAnchorElement;
+  const actionBoard = document.querySelector<HTMLElement>('[data-resource-actions]')!;
+  const copyAction = actionBoard.querySelector<HTMLButtonElement>('[data-action="copy"]')!;
+  const shareAction = actionBoard.querySelector<HTMLButtonElement>('[data-action="share"]');
+  const waAction = actionBoard.querySelector<HTMLAnchorElement>('[data-action="whatsapp"]')!;
+  const mailAction = actionBoard.querySelector<HTMLAnchorElement>('[data-action="email"]')!;
 
-  /** כתובת המסמך בעמוד מבוקש — מקור אחד לכל מקום שמדפדף */
   const pageSrc = (page: number) => `${MAFMAR_LOCAL}#page=${page}&${MAFMAR_VIEW}`;
 
-  /** כרטיס הפתיחה מפנה תמיד לעמוד שנבחר בפועל */
   const aimOpenCard = (page: number) => {
     openLink.href = `${MAFMAR_LOCAL}#page=${page}`;
     openLink.textContent = page > 1 ? `פתיחת החוזר בעמוד ${page} ↗` : 'פתיחת החוזר ↗';
   };
 
-  /* דפדפן בלי מציג PDF מובנה (בעיקר אנדרואיד): כרטיס פתיחה אמיתי במקום
-     מסגרת ריקה — והוא היחיד על הדף (8.8, 8.26). גם הדפדוף יורד, כי אין
-     מה לדפדף בתוך העמוד — הכרטיס מפנה לעמוד המבוקש עצמו (5.13). */
   const stage = document.querySelector<HTMLElement>('.viewer-stage')!;
   const pager = document.querySelector<HTMLElement>('.viewer-pager')!;
   const hasPdfViewer = !('pdfViewerEnabled' in navigator) || navigator.pdfViewerEnabled === true;
   if (!hasPdfViewer) {
     shell.hidden = true;
+    shell.setAttribute('aria-busy', 'false');
     pager.hidden = true;
     openCard.hidden = false;
     skel.remove();
-    // שורת המצב לא תטען "מציג" כשאין מה להציג בעמוד עצמו (4.6)
     status.textContent = `החוזר נפתח לצפייה במסך נפרד — ${MAFMAR_TOTAL_PAGES} עמודים`;
   }
 
-  /* שלד הטעינה נחשף בעדינות; רשת ביטחון שלא משאירה שלד תקוע (8.9) */
-  const reveal = () => shell.classList.add('is-loaded');
-  frame.addEventListener('load', reveal);
-  window.setTimeout(reveal, 8000);
-  const copyBtn = document.getElementById('copy-link') as HTMLButtonElement;
-  const wa = document.getElementById('wa-share') as HTMLAnchorElement;
-  const mail = document.getElementById('mail-share') as HTMLAnchorElement;
-  const fsBtn = document.getElementById('fullscreen-btn') as HTMLButtonElement;
+  // הצלחת טעינה נקבעת רק אחרי load אמיתי. אין timeout שמייצר false green.
+  frame.addEventListener('load', () => {
+    shell.classList.add('is-loaded');
+    shell.setAttribute('aria-busy', 'false');
+  });
 
   let currentLabel = status.textContent ?? 'חוזר מפמ״ר תשפ״ז';
 
   const updateShare = () => {
     const url = location.href;
     const text = `${currentLabel} — ${url}`;
-    wa.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    mail.href = `mailto:?subject=${encodeURIComponent('חוזר מפמ״ר תשפ״ז')}&body=${encodeURIComponent(text)}`;
+    copyAction.dataset.copy = url;
+    if (shareAction) {
+      shareAction.dataset.share = url;
+      shareAction.dataset.shareTitle = currentLabel;
+    }
+    waAction.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    mailAction.href = `mailto:?subject=${encodeURIComponent('חוזר מפמ״ר תשפ״ז')}&body=${encodeURIComponent(text)}`;
   };
 
   let curPage = 1;
@@ -646,7 +597,6 @@ const audiences = [
   const goto = (page: number, frag: string, label: string) => {
     curPage = page;
     paintPager();
-    // טעינה מחדש של ה־iframe בעמוד המבוקש — כך #page נאכף גם אחרי ניווט קודם
     frame.src = pageSrc(page);
     aimOpenCard(page);
     currentLabel = label;
@@ -661,7 +611,6 @@ const audiences = [
       history.replaceState(null, '', location.pathname);
     }
     updateShare();
-    // בלי גלילה מונפשת (5.25) — קפיצה מיידית להטמעה שלמעלה
     stage.scrollIntoView({ block: 'start' });
   };
 
@@ -671,7 +620,6 @@ const audiences = [
     );
   });
 
-  // דפדוף עמוד-עמוד (3.29)
   const flipTo = (n: number) => {
     if (n < 1 || n > TOTAL) return;
     curPage = n;
@@ -683,26 +631,6 @@ const audiences = [
   pgNext.addEventListener('click', () => flipTo(curPage + 1));
   paintPager();
 
-  copyBtn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(location.href);
-      status.textContent = 'הקישור הועתק — ' + currentLabel;
-    } catch {
-      status.textContent = 'ההעתקה נכשלה';
-    }
-  });
-
-  if (document.fullscreenEnabled) fsBtn.hidden = false;
-  fsBtn.addEventListener('click', async () => {
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await shell.requestFullscreen();
-    } catch {
-      status.textContent = 'מסך מלא נכשל';
-    }
-  });
-
-  // כניסה עם קישור עמוק (9.3.12): פתיחת המקטע ישירות
   const frag = decodeURIComponent(location.hash.slice(1));
   if (frag) {
     const esc = CSS.escape(frag);
