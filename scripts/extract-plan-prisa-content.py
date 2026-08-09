@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Build the static HTML-reader content for the official Tashpaz plan/prisa PDFs.
 
-The official PDFs remain the immutable source/download.  This script extracts every
+The official PDFs remain the immutable source/download. This script extracts every
 non-empty text line with Poppler (pdftotext -layout), preserves page boundaries,
-and emits deterministic TypeScript consumed by the website.  It never guesses or
+and emits deterministic TypeScript consumed by the website. It never guesses or
 adds pedagogical content.
 """
 from __future__ import annotations
@@ -30,10 +30,15 @@ TARGETS = [
 
 MULTISPACE = re.compile(r"\s{2,}")
 HEBREW = re.compile(r"[\u0590-\u05FF]")
+BIDI_CONTROLS = re.compile(r"[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]")
+ZERO_WIDTH = re.compile(r"[\u200b\u200c\u200d\ufeff]")
 
 
 def clean_line(raw: str) -> str:
-    return raw.replace("\u00a0", " ").replace("\u200f", "").replace("\u200e", "").rstrip()
+    text = raw.replace("\u00a0", " ")
+    text = BIDI_CONTROLS.sub("", text)
+    text = ZERO_WIDTH.sub("", text)
+    return text.rstrip()
 
 
 def extract(pdf: Path) -> str:
