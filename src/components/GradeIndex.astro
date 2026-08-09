@@ -1,10 +1,11 @@
 ---
 /**
- * תצוגת החומרים של שכבה (הוראת יניב, 06/08/2026):
- * **רשימת נושאים בלבד** — ברורה, גדולה ונוחה. כל נושא הוא שורה לחיצה
- * אחת שמובילה לעמוד הנושא, ובו רשימת המשאבים שלו. כל השאר (הניווט בין
- * השכבות וחזרה לשער) יורד ממש לתחתית העמוד, כדי שהמסך הראשון יהיה
- * רשימת הנושאים ותו לא.
+ * תצוגת החומרים של שכבה (הוראת יניב, 06/08/2026; עיצוב טבלה 10/08/2026):
+ * **טבלת נושאים בלבד** — טבלת יוקרה צבעונית אחת (מחלקות `.luxt` מ-global.css,
+ * אותה שפה בדיוק כמו טבלת המשימות בעמוד הנושא): מספור שורות, פס צבע לכל
+ * נושא, גלולת מניין אמיתי וחץ מעבר. כל נושא הוא שורה לחיצה אחת שמובילה
+ * לעמוד הנושא, ובו רשימת המשימות שלו. כל השאר (הניווט בין השכבות וחזרה
+ * לשער) יורד ממש לתחתית העמוד, כדי שהמסך הראשון יהיה טבלת הנושאים ותו לא.
  */
 import Breadcrumbs from './Breadcrumbs.astro';
 import GradeNav from './GradeNav.astro';
@@ -39,30 +40,43 @@ const publishedCount = canonicalPublishedGradeCount(grade);
 
   <header class="grade-head" data-reveal>
     <h1 class="grade-title">{grade.title}</h1>
-    <p class="grade-count">{chapters.length} נושאים ואוספים · {publishedCount} משאבים קנוניים</p>
+    <p class="grade-count">{chapters.length} נושאים ואוספים · {publishedCount} קבצים וקישורים</p>
     <span class="grade-rule" aria-hidden="true"></span>
   </header>
 
-  <ul class="topics" aria-label="נושאי הלימוד">
-    {
-      chapters.map(({ chapter: ch, countLabel }) => (
-        <li id={ch.id} data-kind={ch.kind ?? 'topic'} style={`--ch:${ch.color}; --ch-dark:${ch.dark}`}>
-          <a class="topic" href={chapterHref(grade.slug, ch.id)}>
-            <span class="topic-dot" aria-hidden="true" />
-            <span class="topic-text">
-              <span class="topic-title">{ch.title}</span>
-              <span class="topic-n">{countLabel}</span>
-            </span>
-            <span class="topic-go" aria-hidden="true">
-              <svg viewBox="0 0 34 12" fill="none" stroke="currentColor" stroke-width="1.6">
-                <path d="M33 6H2M8 1 2 6l6 5" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </span>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
+  <section class="luxt topics-table">
+    <div class="luxt-head" aria-hidden="true">
+      <span>מס׳</span>
+      <span>נושא</span>
+      <span>מניין</span>
+      <span></span>
+    </div>
+    <ul class="topics" aria-label="נושאי הלימוד">
+      {
+        chapters.map(({ chapter: ch, countLabel }, i) => (
+          <li
+            id={ch.id}
+            data-kind={ch.kind ?? 'topic'}
+            data-reveal
+            style={`--ch:${ch.color}; --ch-dark:${ch.dark}; --rowc:${ch.color}; --reveal-delay:${Math.min(i * 40, 320)}ms`}
+          >
+            <a class="topic" href={chapterHref(grade.slug, ch.id)}>
+              <span class="luxt-idx" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span class="topic-text">
+                <span class="topic-title">{ch.title}</span>
+              </span>
+              <span class="topic-n luxt-pill">{countLabel}</span>
+              <span class="topic-go luxt-go" aria-hidden="true">
+                <svg viewBox="0 0 34 12" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <path d="M33 6H2M8 1 2 6l6 5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
 
   <div class="grade-tail">
     <GradeNav grade={grade} here="materials" />
@@ -93,88 +107,48 @@ const publishedCount = canonicalPublishedGradeCount(grade);
     background: linear-gradient(90deg, var(--grade), color-mix(in srgb, var(--gold) 70%, transparent));
   }
 
-  .topics {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: clamp(0.7rem, 1.4vw, 1rem);
-  }
+  /* ===== טבלת הנושאים — עמודות: מס׳ | נושא | מניין | חץ ===== */
+  /* עמודת המניין ברוחב קבוע — כדי שהגלולות יתיישרו כעמודה אמיתית */
+  .topics-table { --luxt-cols: 3.3rem minmax(0, 1fr) clamp(10rem, 15vw, 12.5rem) 3.2rem; }
 
   .topics li { --ch-ink: color-mix(in srgb, var(--ch-dark) 76%, #10141c); }
 
-  .topic {
-    display: flex;
-    align-items: center;
-    gap: clamp(0.8rem, 2vw, 1.3rem);
-    min-block-size: 88px;
-    padding: clamp(1rem, 2.2vw, 1.5rem) clamp(1.1rem, 2.4vw, 1.8rem);
-    border-radius: var(--radius-lg, 18px);
-    border: 1px solid var(--line);
-    border-inline-start: 6px solid var(--ch);
-    background: #fff;
-    color: var(--ink);
-    text-decoration: none;
-    box-shadow: 0 1px 0 color-mix(in srgb, var(--line) 60%, transparent);
-    transition: transform 320ms var(--ease-lift), box-shadow 320ms var(--ease), border-color 320ms var(--ease),
-      background-color 320ms var(--ease);
-  }
-
-  .topics li[data-kind='collection'] .topic {
-    min-block-size: 96px;
-    background: color-mix(in srgb, var(--ch) 5%, #fff);
-    border-inline-start-width: 9px;
-  }
-
-  .topics li[data-kind='collection'] .topic-title {
-    font-size: clamp(1.35rem, 3vw, 2rem);
-  }
-
-  .topic:hover {
-    transform: translateY(-3px);
-    background: color-mix(in srgb, var(--ch) 4%, #fff);
-    border-color: color-mix(in srgb, var(--ch) 42%, var(--line));
-    box-shadow: 0 22px 46px -28px color-mix(in srgb, var(--ch) 80%, transparent);
-  }
-
-  .topic:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-
-  .topic-dot {
-    flex: none;
-    inline-size: 14px;
-    block-size: 14px;
-    border-radius: 50%;
-    background: var(--ch);
-    box-shadow: 0 0 0 5px color-mix(in srgb, var(--ch) 12%, transparent);
-  }
-
-  .topic-text { display: flex; flex-direction: column; gap: 0.25rem; min-inline-size: 0; }
+  .topic { grid-template-areas: 'idx text n go'; }
+  .topic .luxt-idx { grid-area: idx; }
+  .topic-text { grid-area: text; display: flex; flex-direction: column; gap: 0.2rem; min-inline-size: 0; }
+  .topic-n { grid-area: n; }
+  .topic-go { grid-area: go; }
 
   .topic-title {
     font-family: var(--font-display);
-    font-size: clamp(1.25rem, 2.8vw, 1.85rem);
+    font-size: clamp(1.15rem, 2.2vw, 1.5rem);
     line-height: 1.25;
     color: var(--navy);
+    transition: color 280ms var(--ease);
   }
 
-  .topic-n { color: var(--ch-ink); font-size: 0.92rem; font-weight: 600; }
+  .topic:hover .topic-title { color: var(--ch-dark); }
 
-  .topic-go {
-    margin-inline-start: auto;
-    flex: none;
-    color: var(--ch-dark);
-    opacity: 0.6;
-    transition: translate 320ms var(--ease), opacity 320ms var(--ease);
+  /* אוסף — שורה מודגשת: מדליון מלא בצבע הכהה וכותרת גדולה יותר */
+  .topics li[data-kind='collection'] .luxt-idx {
+    background: var(--ch-dark);
+    box-shadow: none;
+    color: #fff;
   }
 
-  .topic-go svg { inline-size: 34px; block-size: auto; display: block; }
-  .topic:hover .topic-go { translate: -8px 0; opacity: 1; }
+  .topics li[data-kind='collection'] .topic-title {
+    font-size: clamp(1.25rem, 2.6vw, 1.7rem);
+  }
 
+  /* ===== כל השאר — ממש למטה ===== */
   .grade-tail { margin-block-start: clamp(5rem, 18vh, 11rem); }
 
+  @media (max-width: 700px) {
+    .topics-table { --luxt-cols: 2.6rem minmax(0, 1fr) 2.1rem; }
+    .topic { grid-template-areas: 'idx text go' '. n go'; row-gap: 0.4rem; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .topic, .topic-go { transition: none; }
-    .topic:hover { transform: none; }
-    .topic:hover .topic-go { translate: 0; }
+    .topic-title { transition: none; }
   }
 </style>

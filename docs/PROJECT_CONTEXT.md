@@ -42,7 +42,9 @@
 | מסלול תאימות | `src/lib/legacyRedirects.mjs` | מקור יחיד ל־redirect, sitemap, tests ו־verify-deploy |
 | חטיבה עליונה | `src/drafts/chativa-elyona/` | כרגע הציבור מתכנס ל־`/chativa-elyona/`; חומר עתידי נשמר מחוץ ל־pages |
 | חוזר מפמ״ר | `src/data/mafmar.ts` + `public/docs/` | מקור רשמי, טווחי MAF, עמודים, hash ועותק מקומי |
-| עמוד שכבה — חומרים | `src/components/GradeIndex.astro` | רשימת נושאים; מונים נגזרים מהקטלוג הקנוני ובניסוח פדגוגי, לא `משימות` גנרי |
+| עמוד שכבה — חומרים | `src/components/GradeIndex.astro` | טבלת הנושאים (`.luxt` מ-global.css, RULES 3.30); מונים נגזרים מהקטלוג הקנוני ובניסוח פדגוגי, לא `משימות` גנרי; ה-ul נשאר `class="topics"` והשורה `class="topic"` — needles של verify-deploy |
+| עמוד נושא — משימות | `src/components/ChapterIndex.astro` | משאב מרכזי מעל טבלת המשימות (`.luxt`); צבע שורה לפי `resourceType`; השורה נשארת `class="rcard"` — needle של verify-deploy |
+| עיצוב הטבלאות | `src/styles/global.css` — בלוק `.luxt` | מקור יחיד לשתי הטבלאות (RULES 3.30, 10/08/2026): כותרות דביקות, זברה, פס צבע, גלולות; שיבוץ אזורים ורוחבי עמודות ברכיבים |
 | עמוד משאב | `src/components/ResourceSplit.astro` | embed אמיתי/fallback, `ResourceActions`, attribution, RTL, mobile |
 | פעולות משאב / Mafmar | `src/components/ResourceActions.astro` | מימוש משותף יחיד; אין מערכת `.res-actions` מקבילה |
 | סרטון פתיחה | `src/components/HeroVideo.astro` + `public/media/hero-*` | נכסי hero קנוניים בלבד; אין לשמור renders חלופיים ללא consumer |
