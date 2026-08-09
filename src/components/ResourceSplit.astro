@@ -82,6 +82,8 @@ const semanticKind = resourceDisplayLabel(item);
         sourceUrl={item.url}
         sourceInternal={item.url.startsWith('/')}
         fullscreen={Boolean(item.embed && item.kind !== 'maf')}
+        fullscreenTarget="[data-frame]"
+        statusTarget="[data-status]"
       />
 
       <p class="res-status" data-status role="status" aria-live="polite"></p>
@@ -343,15 +345,6 @@ const semanticKind = resourceDisplayLabel(item);
 <script>
   const page = document.querySelector<HTMLElement>('.res-page');
   if (page) {
-    const status = page.querySelector<HTMLElement>('[data-status]');
-    const say = (text: string) => {
-      if (!status) return;
-      status.textContent = text;
-      setTimeout(() => {
-        if (status.textContent === text) status.textContent = '';
-      }, 3200);
-    };
-
     const fb = page.querySelector<HTMLElement>('[data-pdf-fb]');
     const frame = page.querySelector<HTMLElement>('[data-frame]');
     const noPdf = 'pdfViewerEnabled' in navigator && navigator.pdfViewerEnabled === false;
@@ -390,45 +383,6 @@ const semanticKind = resourceDisplayLabel(item);
         );
         io.observe(frame);
       } else load();
-    }
-
-    page.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const value = btn.dataset.copy ?? '';
-        try {
-          await navigator.clipboard.writeText(value);
-          say('הקישור הועתק');
-        } catch {
-          say('ההעתקה נחסמה בדפדפן');
-        }
-      });
-    });
-
-    const shareBtn = page.querySelector<HTMLButtonElement>('[data-share]');
-    if (shareBtn && typeof navigator.share === 'function') {
-      shareBtn.hidden = false;
-      shareBtn.addEventListener('click', async () => {
-        try {
-          await navigator.share({ title: shareBtn.dataset.shareTitle, url: shareBtn.dataset.share });
-          say('הועבר למנגנון השיתוף');
-        } catch (error) {
-          if (!(error instanceof DOMException && error.name === 'AbortError')) {
-            say('השיתוף לא הושלם');
-          }
-        }
-      });
-    }
-
-    const fsBtn = page.querySelector<HTMLButtonElement>('[data-fs]');
-    if (fsBtn && frame && frame.requestFullscreen) {
-      fsBtn.hidden = false;
-      fsBtn.addEventListener('click', async () => {
-        try {
-          await frame.requestFullscreen();
-        } catch {
-          say('המסך המלא נחסם בדפדפן');
-        }
-      });
     }
   }
 
