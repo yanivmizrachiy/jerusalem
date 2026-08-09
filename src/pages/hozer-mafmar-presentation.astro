@@ -1,0 +1,75 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import MafmarPresentation from '../components/MafmarPresentation.astro';
+---
+
+<Base
+  title="חוזר מפמ״ר במצגת — תשפ״ז — מחוז ירושלים"
+  description="מצגת צבעונית וברורה של חוזר מפמ״ר מתמטיקה תשפ״ז, מחולקת לפי ארבעת חלקי החוזר ו־23 המקטעים המעודכנים."
+>
+  <div class="page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'הודעות שוטפות', href: '/hodaot/' },
+        { label: 'חוזר מפמ״ר במצגת' },
+      ]}
+    />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">תשפ״ז · מצגת מלווה לחוזר</p>
+      <h1>חוזר מפמ״ר במצגת</h1>
+      <p class="lede">
+        החוזר העדכני בחלוקה ברורה וצבעונית: חטיבת ביניים, המעבר לחטיבה העליונה,
+        חטיבה עליונה ונושאים משותפים. המסמך הרשמי נשאר המקור הקובע.
+      </p>
+      <div class="head-actions">
+        <a class="btn btn-primary" href="/hozer-mafmar/">חוזר המפמ״ר המלא ←</a>
+        <a class="btn btn-ghost" href="/hodaot/">חזרה להודעות שוטפות</a>
+      </div>
+    </header>
+
+    <MafmarPresentation />
+
+    <p class="source-note" data-reveal>
+      המצגת נבנתה מנתוני חוזר מפמ״ר תשפ״ז שכבר מאומתים בפרויקט; בכל שקופית תוכן יש קישור ישיר לסעיף המתאים בחוזר המלא.
+    </p>
+  </div>
+</Base>
+
+<style>
+  .page {
+    inline-size: var(--embed-page-inline);
+    margin-inline: auto;
+    padding-block: 1.4rem clamp(3rem, 6vw, 5rem);
+  }
+
+  .page-head {
+    max-inline-size: 900px;
+    margin-block: clamp(1.5rem, 3vw, 2.4rem) clamp(1.8rem, 4vw, 3rem);
+  }
+
+  .page-head h1 {
+    margin: 0;
+    color: var(--navy);
+    font-size: clamp(2.2rem, 5vw, 4.2rem);
+  }
+
+  .lede { max-inline-size: 760px; color: var(--ink-soft); }
+
+  .head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-block-start: 1.2rem;
+  }
+
+  .source-note {
+    max-inline-size: 900px;
+    margin: 1.6rem auto 0;
+    color: var(--ink-faint);
+    font-size: 0.9rem;
+    text-align: center;
+  }
+</style>

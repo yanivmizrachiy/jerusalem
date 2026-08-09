@@ -1,0 +1,412 @@
+---
+import { mafmarParts, mafmarSections } from '../data/mafmar';
+
+interface Props {
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+
+const groups = [
+  { audience: 'חט״ב', title: mafmarParts[0]?.title ?? 'חטיבת ביניים', accent: 'var(--olive)', symbol: 'ז׳–ט׳' },
+  { audience: 'מעבר', title: mafmarParts[1]?.title ?? 'מעבר לחטיבה העליונה', accent: 'var(--terracotta)', symbol: '3·4·5' },
+  { audience: 'חט״ע', title: mafmarParts[2]?.title ?? 'חטיבה עליונה', accent: 'var(--sky)', symbol: 'י׳–י״ב' },
+  { audience: 'משותף', title: mafmarParts[3]?.title ?? 'נושאים משותפים', accent: 'var(--lilac)', symbol: '∞' },
+] as const;
+
+const slides = [
+  { type: 'cover' as const, title: 'חוזר מפמ״ר מתמטיקה תשפ״ז', subtitle: 'הנקודות המרכזיות למורי חטיבת הביניים והחטיבה העליונה', accent: 'var(--gold)', symbol: '∑' },
+  ...groups.flatMap((group) => [
+    { type: 'divider' as const, title: group.title, subtitle: 'הנושאים המרכזיים מתוך החוזר העדכני', accent: group.accent, symbol: group.symbol },
+    ...mafmarSections
+      .filter((section) => section.audience === group.audience)
+      .map((section) => ({ type: 'section' as const, section, accent: group.accent, symbol: section.id.replace('MAF-', '') })),
+  ]),
+];
+---
+
+<section class:list={['mafmar-deck', compact && 'is-compact']} data-mafmar-deck aria-label="חוזר מפמ״ר תשפ״ז במצגת">
+  <div class="deck-stage">
+    {
+      slides.map((slide, index) => (
+        <article
+          class:list={['deck-slide', index === 0 && 'is-active', `is-${slide.type}`]}
+          data-slide
+          data-index={index}
+          aria-hidden={index === 0 ? 'false' : 'true'}
+          style={`--slide-accent:${slide.accent}`}
+        >
+          <div class="slide-orb" aria-hidden="true">{slide.symbol}</div>
+          <div class="slide-topline">
+            <span>חוזר מפמ״ר · תשפ״ז</span>
+            <span class="slide-count">{index + 1} / {slides.length}</span>
+          </div>
+
+          {slide.type === 'cover' && (
+            <div class="cover-content">
+              <p class="slide-kicker">הדרכת מתמטיקה · מחוז ירושלים והעיר ירושלים</p>
+              <h2>{slide.title}</h2>
+              <p>{slide.subtitle}</p>
+              <div class="cover-parts" aria-label="חלקי החוזר">
+                {groups.map((group, groupIndex) => (
+                  <span><b>{groupIndex + 1}</b>{group.title}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {slide.type === 'divider' && (
+            <div class="divider-content">
+              <p class="slide-kicker">חלק בחוזר</p>
+              <h2>{slide.title}</h2>
+              <p>{slide.subtitle}</p>
+            </div>
+          )}
+
+          {slide.type === 'section' && (
+            <div class="section-content">
+              <div class="section-copy">
+                <p class="slide-kicker">{slide.section.id} · {slide.section.audience}</p>
+                <h2>{slide.section.title}</h2>
+                <p class="page-range">עמודים {slide.section.startPage}–{slide.section.endPage} בחוזר</p>
+                {slide.section.note && <p class="section-note"><strong>דגש:</strong> {slide.section.note}</p>}
+              </div>
+              <a class="section-source" href={`/hozer-mafmar/#${slide.section.id}`}>
+                לפתיחת הסעיף בחוזר ←
+              </a>
+            </div>
+          )}
+
+          <a class="mafmar-button" href="/hozer-mafmar/" aria-label="פתיחת חוזר המפמ״ר המלא">
+            חוזר המפמ״ר
+          </a>
+        </article>
+      ))
+    }
+  </div>
+
+  <div class="deck-controls" role="group" aria-label="דפדוף במצגת">
+    <button type="button" data-deck-prev aria-label="שקופית קודמת">→</button>
+    <span data-deck-status aria-live="polite">1 מתוך {slides.length}</span>
+    <button type="button" data-deck-next aria-label="שקופית הבאה">←</button>
+    <button type="button" data-deck-fullscreen aria-label="הצגת המצגת במסך מלא">⛶</button>
+  </div>
+</section>
+
+<style>
+  .mafmar-deck {
+    inline-size: 100%;
+    max-inline-size: 1280px;
+    margin-inline: auto;
+  }
+
+  .deck-stage {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    min-block-size: 420px;
+    overflow: hidden;
+    border: 1px solid var(--embed-ring);
+    border-radius: var(--embed-radius);
+    background: var(--navy);
+    box-shadow: var(--embed-shadow);
+  }
+
+  .deck-slide {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: center;
+    padding: clamp(2rem, 5vw, 5.2rem);
+    padding-block-start: clamp(4rem, 7vw, 6.4rem);
+    background:
+      radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--slide-accent) 20%, transparent), transparent 36%),
+      radial-gradient(circle at 88% 84%, color-mix(in srgb, var(--slide-accent) 14%, transparent), transparent 34%),
+      linear-gradient(145deg, #fff 0%, var(--paper) 64%, var(--paper-soft) 100%);
+    opacity: 0;
+    visibility: hidden;
+    translate: -2.5% 0;
+    transition: opacity 360ms var(--ease), translate 420ms var(--ease), visibility 0s linear 420ms;
+  }
+
+  .deck-slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    translate: 0;
+    transition-delay: 0s;
+  }
+
+  .deck-slide::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block: 0;
+    inline-size: clamp(9px, 1vw, 16px);
+    background: var(--slide-accent);
+  }
+
+  .slide-topline {
+    position: absolute;
+    inset-block-start: clamp(1.2rem, 2.8vw, 2rem);
+    inset-inline: clamp(2rem, 5vw, 5.2rem);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--ink-faint);
+    font-size: clamp(0.72rem, 1.2vw, 0.9rem);
+    font-weight: 800;
+  }
+
+  .slide-count { direction: ltr; font-variant-numeric: tabular-nums; }
+
+  .slide-orb {
+    position: absolute;
+    inset-inline-end: clamp(1.8rem, 5vw, 5rem);
+    inset-block-start: clamp(3.2rem, 6vw, 5.4rem);
+    color: color-mix(in srgb, var(--slide-accent) 15%, transparent);
+    font-family: var(--font-display);
+    font-size: clamp(5rem, 15vw, 13rem);
+    font-weight: 900;
+    line-height: 1;
+    direction: ltr;
+    pointer-events: none;
+  }
+
+  .slide-kicker {
+    margin: 0 0 0.75rem;
+    color: color-mix(in srgb, var(--slide-accent) 72%, #182033);
+    font-size: clamp(0.8rem, 1.25vw, 1rem);
+    font-weight: 900;
+  }
+
+  .deck-slide h2 {
+    max-inline-size: 84%;
+    margin: 0;
+    color: var(--navy);
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5.5vw, 5rem);
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+
+  .cover-content > p:not(.slide-kicker),
+  .divider-content > p:not(.slide-kicker) {
+    max-inline-size: 760px;
+    margin: 1rem 0 0;
+    color: var(--ink-soft);
+    font-size: clamp(1rem, 2vw, 1.45rem);
+    line-height: 1.55;
+  }
+
+  .cover-parts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+    max-inline-size: 760px;
+    margin-block-start: clamp(1.3rem, 2.4vw, 2.2rem);
+  }
+
+  .cover-parts span {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--slide-accent) 28%, var(--line));
+    border-radius: 12px;
+    background: rgb(255 255 255 / 0.68);
+    color: var(--ink-soft);
+    font-size: clamp(0.72rem, 1.15vw, 0.92rem);
+    font-weight: 700;
+  }
+
+  .cover-parts b {
+    display: grid;
+    place-items: center;
+    inline-size: 1.8rem;
+    block-size: 1.8rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--slide-accent);
+    color: #fff;
+  }
+
+  .is-divider {
+    color: #fff;
+    background:
+      radial-gradient(circle at 80% 18%, color-mix(in srgb, var(--slide-accent) 60%, transparent), transparent 36%),
+      linear-gradient(145deg, #121a2a 0%, var(--navy) 62%, color-mix(in srgb, var(--slide-accent) 28%, var(--navy)) 100%);
+  }
+
+  .is-divider h2 { color: #fff; }
+  .is-divider .slide-kicker,
+  .is-divider .slide-topline { color: rgb(255 255 255 / 0.76); }
+  .is-divider .divider-content > p:not(.slide-kicker) { color: rgb(255 255 255 / 0.78); }
+  .is-divider .slide-orb { color: rgb(255 255 255 / 0.1); }
+
+  .section-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: clamp(1rem, 3vw, 3rem);
+  }
+
+  .section-copy { min-inline-size: 0; }
+  .section-content h2 { font-size: clamp(1.75rem, 4vw, 3.8rem); }
+
+  .page-range {
+    margin: 1rem 0 0;
+    color: var(--ink-soft);
+    font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+    font-weight: 800;
+  }
+
+  .section-note {
+    max-inline-size: 780px;
+    margin: clamp(1rem, 2vw, 1.6rem) 0 0;
+    padding: clamp(0.8rem, 1.6vw, 1.15rem) clamp(0.9rem, 1.8vw, 1.3rem);
+    border-inline-start: 5px solid var(--slide-accent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--slide-accent) 10%, #fff);
+    color: var(--ink-soft);
+    font-size: clamp(0.82rem, 1.35vw, 1rem);
+    line-height: 1.55;
+  }
+
+  .section-source {
+    position: relative;
+    z-index: 2;
+    white-space: nowrap;
+    color: var(--navy);
+    font-weight: 900;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+  }
+
+  .mafmar-button {
+    position: absolute;
+    inset-inline-end: clamp(1.5rem, 3vw, 2.5rem);
+    inset-block-end: clamp(1.4rem, 2.6vw, 2.2rem);
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    padding: 0.55rem 1rem;
+    border: 1px solid color-mix(in srgb, var(--slide-accent) 55%, var(--gold));
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.9);
+    color: var(--navy);
+    box-shadow: 0 12px 30px -18px rgb(31 41 61 / 0.6);
+    font-size: clamp(0.76rem, 1.2vw, 0.92rem);
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  .is-divider .mafmar-button { background: rgb(255 255 255 / 0.92); }
+
+  .deck-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-block-start: 0.9rem;
+  }
+
+  .deck-controls button {
+    display: grid;
+    place-items: center;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--navy);
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .deck-controls button:hover,
+  .deck-controls button:focus-visible {
+    border-color: var(--gold);
+    background: color-mix(in srgb, var(--gold) 12%, #fff);
+  }
+
+  .deck-controls span {
+    min-inline-size: 6.8rem;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+
+  .deck-stage:fullscreen {
+    inline-size: 100vw;
+    block-size: 100vh;
+    aspect-ratio: auto;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .is-compact .deck-stage { min-block-size: 320px; }
+
+  @media (max-width: 760px) {
+    .deck-stage { min-block-size: 0; aspect-ratio: 4 / 3; }
+    .deck-slide { padding: 3.8rem 1.5rem 4.8rem; }
+    .slide-topline { inset-inline: 1.5rem; }
+    .slide-orb { font-size: clamp(4rem, 24vw, 7rem); }
+    .deck-slide h2 { max-inline-size: 96%; font-size: clamp(1.55rem, 7vw, 2.6rem); }
+    .cover-parts { grid-template-columns: 1fr; }
+    .cover-parts span:nth-child(n + 3) { display: none; }
+    .section-content { grid-template-columns: 1fr; align-items: start; }
+    .section-note { display: none; }
+    .section-source { font-size: 0.82rem; }
+    .mafmar-button { inset-inline-end: 1.2rem; inset-block-end: 1rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .deck-slide { transition: none; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-mafmar-deck]').forEach((deck) => {
+    if (deck.dataset.ready === 'true') return;
+    deck.dataset.ready = 'true';
+
+    const slides = Array.from(deck.querySelectorAll<HTMLElement>('[data-slide]'));
+    const prev = deck.querySelector<HTMLButtonElement>('[data-deck-prev]');
+    const next = deck.querySelector<HTMLButtonElement>('[data-deck-next]');
+    const fullscreen = deck.querySelector<HTMLButtonElement>('[data-deck-fullscreen]');
+    const status = deck.querySelector<HTMLElement>('[data-deck-status]');
+    const stage = deck.querySelector<HTMLElement>('.deck-stage');
+    let current = 0;
+
+    const show = (nextIndex: number) => {
+      current = (nextIndex + slides.length) % slides.length;
+      slides.forEach((slide, index) => {
+        const active = index === current;
+        slide.classList.toggle('is-active', active);
+        slide.setAttribute('aria-hidden', active ? 'false' : 'true');
+      });
+      if (status) status.textContent = `${current + 1} מתוך ${slides.length}`;
+    };
+
+    prev?.addEventListener('click', () => show(current - 1));
+    next?.addEventListener('click', () => show(current + 1));
+
+    if (!document.fullscreenEnabled && fullscreen) fullscreen.hidden = true;
+    fullscreen?.addEventListener('click', async () => {
+      if (!stage) return;
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else await stage.requestFullscreen();
+      } catch {
+        // מסך מלא הוא שיפור אופציונלי; הדפדוף נשאר פעיל גם אם הדפדפן חוסם אותו.
+      }
+    });
+
+    deck.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') show(current + 1);
+      if (event.key === 'ArrowRight') show(current - 1);
+    });
+  });
+</script>
