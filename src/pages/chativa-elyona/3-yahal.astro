@@ -1,3 +1,59 @@
 ---
-return Astro.redirect('/chativa-elyona/', 301);
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import MafmarRange from '../../components/MafmarRange.astro';
 ---
+
+<Base
+  title="3 יח״ל — חטיבה עליונה — מחוז ירושלים"
+  description="רמת 3 יח״ל בתשפ״ז: שאלון 35371 בכיתה י״א, 35372 בכיתה י״ב והערכה בית ספרית 35173 — הדגשים הרשמיים מחוזר המפמ״ר."
+>
+  <div class="container page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'חטיבה עליונה', href: '/chativa-elyona/' },
+        { label: '3 יח״ל' },
+      ]}
+    />
+
+    <header class="page-head" data-reveal>
+      <p class="eyebrow">חטיבה עליונה · תשפ״ז</p>
+      <h1>3 יח״ל</h1>
+      <p class="lede">
+        למידה משמעותית והדרגתית עם ערך יישומי בולט. סדר ההיבחנות המומלץ: 35371 בכיתה
+        י״א, ‏35372 בכיתה י״ב, והערכה בית ספרית (35173) בכיתה י׳ בדרכי הערכה מגוונות.
+      </p>
+    </header>
+
+    <div data-reveal>
+      <MafmarRange sectionId="MAF-12" accent="var(--olive)" />
+    </div>
+
+    <section class="section-block" data-reveal>
+      <h2>עוד בחוזר הרלוונטי לרמה</h2>
+      <div class="chip-links">
+        <a class="btn btn-primary" href="https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativa-Elyona/mafmar/3-points-tashpaz.pdf" target="_blank" rel="noopener" title="מקור: חוזר מפמ״ר תשפ״ז, עמ׳ 13">המלצות רצף ההוראה — 3 יח״ל ↗</a>
+        <a class="btn btn-ghost" href="https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativa-Elyona/new-curriculum/3-MATH-Formula_NEW.pdf" target="_blank" rel="noopener">נוסחאון (עברית) ↗</a>
+        <a class="btn btn-ghost" href="https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativa-Elyona/new-curriculum/AR-3-MATH-Formula_NEW.pdf" target="_blank" rel="noopener">נוסחאון בערבית ↗</a>
+        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-18">קמפוס IL</a>
+        <a class="btn btn-ghost" href="/hozer-mafmar/#MAF-19">רשת ביטחון 4→3</a>
+      </div>
+    </section>
+
+    <nav class="pager-nav" aria-label="ניווט בין רמות">
+      <span></span>
+      <a class="btn btn-ghost" href="/chativa-elyona/">חזרה לחטיבה העליונה</a>
+      <a class="btn btn-primary" href="/chativa-elyona/4-yahal/">הרמה הבאה: 4 יח״ל ←</a>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .page { padding-block-start: 1.6rem; }
+  .page-head { max-width: 660px; margin-block: 1.6rem 2rem; }
+  .section-block { margin-block-start: clamp(2.4rem, 5vw, 3.4rem); }
+  .section-block h2 { margin-block-end: 1.2rem; }
+  .chip-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .pager-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.8rem; margin-block-start: clamp(2.2rem, 5vw, 3rem); }
+</style>
