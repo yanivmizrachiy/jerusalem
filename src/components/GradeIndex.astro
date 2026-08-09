@@ -8,7 +8,8 @@
  */
 import Breadcrumbs from './Breadcrumbs.astro';
 import GradeNav from './GradeNav.astro';
-import { publishableItems, publishedGradeCount } from '../data/publishing';
+import { canonicalChapterItems, canonicalPublishedGradeCount } from '../data/canonical-content';
+import { publishableItems } from '../data/publishing';
 import { resourceCountLabel } from '../data/resource-labels';
 import { chapterHref, gradeHref, gradeLabel, materialChapters, type ChoveretGrade } from '../data/choveret';
 
@@ -19,11 +20,11 @@ interface Props {
 const { grade } = Astro.props;
 const chapters = materialChapters(grade)
   .map((chapter) => {
-    const items = publishableItems(chapter.items);
+    const items = publishableItems(canonicalChapterItems(chapter));
     return { chapter, items, count: items.length, countLabel: resourceCountLabel(items) };
   })
   .filter(({ count }) => count > 0);
-const publishedCount = publishedGradeCount(grade);
+const publishedCount = canonicalPublishedGradeCount(grade);
 ---
 
 <div class="container grade-page" style={`--grade:${grade.color}; --grade-dark:${grade.dark}`}>
