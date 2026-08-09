@@ -1,0 +1,75 @@
+name: fix plan-prisa UX contracts (temporary)
+
+on:
+  push:
+    branches: [feat/plan-prisa-html-20260810]
+    paths: [.github/workflows/fix-plan-prisa-ux-contracts.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Patch only contracts superseded by HTML plan/prisa
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace_once(path, old, new, label):
+              p = Path(path)
+              s = p.read_text(encoding='utf-8')
+              count = s.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one anchor, found {count}')
+              p.write_text(s.replace(old, new), encoding='utf-8')
+              print('patched', label)
+
+          replace_once(
+              'src/components/ResourceSplit.astro',
+              '''\n  .res-split.is-web-doc {\n    grid-template-columns: minmax(280px, 0.58fr) minmax(0, 1.42fr);\n  }\n''',
+              '\n',
+              'restore 50/50 desktop resource split',
+          )
+
+          replace_once(
+              'src/components/ResourceSplit.astro',
+              '''  @media (max-width: 1099px) {\n    .res-split,\n    .res-split.is-web-doc { grid-template-columns: 1fr; block-size: auto; gap: clamp(1.4rem, 4vw, 2.2rem); }''',
+              '''  @media (max-width: 1099px) {\n    .res-split { grid-template-columns: 1fr; block-size: auto; gap: clamp(1.4rem, 4vw, 2.2rem); }''',
+              'remove redundant web-doc mobile selector',
+          )
+
+          replace_once(
+              'tests/ux.spec.ts',
+              '''test('עמוד משאב: ההטמעה ממלאת את הדף — כרטיס הפתיחה מוסתר באמת (8.8, 8.26)', async ({ page }) => {\n  await page.setViewportSize({ width: 1440, height: 900 });\n  await page.goto('/chativat-beynayim/reader/z/tochnit-z/');\n  // כרטיס הפתיחה קיים ב-DOM אך חייב להיעלם בפועל כשיש מציג PDF בדפדפן\n  const leaked = await page.evaluate(\n    () =>\n      [...document.querySelectorAll('[data-pdf-fb][hidden], .mrange-fallback[hidden], .res-frame[hidden]')].filter(\n        (el) => getComputedStyle(el).display !== 'none'\n      ).length\n  );\n  expect(leaked, 'כרטיס פתיחה עם hidden חייב להיעלם — לא לגנוב חצי עמוד').toBe(0);\n  // ההטמעה ממלאת את צד המשאב לגובה\n  const fill = await page.evaluate(() => {\n    const f = document.querySelector<HTMLElement>('.res-frame:not([hidden])');\n    const host = f?.closest<HTMLElement>('.res-view');\n    return f && host ? f.getBoundingClientRect().height / host.getBoundingClientRect().height : 0;\n  });\n  expect(fill, 'ההטמעה ממלאת כמעט את כל הצד שלה').toBeGreaterThan(0.9);\n});''',
+              '''test('עמוד תוכנית/פריסה: תצוגת ה-HTML ממלאת את צד המשאב בלי fallback של PDF (3.32.1)', async ({ page }) => {\n  await page.setViewportSize({ width: 1440, height: 900 });\n  await page.goto('/chativat-beynayim/reader/z/tochnit-z/');\n  await expect(page.locator('[data-plan-prisa-web]')).toHaveCount(1);\n  await expect(page.locator('.res-view iframe, [data-pdf-fb], .res-open-card')).toHaveCount(0);\n  const fill = await page.evaluate(() => {\n    const reader = document.querySelector<HTMLElement>('[data-plan-prisa-web]');\n    const host = reader?.closest<HTMLElement>('.res-view');\n    return reader && host ? reader.getBoundingClientRect().width / host.getBoundingClientRect().width : 0;\n  });\n  expect(fill, 'תצוגת ה-HTML ממלאת כמעט את כל רוחב הצד שלה').toBeGreaterThan(0.98);\n});''',
+              'replace obsolete PDF fallback test',
+          )
+
+          replace_once(
+              'tests/ux.spec.ts',
+              "      '/chativat-beynayim/reader/z/tochnit-z/', // PDF",
+              "      '/chativat-beynayim/reader/z/tochnit-z/', // HTML מלא שנגזר מ-PDF רשמי",
+              'label web document in 50/50 contract',
+          )
+
+          replace_once(
+              'tests/ux.spec.ts',
+              "    ['/chativat-beynayim/reader/z/tochnit-z/', '.res-frame'],",
+              "    ['/chativat-beynayim/reader/z/amat-tashpaz/', '.res-frame'],",
+              'shared embed frame uses an actual remaining PDF embed',
+          )
+
+      - name: Commit patches and remove temporary workflow
+        run: |
+          rm .github/workflows/fix-plan-prisa-ux-contracts.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/ResourceSplit.astro tests/ux.spec.ts .github/workflows/fix-plan-prisa-ux-contracts.yml
+          git diff --cached --check
+          git commit -m "fix(plan-prisa): align web reader with resource UX contracts"
+          git push origin HEAD:feat/plan-prisa-html-20260810
