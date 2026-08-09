@@ -93,15 +93,18 @@ const {
 
 <script>
   const actionBoards = document.querySelectorAll<HTMLElement>('[data-resource-actions]');
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fine = matchMedia('(pointer: fine)').matches;
 
   actionBoards.forEach((board) => {
     const statusSelector = board.dataset.statusTarget;
     const status = statusSelector ? document.querySelector<HTMLElement>(statusSelector) : null;
     const say = (text: string) => {
       if (!status) return;
+      const previous = status.textContent ?? '';
       status.textContent = text;
       window.setTimeout(() => {
-        if (status.textContent === text) status.textContent = '';
+        if (status.textContent === text) status.textContent = previous;
       }, 3200);
     };
 
@@ -140,6 +143,25 @@ const {
         } catch {
           say('המסך המלא נחסם בדפדפן');
         }
+      });
+    }
+
+    if (!calm && fine) {
+      board.querySelectorAll<HTMLElement>('.orb').forEach((orb) => {
+        const face = orb.querySelector<HTMLElement>('.orb-face');
+        if (!face) return;
+
+        const move = (event: PointerEvent) => {
+          const rect = face.getBoundingClientRect();
+          const dx = (event.clientX - (rect.left + rect.width / 2)) / rect.width;
+          const dy = (event.clientY - (rect.top + rect.height / 2)) / rect.height;
+          face.style.transform = `translate(${dx * 10}px, ${dy * 10 - 4}px) scale(1.07)`;
+        };
+
+        orb.addEventListener('pointermove', move);
+        orb.addEventListener('pointerleave', () => { face.style.transform = ''; });
+        orb.addEventListener('pointerdown', () => { face.style.transform = 'scale(.94)'; });
+        orb.addEventListener('pointerup', move);
       });
     }
   });
