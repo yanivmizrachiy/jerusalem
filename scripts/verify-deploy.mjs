@@ -85,7 +85,7 @@ const MARKERS = [
   { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'data-plan-prisa-web', what: 'תוכנית/פריסה כתצוגת HTML — ללא PDF מוטמע (3.32.1)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
-  { path: '/', needle: 'start-btn', what: 'כפתור ההתחלה בעמוד הראשי (7.28)' },
+  { path: '/', needle: 'hero-actions', what: 'כפתורי הפעולה המובילים בעמוד הראשי (7.28)' },
   { path: '/shearim/', needle: 'choice-card', what: 'כרטיסי הבחירה המעודנים בבחירת החטיבה (7.29)' },
   // ModEL: הייחוס אומת על ידי בעל הפרויקט (24.6.7) ולכן המשאב פומבי. שלושת
   // הסמנים יחד מוכיחים שהעמוד חי, שהלוגו מוצג ושהייחוס הארגוני מוצג.
