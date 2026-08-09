@@ -1,10 +1,11 @@
 ---
 /**
- * בחירת החטיבה — מסך מחולק חצי-חצי (הוראת יניב, 05/08/2026).
- * חצי אחד כחול־כהה עם מלל בהיר, החצי השני בדיוק אותם צבעים הפוכים.
- * בלי פירורי לחם: הניווט העליון כבר נושא את "ראשי", והצבע מתחיל
- * מיד מתחתיו (הוראת יניב, 05/08/2026).
- * בתחתית העמוד נשמרים רצועת הווטסאפ ופס התחתית הכחול (7.24, 7.27).
+ * בחירת החטיבה — כפתורי יוקרה קטנים, עדינים וצבעוניים (הוראת יניב,
+ * 10/08/2026 — מחליפה את מסך חצי-חצי מ-05/08/2026): במקום שני חצאי-ענק,
+ * סצנה בהירה ורגועה עם שני כרטיסי בחירה קומפקטיים בצבעי הפלטה המאושרת
+ * (5.19) — מושכי לב, עדינים וחכמים.
+ * נשמרים: בלי פירורי לחם (הצבע מתחיל מיד מתחת לניווט), h1 סמוי, כפתור
+ * חזרה בתחתית, רצועת הווטסאפ ופס התחתית הכחול (7.24, 7.27, 7.29).
  */
 import Base from '../../layouts/Base.astro';
 import WhatsAppBand from '../../components/WhatsAppBand.astro';
@@ -13,14 +14,16 @@ const gates = [
   {
     href: '/chativat-beynayim/',
     title: 'חטיבת ביניים',
-    desc: 'מתמטיקה לכיתות ז׳–ט׳',
-    tone: 'navy' as const,
+    range: 'כיתות ז׳–ט׳',
+    accent: 'var(--sky)',
+    accentDeep: '#155fa8',
   },
   {
     href: '/chativa-elyona/',
     title: 'חטיבה עליונה',
-    desc: 'מתמטיקה לכיתות י׳–י״ב',
-    tone: 'paper' as const,
+    range: 'כיתות י׳–י״ב',
+    accent: 'var(--amber)',
+    accentDeep: '#9a6a12',
   },
 ];
 ---
@@ -31,25 +34,33 @@ const gates = [
 >
   <h1 class="visually-hidden">בחירת החטיבה</h1>
 
-  <section class="split" aria-label="בחירת החטיבה">
-    {
-      gates.map((g, i) => (
-        <a class:list={['half', `is-${g.tone}`]} style={`--i:${i}`} href={g.href}>
-          {i > 0 && <span class="split-rule" aria-hidden="true" />}
-          <span class="half-glow" aria-hidden="true" />
-          <span class="half-inner">
-            <span class="half-mark" aria-hidden="true" />
-            <h2 class="half-title">{g.title}</h2>
-            <span class="half-desc">{g.desc}</span>
-            <span class="half-cta" aria-hidden="true">
-              <svg viewBox="0 0 44 16" fill="none" stroke="currentColor" stroke-width="1.4">
-                <path d="M43 8H2M9 1.5 2 8l7 6.5" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </span>
-          </span>
-        </a>
-      ))
-    }
+  <section class="gate-scene" aria-label="בחירת החטיבה">
+    <span class="scene-thread" aria-hidden="true"></span>
+
+    <div class="scene-inner">
+      <p class="scene-kicker">הדרכת מתמטיקה · מחוז ירושלים</p>
+
+      <div class="choice-row">
+        {
+          gates.map((g, i) => (
+            <a
+              class="choice-card"
+              style={`--accent:${g.accent}; --accent-deep:${g.accentDeep}; --i:${i}`}
+              href={g.href}
+            >
+              <span class="card-chip">{g.range}</span>
+              <span class="card-title">{g.title}</span>
+              <span class="card-cta" aria-hidden="true">
+                <svg viewBox="0 0 44 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                  <path d="M43 8H2M9 1.5 2 8l7 6.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <span class="card-wash" aria-hidden="true" />
+            </a>
+          ))
+        }
+      </div>
+    </div>
 
     <a class="back-home" href="/">
       <svg viewBox="0 0 34 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
@@ -64,265 +75,161 @@ const gates = [
 
 <style>
   /* הצבע נוגע ברצועת הווטסאפ — בלי רצועה לבנה ביניהם */
-  :global(main .split + .wa-band-wrap) { margin-block-start: 0; }
+  :global(main .gate-scene + .wa-band-wrap) { margin-block-start: 0; }
 
-  /* המסך מחולק חצי-חצי, לכל רוחב העמוד */
-  .split {
+  /* מהניווט העליון ועד רצועת הווטסאפ — סצנה אחת בהירה, בלי שטח מת */
+  .gate-scene {
     position: relative;
-    display: flex;
-    /* מהניווט העליון ועד רצועת הווטסאפ — בלי שטח לבן מעליו או מתחתיו
-       (הוראת יניב, 05/08/2026). ה-fallback מחושב מגובה הפס העליון והניווט;
-       הסקריפט שלמטה מדייק אותו לפי המדידה בפועל. */
+    display: grid;
+    place-items: center;
     min-block-size: var(--split-h, calc(100svh - var(--header-h) - 65px));
+    padding: clamp(1.4rem, 4vh, 3rem) clamp(1rem, 4vw, 2.5rem) clamp(5.5rem, 11vh, 7.5rem);
+    background:
+      radial-gradient(120% 90% at 85% 8%, color-mix(in srgb, var(--sky) 13%, transparent), transparent 55%),
+      radial-gradient(110% 85% at 12% 92%, color-mix(in srgb, var(--amber) 14%, transparent), transparent 55%),
+      radial-gradient(90% 70% at 50% 45%, color-mix(in srgb, var(--rose, #e7b9c4) 7%, transparent), transparent 60%),
+      linear-gradient(180deg, #fffdf9, var(--paper));
     border-block-end: 1px solid var(--line);
     overflow: hidden;
   }
 
-  .half {
-    position: relative;
-    flex: 1 1 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: clamp(2rem, 5vw, 4rem) clamp(1.4rem, 4.5vw, 3.4rem);
-    /* מקום שמור בתחתית לכפתור החזרה, כדי שלא יכסה את תוכן החצי */
-    padding-block-end: calc(clamp(2rem, 5vw, 4rem) + 4.2rem);
-    text-decoration: none;
-    isolation: isolate;
-    transition: flex-basis 700ms var(--ease), filter 400ms var(--ease);
-  }
-
-  /* חצי כהה: רקע נייבי, מלל בהיר */
-  .half.is-navy {
-    background:
-      radial-gradient(120% 130% at 80% -10%, rgb(110 159 195 / 0.22) 0%, transparent 58%),
-      radial-gradient(100% 120% at 10% 115%, rgb(176 141 62 / 0.22) 0%, transparent 62%),
-      linear-gradient(200deg, #26324a 0%, var(--navy) 55%, #172033 100%);
-    background-color: var(--navy);
-    --tone-text: var(--paper);
-    --tone-soft: rgb(251 249 245 / 0.82);
-    --tone-cta: #e8c877;
-    --tone-line: rgb(232 200 119 / 0.55);
-  }
-
-  /* חצי בהיר: אותם צבעים בדיוק — הפוך */
-  .half.is-paper {
-    background:
-      radial-gradient(120% 130% at 20% -10%, rgb(31 41 61 / 0.07) 0%, transparent 58%),
-      radial-gradient(100% 120% at 90% 115%, rgb(176 141 62 / 0.16) 0%, transparent 62%),
-      linear-gradient(200deg, var(--paper) 0%, var(--paper-soft) 55%, var(--stone) 100%);
-    background-color: var(--paper-soft);
-    --tone-text: var(--navy);
-    --tone-soft: var(--ink-soft);
-    --tone-cta: var(--gold-deep);
-    --tone-line: rgb(31 41 61 / 0.35);
-  }
-
-  .half-inner {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.85rem;
-    inline-size: min(38ch, 100%);
-    color: var(--tone-text);
-  }
-
-  /* חוט זהב קצר מעל הכותרת */
-  .half-mark {
-    inline-size: 74px;
+  /* חוט זהב עדין שנמתח בראש הסצנה */
+  .scene-thread {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
     block-size: 2px;
-    background: linear-gradient(90deg, var(--tone-line), transparent);
-    transition: inline-size 600ms var(--ease);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold) 65%, transparent), transparent);
   }
 
-  .half-title {
+  .scene-inner { display: grid; justify-items: center; gap: clamp(1.3rem, 3.5vh, 2.2rem); }
+
+  .scene-kicker {
     margin: 0;
+    color: var(--gold-deep);
+    font-weight: 850;
+    font-size: clamp(0.82rem, 1.6vw, 0.95rem);
+    letter-spacing: 0.14em;
+  }
+
+  .choice-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1rem, 3vw, 1.8rem);
+    inline-size: min(100%, 760px);
+  }
+
+  /* כרטיס בחירה — קטן, עדין, צבעוני; כולו קישור אחד */
+  .choice-card {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 0.7rem;
+    min-block-size: 200px;
+    padding: clamp(1.4rem, 3.5vh, 2.2rem) 1.2rem;
+    border-radius: 22px;
+    text-decoration: none;
+    background-color: #fffefc;
+    background-image: linear-gradient(165deg, #fffefc, color-mix(in srgb, var(--accent) 9%, #fff));
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent),
+      inset 0 0 0 1px rgb(255 255 255 / 0.85),
+      inset 0 -2px 0 0 color-mix(in srgb, var(--gold) 42%, transparent),
+      0 20px 44px -30px rgb(42 37 32 / 0.5);
+    /* כניסה עדינה ב-backwards: אחרי הריצה הכרטיס חוזר למצב הבסיס,
+       כך שריחוף ההרמה (translate) אינו ננעל על ידי ה-animation */
+    animation: card-in 700ms var(--ease) backwards;
+    animation-delay: calc(140ms + var(--i) * 130ms);
+    transition: translate 320ms var(--ease), box-shadow 320ms var(--ease);
+  }
+  @keyframes card-in { from { opacity: 0; translate: 0 14px; } }
+
+  .card-chip {
+    padding: 0.28rem 0.85rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 16%, #fff);
+    color: var(--accent-deep);
+    font-size: 0.82rem;
+    font-weight: 850;
+  }
+
+  .card-title {
+    color: var(--navy);
     font-family: var(--font-display);
-    font-size: clamp(2.2rem, 5.4vw, 3.9rem);
-    line-height: 1.05;
-    letter-spacing: -0.01em;
-    color: var(--tone-text);
+    font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+    font-weight: 700;
+    line-height: 1.12;
   }
 
-  .half-desc {
-    color: var(--tone-soft);
-    font-size: clamp(1rem, 1.5vw, 1.14rem);
-    line-height: 1.7;
-    text-wrap: pretty;
-  }
+  .card-cta { color: var(--gold-deep); }
+  .card-cta svg { inline-size: clamp(30px, 3.4vw, 40px); block-size: auto; transition: translate 320ms var(--ease); }
 
-  /* חץ עדין — כל שטח החצי לחיץ, החץ רק מסמן את הכניסה */
-  .half-cta {
-    display: inline-flex;
-    align-items: center;
-    margin-block-start: 0.7rem;
-    color: var(--tone-cta);
-    transition: translate 380ms var(--ease), opacity 380ms var(--ease);
-    opacity: 0.85;
-  }
-
-  .half-cta svg { inline-size: clamp(52px, 6vw, 68px); block-size: auto; display: block; }
-
-  .half:hover .half-cta,
-  .half:focus-visible .half-cta { translate: -10px 0; opacity: 1; }
-
-  .half:hover .half-mark,
-  .half:focus-visible .half-mark { inline-size: 128px; }
-
-  .half:focus-visible { outline: 3px solid var(--tone-cta); outline-offset: -8px; }
-
-  /* הילת עומק רכה שנעה עם הריחוף */
-  .half-glow {
+  .card-wash {
     position: absolute;
-    inset: -20%;
-    z-index: 0;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(75% 60% at 50% 110%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 70%);
     pointer-events: none;
-    opacity: 0;
-    background: radial-gradient(45% 45% at 50% 50%, currentColor 0%, transparent 70%);
-    color: var(--tone-cta);
-    transition: opacity 600ms var(--ease);
   }
 
-  .half:hover .half-glow { opacity: 0.16; }
-
-  /* קו הזהב שמפריד בין שני החצאים — יושב על הקצה המוביל של החצי השני,
-     ולכן נשאר בדיוק על התפר גם ב-RTL וגם כשהריחוף מזיז אותו */
-  .split-rule {
-    position: absolute;
-    z-index: 3;
-    inset-block: 0;
-    inset-inline-start: 0;
-    inline-size: 2px;
-    pointer-events: none;
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      var(--gold) 22%,
-      #e8c877 50%,
-      var(--gold) 78%,
-      transparent 100%
-    );
+  .choice-card:hover {
+    translate: 0 -5px;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 62%, transparent),
+      inset 0 0 0 1px rgb(255 255 255 / 0.95),
+      inset 0 -2px 0 0 var(--gold),
+      0 30px 56px -30px rgb(42 37 32 / 0.55);
   }
+  .choice-card:hover .card-cta svg { translate: -5px 0; }
+  .choice-card:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
 
-  /* חזרה לעמוד הראשי — בתחתית העמוד, על התפר בין שני החצאים.
-     יושב מחוץ לזרימה כדי שהצבע ימשיך לגעת בניווט העליון וברצועת הווטסאפ (7.29). */
+  /* כפתור חזרה — גלולה עדינה על התפר התחתון */
   .back-home {
     position: absolute;
-    z-index: 4;
-    inset-block-end: clamp(1.1rem, 3.2vh, 2.1rem);
+    inset-block-end: clamp(1.1rem, 3vh, 2rem);
     inset-inline: 0;
     margin-inline: auto;
-    inline-size: max-content;
+    inline-size: fit-content;
     display: inline-flex;
     align-items: center;
-    gap: 0.7rem;
-    min-block-size: 48px;
-    padding: 0.6rem 1.7rem;
-    border: 1px solid color-mix(in srgb, var(--gold) 62%, transparent);
+    gap: 0.55rem;
+    min-block-size: 44px;
+    padding: 0.55rem 1.2rem;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--navy) 88%, transparent);
-    color: #e8c877;
-    font: 700 1.02rem var(--font-body);
+    background: #fffefb;
+    color: var(--navy);
+    font-weight: 750;
+    font-size: 0.92rem;
     text-decoration: none;
-    box-shadow: 0 14px 34px -20px rgb(15 21 34 / 0.75);
-    backdrop-filter: blur(6px);
-    transition: border-color 300ms var(--ease), background-color 300ms var(--ease);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent),
+      0 12px 28px -18px rgb(42 37 32 / 0.45);
+    transition: box-shadow 320ms var(--ease);
   }
-
-  .back-home svg {
-    inline-size: 28px;
-    block-size: auto;
-    transition: translate 380ms var(--ease);
-  }
-
-  .back-home:hover {
-    border-color: var(--gold);
-    background: color-mix(in srgb, var(--navy) 96%, transparent);
-  }
-
-  .back-home:hover svg { translate: 5px 0; }
-
+  .back-home svg { inline-size: 26px; block-size: auto; color: var(--gold-deep); }
+  .back-home:hover { box-shadow: 0 0 0 1px var(--gold), 0 16px 32px -16px rgb(42 37 32 / 0.5); }
   .back-home:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
 
+  /* נייד: הכרטיסים נערמים וגדולים ונוחים; אפס גלילה אופקית (19.32) */
+  @media (max-width: 720px) {
+    .choice-row { grid-template-columns: 1fr; inline-size: min(100%, 420px); }
+    .choice-card { min-block-size: 168px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .back-home, .back-home svg { transition-duration: 1ms; }
-  }
-
-  /* ריחוף במחשב: החצי הנבחר גדל, השני נסוג — בלי קפיצות.
-     ההרחבה חייבת להיות על flex-basis: כששני הבסיסים כבר ממלאים את המכל,
-     אין שטח פנוי ו-flex-grow אינו משנה דבר.
-     התנאי הוא ריחוף על חצי בלבד — ריחוף על כפתור החזרה לא יכווץ את שניהם. */
-  @media (min-width: 1000px) and (pointer: fine) {
-    /* שתי השורות נושאות את אותו :has כדי שהסלקטור השני יישאר הספציפי יותר */
-    .split:has(> .half:hover) .half { flex-basis: 43%; filter: saturate(0.94); }
-    .split:has(> .half:hover) .half:hover { flex-basis: 57%; filter: none; }
-  }
-
-  /* פתיחת העמוד: כל חצי נחשף מהמרכז החוצה והתוכן עולה בהדרגה */
-  @media (prefers-reduced-motion: no-preference) {
-    .half { animation: half-in 900ms var(--ease) both; animation-delay: calc(var(--i) * 130ms); }
-    .half-inner {
-      animation: half-content-in 800ms var(--ease) both;
-      animation-delay: calc(320ms + var(--i) * 130ms);
-    }
-    .split-rule { animation: rule-in 1100ms var(--ease) both; animation-delay: 160ms; }
-
-    @keyframes half-in {
-      from { clip-path: inset(0 0 100% 0); opacity: 0; }
-      to { clip-path: inset(0 0 0 0); opacity: 1; }
-    }
-
-    @keyframes half-content-in {
-      from { opacity: 0; translate: 0 22px; }
-      to { opacity: 1; translate: none; }
-    }
-
-    @keyframes rule-in {
-      from { scale: 1 0; opacity: 0; }
-      to { scale: 1 1; opacity: 1; }
-    }
-  }
-
-  /* נייד: החצאים נערמים; אותו קו זהב הופך אופקי — ונשאר בדיוק על התפר */
-  @media (max-width: 860px) {
-    .split { flex-direction: column; min-block-size: var(--split-h, calc(100svh - 200px)); }
-    .half { flex: 1 1 50%; min-block-size: 240px; }
-
-    .split-rule {
-      inset-block: 0 auto;
-      inset-inline: 0;
-      inline-size: auto;
-      block-size: 2px;
-      background: linear-gradient(
-        90deg,
-        transparent 0%,
-        var(--gold) 22%,
-        #e8c877 50%,
-        var(--gold) 78%,
-        transparent 100%
-      );
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-      .split-rule { animation-name: rule-in-h; }
-    }
-
-    @keyframes rule-in-h {
-      from { scale: 0 1; opacity: 0; }
-      to { scale: 1 1; opacity: 1; }
-    }
+    .choice-card { animation: none; opacity: 1; translate: none; transition: none; }
+    .card-cta svg, .back-home { transition: none; }
   }
 </style>
 
 <script>
-  // גובה מדויק: הצבע יורד עד תחתית המסך ונוגע ברצועת הווטסאפ
-  const split = document.querySelector<HTMLElement>('.split');
-  if (split) {
+  // גובה מדויק: הצבע יורד עד תחתית המסך ונוגע ברצועת הווטסאפ (7.29)
+  const scene = document.querySelector<HTMLElement>('.gate-scene');
+  if (scene) {
     const fit = () => {
-      const top = split.getBoundingClientRect().top + window.scrollY;
-      split.style.setProperty('--split-h', `${Math.max(420, Math.round(innerHeight - top))}px`);
+      const top = scene.getBoundingClientRect().top + window.scrollY;
+      scene.style.setProperty('--split-h', `${Math.max(420, Math.round(innerHeight - top))}px`);
     };
     fit();
     addEventListener('resize', fit, { passive: true });

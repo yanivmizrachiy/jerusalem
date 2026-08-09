@@ -961,45 +961,48 @@ test('העמוד הראשי: כפתור "התחל" יחיד מתחת לצוות,
   await page.waitForURL('**/shearim/');
 });
 
-test('בחירת החטיבה: חצי-חצי — כהה עם מלל בהיר מול בהיר עם מלל כהה (05/08)', async ({ page }) => {
+test('בחירת החטיבה: שני כרטיסי יוקרה קטנים וצבעוניים — לא חצאי מסך (10/08)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/shearim/');
+  await page.waitForTimeout(700);
 
-  const halves = page.locator('.split .half');
-  await expect(halves).toHaveCount(2);
+  const cards = page.locator('.choice-card');
+  await expect(cards).toHaveCount(2);
 
-  const navy = (await halves.nth(0).boundingBox())!;
-  const paper = (await halves.nth(1).boundingBox())!;
+  const a = (await cards.nth(0).boundingBox())!;
+  const b = (await cards.nth(1).boundingBox())!;
 
-  // שני חצאים זה לצד זה, ברוחב שווה, על כל רוחב החלון
-  expect(Math.abs(navy.width - paper.width), 'חצי-חצי').toBeLessThanOrEqual(2);
-  expect(Math.abs(navy.y - paper.y), 'אותה שורה').toBeLessThanOrEqual(2);
-  expect(navy.width + paper.width, 'לכל רוחב העמוד').toBeGreaterThanOrEqual(1400);
-  expect(navy.height, 'המסך מחולק לגובה משמעותי').toBeGreaterThanOrEqual(440);
+  // זה לצד זה, ברוחב שווה — אבל קומפקטיים, לא חצאי-ענק של המסך
+  expect(Math.abs(a.width - b.width), 'רוחב שווה').toBeLessThanOrEqual(2);
+  expect(Math.abs(a.y - b.y), 'אותה שורה').toBeLessThanOrEqual(2);
+  expect(a.width, 'כרטיס קטן ועדין — לא חצי מסך').toBeLessThanOrEqual(560);
+  expect(a.height, 'גובה מרוסן').toBeLessThanOrEqual(440);
+  expect(a.height, 'ועדיין נוכח ונוח').toBeGreaterThanOrEqual(150);
 
-  // צבעים הפוכים בדיוק: רקע כהה/מלל בהיר מול רקע בהיר/מלל כהה
+  // שניהם בהירים ועדינים — אין עוד חצי נייבי קודר
   const lum = (rgb: string) => {
-    const [r, g, b] = rgb.match(/\d+/g)!.map(Number);
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    const m = rgb.match(/\d+/g);
+    if (!m) return 255;
+    const [r, g, bl] = m.map(Number);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
   };
-  const read = async (i: number) => {
-    const bg = await halves.nth(i).evaluate((el) => getComputedStyle(el).backgroundColor);
-    const fg = await halves
-      .nth(i)
-      .locator('.half-title')
-      .evaluate((el) => getComputedStyle(el).color);
-    return { bg: lum(bg), fg: lum(fg) };
-  };
-  const a = await read(0);
-  const b = await read(1);
-  expect(a.bg, 'החצי הראשון כהה').toBeLessThan(90);
-  expect(a.fg, 'ומללו בהיר').toBeGreaterThan(200);
-  expect(b.bg, 'החצי השני בהיר').toBeGreaterThan(200);
-  expect(b.fg, 'ומללו כהה').toBeLessThan(90);
+  for (const i of [0, 1]) {
+    const bg = await cards.nth(i).evaluate((el) => getComputedStyle(el).backgroundColor);
+    const title = await cards.nth(i).locator('.card-title').evaluate((el) => getComputedStyle(el).color);
+    expect(lum(bg), `כרטיס ${i}: רקע בהיר ועדין`).toBeGreaterThan(200);
+    expect(lum(title), `כרטיס ${i}: כותרת כהה וקריאה`).toBeLessThan(90);
+    await expect(cards.nth(i).locator('.card-chip'), `כרטיס ${i}: שבב צבעוני`).toBeVisible();
+  }
 
-  // כל חצי הוא קישור אמיתי לחטיבה
-  expect(await halves.nth(0).getAttribute('href')).toBe('/chativat-beynayim/');
-  expect(await halves.nth(1).getAttribute('href')).toBe('/chativa-elyona/');
+  // כל כרטיס הוא קישור אמיתי לחטיבה
+  expect(await cards.nth(0).getAttribute('href')).toBe('/chativat-beynayim/');
+  expect(await cards.nth(1).getAttribute('href')).toBe('/chativa-elyona/');
+
+  // הסצנה מתחילה מיד מתחת לניווט — בלי רצועה לבנה — ויורדת עד תחתית המסך
+  const scene = (await page.locator('.gate-scene').boundingBox())!;
+  const header = (await page.locator('.site-header').boundingBox().catch(() => null)) ?? { y: 0, height: 0 };
+  expect(scene.y, 'הצבע נוגע בניווט').toBeLessThanOrEqual(header.y + header.height + 2);
+  expect(scene.height, 'הסצנה ממלאת את המסך').toBeGreaterThanOrEqual(440);
 
   // רצועת הווטסאפ ופס התחתית הכחול נשמרים (7.24, 7.27)
   await expect(page.locator('.wa-band')).toBeVisible();
@@ -1022,10 +1025,10 @@ for (const [label, w, h] of [
 
     // מטרת מגע תקינה, ובתחתית האזור הצבוע — לא באמצעו
     const b = (await back.boundingBox())!;
-    const split = (await page.locator('.split').boundingBox())!;
+    const scene = (await page.locator('.gate-scene').boundingBox())!;
     expect(b.height, 'מטרת מגע').toBeGreaterThanOrEqual(44);
-    expect(b.y, 'בתחתית העמוד').toBeGreaterThan(split.y + split.height * 0.7);
-    expect(b.y + b.height, 'בתוך האזור הצבוע').toBeLessThanOrEqual(split.y + split.height + 1);
+    expect(b.y, 'בתחתית העמוד').toBeGreaterThan(scene.y + scene.height * 0.7);
+    expect(b.y + b.height, 'בתוך האזור הצבוע').toBeLessThanOrEqual(scene.y + scene.height + 1);
 
     // לחיצה אמיתית שמחזירה לעמוד הראשי
     await back.click();
@@ -1033,56 +1036,43 @@ for (const [label, w, h] of [
   });
 }
 
-test('בחירת החטיבה: ריחוף על כפתור החזרה אינו מכווץ את שני החצאים (7.29)', async ({ page }) => {
+test('בחירת החטיבה: ריחוף מרים את הכרטיס בעדינות — בלי התנפחות חצאים (10/08)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/shearim/');
   await page.waitForTimeout(900);
 
-  const halves = page.locator('.split .half');
-  const rest = (await halves.nth(0).boundingBox())!;
+  const card = page.locator('.choice-card').nth(0);
+  const rest = (await card.boundingBox())!;
+  await card.hover();
+  await page.waitForTimeout(500);
+  const hov = (await card.boundingBox())!;
+
+  expect(rest.y - hov.y, 'הכרטיס מתרומם בעדינות').toBeGreaterThanOrEqual(2);
+  expect(Math.abs(hov.width - rest.width), 'בלי שינוי רוחב — אין עוד התרחבות חצאים').toBeLessThanOrEqual(8);
+
+  // הריחוף על כפתור החזרה אינו מזיז את הכרטיסים
   await page.locator('.back-home').hover();
-  await page.waitForTimeout(900);
-  const after = (await halves.nth(0).boundingBox())!;
-  expect(Math.abs(after.width - rest.width), 'החצאים נשארים חצי-חצי').toBeLessThanOrEqual(2);
+  await page.waitForTimeout(500);
+  const after = (await card.boundingBox())!;
+  expect(Math.abs(after.width - rest.width), 'הכרטיסים יציבים').toBeLessThanOrEqual(2);
 });
 
-test('בחירת החטיבה בנייד: החצאים נערמים בלי גלילה אופקית (05/08)', async ({ page }) => {
+test('בחירת החטיבה בנייד: הכרטיסים נערמים בלי גלילה אופקית (10/08)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await assertRealMobile(page);
   await page.goto('/shearim/');
-  const halves = page.locator('.split .half');
-  const a = (await halves.nth(0).boundingBox())!;
-  const b = (await halves.nth(1).boundingBox())!;
-  expect(b.y, 'החצי השני מתחת לראשון').toBeGreaterThan(a.y + a.height - 2);
-  expect(a.height, 'כל חצי נשאר גדול ונוח').toBeGreaterThanOrEqual(240);
+  await page.waitForTimeout(700);
+  const cards = page.locator('.choice-card');
+  const a = (await cards.nth(0).boundingBox())!;
+  const b = (await cards.nth(1).boundingBox())!;
+  expect(b.y, 'הכרטיס השני מתחת לראשון').toBeGreaterThan(a.y + a.height - 2);
+  expect(a.height, 'כל כרטיס נשאר גדול ונוח למגע').toBeGreaterThanOrEqual(150);
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth
   );
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-test('בחירת החטיבה: הריחוף באמת מרחיב, וקו הזהב נצמד לתפר (7.29)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/shearim/');
-  const halves = page.locator('.split .half');
-  const rule = page.locator('.split-rule');
-
-  const rest = [(await halves.nth(0).boundingBox())!, (await halves.nth(1).boundingBox())!];
-  const restRule = (await rule.boundingBox())!;
-  // התפר = הקצה בין שני החצאים; הקו יושב עליו (סטייה של פיקסל אחד לכל היותר)
-  expect(Math.abs(restRule.x + restRule.width / 2 - rest[0].x), 'קו הזהב על התפר').toBeLessThanOrEqual(2);
-
-  await halves.nth(0).hover();
-  await page.waitForTimeout(900);
-  const hov = [(await halves.nth(0).boundingBox())!, (await halves.nth(1).boundingBox())!];
-  const hovRule = (await rule.boundingBox())!;
-
-  // החצי שמרחפים עליו מתרחב בפועל, והשני נסוג — לא no-op של flex-grow
-  expect(hov[0].width - rest[0].width, 'החצי הנבחר מתרחב').toBeGreaterThan(40);
-  expect(hov[1].width - rest[1].width, 'החצי השני נסוג').toBeLessThan(-40);
-  // גם בריחוף הקו נשאר על התפר
-  expect(Math.abs(hovRule.x + hovRule.width / 2 - hov[0].x), 'הקו זז עם התפר').toBeLessThanOrEqual(2);
-});
 
 test('כפתור "התחל": נחשף רק אחרי תמונת הפתיחה, וממורכז מול תמונות הצוות (7.28)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -1117,17 +1107,17 @@ test('בחירת החטיבה: הצבע יורד עד רצועת הווטסאפ,
   await page.goto('/shearim/');
   await page.waitForTimeout(900);
 
-  await expect(page.locator('.half-desc').nth(0)).toHaveText('מתמטיקה לכיתות ז׳–ט׳');
-  await expect(page.locator('.half-desc').nth(1)).toHaveText('מתמטיקה לכיתות י׳–י״ב');
-  await expect(page.locator('.half-cta svg')).toHaveCount(2);
+  await expect(page.locator('.card-chip').nth(0)).toHaveText('כיתות ז׳–ט׳');
+  await expect(page.locator('.card-chip').nth(1)).toHaveText('כיתות י׳–י״ב');
+  await expect(page.locator('.card-cta svg')).toHaveCount(2);
 
-  const split = (await page.locator('.split').boundingBox())!;
+  const split = (await page.locator('.gate-scene').boundingBox())!;
   expect(Math.abs(split.y + split.height - 900), 'הצבע מגיע לתחתית המסך').toBeLessThanOrEqual(3);
 
   // אחרי גלילה — רצועת הווטסאפ צמודה לצבע, בלי רצועה לבנה
   await page.locator('.wa-band').scrollIntoViewIfNeeded();
   await page.waitForTimeout(900);
-  const s2 = (await page.locator('.split').boundingBox())!;
+  const s2 = (await page.locator('.gate-scene').boundingBox())!;
   const wa = (await page.locator('.wa-band-wrap').boundingBox())!;
   expect(Math.abs(wa.y - (s2.y + s2.height)), 'אין שטח לבן בין הצבע לווטסאפ').toBeLessThanOrEqual(2);
 });
@@ -1153,7 +1143,7 @@ for (const [label, w, h] of [
 
     // הצבע מתחיל מיד מתחת לניווט — אפס רצועה לבנה ביניהם
     const header = (await page.locator('#site-header').boundingBox())!;
-    const split = (await page.locator('.split').boundingBox())!;
+    const split = (await page.locator('.gate-scene').boundingBox())!;
     expect(
       Math.abs(split.y - (header.y + header.height)),
       'אין רצועה לבנה בין הניווט לצבע'
@@ -1162,9 +1152,9 @@ for (const [label, w, h] of [
     // והשטח שהתפנה באמת תפוס בחצי צבוע — לא ברקע העמוד
     const filled = await page.evaluate(([x, y]) => {
       const el = document.elementFromPoint(x, y);
-      return !!el?.closest('.half');
+      return !!el?.closest('.gate-scene');
     }, [Math.round(w / 2), Math.round(split.y + 6)] as [number, number]);
-    expect(filled, 'החצי הצבוע ממלא את השטח שמתחת לניווט').toBe(true);
+    expect(filled, 'הסצנה הצבועה ממלאת את השטח שמתחת לניווט').toBe(true);
   });
 }
 
