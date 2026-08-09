@@ -9,6 +9,29 @@ import {
 } from '../src/data/source-materials';
 import { hafifaUnit, mishvaotUnit } from '../src/data/units';
 import { LEGACY_REDIRECTS } from '../src/lib/legacyRedirects.mjs';
+import { isAttributionPending } from '../src/data/attribution';
+import { publishableItems } from '../src/data/publishing';
+import { canonicalGrade } from '../src/data/canonical-content';
+
+/**
+ * משאב מסמך ציבורי ומיוחס, לבדיקות פריסת "מסמך" (הטמעת Google Doc).
+ * הוא מחליף משאב שעבר ל-quarantine בהיעדר ראיית ייחוס — אותה משפחת
+ * הטמעה בדיוק, כדי שהחוזה הנבדק לא ייחלש (24.1).
+ */
+const PUBLIC_DOC_RESOURCE = '/chativat-beynayim/reader/t/ruach-tochnit/';
+
+/**
+ * מספר המשאבים ה**ציבוריים** בנושא, לפי הקטלוג הקנוני — אותה נוסחה שקובעת
+ * ב-`nose/[grade]/[chapter].astro` אם הנושא מפנה ישירות למשאב יחיד או מציג
+ * רשימה. הבדיקות משוות מול המודל הזה במקום לספור מחלקות CSS, כי משאב מרכזי
+ * מוצג ככרטיס-גיבור ולא כ-`.rcard` (ראו ההערה בבדיקת הנושאים).
+ */
+const publicTopicResourceCount = (gradeSlug: string, topicHref: string): number => {
+  const chapterId = topicHref.replace(/\/$/, '').split('/').pop()!;
+  const grade = choveret.find((g) => g.slug === gradeSlug)!;
+  const chapter = canonicalGrade(grade).chapters.find((c) => c.id === chapterId)!;
+  return publishableItems(chapter.items).length;
+};
 
 /**
  * בדיקות הקבלה של תיקון ה-UX המלא (RULES 19.34, הוראת יניב 04–05/08/2026):
@@ -383,9 +406,17 @@ test('האוספים הגדולים מוצגים בכל שכבה, ותנופה �
   }
 
   await page.goto('/chativat-beynayim/nose/t/mivchanim/');
-  for (const id of ['mifrat-tnufa', 'tnufa-rama', 'tnufa-mankal', 'kvatzim-nosim']) {
+  for (const id of ['mifrat-tnufa', 'tnufa-rama', 'tnufa-mankal']) {
     await expect(page.locator(`a.rcard[href="/chativat-beynayim/reader/t/${id}/"]`), id).toHaveCount(1);
   }
+
+  // `kvatzim-nosim` נשמר במקור אך אינו מיוחס, ולכן הוא ב-quarantine ואינו
+  // מוצג — הוכחה ישירה שאין דליפה של פריט אנונימי לרשימה הציבורית (24.1).
+  expect(isAttributionPending('kvatzim-nosim'), 'kvatzim-nosim ב-quarantine').toBe(true);
+  await expect(
+    page.locator('a.rcard[href="/chativat-beynayim/reader/t/kvatzim-nosim/"]'),
+    'משאב ללא ייחוס אינו מופיע ברשימה הציבורית'
+  ).toHaveCount(0);
 
   await page.goto('/chativat-beynayim/kita-t/chomarim/');
   await expect(page.locator('.topics')).not.toContainText('הכנה ל־4 יח״ל');
@@ -451,15 +482,31 @@ test('כל משימה בכל נושא בכל שכבה מובילה לעמוד מ
       const landed = await settle();
 
       if (landed === topic) {
-        // נושא עם שתי משימות ומעלה — רשימה לחיצה
-        const hrefs = await page
-          .locator('.rcard')
+        // נושא עם שתי משימות ומעלה — רשימה לחיצה.
+        //
+        // נמדד 09/08/2026: אסור לספור `.rcard` בלבד. בנושא שיש בו משאב
+        // מרכזי (`.primary-resource`) הוא מוצג ככרטיס-גיבור ולא כ-`.rcard`,
+        // ולכן נושא עם שני משאבים ציבוריים — מרכזי + אחד — מציג `.rcard`
+        // אחד בלבד (למשל z-angles). ספירה לפי מחלקה הייתה מסיקה בטעות
+        // "משאב יחיד" ומפילה נושא תקין. הספירה היא לפי **יעדי המשאב
+        // בפועל**, מנוכי כפילות, כדי שתתאים לחוזה הקנוני שב-
+        // `nose/[grade]/[chapter].astro` (הפניה כאשר publicItems.length === 1).
+        const targets = await page
+          .locator('a[data-resource-context]')
           .evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')!));
-        expect(hrefs.length, `נושא שמציג רשימה חייב שתי משימות ומעלה: ${topic}`).toBeGreaterThan(1);
+        const hrefs = [...new Set(targets)];
+        expect(hrefs.length, `נושא שמציג רשימה חייב שני משאבים ומעלה: ${topic}`).toBeGreaterThan(1);
         for (const h of hrefs) {
           expect(h, `משימה בנושא ${topic} מובילה לעמוד משימה`).toMatch(taskPath);
           tasks++;
         }
+
+        // והמודל הקנוני מסכים: לנושא הזה באמת יותר ממשאב ציבורי אחד
+        expect(
+          publicTopicResourceCount(slug, topic),
+          `${topic}: הקטלוג הקנוני מסכים שיש כאן יותר ממשאב אחד`
+        ).toBeGreaterThan(1);
+
         sample.push(hrefs[0]);
         listTopics++;
       } else {
@@ -469,6 +516,13 @@ test('כל משימה בכל נושא בכל שכבה מובילה לעמוד מ
         await expect(page.locator('.res-panel'), landed).toBeVisible();
         await expect(page.locator('.orbs'), landed).toBeVisible();
         expect(await page.locator('.rcard').count(), `אין רשימה בעמוד משימה: ${landed}`).toBe(0);
+
+        // והמודל הקנוני מסכים: כאן באמת יש בדיוק משאב ציבורי אחד
+        expect(
+          publicTopicResourceCount(slug, topic),
+          `${topic}: הקטלוג הקנוני מסכים שיש כאן בדיוק משאב אחד`
+        ).toBe(1);
+
         tasks++;
         singleItemTopics++;
       }
@@ -541,14 +595,59 @@ test('יחידות המשוואות והחפיפה נשמרו בתוך הנוש�
     );
     expect(cardHrefs.size, `${topic}: רשימת משימות אמיתית`).toBeGreaterThan(1);
 
-    // 5. אפס אובדן מזהי משאב: כל פריט מהיחידה הישנה קיים כעמוד משימה קנוני
-    const missing: string[] = [];
+    // 5. אפס אובדן חומר — ושני מסלולים נפרדים, לפי חוזה הייחוס הקשיח (24.1):
+    //
+    //    כל מזהי היחידה הישנה חייבים להישאר קיימים בשכבת המקור הקנונית.
+    //    משאב שיש לו ייחוס מאומת מתפרסם כעמוד משימה חי (200); משאב שטרם
+    //    נמצאה לו ראיית ייחוס נשמר בנתונים אך נמצא ב-quarantine ואינו
+    //    פומבי. "אפס אובדן משאבים" אינו "כל משאב חייב להיות ציבורי" —
+    //    ואסור לתקן כאן בהחזרת משאב אנונימי לציבור.
+    const chapterId = topic.replace(/\/$/, '').split('/').pop()!;
+    const sourceIds = new Set(
+      canonicalGrade(choveret.find((g) => g.slug === slug)!)
+        .chapters.find((c) => c.id === chapterId)!
+        .items.map((item) => item.id)
+    );
+
+    const lost: string[] = [];
+    const unpublished: string[] = [];
+    const leaked: string[] = [];
+
     for (const resource of unit.resources) {
+      // 5a. שימור: המזהה קיים בקטלוג הקנוני של הנושא
+      if (!sourceIds.has(resource.id)) lost.push(resource.id);
+
       const href = `/chativat-beynayim/reader/${slug}/${resource.id}/`;
-      const res = await page.request.get(href);
-      if (res.status() !== 200) missing.push(`${resource.id} (${res.status()})`);
+      const status = (await page.request.get(href)).status();
+
+      if (isAttributionPending(resource.id)) {
+        // 5b. quarantine: אינו דולף לציבור
+        if (status === 200) leaked.push(`${resource.id} (200)`);
+      } else if (status !== 200) {
+        // 5c. משאב מיוחס חייב להתפרסם
+        unpublished.push(`${resource.id} (${status})`);
+      }
     }
-    expect(missing, `חומרים שאבדו מיחידת ${unit.title}: ${missing.join(', ')}`).toHaveLength(0);
+
+    expect(lost, `מזהים שאבדו מקטלוג המקור של ${unit.title}: ${lost.join(', ')}`).toHaveLength(0);
+    expect(
+      unpublished,
+      `משאבים מיוחסים שלא התפרסמו ב-${unit.title}: ${unpublished.join(', ')}`
+    ).toHaveLength(0);
+    expect(
+      leaked,
+      `משאבים ללא ייחוס שדלפו לציבור ב-${unit.title}: ${leaked.join(', ')}`
+    ).toHaveLength(0);
+
+    // 5d. והחוזה אינו ריק משני צדדיו: ביחידות האלה יש גם מיוחס וגם ב-quarantine
+    expect(
+      unit.resources.some((r) => !isAttributionPending(r.id)),
+      `${unit.title}: קיים משאב מיוחס שמתפרסם`
+    ).toBe(true);
+    expect(
+      unit.resources.some((r) => isAttributionPending(r.id)),
+      `${unit.title}: קיים משאב ב-quarantine`
+    ).toBe(true);
   }
 
   // שער החטיבה העליונה נשאר קישור בעמוד המבוא של ט׳ — הוא אינו יחידת הוראה
@@ -595,7 +694,9 @@ test('עמוד מבוא בנייד: הכול נגיש בלי גלילה אופק
 
 test('עמוד משאב: חצי-חצי — הטמעה מימין, פעולות משמאל (8.2)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
+  // מסמך Google ציבורי ומיוחס — אותה משפחת הטמעה שנבדקה כאן קודם, אחרי
+  // שהמשאב הקודם עבר ל-quarantine בהיעדר ראיית ייחוס (24.1).
+  await page.goto(PUBLIC_DOC_RESOURCE);
 
   const view = (await page.locator('.res-view').boundingBox())!;
   const panel = (await page.locator('.res-panel').boundingBox())!;
@@ -652,7 +753,7 @@ test('עמוד משאב במסך רחב: פס גלילה אחד — העמוד �
   await page.setViewportSize({ width: 1440, height: 900 });
   for (const route of [
     '/chativat-beynayim/reader/z/misparim/', // אלגברה — סביבה אינטראקטיבית מוטמעת
-    '/chativat-beynayim/reader/t/sheelot-t/', // מסמך
+    PUBLIC_DOC_RESOURCE, // מסמך
     '/chativat-beynayim/reader/z/maf-02/', // טווח מהחוזר
   ]) {
     await page.goto(route);
@@ -669,7 +770,7 @@ test('עמוד משאב במסך רחב: פס גלילה אחד — העמוד �
 test('עמוד משאב בנייד: ההטמעה לפני ההסבר (8.6)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await assertRealMobile(page);
-  await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
+  await page.goto(PUBLIC_DOC_RESOURCE);
   const view = (await page.locator('.res-view').boundingBox())!;
   const panel = (await page.locator('.res-panel').boundingBox())!;
   expect(view.y, 'ההטמעה מוצגת ראשונה').toBeLessThan(panel.y);
@@ -1226,7 +1327,7 @@ test('עמוד מסמך שלם בהטמעה, וכל הפעולות רק בצד �
     [1920, 1080],
   ] as const) {
     await page.setViewportSize({ width: w, height: h });
-    await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
+    await page.goto(PUBLIC_DOC_RESOURCE);
 
     const f = (await page.locator('.res-frame iframe').boundingBox())!;
     expect(f.height / f.width, `${w}: יחס עמוד — כל רוחב הדף נראה`).toBeGreaterThan(1.3);
