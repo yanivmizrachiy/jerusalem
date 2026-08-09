@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { choveret, gradeMainDocs, itemHref, type ChoveretGrade } from '../src/data/choveret';
 import { canonicalReaderItems } from '../src/data/canonical-content';
+import { planPrisaDocumentFor } from '../src/data/plan-prisa-web';
 
 /**
  * חוזה טבלת הקישורים של חטיבת הביניים (RULES 3.32, הוראת יניב 09/08/2026):
@@ -43,7 +44,10 @@ test('כל תוכניות ופריסות תשפ״ז מחוברות למקור ה
       'meyda.education.gov.il'
     );
     expect(item.download, `${doc.id}: העותק המאומת בריפו`).toBe(doc.local);
-    expect(item.embed?.startsWith(doc.local), `${doc.id}: ההטמעה מהעותק המאומת`).toBe(true);
+    expect(item.embed, `${doc.id}: PDF אינו מוטמע עוד`).toBeUndefined();
+    const webDoc = planPrisaDocumentFor(item.download);
+    expect(webDoc, `${doc.id}: קיימת תצוגת HTML מלאה`).toBeTruthy();
+    expect(webDoc?.pdf, `${doc.id}: ה-HTML נגזר מאותו PDF מאומת`).toBe(doc.local);
   }
 
   // עמ״ט — רק מסמך תשפ״ז האמיתי שאליו מפנה החוזר (RULES 9.8.4)

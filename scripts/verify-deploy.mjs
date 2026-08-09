@@ -82,6 +82,7 @@ const MARKERS = [
   { path: '/chativat-beynayim/kita-z/chomarim/', needle: 'class="topics"', what: 'רשימת הנושאים בתצוגת החומרים (3.29)' },
   { path: '/chativat-beynayim/nose/z/z-directed-numbers/', needle: 'class="rcard"', what: 'כרטיסי קבצים בנושא לימודי אמיתי (3.29)' },
   { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'res-panel', what: 'לוח הפעולות בעמוד המשאב (3.29, 8.2)' },
+  { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'data-plan-prisa-web', what: 'תוכנית/פריסה כתצוגת HTML — ללא PDF מוטמע (3.32.1)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
   { path: '/', needle: 'start-btn', what: 'כפתור ההתחלה בעמוד הראשי (7.28)' },

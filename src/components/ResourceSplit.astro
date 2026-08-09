@@ -344,7 +344,8 @@ const planPrisaDoc = planPrisaDocumentFor(item.download);
   .res-back { margin-block-start: 1.1rem; inline-size: 100%; justify-content: center; }
 
   @media (max-width: 1099px) {
-    .res-split { grid-template-columns: 1fr; block-size: auto; gap: clamp(1.4rem, 4vw, 2.2rem); }
+    .res-split,
+    .res-split.is-web-doc { grid-template-columns: 1fr; block-size: auto; gap: clamp(1.4rem, 4vw, 2.2rem); }
     .res-view { block-size: auto; }
     .res-panel { block-size: auto; overflow: visible; }
     .res-view[data-orientation] .res-frame iframe {
