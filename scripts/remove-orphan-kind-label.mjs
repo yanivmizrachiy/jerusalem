@@ -18,7 +18,7 @@ const target = 'src/data/choveret.ts';
 let text = readFileSync(target, 'utf8');
 const block = `\nexport const kindLabel: Record<ItemKind, string> = {\n  site: 'פעילות אינטראקטיבית',\n  doc: 'מסמך',\n  drive: 'קובץ',\n  pdf: 'PDF',\n  canva: 'מצגת',\n  flip: 'חוברת דפדוף',\n  maf: 'מתוך החוזר',\n  link: 'קישור',\n};`;
 if ((text.split(block).length - 1) !== 1) throw new Error('kindLabel export block changed; refusing automatic edit.');
-text = text.replace(block, '');
+text = text.replace(block, '').trimEnd() + '\n';
 if (/export const kindLabel/.test(text)) throw new Error('kindLabel export remains after cleanup.');
 writeFileSync(target, text);
 console.log('Removed orphan global kindLabel; Booklet-local mapping remains untouched.');
