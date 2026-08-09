@@ -29,6 +29,15 @@ const embedLayoutByResourceId: Readonly<Record<string, EmbedLayout>> = {
     aspectRatio: '16 / 10',
     minHeight: 'clamp(620px, 72vw, 960px)',
   },
+
+  // Historical project screenshot recovered and matched to the canonical Grade 8
+  // systems-of-equations matching game. The embedded Google Slides content is
+  // visibly widescreen, so the generic portrait document fallback is incorrect.
+  'src-game-h-7a1e51bbee6f': {
+    orientation: 'landscape',
+    aspectRatio: '16 / 9',
+    minHeight: 'clamp(300px, 28vw, 520px)',
+  },
 };
 
 const kindDefault = (item: ChoveretItem): EmbedLayout => {
