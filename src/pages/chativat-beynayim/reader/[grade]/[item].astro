@@ -1,6 +1,5 @@
 ---
 import Base from '../../../../layouts/Base.astro';
-import AuthorAttribution from '../../../../components/AuthorAttribution.astro';
 import ResourceContext from '../../../../components/ResourceContext.astro';
 import ResourceSplit from '../../../../components/ResourceSplit.astro';
 import { authorsForResource } from '../../../../data/authors';
@@ -41,17 +40,5 @@ const description =
 
 <Base title={`${displayItem.title} — ${grade.title} — מחוז ירושלים`} description={description}>
   <ResourceSplit grade={publicGrade} chapter={chapter} item={displayItem} />
-  <div class="resource-author-shell">
-    <AuthorAttribution resourceId={item.id} />
-  </div>
   <ResourceContext grade={publicGrade} item={item} />
 </Base>
-
-<style>
-  .resource-author-shell {
-    inline-size: min(100% - 2rem, 1240px);
-    margin: 0 auto clamp(0.8rem, 2vw, 1.4rem);
-    display: flex;
-    justify-content: flex-end;
-  }
-</style>
