@@ -49,6 +49,7 @@ const freePort = () =>
 
 run(process.execPath, ['scripts/repo-health.mjs']);
 run(process.execPath, ['scripts/hygiene-dead-code.mjs']);
+run(process.execPath, ['scripts/hygiene-reference-probe.mjs']);
 run(npm, ['run', 'check']);
 run(npm, ['run', 'build']);
 
