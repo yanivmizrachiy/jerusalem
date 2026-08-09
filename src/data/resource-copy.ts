@@ -8,12 +8,13 @@ export interface ResourceCopyInput {
 const collapseSpace = (value: string) => value.replace(/\s+/g, ' ').trim();
 
 /**
- * כותרות מקור ידועות שבהן החילוץ חיבר כמה תאי טבלה לכותרת אחת.
+ * כותרות מקור ידועות שבהן החילוץ חיבר כמה תאי טבלה/metadata לכותרת אחת.
  * אלה תיקונים מפורשים בלבד — אין כאן ניחוש אוטומטי לפי דמיון טקסטואלי.
  */
 const verifiedTitleOverrides: Readonly<Record<string, string>> = {
   'src-game-z-c9ff7e0990e6': 'מלחמה אלגברית - הצבות — מלחמה',
   'src-game-z-2240924d847e': 'מלחמה אלגברית - הצבות — קלפים מוגדלים',
+  'src-curriculum-5164db8ab8b5': 'שטח משולש במערכת צירים',
 };
 
 /**
