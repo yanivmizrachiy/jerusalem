@@ -22,11 +22,18 @@ const verifiedTitleOverrides: Readonly<Record<string, string>> = {
   'src-curriculum-5164db8ab8b5': 'שטח משולש במערכת צירים',
 };
 
+/** ניסוחים גלויים שאומתו ידנית ואינם צריכים תוויות טקסיות כמו "רשמי". */
+const verifiedNoteOverrides: Readonly<Record<string, string>> = {
+  'moodle-guide': 'מדריך למורה באתר המודל למתמטיקה.',
+};
+
 /**
  * `קרדיט:` הוא metadata ולא תיאור. משאירים רק את החלק התיאורי של note;
  * הייחוס עצמו עובר למערכת המחברים/מקור הקנונית.
  */
 export function visibleResourceNote(item: ResourceCopyInput): string {
+  if (item.id && verifiedNoteOverrides[item.id]) return verifiedNoteOverrides[item.id];
+
   const note = collapseSpace(item.note ?? '');
   if (!note) return '';
   const creditIndex = note.search(/\bקרדיט(?:ים)?\s*:/u);
