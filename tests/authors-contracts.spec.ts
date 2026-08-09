@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { authorAssignments, authorById, authors, pageAuthors } from '../src/data/authors';
 import { canonicalReaderItems } from '../src/data/canonical-content';
+import { sourceMaterialResources } from '../src/data/source-materials';
 
 // חוזה הנתונים זהה בכל device; בדיקת UI אחת בדסקטופ מספיקה כאן.
 test.skip(({ isMobile }) => isMobile === true, 'author registry is device-independent');
@@ -16,6 +17,17 @@ test('כל author-id משויך קיים במקור האמת ושמות המחב
       expect(authorById(authorId), `${resourceId}: author-id קיים — ${authorId}`).toBeTruthy();
     }
   }
+});
+
+test('כל קרדיט מפורש בקטלוג המקור מחובר לישות מחבר קנונית', () => {
+  const explicitlyCredited = sourceMaterialResources.filter((resource) => /\bקרדיט(?:ים)?\s*:/u.test(resource.note ?? ''));
+  expect(explicitlyCredited.length, 'יש קרדיטים מפורשים אמיתיים לבדיקה').toBeGreaterThan(0);
+
+  const missing = explicitlyCredited
+    .filter((resource) => (authorAssignments[resource.id] ?? []).length === 0)
+    .map((resource) => `${resource.id} — ${resource.note}`);
+
+  expect(missing, `קרדיטים מפורשים ללא author-id:\n${missing.join('\n')}`).toEqual([]);
 });
 
 test('משרד החינוך הוא ייחוס טקסטואלי בלבד — בלי עמוד מחבר אישי', () => {
