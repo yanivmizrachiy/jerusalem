@@ -265,23 +265,6 @@ const hozerLink = (id: string, url: string, title: string, note: string, page: n
  * משאב שנשאב ממסמכי משרד החינוך — משחקים וחומרי תוכנית.
  * `source` מציין את המסמך שממנו נשאב הפריט.
  */
-const extractedDrive = (
-  id: string,
-  fileId: string,
-  title: string,
-  note: string,
-  source = 'מתוך מסמך משרד החינוך'
-): ChoveretItem => ({
-  id,
-  title,
-  note,
-  url: `https://drive.google.com/file/d/${fileId}/view`,
-  embed: `https://drive.google.com/file/d/${fileId}/preview`,
-  download: `https://drive.google.com/uc?export=download&id=${fileId}`,
-  kind: 'drive',
-  source,
-});
-
 const extractedDoc = (
   id: string,
   docId: string,
@@ -296,54 +279,6 @@ const extractedDoc = (
   embed: `https://docs.google.com/document/d/${docId}/preview`,
   download: `https://docs.google.com/document/d/${docId}/export?format=pdf`,
   kind: 'doc',
-  source,
-});
-
-const extractedPdf = (
-  id: string,
-  url: string,
-  title: string,
-  note: string,
-  source = 'מתוך מסמך משרד החינוך'
-): ChoveretItem => ({
-  id,
-  title,
-  note,
-  url,
-  embed: `${url}${PDF_VIEW}`,
-  download: url,
-  kind: 'pdf',
-  source,
-});
-
-const extractedLink = (
-  id: string,
-  url: string,
-  title: string,
-  note: string,
-  source = 'מתוך מסמך משרד החינוך'
-): ChoveretItem => ({
-  id,
-  title,
-  note,
-  url,
-  kind: 'link',
-  source,
-});
-
-const extractedSite = (
-  id: string,
-  url: string,
-  title: string,
-  note: string,
-  source = 'מתוך מסמך משרד החינוך'
-): ChoveretItem => ({
-  id,
-  title,
-  note,
-  url,
-  embed: url,
-  kind: 'site',
   source,
 });
 
