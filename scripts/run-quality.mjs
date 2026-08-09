@@ -48,6 +48,7 @@ const freePort = () =>
   });
 
 run(process.execPath, ['scripts/repo-health.mjs']);
+run(process.execPath, ['scripts/hygiene-dead-code.mjs']);
 run(npm, ['run', 'check']);
 run(npm, ['run', 'build']);
 
@@ -84,4 +85,4 @@ run(npx, ['playwright', 'test', '--retries=0', ...(workers ? [`--workers=${worke
   env: { ...process.env, PW_PORT: String(port) },
 });
 
-console.log('\nQUALITY PASSED: repo-health + check + build + Playwright (retries=0).');
+console.log('\nQUALITY PASSED: repo-health + dead-code hygiene + check + build + Playwright (retries=0).');
