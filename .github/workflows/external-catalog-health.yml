@@ -1,0 +1,42 @@
+name: External catalog health
+
+on:
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: external-catalog-health
+  cancel-in-progress: true
+
+jobs:
+  catalog-health:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - name: Check canonical and embed endpoints
+        run: node scripts/check-external-catalog.mjs
+      - name: Publish readable summary
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f artifacts/external-catalog-health.md ]]; then
+            cat artifacts/external-catalog-health.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'External catalog checker did not produce a report.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload full health report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: external-catalog-health
+          path: artifacts/external-catalog-health.*
+          if-no-files-found: warn
+          retention-days: 30
