@@ -48,6 +48,7 @@ const freePort = () =>
   });
 
 run(process.execPath, ['scripts/repo-health.mjs']);
+run(process.execPath, ['scripts/hygiene-dead-code.mjs']);
 run(npm, ['run', 'check']);
 run(npm, ['run', 'build']);
 
@@ -62,10 +63,8 @@ run(npm, ['run', 'build']);
  *
  * ‏CI אינו מושפע: שם Playwright כבר בוחר worker אחד לפי מכונת הריצה.
  */
-// worker של Chromium בשיא: סריקת axe על עמוד עשיר מייצרת את הפסגה, ולא
-// טעינת עמוד רגילה. הערכה נמוכה מדי החזירה קריסות רינדור (09/08/2026).
 const WORKER_MEMORY_BYTES = 2 * 1024 * 1024 * 1024;
-const RESERVED_BYTES = 1.5 * 1024 * 1024 * 1024; // מרווח למערכת, לשרת ול-build
+const RESERVED_BYTES = 1.5 * 1024 * 1024 * 1024;
 
 const workerBudget = () => {
   if (process.env.CI) return null;
@@ -84,4 +83,4 @@ run(npx, ['playwright', 'test', '--retries=0', ...(workers ? [`--workers=${worke
   env: { ...process.env, PW_PORT: String(port) },
 });
 
-console.log('\nQUALITY PASSED: repo-health + check + build + Playwright (retries=0).');
+console.log('\nQUALITY PASSED: repo-health + dead-code hygiene + check + build + Playwright (retries=0).');
