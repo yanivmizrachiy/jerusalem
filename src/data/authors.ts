@@ -166,8 +166,10 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'kavit-flip': ['ayelet-crispin'],
   'al-haretzef': ['michal-david'],
   'mishakim-tavnit': ['shilat-dadashi'],
+  'src-game-z-00576add9b0f': ['weizmann-integrated-math'],
   'src-game-z-c9ff7e0990e6': ['weizmann-integrated-math'],
   'src-game-z-2240924d847e': ['weizmann-integrated-math'],
+  'src-game-z-bda6b0c4a124': ['weizmann-integrated-math'],
 
   // סמיון ויינר.
   'src-game-z-78f405097bb9': ['semion-wiener'],
