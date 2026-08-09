@@ -54,6 +54,51 @@ test('קטלוג המקור: מזהים ייחודיים וכל placement מצב
   }
 });
 
+test('נתון מקור חשוד תמיד מסומן review — reviewReason אינו הערה קוסמטית', () => {
+  const reasonWithoutReview = sourceMaterialResources
+    .filter((resource) => Boolean(resource.reviewReason?.trim()) && resource.needsReview !== true)
+    .map((resource) => `${resource.id} — ${resource.reviewReason}`);
+  expect(
+    reasonWithoutReview,
+    `נמצאה אזהרת איכות על משאב שאינו בהסגר:\n${reasonWithoutReview.join('\n')}`
+  ).toEqual([]);
+
+  const reviewWithoutReason = sourceMaterialResources
+    .filter((resource) => resource.needsReview === true && !resource.reviewReason?.trim())
+    .map((resource) => resource.id);
+  expect(
+    reviewWithoutReason,
+    `משאב needsReview חייב להסביר למה, כדי שלא יאבד ההקשר בביקורת עתידית: ${reviewWithoutReason.join(', ')}`
+  ).toEqual([]);
+});
+
+test('URL מקור זהה בשתי רשומות קנוניות שונות מותר רק כקונפליקט מוסגר ומוסבר', () => {
+  const groups = new Map<string, typeof sourceMaterialResources>();
+  for (const resource of sourceMaterialResources) {
+    const key = resource.url.trim();
+    groups.set(key, [...(groups.get(key) ?? []), resource]);
+  }
+
+  const unsafe: string[] = [];
+  for (const [url, resources] of groups) {
+    if (resources.length < 2) continue;
+    const ids = new Set(resources.map((resource) => resource.id));
+    if (ids.size < 2) continue;
+
+    const safeConflict = resources.every(
+      (resource) => resource.needsReview === true && Boolean(resource.reviewReason?.trim())
+    );
+    if (!safeConflict) {
+      unsafe.push(`${url} => ${resources.map((resource) => `${resource.id}:${resource.title}`).join(' | ')}`);
+    }
+  }
+
+  expect(
+    unsafe,
+    `אותו URL חובר ליותר ממשאב קנוני אחד בלי quarantine מלא:\n${unsafe.join('\n')}`
+  ).toEqual([]);
+});
+
 test('needsReview נשמר בקטלוג אך אינו מופיע בתצוגת החומרים הקנונית', async ({ page }) => {
   const quarantined = reviewIds();
   expect(quarantined.size, 'יש quarantine אמיתי לבדיקה').toBeGreaterThan(0);

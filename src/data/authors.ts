@@ -52,17 +52,16 @@ export const authors: AuthorRecord[] = [
     pageEligible: false,
   },
   {
-    // ייחוס שאומת ישירות על ידי בעל הפרויקט (הוראת יניב, 09/08/2026):
-    // המפרסם של אתר המודל ושל גיליון המצגות הוא צוות מודל במשרד החינוך.
-    // גוף מפרסם — ולכן ללא עמוד מחבר אישי (24.1.1).
+    // אומת ישירות על ידי בעל הפרויקט עבור moodle-guide / moodle-slides.
+    // נשמר בדיוק כפי שנמסר; אין להרחיב alias כללי ל"צוות המודל" בלי ראיה
+    // שמדובר באותה ישות שמופיעה בקרדיטים אחרים בקטלוג.
     id: 'model-team',
     slug: 'tzevet-model',
     name: 'צוות מודל — משרד החינוך',
-    aliases: ['צוות מודל — משרד החינוך', 'צוות מודל', 'צוות המודל'],
+    aliases: ['צוות מודל — משרד החינוך', 'צוות מודל - משרד החינוך'],
     kind: 'organization',
     pageEligible: false,
   },
-  // ---- גופים מפרסמים שזוהו בראיה מתועדת (ראו src/data/attribution.ts) ----
   {
     id: 'rama',
     slug: 'rama',
@@ -88,10 +87,12 @@ export const authors: AuthorRecord[] = [
     pageEligible: false,
   },
   {
+    // הקרדיט במסמך המקור הוא "צוות המודל". לא מוסיפים "חטיבת הביניים"
+    // ולא מאחדים עם model-team עד שתהיה ראיה מפורשת שמדובר באותה ישות.
     id: 'model-team-middle-school',
     slug: 'model-team-middle-school',
-    name: 'צוות המודל — חטיבת הביניים',
-    aliases: ['צוות המודל חטב', 'צוות מודל', 'צוות המודל'],
+    name: 'צוות המודל',
+    aliases: ['צוות המודל'],
     kind: 'organization',
     pageEligible: false,
   },
@@ -232,7 +233,6 @@ export const authors: AuthorRecord[] = [
     kind: 'person',
     pageEligible: true,
   },
-  // ---- יוצרים אישיים ששמם מופיע במפורש בכותרת או בתיאור המשאב במסמך המקור ----
   {
     id: 'eyal-shlomo',
     slug: 'eyal-shlomo',

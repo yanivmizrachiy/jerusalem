@@ -89,18 +89,14 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'src-game-t-d0d5af728b47': ['regina-cholsky', 'revital-izik'],
 
   // ==========================================================================
-  // ייחוס מבוסס־ראיה, שנסגר בביקורת הכיסוי (09/08/2026).
+  // ייחוס מבוסס־ראיה בלבד (ביקורת אמת 09/08/2026).
   //
-  // כל שורה כאן נשענת על ראיה מתועדת אחת מתוך ארבע, והכלל שהפיק אותה כתוב
-  // מעל הקבוצה. אין כאן ניחוש: לא לפי סיומת קובץ, לא לפי דמיון שם, ולא
-  // הסקה של **אדם** מתוך דומיין. אדם משויך אך ורק כששמו מופיע במפורש
-  // בכותרת או בתיאור של המשאב במסמך המקור.
-  //
-  // מה שלא נסגר כאן נשאר ברשימת ההמתנה המפורשת ב-src/data/attribution.ts,
-  // ואינו מקבל ייחוס מומצא.
+  // חשוב: עצם הופעת קישור במסמך רשמי היא provenance — לא הוכחה שהגוף
+  // שפרסם את מסמך האינדקס יצר את המשאב המקושר. לכן source-publication
+  // לבדו אינו ייחוס יוצר. משאבים שאין להם ראיה עצמאית נשמרים ב-quarantine.
   // ==========================================================================
 
-  // ===== ראיית מפרסם — הקובץ מוגש מהדומיין הרשמי של הגוף המפרסם (ארגונים בלבד) =====
+  // ===== ראיית גוף אחראי — המשאב עצמו מוגש מהדומיין הרשמי (ארגונים בלבד) =====
   // publisher-domain:meyda.education.gov.il
   'maf-02': ['ministry-of-education'],
   'prisot-pdf': ['ministry-of-education'],
@@ -130,16 +126,19 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'kdam-geometry': ['ministry-of-education'],
   'graph-teacher': ['ministry-of-education'],
   'mifrat-tnufa': ['ministry-of-education'],
-  // owner-verified: המפרסם אומת ישירות על ידי בעל הפרויקט (הוראת יניב, 09/08/2026).
-  // שיוך מפורש לפי מזהה בלבד — לא לפי כותרת, לא לפי substring ולא לפי דומיין.
+
+  // owner-verified: המפרסם/יוצר אומת ישירות על ידי בעל הפרויקט.
   'moodle-guide': ['model-team'],
   'moodle-slides': ['model-team'],
+
   // publisher-domain:pop.education.gov.il
   'tochnit-limudim-z': ['ministry-of-education'],
   'merchav-chatb': ['ministry-of-education'],
   'tochnit-limudim-h': ['ministry-of-education'],
-  // publisher-domain:meyda.education.gov.il | explicit-credit:צוות ההדרכה הארצי | district-designated
+
+  // publisher-domain + explicit-credit + district-designated
   'hadracha-chatb': ['ministry-of-education', 'national-math-guidance-team', 'jerusalem-district-math'],
+
   // publisher-domain:newhighmath.haifa.ac.il | explicit-credit:מרכז המורים
   'merkaz-morim': ['haifa-teachers-center'],
   'merkaz-morim-zt': ['haifa-teachers-center'],
@@ -159,10 +158,10 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'src-curriculum-5fc92fca0b51': ['haifa-teachers-center'],
   'src-curriculum-d72b06a2b074': ['haifa-teachers-center'],
   'src-curriculum-e89100e098c9': ['haifa-teachers-center'],
-  // publisher-domain:newhighmath.haifa.ac.il
   'merkaz-morim-peiluyot': ['haifa-teachers-center'],
   'src-curriculum-e137bb19fd28': ['haifa-teachers-center'],
   'TRI-007': ['haifa-teachers-center'],
+
   // publisher-domain:maor.haifa.ac.il
   'maor': ['maor-literate-math'],
   // publisher-domain:rama.edu.gov.il
@@ -170,77 +169,34 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   // publisher-domain:apps.education.gov.il
   'tnufa-mankal': ['ministry-of-education'],
 
-  // ===== ראיית מסמך מקור — המשאב חולץ ממסמך שהגוף המפרסם שלו מתועד =====
-  // source-publication:מתוך חוזר מפמ״ר תשפ״ז, עמ׳ 9
-  'forum-facebook-chatb': ['ministry-of-education'],
-  // source-publication:מתוך חומרים לחט״ב ברוח תכנית הלימודים החדשה | explicit-credit:צוות המודל
-  'src-curriculum-dfa0b51f00ee': ['ministry-of-education', 'model-team-middle-school'],
-  'src-curriculum-5164db8ab8b5': ['ministry-of-education', 'model-team-middle-school'],
-  'src-curriculum-ce1a6eb8d15b': ['ministry-of-education', 'model-team-middle-school'],
-  'src-curriculum-809af3373f22': ['ministry-of-education', 'model-team-middle-school'],
-  'src-curriculum-4e721f0cd2ec': ['ministry-of-education', 'model-team-middle-school'],
-  'src-curriculum-05c3d6e31666': ['ministry-of-education', 'model-team-middle-school'],
-  'src-curriculum-87c0868756a0': ['ministry-of-education', 'model-team-middle-school'],
-  // source-publication:מתוך חומרים לחט״ב ברוח תכנית הלימודים החדשה | explicit-credit:אייל שלמה
-  'src-curriculum-9ac235d75c82': ['ministry-of-education', 'eyal-shlomo'],
-  // source-publication:מתוך חומרים לחט״ב ברוח תכנית הלימודים החדשה
-  'src-curriculum-b6608b4a72db': ['ministry-of-education'],
-  'src-curriculum-664df64180ed': ['ministry-of-education'],
-  'src-curriculum-012bc422a750': ['ministry-of-education'],
-  'src-curriculum-106460e3dbb7': ['ministry-of-education'],
-  'src-curriculum-a69849f5cece': ['ministry-of-education'],
-  'src-curriculum-433698c54bce': ['ministry-of-education'],
-  'src-curriculum-8854cf7a3fff': ['ministry-of-education'],
-  'src-curriculum-948028aeab70': ['ministry-of-education'],
-  'src-curriculum-49cdd7293889': ['ministry-of-education'],
-  'src-curriculum-57ceeac1ffe1': ['ministry-of-education'],
-  'src-curriculum-3c37ff462079': ['ministry-of-education'],
-  'src-curriculum-0b4b09cdce63': ['ministry-of-education'],
-  'src-curriculum-e2583f30eda8': ['ministry-of-education'],
-  'src-curriculum-fc0d096cc4bd': ['ministry-of-education'],
-  'src-curriculum-6c64b9167a39': ['ministry-of-education'],
-  'src-curriculum-ee20bc58b48f': ['ministry-of-education'],
-  'src-curriculum-fe13dbb77b28': ['ministry-of-education'],
-  'src-curriculum-6f44d59030f7': ['ministry-of-education'],
-  'src-curriculum-1e51225a3948': ['ministry-of-education'],
-  // source-publication:מתוך משחקים מתמטיקה — משרד החינוך
-  'src-game-z-a7ad3a34d489': ['ministry-of-education'],
-  'src-game-z-1fb342ad0a97': ['ministry-of-education'],
-  'src-game-z-b63873233827': ['ministry-of-education'],
-  'src-game-h-67ac155f019d': ['ministry-of-education'],
-  'src-game-h-5f1c6a2e5e03': ['ministry-of-education'],
-  'src-game-t-9fbb30cdc0e3': ['ministry-of-education'],
-  'src-game-t-ea21f3af58b3': ['ministry-of-education'],
-  'src-game-t-168e283baaa2': ['ministry-of-education'],
-  'src-game-t-c006d81e537d': ['ministry-of-education'],
-  'src-game-t-05373c5c4a26': ['ministry-of-education'],
-  'src-game-t-b2c647299984': ['ministry-of-education'],
-  // source-publication:מתוך חומרים לחט״ב ברוח תכנית הלימודים החדשה | explicit-credit:צוות ההדרכה הארצי
-  'src-curriculum-e221681c4d5e': ['ministry-of-education', 'national-math-guidance-team'],
-  'src-curriculum-e93c575a0b04': ['ministry-of-education', 'national-math-guidance-team'],
-  // source-publication:מתוך משחקים מתמטיקה — משרד החינוך, תשפ״ז
-  'mishakim-prisot': ['ministry-of-education'],
-  // source-publication:מתוך חומרים לחטב ברוח תכנית הלימודים החדשה
-  'ruach-tochnit': ['ministry-of-education'],
-  // source-publication:מתוך חומרים לחט״ב ברוח תכנית הלימודים החדשה | explicit-credit:מרכז המורים
-  'src-curriculum-965663be4bab': ['ministry-of-education', 'haifa-teachers-center'],
-  'src-curriculum-61ae8c71bc15': ['ministry-of-education', 'haifa-teachers-center'],
-  'src-curriculum-3c5d41a9d58f': ['ministry-of-education', 'haifa-teachers-center'],
-  'src-curriculum-2122131e0624': ['ministry-of-education', 'haifa-teachers-center'],
-  'src-curriculum-34fb7bbd1911': ['ministry-of-education', 'haifa-teachers-center'],
-  // source-publication:מתוך חומרים לחט״ב ברוח תכנית הלימודים החדשה | explicit-credit:דיה זגורי
-  'src-curriculum-c773865b385c': ['ministry-of-education', 'dia-zaguri'],
-  // source-publication:מתוך חומרים לחט״ב ברוח תכנית הלימודים החדשה | explicit-credit:שרית ביטון
-  'src-curriculum-d7c7d623c835': ['ministry-of-education', 'sarit-biton'],
-  // source-publication:מתוך חומרים לחט״ב ברוח תכנית הלימודים החדשה | explicit-credit:מיה קורן
-  'src-curriculum-124e4cb32286': ['ministry-of-education', 'maya-koren'],
-  'src-curriculum-ecc009634bfd': ['ministry-of-education', 'maya-koren'],
-  'src-curriculum-965bf8827411': ['ministry-of-education', 'maya-koren'],
-  // source-publication:מתוך חומרים לחט״ב ברוח תכנית הלימודים החדשה | explicit-credit:מכללת אחווה
-  'src-curriculum-3380820b5724': ['ministry-of-education', 'achva-college'],
+  // ===== קרדיט מפורש בתוך רשומת המקור — source-publication נשמר רק כ-provenance =====
+  'src-curriculum-dfa0b51f00ee': ['model-team-middle-school'],
+  'src-curriculum-5164db8ab8b5': ['model-team-middle-school'],
+  'src-curriculum-ce1a6eb8d15b': ['model-team-middle-school'],
+  'src-curriculum-809af3373f22': ['model-team-middle-school'],
+  'src-curriculum-4e721f0cd2ec': ['model-team-middle-school'],
+  'src-curriculum-05c3d6e31666': ['model-team-middle-school'],
+  'src-curriculum-87c0868756a0': ['model-team-middle-school'],
+
+  // הכותרת אומרת "אייל שלמה ושגית". אייל מזוהה; "שגית" ללא שם משפחה
+  // אינה מספיקה כדי לזהות אדם מסוים. המשאב נשמר ב-quarantine עד אימות השותפה.
+  'src-curriculum-9ac235d75c82': ['eyal-shlomo'],
+
+  'src-curriculum-e221681c4d5e': ['national-math-guidance-team'],
+  'src-curriculum-e93c575a0b04': ['national-math-guidance-team'],
+  'src-curriculum-965663be4bab': ['haifa-teachers-center'],
+  'src-curriculum-61ae8c71bc15': ['haifa-teachers-center'],
+  'src-curriculum-3c5d41a9d58f': ['haifa-teachers-center'],
+  'src-curriculum-2122131e0624': ['haifa-teachers-center'],
+  'src-curriculum-34fb7bbd1911': ['haifa-teachers-center'],
+  'src-curriculum-c773865b385c': ['dia-zaguri'],
+  'src-curriculum-d7c7d623c835': ['sarit-biton'],
+  'src-curriculum-124e4cb32286': ['maya-koren'],
+  'src-curriculum-ecc009634bfd': ['maya-koren'],
+  'src-curriculum-965bf8827411': ['maya-koren'],
+  'src-curriculum-3380820b5724': ['achva-college'],
 
   // ===== סביבה מחוזית ש-RULES מגדיר במפורש כמשאב של המחוז =====
-  // district-designated
   'misparim': ['jerusalem-district-math'],
   'tzirim': ['jerusalem-district-math'],
   'MZ-27': ['jerusalem-district-math'],

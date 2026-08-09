@@ -19,6 +19,25 @@ test('כל author-id משויך קיים במקור האמת ושמות המחב
   }
 });
 
+test('aliases של ישויות אינם עמומים בין שני מחברים שונים', () => {
+  const owners = new Map<string, string[]>();
+  for (const author of authors) {
+    for (const alias of new Set([author.name, ...author.aliases])) {
+      const normalized = alias.trim().replace(/\s+/g, ' ');
+      owners.set(normalized, [...(owners.get(normalized) ?? []), author.id]);
+    }
+  }
+
+  const ambiguous = [...owners.entries()]
+    .filter(([, ids]) => new Set(ids).size > 1)
+    .map(([alias, ids]) => `${alias} => ${[...new Set(ids)].join(', ')}`);
+
+  expect(
+    ambiguous,
+    `alias אחד לא יכול לזהות שתי ישויות שונות בלי ראיה מפורשת שהן אותה ישות:\n${ambiguous.join('\n')}`
+  ).toEqual([]);
+});
+
 test('כל קרדיט מפורש בקטלוג המקור מחובר לישות מחבר קנונית', () => {
   // אין \b לפני עברית: word-boundary של JavaScript אינו Unicode-aware במובן הדרוש כאן.
   const explicitlyCredited = sourceMaterialResources.filter((resource) => /קרדיט(?:ים)?\s*:/u.test(resource.note ?? ''));
