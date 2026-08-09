@@ -10,7 +10,7 @@ const authors = authorsForResource(resourceId);
 ---
 
 {authors.length > 0 && (
-  <div class="authors" aria-label="יוצרי המשאב">
+  <div class="author-attribution authors" aria-label="יוצרי המשאב">
     {authors.map((author) => (
       <div class="author-entry">
         {author.pageEligible ? (
