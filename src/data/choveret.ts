@@ -1363,14 +1363,3 @@ export const materialsConservationReport = {
   equation:
     'existing canonical resources + canonical source resources + retained legacy review resources = final canonical resources; source duplicate merge, exclusions and unresolved evidence are recorded explicitly',
 } as const;
-
-export const kindLabel: Record<ItemKind, string> = {
-  site: 'פעילות אינטראקטיבית',
-  doc: 'מסמך',
-  drive: 'קובץ',
-  pdf: 'PDF',
-  canva: 'מצגת',
-  flip: 'חוברת דפדוף',
-  maf: 'מתוך החוזר',
-  link: 'קישור',
-};
