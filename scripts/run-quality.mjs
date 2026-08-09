@@ -63,8 +63,10 @@ run(npm, ['run', 'build']);
  *
  * ‏CI אינו מושפע: שם Playwright כבר בוחר worker אחד לפי מכונת הריצה.
  */
+// worker של Chromium בשיא: סריקת axe על עמוד עשיר מייצרת את הפסגה, ולא
+// טעינת עמוד רגילה. הערכה נמוכה מדי החזירה קריסות רינדור (09/08/2026).
 const WORKER_MEMORY_BYTES = 2 * 1024 * 1024 * 1024;
-const RESERVED_BYTES = 1.5 * 1024 * 1024 * 1024;
+const RESERVED_BYTES = 1.5 * 1024 * 1024 * 1024; // מרווח למערכת, לשרת ול-build
 
 const workerBudget = () => {
   if (process.env.CI) return null;
