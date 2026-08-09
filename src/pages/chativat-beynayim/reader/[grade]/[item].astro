@@ -42,7 +42,7 @@ const displayItem = {
  * לצורכי ניווט בלבד, בלי לשנות את נתוני הפרק הקנוניים.
  */
 const navigationChapter =
-  chapter.items.length === 1
+  chapter.items.length === 1 && chapter.materials !== false
     ? { ...chapter, materials: false, redirectHref: gradeMaterialsHref(grade.slug) }
     : chapter;
 

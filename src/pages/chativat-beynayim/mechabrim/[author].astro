@@ -7,7 +7,6 @@ import { isPublishableMaterial } from '../../../data/publishing';
 import {
   itemHref,
   gradeLabel,
-  materialChapters,
   type ChoveretChapter,
   type ChoveretGrade,
   type ChoveretItem,
@@ -25,7 +24,9 @@ const entriesFor = (author: AuthorRecord): AuthorEntry[] => {
   const entries = new Map<string, AuthorEntry>();
 
   for (const grade of canonicalGrades) {
-    for (const chapter of materialChapters(grade)) {
+    // כל הפרקים — כולל פרקים מנהליים (rega-lifney): עמוד המחבר חייב להציג
+    // כל משאב ציבורי מיוחס, בדיוק כמו canonicalReaderItems שקובע שהעמוד קיים.
+    for (const chapter of grade.chapters) {
       for (const item of chapter.items) {
         if (item.pageHref || !isPublishableMaterial(item)) continue;
         if (!authorsForResource(item.id).some((candidate) => candidate.id === author.id)) continue;
@@ -73,7 +74,7 @@ const gradeGroups = ['z', 'h', 't']
 
     // כל משאב מופיע פעם אחת בלבד. אם הוא מוצב בכמה נושאים, הוא מקובץ
     // תחת הנושא הראשון בסדר הקנוני ומציג על הכרטיס את כל שיוכי הנושא.
-    const chapterOrder = materialChapters(grade);
+    const chapterOrder = grade.chapters;
     const chapters = chapterOrder
       .map((chapter) => ({
         chapter,
