@@ -31,6 +31,17 @@ test('כל קרדיט מפורש בקטלוג המקור מחובר לישות �
   expect(missing, `קרדיטים מפורשים ללא author-id:\n${missing.join('\n')}`).toEqual([]);
 });
 
+test('אין משאב ציבורי בחטיבת הביניים ללא יוצר מאומת', () => {
+  const missing = canonicalReaderItems
+    .filter(({ item }) => (authorAssignments[item.id] ?? []).length === 0)
+    .map(({ grade, chapter, item }) => `${grade.slug}/${chapter.id}/${item.id} — ${item.title}`);
+
+  expect(
+    missing,
+    `משאבים ציבוריים ללא author-id קנוני — יש לאמת יוצר או להעביר ל-quarantine:\n${missing.join('\n')}`
+  ).toEqual([]);
+});
+
 test('משרד החינוך הוא ייחוס טקסטואלי בלבד — בלי עמוד מחבר אישי', () => {
   const ministry = authorById('ministry-of-education');
   expect(ministry).toBeTruthy();
