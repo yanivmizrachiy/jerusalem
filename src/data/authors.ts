@@ -28,6 +28,14 @@ export const authors: AuthorRecord[] = [
     pageEligible: false,
   },
   {
+    id: 'rama',
+    slug: 'rama',
+    name: 'ראמ״ה',
+    aliases: ['ראמ״ה', 'ראמ"ה'],
+    kind: 'organization',
+    pageEligible: false,
+  },
+  {
     id: 'weizmann-integrated-math',
     slug: 'weizmann-integrated-math',
     name: 'מתמטיקה משולבת — מכון ויצמן',
