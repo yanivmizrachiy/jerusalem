@@ -4,6 +4,7 @@ import ResourceContext from '../../../../components/ResourceContext.astro';
 import ResourceSplit from '../../../../components/ResourceSplit.astro';
 import { isPublishableMaterial } from '../../../../data/publishing';
 import { canonicalGrades, canonicalReaderItems } from '../../../../data/canonical-content';
+import { visibleResourceNote, visibleResourceSource, visibleResourceTitle } from '../../../../data/resource-copy';
 
 export function getStaticPaths() {
   return canonicalReaderItems.map(({ grade, item }) => ({
@@ -23,12 +24,18 @@ const publicGrade = {
 };
 const chapter = publicGrade.chapters.find((candidate) => candidate.items.some((item) => item.id === itemId))!;
 const item = chapter.items.find((candidate) => candidate.id === itemId)!;
+const displayItem = {
+  ...item,
+  title: visibleResourceTitle(item),
+  note: visibleResourceNote(item),
+  source: visibleResourceSource(item),
+};
 
 const description =
-  item.note || item.source || `${item.title} — ${chapter.title}, ${grade.title}, מחוז ירושלים.`;
+  displayItem.note || displayItem.source || `${displayItem.title} — ${chapter.title}, ${grade.title}, מחוז ירושלים.`;
 ---
 
-<Base title={`${item.title} — ${grade.title} — מחוז ירושלים`} description={description}>
-  <ResourceSplit grade={publicGrade} chapter={chapter} item={item} />
+<Base title={`${displayItem.title} — ${grade.title} — מחוז ירושלים`} description={description}>
+  <ResourceSplit grade={publicGrade} chapter={chapter} item={displayItem} />
   <ResourceContext grade={publicGrade} item={item} />
 </Base>
