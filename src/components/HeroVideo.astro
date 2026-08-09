@@ -1,106 +1,151 @@
 ---
 /**
- * סרטון הפתיחה (RULES §6): נפתח אוטומטית עם קול, ריצה אחת, ללא loop,
- * ובסיום נעצר ומושתק אוטומטית ומתחלף ברקע בהיר שעליו צוות ההדרכה (6.5).
- * אם הדפדפן חוסם שמע — ניגון אוטומטי מושתק, בלי שום כפתור (6.7, הוראת
- * יניב 03/08/2026); רגישי תנועה מקבלים את מצב הצוות מיד.
+ * המסך הראשוני (RULES §6, §7.28 — הוראת יניב 10/08/2026): העמוד עולה מיד,
+ * בלי סרטון-שער ובלי הסתרת כפתורים. צוות ההדרכה, כפתורי הפעולה המובילים
+ * והניווט גלויים מהרגע הראשון; הסרטון קבוע כלוח קולנועי ממוסגר בתוך המסך,
+ * במקום שאינו מפריע לשום כפתור ואין עליו שכבות: מושתק, פעם אחת, בלי loop.
+ * רגישי תנועה מקבלים poster נייח בלבד.
  */
 import { team } from '../data/team';
+
+const leads = [
+  {
+    href: '/chativat-beynayim/',
+    label: 'חטיבת ביניים',
+    sub: 'מתמטיקה לכיתות ז׳–ט׳',
+    tone: 'lead--mid',
+    icon: 'book',
+  },
+  {
+    href: '/chativa-elyona/',
+    label: 'חטיבה עליונה',
+    sub: 'מתמטיקה לכיתות י׳–י״ב',
+    tone: 'lead--high',
+    icon: 'cap',
+  },
+  {
+    href: '/hodaot/',
+    label: 'הודעות שוטפות',
+    sub: 'עדכוני המחוז וההדרכה',
+    tone: 'lead--news',
+    icon: 'bell',
+  },
+] as const;
 ---
 
 <section class="hero" aria-label="פתיחת האתר">
-  <div class="hero-media" id="hero-media">
-    <div class="hero-bg" aria-hidden="true"></div>
-    <video
-      id="hero-video"
-      poster="/media/hero-poster-880.avif"
-      width="1080"
-      height="1080"
-      preload="metadata"
-      playsinline
-      aria-label="סרטון הפתיחה של מחוז ירושלים"
-    ></video>
+  <div class="hero-after" id="hero-after">
+    <div class="hero-after-inner">
+      <h1>צוות הדרכה</h1>
+      <p class="hero-under">במחוז ירושלים והעיר ירושלים — מנח״י</p>
+      <ul class="hero-team hero-team-lead">
+        {
+          team.filter((m) => m.featured).map((m) => (
+            <li class:list={['hero-member', 'is-featured']}>
+              <a href={`#tzevet-${m.slug}`} aria-label={`${m.name} — לפרטי הקשר`}>
+                {m.photo ? (
+                  <img
+                    class="hero-avatar"
+                    style={`--accent:${m.accent}`}
+                    src={m.photo}
+                    alt={`תמונתה של ${m.name}`}
+                    width="140"
+                    height="140"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span class="hero-avatar hero-mono" style={`--accent:${m.accent}`} aria-hidden="true">
+                    {m.initial}
+                  </span>
+                )}
+                <strong class="hero-name">{m.name}</strong>
+                <span class="hero-role">{m.role}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <ul class="hero-team">
+        {
+          team.filter((m) => !m.featured).map((m) => (
+            <li class="hero-member">
+              <a href={`#tzevet-${m.slug}`} aria-label={`${m.name} — לפרטי הקשר`}>
+                {m.photo ? (
+                  <img
+                    class="hero-avatar"
+                    style={`--accent:${m.accent}`}
+                    src={m.photo}
+                    alt={`תמונתה של ${m.name}`}
+                    width="104"
+                    height="104"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span class="hero-avatar hero-mono" style={`--accent:${m.accent}`} aria-hidden="true">
+                    {m.initial}
+                  </span>
+                )}
+                <strong class="hero-name">{m.name}</strong>
+                <span class="hero-role">{m.role}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
 
-    <div class="hero-after" id="hero-after">
-      <div class="hero-after-inner">
-        <h1>צוות הדרכה</h1>
-        <p class="hero-under">במחוז ירושלים והעיר ירושלים — מנח״י</p>
-        <ul class="hero-team hero-team-lead">
-          {
-            team.filter((m) => m.featured).map((m) => (
-              <li class:list={['hero-member', 'is-featured']}>
-                <a href={`#tzevet-${m.slug}`} aria-label={`${m.name} — לפרטי הקשר`}>
-                  {m.photo ? (
-                    <img
-                      class="hero-avatar"
-                      style={`--accent:${m.accent}`}
-                      src={m.photo}
-                      alt={`תמונתה של ${m.name}`}
-                      width="140"
-                      height="140"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <span class="hero-avatar hero-mono" style={`--accent:${m.accent}`} aria-hidden="true">
-                      {m.initial}
-                    </span>
-                  )}
-                  <strong class="hero-name">{m.name}</strong>
-                  <span class="hero-role">{m.role}</span>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-        <ul class="hero-team">
-          {
-            team.filter((m) => !m.featured).map((m) => (
-              <li class="hero-member">
-                <a href={`#tzevet-${m.slug}`} aria-label={`${m.name} — לפרטי הקשר`}>
-                  {m.photo ? (
-                    <img
-                      class="hero-avatar"
-                      style={`--accent:${m.accent}`}
-                      src={m.photo}
-                      alt={`תמונתה של ${m.name}`}
-                      width="104"
-                      height="104"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <span class="hero-avatar hero-mono" style={`--accent:${m.accent}`} aria-hidden="true">
-                      {m.initial}
-                    </span>
-                  )}
-                  <strong class="hero-name">{m.name}</strong>
-                  <span class="hero-role">{m.role}</span>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </div>
-
-      {/* מדליון "התחל" — מעוגן בתחתית מסך הפתיחה עצמו, נראה בלי גלילה (7.28) */}
-      <a
-        class="start-btn"
-        href="/shearim/"
-        aria-label="התחל — מעבר לבחירת החטיבה: חטיבת ביניים או חטיבה עליונה"
-      >
-        <span class="start-face">
-          <span class="start-label">התחל</span>
-          <svg class="start-arrow" viewBox="0 0 34 12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">
-            <path d="M33 6H2M8 1 2 6l6 5" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </span>
-      </a>
-
-      {/* הודעות שוטפות — נגיש כבר ממסך הפתיחה, בלי להסתמך על גלילה (הוראת יניב, 10/08/2026) */}
-      <a class="hodaot-pill" href="/hodaot/" aria-label="הודעות שוטפות — כל העדכונים וההודעות">
-        <span class="pill-dot" aria-hidden="true"></span>
-        <span class="pill-label">הודעות שוטפות</span>
-      </a>
+      {/* כפתורי הפעולה המובילים (7.28, הוראת יניב 10/08/2026) — במקום "התחל":
+          צבעוניים מהפלטה (5.19), גלויים מיד, כל כפתור בגוון משלו וחוט זהב מאחד */}
+      <nav class="hero-actions" aria-label="כניסות מרכזיות">
+        {
+          leads.map((l) => (
+            <a class:list={['lead-btn', l.tone]} href={l.href}>
+              <span class="lead-icon" aria-hidden="true">
+                {l.icon === 'book' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5.5C10 4 7.5 3.5 5 3.5v13c2.5 0 5 .5 7 2 2-1.5 4.5-2 7-2v-13c-2.5 0-5 .5-7 2Z" />
+                    <path d="M12 5.5v13" />
+                  </svg>
+                )}
+                {l.icon === 'cap' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 4 10 4.5L12 13 2 8.5 12 4Z" />
+                    <path d="M6.5 10.7V15c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3v-4.3" />
+                  </svg>
+                )}
+                {l.icon === 'bell' && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 15.5H6c1.2-1.2 1.8-2.3 1.8-4.8 0-3 1.6-5.2 4.2-5.2s4.2 2.2 4.2 5.2c0 2.5.6 3.6 1.8 4.8Z" />
+                    <path d="M10.3 18.4a1.8 1.8 0 0 0 3.4 0" />
+                  </svg>
+                )}
+              </span>
+              <span class="lead-copy">
+                <strong>{l.label}</strong>
+                <small>{l.sub}</small>
+              </span>
+              <svg class="lead-arrow" viewBox="0 0 26 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+                <path d="M25 6H2M7.5 1.5 2 6l5.5 4.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </a>
+          ))
+        }
+      </nav>
     </div>
+
+    {/* הסרטון — לוח קולנועי קבוע וממוסגר (6.3): אין עליו שום כפתור או שכבה,
+        ובמסך רחב הוא מעוגן בצד בלי לחפוף לצוות או לכפתורים */}
+    <figure class="hero-clip">
+      <video
+        id="hero-video"
+        poster="/media/hero-poster-880.avif"
+        width="1080"
+        height="1080"
+        preload="metadata"
+        muted
+        playsinline
+        aria-label="סרטון מחוז ירושלים"
+      ></video>
+    </figure>
   </div>
 </section>
 
@@ -110,251 +155,159 @@ import { team } from '../data/team';
     margin-block-start: calc(-1 * var(--header-h));
   }
 
-  /* הסרטון המקורי ריבועי (1440×1440) — מוצג בשלמותו, ללא חיתוך פוגעני (6.8).
-     כל אזור ה-hero מתמלא (הוראת יניב, 04/08/2026): שכבת רקע מלאה מאותו
-     poster — cover עם טשטוש ועומק עדינים — ומעליה הסרטון החד במרכז; אין
-     רצועות שחורות בצדדים ואין video כפול. */
-  .hero-media {
-    position: relative;
-    inline-size: 100%;
-    /* פרוס עד תחתית המסך — בלי שטח ריק מתחתיו (הוראת יניב, 05/08/2026).
-       הערך המדויק נקבע ב-JS לפי המרחק מראש החלון; זהו נפילת-חסד. */
-    block-size: var(--hero-h, calc(100svh - 68px));
-    overflow: hidden;
-    display: grid;
-    /* שורה מפורשת בגובה המיכל — כך block-size:100% של הווידאו נפתר באמת
-       והריבוע ממלא את הגובה בדיוק, בלי חיתוך ובלי גלישה */
-    grid-template-rows: 100%;
-    place-items: center;
-    background: #10141d;
-  }
-
-  .hero-bg {
-    position: absolute;
-    /* חורג מעט מהמסגרת כדי שהטשטוש לא יחשוף קצוות שקופים */
-    inset: -4%;
-    background: url('/media/hero-poster-880.avif') center 32% / cover no-repeat;
-    filter: blur(26px) saturate(1.15) brightness(0.62);
-    transform: scale(1.06);
-    transition: opacity 1400ms var(--ease);
-  }
-
-  /* עומק עדין מעל הרקע — הסרטון החד נשאר המוקד */
-  .hero-bg::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(85% 100% at 50% 45%, transparent 40%, rgb(9 10 15 / 0.5) 100%);
-  }
-
-  video {
-    /* גובה נעול לגובה המיכל — אפס קפיצת layout בטעינה (CLS) */
-    position: relative;
-    block-size: 100%;
-    inline-size: auto;
-    max-inline-size: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: contain;
-    filter: drop-shadow(0 30px 80px rgb(0 0 0 / 0.55));
-    transition: opacity 1400ms var(--ease), filter 1400ms var(--ease);
-  }
-
-  /* ההיעלמות מתחילה מוקדם ונמשכת לאט: עמעום הדרגתי עד איפוס מלא
-     (6.9, הוראת יניב 03/08/2026) */
-  .hero-media.is-ending video {
-    opacity: 0;
-    filter: brightness(0.35) drop-shadow(0 30px 80px rgb(0 0 0 / 0.55));
-    transition: opacity 3400ms cubic-bezier(0.3, 0, 0.6, 1), filter 3400ms cubic-bezier(0.3, 0, 0.6, 1);
-  }
-
-
-  /* המצב הבהיר שאחרי הסרטון (6.5) */
+  /* המסך הראשוני — רקע בהיר, מוצג מיד (6.2). הגובה נמדד ב-JS עד תחתית
+     החלון; min ולא גובה קשיח, כדי שתוכן ארוך לעולם לא ייחתך. */
   .hero-after {
-    position: absolute;
-    inset: 0;
+    position: relative;
+    min-block-size: var(--hero-h, calc(100svh - 68px));
     display: grid;
     place-items: center;
+    align-content: center;
+    gap: clamp(1rem, 2.6vh, 1.8rem);
     text-align: center;
-    padding: clamp(1.5rem, 5vw, 3rem);
+    padding: clamp(1.2rem, 4vw, 2.6rem);
+    padding-block-start: calc(var(--header-h) + clamp(0.7rem, 2vh, 1.5rem));
     background:
       radial-gradient(120% 90% at 50% 0%, rgb(201 155 63 / 0.14), transparent 60%),
       linear-gradient(180deg, #fdfcf9 0%, var(--paper) 100%);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 1400ms var(--ease), visibility 0s linear 1400ms;
   }
 
-  .hero-media.is-ended video { opacity: 0; }
-  .hero-media.is-ended .hero-after {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 200ms, 0s;
-  }
-
-  /* ===== כבר נצפה באותו session (RULES 6.2.1) =====
-     ‏`hero-seen` נקבע ב-bootstrap שב-<head> (Base.astro) לפני ה-paint הראשון,
-     ולכן החוזר ל"ראשי" נוחת ישר על מצב הצוות — בלי הבזק. `display: none` על
-     הווידאו מבטל גם את ה-poster (שהוא תכונה על האלמנט), ו-`transition: none`
-     מונע דהייה של 1400ms שהייתה נראית כמו "משהו נטען". */
-  :global(html.hero-seen) .hero-media video { display: none; }
-  :global(html.hero-seen) .hero-media .hero-after {
-    opacity: 1;
-    visibility: visible;
-    transition: none;
-  }
-
-  /* ריווח יוקרתי — יש מקום בעמוד, והכותרות נושמות (הוראת יניב, 05/08/2026).
-     בתחתית שמור מקום למדליון "התחל" כדי שלא ייווצר חפיפה איתו (7.28) */
   .hero-after-inner {
     max-width: 980px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(1.1rem, 3.2vh, 2.6rem);
-    padding-block: clamp(1rem, 4vh, 3rem);
-    padding-block-end: calc(var(--start-d) + clamp(1.6rem, 4vh, 3rem));
+    gap: clamp(1rem, 2.8vh, 2.2rem);
+    padding-block: clamp(0.5rem, 2.5vh, 2rem);
   }
 
-  /* ---------- מדליון "התחל" (7.28, הוראת יניב 05/08/2026) ----------
-     עגול, בהיקף זהב, בתוך מסך הפתיחה — נראה תמיד בלי גלילה. */
-  .hero-after { --start-d: clamp(96px, 13vh, 132px); }
-
-  .start-btn {
-    position: absolute;
-    inset-block-end: clamp(1.2rem, 3.5vh, 2.6rem);
-    /* ממורכז מול תמונות הצוות — אותו מרכז בדיוק, בלי היסט פס "מה צפוי?" */
-    inset-inline: 0;
-    margin-inline: auto;
-    translate: 0 10px;
-    inline-size: var(--start-d);
-    block-size: var(--start-d);
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    text-decoration: none;
-    /* טבעת הזהב: חוט דק כפול על נייר — שפת המדליונים של אתרי יוקרה */
-    background:
-      radial-gradient(circle at 50% 32%, #fffefb 0%, var(--paper) 62%, var(--paper-soft) 100%);
-    box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--gold) 62%, transparent),
-      inset 0 0 0 1px rgb(255 255 255 / 0.9),
-      inset 0 0 0 6px color-mix(in srgb, var(--gold) 26%, transparent),
-      0 22px 50px -26px rgb(42 37 32 / 0.5);
-    opacity: 0;
-    visibility: hidden;
-    transition:
-      opacity 900ms var(--ease),
-      translate 900ms var(--ease),
-      visibility 0s linear 900ms,
-      box-shadow 420ms var(--ease);
+  @keyframes hero-rise {
+    from { opacity: 0; translate: 0 14px; }
+    to { opacity: 1; translate: 0 0; }
   }
 
-  /* נחשף רק אחרי שתמונת הפתיחה נעלמה כליל (7.28) */
-  :global(html.hero-done) .start-btn {
-    opacity: 1;
-    visibility: visible;
-    translate: none;
-    transition-delay: 260ms, 260ms, 0s, 0s;
-  }
-
-  /* בתצוגת מורה יחיד "התחל" נעלם — נשאר רק חץ החזרה (הוראת יניב, 05/08/2026) */
-  :global(html.team-solo) .start-btn {
-    display: none;
-  }
-
-  .start-face {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.32rem;
-    color: var(--gold-deep);
-  }
-
-  .start-label {
-    font-family: var(--font-display);
-    font-size: clamp(1.05rem, 2.1vh, 1.4rem);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.1em;
-  }
-
-  .start-arrow {
-    inline-size: clamp(30px, 3.6vh, 40px);
-    block-size: auto;
-    transition: translate 420ms var(--ease);
-  }
-
-  .start-btn:hover {
-    box-shadow:
-      0 0 0 1px var(--gold),
-      inset 0 0 0 1px rgb(255 255 255 / 0.95),
-      inset 0 0 0 6px color-mix(in srgb, var(--gold) 40%, transparent),
-      0 26px 56px -24px rgb(42 37 32 / 0.55);
-  }
-
-  .start-btn:hover .start-arrow { translate: -5px 0; }
-
-  .start-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 6px; }
+  .hero-after h1 { animation: hero-rise 700ms var(--ease) both; }
+  .hero-under { animation: hero-rise 700ms var(--ease) 90ms both; }
+  .hero-team-lead { animation: hero-rise 750ms var(--ease) 170ms both; }
+  .hero-team:not(.hero-team-lead) { animation: hero-rise 750ms var(--ease) 250ms both; }
+  .hero-actions { animation: hero-rise 750ms var(--ease) 330ms both; }
+  .hero-clip { animation: hero-rise 900ms var(--ease) 430ms both; }
 
   @media (prefers-reduced-motion: reduce) {
-    .start-btn, .start-arrow { transition-duration: 1ms; }
+    .hero-after h1,
+    .hero-under,
+    .hero-team,
+    .hero-actions,
+    .hero-clip { animation: none; }
   }
 
-  /* גלולת "הודעות שוטפות" — קטנה, עדינה וצבעונית; חשופה עם המדליון (10/08/2026) */
-  .hodaot-pill {
-    position: absolute;
-    inset-block-end: clamp(1.4rem, 3.8vh, 2.8rem);
-    inset-inline-start: clamp(0.9rem, 4vw, 3rem);
-    display: inline-flex;
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(0.7rem, 1.6vw, 1.1rem);
+    margin-block-start: clamp(0.2rem, 1.4vh, 0.9rem);
+  }
+
+  .lead-btn {
+    --tone: var(--gold);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 0.5rem;
-    min-block-size: 44px;
-    padding: 0.5rem 1.05rem;
+    gap: clamp(0.6rem, 1.2vw, 0.85rem);
+    min-block-size: 64px;
+    min-inline-size: min(248px, 84vw);
+    padding: 0.6rem 1.15rem;
     border-radius: 999px;
     text-decoration: none;
     color: var(--navy);
-    font-weight: 800;
-    font-size: 0.92rem;
-    background: linear-gradient(135deg, #fffdf8, color-mix(in srgb, var(--sky) 14%, #fff));
+    text-align: start;
+    background: linear-gradient(135deg, #fffefb, color-mix(in srgb, var(--tone) 17%, #fff));
     box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--sky) 45%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--tone) 58%, transparent),
       inset 0 0 0 1px rgb(255 255 255 / 0.9),
-      0 14px 34px -20px rgb(42 37 32 / 0.45);
-    opacity: 0;
-    visibility: hidden;
-    translate: 0 10px;
-    transition:
-      opacity 900ms var(--ease),
-      translate 900ms var(--ease),
-      visibility 0s linear 900ms,
-      box-shadow 420ms var(--ease);
-  }
-  :global(html.hero-done) .hodaot-pill {
-    opacity: 1;
-    visibility: visible;
-    translate: none;
-    transition-delay: 380ms, 380ms, 0s, 0s;
-  }
-  :global(html.team-solo) .hodaot-pill { display: none; }
-  .pill-dot {
-    inline-size: 9px;
-    block-size: 9px;
-    border-radius: 50%;
-    background: conic-gradient(from 0deg, var(--terracotta), var(--gold), var(--sky), var(--terracotta));
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 22%, transparent);
-  }
-  .hodaot-pill:hover {
-    box-shadow:
-      0 0 0 1px var(--sky),
-      inset 0 0 0 1px rgb(255 255 255 / 0.95),
-      0 18px 38px -18px rgb(42 37 32 / 0.5);
-  }
-  .hodaot-pill:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
-  @media (prefers-reduced-motion: reduce) {
-    .hodaot-pill { transition-duration: 1ms; }
+      inset 0 -1px 0 0 color-mix(in srgb, var(--gold) 38%, transparent),
+      0 18px 40px -22px rgb(42 37 32 / 0.5);
+    transition: translate 320ms var(--ease), box-shadow 320ms var(--ease);
   }
 
-  /* צוות ההדרכה על המסך הבהיר (6.5) */
+  .lead--mid { --tone: var(--terracotta); }
+  .lead--high { --tone: var(--sky); }
+  .lead--news { --tone: var(--amber); }
+
+  .lead-btn:hover,
+  .lead-btn:focus-visible {
+    translate: 0 -3px;
+    box-shadow:
+      0 0 0 1.5px color-mix(in srgb, var(--tone) 85%, transparent),
+      inset 0 0 0 1px rgb(255 255 255 / 0.95),
+      inset 0 -1px 0 0 color-mix(in srgb, var(--gold) 55%, transparent),
+      0 24px 48px -22px rgb(42 37 32 / 0.55);
+  }
+
+  .lead-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
+
+  .lead-icon {
+    display: grid;
+    place-items: center;
+    inline-size: clamp(42px, 5vh, 48px);
+    block-size: clamp(42px, 5vh, 48px);
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(160deg, var(--tone), color-mix(in srgb, var(--tone) 55%, var(--navy)));
+    box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.32);
+  }
+
+  .lead-icon svg { inline-size: 58%; block-size: 58%; }
+  .lead-copy { display: flex; min-inline-size: 0; flex-direction: column; gap: 0.1rem; }
+  .lead-copy strong { font-size: clamp(1.02rem, 1.8vw, 1.2rem); font-weight: 800; line-height: 1.15; }
+  .lead-copy small { color: var(--ink-soft); font-size: clamp(0.74rem, 1.3vw, 0.84rem); }
+
+  .lead-arrow {
+    inline-size: 24px;
+    block-size: auto;
+    color: var(--gold-deep);
+    transition: translate 320ms var(--ease);
+  }
+
+  .lead-btn:hover .lead-arrow { translate: -5px 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lead-btn,
+    .lead-arrow { transition-duration: 1ms; }
+  }
+
+  .hero-clip {
+    margin: 0;
+    inline-size: min(66vw, 300px);
+    aspect-ratio: 1 / 1;
+    padding: 9px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(165deg, #1b2434, var(--navy) 55%, #101725);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent),
+      inset 0 0 0 1px rgb(255 255 255 / 0.08),
+      0 26px 60px -30px rgb(9 10 15 / 0.7);
+  }
+
+  .hero-clip video {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    border-radius: calc(var(--radius-lg) - 6px);
+    background: #10141d url('/media/hero-poster-880.avif') center / cover no-repeat;
+  }
+
+  @media (min-width: 1440px) {
+    .hero-clip {
+      position: absolute;
+      inset-block-end: clamp(1.2rem, 3vh, 2.4rem);
+      inset-inline-start: clamp(1.2rem, 2.2vw, 2.6rem);
+      inline-size: clamp(150px, 13vw, 205px);
+    }
+  }
+
   .hero-team {
     display: flex;
     flex-wrap: wrap;
@@ -391,10 +344,7 @@ import { team } from '../data/team';
   }
 
   .hero-member a:hover .hero-avatar { transform: translateY(-4px) scale(1.04); }
-
-  /* איילת מעל כולם, גדולה יותר (7.1, הוראת יניב 03/08/2026) */
   .hero-team-lead { margin-block-end: 0; }
-
   .hero-member.is-featured a { max-inline-size: 300px; }
 
   .hero-member.is-featured .hero-avatar {
@@ -421,7 +371,6 @@ import { team } from '../data/team';
     line-height: 1.35;
   }
 
-  /* השורה הקטנה שמתחת לכותרת (6.5, הוראת יניב 03/08/2026) */
   .hero-under {
     color: var(--gold-deep);
     font-weight: 600;
@@ -439,54 +388,48 @@ import { team } from '../data/team';
     color: transparent;
   }
 
-  /* מסך נמוך: מהדקים את הריווח והדיוקנאות כדי שהצוות והמדליון ייכנסו
-     יחד בלי גלילה ובלי חפיפה (7.28) */
   @media (max-height: 820px) {
-    .hero-after-inner { gap: clamp(0.6rem, 2vh, 1.4rem); padding-block-start: 0.5rem; }
+    .hero-after-inner { gap: clamp(0.6rem, 2vh, 1.3rem); padding-block-start: 0.4rem; }
     .hero-member.is-featured .hero-avatar { inline-size: clamp(92px, 12vh, 120px); block-size: clamp(92px, 12vh, 120px); }
     .hero-avatar { inline-size: clamp(60px, 8vh, 84px); block-size: clamp(60px, 8vh, 84px); }
+    .hero-clip { inline-size: min(52vw, 230px); }
   }
 
   @media (max-width: 700px) {
-    .hero-media {
-      block-size: var(--hero-h, calc(100svh - 192px));
-      grid-template-rows: 100%;
-      padding-block: 0;
+    .hero-actions {
+      order: 2;
+      inline-size: min(100%, 350px);
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.4rem;
+      margin-block-start: 0.1rem;
     }
-    video { inline-size: 100%; block-size: auto; max-block-size: 100%; }
+    .hero-team-lead { order: 3; }
+    .hero-team:not(.hero-team-lead) { order: 4; }
+    .hero-clip { inline-size: min(70vw, 280px); }
+    .lead-btn {
+      min-inline-size: 0;
+      inline-size: 100%;
+      min-block-size: 52px;
+      grid-template-columns: 1fr;
+      justify-items: center;
+      gap: 0.18rem;
+      padding: 0.35rem 0.2rem;
+      border-radius: 18px;
+      text-align: center;
+    }
+    .lead-icon { inline-size: 30px; block-size: 30px; }
+    .lead-copy strong { font-size: clamp(0.72rem, 3vw, 0.86rem); line-height: 1.1; }
+    .lead-copy small,
+    .lead-arrow { display: none; }
   }
 </style>
 
 <script>
-  const media = document.getElementById('hero-media')!;
+  const media = document.getElementById('hero-after')!;
   const video = document.getElementById('hero-video') as HTMLVideoElement;
-
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ===== "נצפה" — פעם אחת בכל session של הטאב (RULES 6.2.1, 6.6) ===== */
-  const SEEN_KEY = 'jerusalem.heroSeen.v1';
-  const wasSeen = () => {
-    try {
-      return sessionStorage.getItem(SEEN_KEY) === '1';
-    } catch {
-      return false; // מצב פרטי/חסום — מתנהגים כמו כניסה ראשונה
-    }
-  };
-  const markSeen = () => {
-    try {
-      sessionStorage.setItem(SEEN_KEY, '1');
-    } catch {
-      /* אין אחסון — אין מה לשמור; ההתנהגות נשארת תקינה */
-    }
-  };
-
-  // בחירת גרסה לפי רוחב המסך — שתי הגרסאות קודדו מהמקור ללא שינוי תוכן (6.10).
-  // מי שכבר צפה אינו מקבל src כלל: בלי בקשת רשת, בלי פריים ובלי poster.
-  if (!wasSeen()) {
-    video.src = innerWidth < 760 ? '/media/hero-720.mp4' : '/media/hero-1080.mp4';
-  }
-
-  // גובה ה-hero עד תחתית החלון בדיוק — בלי שטח ריק מתחת לתמונה
   const fit = () => {
     const top = media.getBoundingClientRect().top + window.scrollY;
     media.style.setProperty('--hero-h', `${Math.max(380, Math.round(innerHeight - top))}px`);
@@ -496,74 +439,15 @@ import { team } from '../data/team';
   addEventListener('load', fit, { once: true });
   document.fonts?.ready.then(fit);
 
-  // כפתור "התחל" נחשף רק אחרי שתמונת הפתיחה נעלמה כליל (7.28)
-  const finish = () => {
-    media.classList.add('is-ended');
-    document.documentElement.classList.add('hero-done');
-    markSeen();
-  };
-
-  /* מצב הצוות המיידי למי שכבר צפה: בלי play(), בלי איפוס currentTime,
-     בלי poster ובלי אנימציה (6.2.1). `hero-seen` כבר הוסף ב-<head> ברוב
-     המקרים; מוסיפים אותו גם כאן כרשת ביטחון ל-bfcache ולסדר טעינה חריג. */
-  const settleSeen = () => {
-    document.documentElement.classList.add('hero-seen', 'hero-done');
-    media.classList.add('is-ending', 'is-ended');
-  };
-
-  video.addEventListener('ended', finish);
-
-  // הדעיכה מתחילה ~1.8 שניות לפני הסוף ונמשכת לאט (6.9)
-  video.addEventListener('timeupdate', () => {
-    if (video.duration && video.duration - video.currentTime <= 1.8) {
-      media.classList.add('is-ending');
-    }
-  });
-
-  /* פתיחה אוטומטית עם קול (6.3, הוראת יניב); אם הדפדפן חוסם שמע —
-     ניגון אוטומטי מושתק, בלי שום כפתור (6.7). בסיום — עצירה אוטומטית. */
-  const play = () => {
-    video.play().catch(() => {
-      video.muted = true;
-      video.play().catch(finish);
-    });
-  };
-
-  /* ===== פעם אחת בכל session של הטאב (6.2.1, הוראת יניב 06/08/2026) =====
-     מבטל את "הסרטון רץ בכל כניסה" ומחזיר את 6.6 לתוקף: לאחר שנצפה, כל חזרה
-     ל"ראשי" באותו session מציגה מיד את מצב הצוות. הניסוח הקודם כאן איפס את
-     המחלקות ואת `currentTime` בכל `pageshow` מ-bfcache, ולכן הסרטון חזר שוב
-     ושוב — זו בדיוק התלונה. טאב חדש (session חדש) רשאי להציג אותו מחדש. */
-  const start = () => {
-    if (wasSeen()) {
-      settleSeen();
-      return;
-    }
-    if (reduced) {
-      // רגישי תנועה: מצב הצוות מיד, בלי ניגון אוטומטי — ונחשב "נצפה"
-      finish();
-      return;
-    }
-    media.classList.remove('is-ending', 'is-ended');
-    document.documentElement.classList.remove('hero-done');
-    try {
-      video.currentTime = 0;
-    } catch {
-      /* המדיה עדיין לא ניתנת לחיפוש — הניגון יתחיל מההתחלה ממילא */
-    }
-    play();
-  };
-
-  start();
-
-  /* bfcache/‏history back: אם כבר נצפה — מצב צוות מיד ובלי ניגון; אם טרם נצפה
-     (למשל חזרה אחורה באמצע הצפייה הראשונה) — מותר להתחיל. */
-  addEventListener('pageshow', (e) => {
-    if (!(e as PageTransitionEvent).persisted) return;
-    if (wasSeen()) {
-      settleSeen();
-      return;
-    }
-    start();
-  });
+  if (!reduced) {
+    video.muted = true;
+    video.src = '/media/hero-720.mp4';
+    const tryPlay = () => {
+      video.play().catch(() => {
+        /* אם הדפדפן מסרב גם לניגון מושתק — נשאר ה-poster; אין כפתור (6.4) */
+      });
+    };
+    if (video.readyState >= 2) tryPlay();
+    else video.addEventListener('canplay', tryPlay, { once: true });
+  }
 </script>

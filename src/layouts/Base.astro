@@ -8,6 +8,7 @@ import heeboHebrewUrl from '@fontsource-variable/heebo/files/heebo-hebrew-wght-n
 import frankHebrew500Url from '@fontsource/frank-ruhl-libre/files/frank-ruhl-libre-hebrew-500-normal.woff2?url';
 import '../styles/global.css';
 import '../styles/luxury-controls.css';
+import '../styles/home-immediate.css';
 import DateBar from '../components/DateBar.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
@@ -66,19 +67,8 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
         } catch {}
       });
     </script>
-    {/* סרטון הפתיחה — פעם אחת בכל session של הטאב (RULES 6.2.1, 6.6).
-        הבדיקה חייבת לרוץ **לפני ה-paint הראשון**: משתמש שכבר צפה בסרטון וחוזר
-        ל"ראשי" באותו session אמור לנחות ישר על מצב הצוות, בלי הבזק של הווידאו,
-        של ה-poster או של מצב הביניים. סקריפט בסוף הרכיב רץ מאוחר מדי — עד שהוא
-        פועל הדפדפן כבר צבע פריים אחד עם הווידאו. לכן זה יושב ב-<head>, לפני
-        הגוף, ומסמן את <html> בלבד; ה-CSS של HeroVideo נשען על הסימון הזה. */}
-    <script is:inline>
-      try {
-        if (sessionStorage.getItem('jerusalem.heroSeen.v1') === '1') {
-          document.documentElement.classList.add('hero-seen', 'hero-done');
-        }
-      } catch {}
-    </script>
+    {/* העמוד הראשי עולה מיד — אין מנגנון "נצפה" ואין bootstrap של הסתרה
+        (RULES 6.2, הוראת יניב 10/08/2026). */}
     <slot name="head" />
   </head>
   <body>
@@ -123,7 +113,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
           body.style.transition = 'opacity 150ms ease';
           body.style.opacity = '0';
           setTimeout(() => {
-            location.hash = sel; // קפיצה מיידית בזמן שהמסך חשוך; :target נשמר
+            location.hash = sel;
             body.style.transition = 'opacity 280ms ease';
             body.style.opacity = '1';
           }, 160);

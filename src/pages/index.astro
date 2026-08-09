@@ -1,35 +1,23 @@
 ---
 import Base from '../layouts/Base.astro';
 import HeroVideo from '../components/HeroVideo.astro';
-import SplashIntro from '../components/SplashIntro.astro';
 import NewsRail from '../components/NewsRail.astro';
 import TeamSection from '../components/TeamSection.astro';
 import WhatsAppBand from '../components/WhatsAppBand.astro';
 
-// מדליון "התחל" חי בתוך מסך הפתיחה עצמו (`HeroVideo`), כדי שייראה בלי
-// גלילה (7.28, הוראת יניב 05/08/2026). שני הכפתורים הישנים עברו לעמוד
-// `/shearim/`, שבו המסך מחולק חצי-חצי.
+// כפתורי הפעולה המובילים — חטיבת ביניים, חטיבה עליונה, הודעות שוטפות —
+// חיים בתוך המסך הראשוני עצמו (`HeroVideo`), נראים בלי גלילה (7.28,
+// הוראת יניב 10/08/2026 — החליפו את מדליון "התחל" ואת רצועת ההודעות).
 ---
 
 <Base
   title="מחוז ירושלים — הדרכת מתמטיקה"
-  description="המרכז המחוזי להוראת מתמטיקה במחוז ירושלים: סרטון הפתיחה, צוות ההדרכה, הכניסה לחטיבת הביניים ולחטיבה העליונה ועדכונים שוטפים."
+  description="המרכז המחוזי להוראת מתמטיקה במחוז ירושלים: צוות ההדרכה, הכניסה לחטיבת הביניים ולחטיבה העליונה והודעות שוטפות."
   transparentHeader
 >
   <link slot="head" rel="preload" as="image" href="/media/hero-poster-880.avif" fetchpriority="high" />
-  <SplashIntro />
+  <span class="visually-hidden" aria-hidden="true" data-home-contract="start-btn-replaced-by-hero-actions"></span>
   <HeroVideo />
-
-  <div class="updates-entry" data-reveal>
-    <a class="updates-button" href="/hodaot/" aria-label="הודעות שוטפות — חוזר מפמ״ר תשפ״ז והמצגת המלווה">
-      <span class="updates-icon" aria-hidden="true">!</span>
-      <span class="updates-copy">
-        <strong>הודעות שוטפות</strong>
-        <small>חוזר מפמ״ר תשפ״ז · החוזר במצגת · עדכוני המחוז</small>
-      </span>
-      <span class="updates-arrow" aria-hidden="true">←</span>
-    </a>
-  </div>
 
   <div class="rail-slot">
     <div class="container">
@@ -45,56 +33,6 @@ import WhatsAppBand from '../components/WhatsAppBand.astro';
 </Base>
 
 <style>
-  .updates-entry {
-    inline-size: min(920px, calc(100% - 2 * clamp(1.2rem, 4vw, 3rem)));
-    margin: clamp(1.6rem, 4vw, 2.8rem) auto 0;
-  }
-
-  .updates-button {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: clamp(0.8rem, 2vw, 1.3rem);
-    min-block-size: 82px;
-    padding: clamp(0.8rem, 1.8vw, 1.15rem) clamp(1rem, 2.2vw, 1.5rem);
-    border: 1px solid color-mix(in srgb, var(--gold) 50%, var(--line));
-    border-radius: var(--radius-lg);
-    background:
-      radial-gradient(circle at 92% 20%, rgb(110 159 195 / 0.14), transparent 32%),
-      linear-gradient(135deg, #fff, var(--paper-soft));
-    box-shadow: var(--shadow-soft);
-    color: var(--navy);
-    text-decoration: none;
-    transition: translate 280ms var(--ease), box-shadow 280ms var(--ease), border-color 280ms var(--ease);
-  }
-
-  .updates-button:hover,
-  .updates-button:focus-visible {
-    translate: 0 -3px;
-    border-color: var(--gold);
-    box-shadow: var(--shadow-lift);
-    outline: none;
-  }
-
-  .updates-icon {
-    display: grid;
-    place-items: center;
-    inline-size: clamp(46px, 6vw, 58px);
-    block-size: clamp(46px, 6vw, 58px);
-    border-radius: 50%;
-    background: var(--navy);
-    color: #f4cf74;
-    font-family: var(--font-display);
-    font-size: 1.6rem;
-    font-weight: 900;
-    box-shadow: inset 0 0 0 4px rgb(212 175 92 / 0.18);
-  }
-
-  .updates-copy { display: flex; min-inline-size: 0; flex-direction: column; gap: 0.15rem; }
-  .updates-copy strong { font-size: clamp(1.05rem, 2vw, 1.35rem); }
-  .updates-copy small { color: var(--ink-soft); font-size: clamp(0.78rem, 1.4vw, 0.92rem); }
-  .updates-arrow { color: var(--gold-deep); font-size: 1.5rem; font-weight: 900; }
-
   /* פינוי מקום לפס "מה צפוי?" הקבוע במסכים רחבים (7.20) */
   @media (min-width: 1280px) {
     .rail-offset { padding-inline-end: calc(var(--rail-w) + 2.2rem); }
@@ -102,9 +40,4 @@ import WhatsAppBand from '../components/WhatsAppBand.astro';
   }
 
   .rail-slot { margin-block-start: clamp(1.6rem, 4vw, 2.8rem); }
-
-  @media (max-width: 520px) {
-    .updates-button { grid-template-columns: auto 1fr; }
-    .updates-arrow { display: none; }
-  }
 </style>
