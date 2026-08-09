@@ -7,6 +7,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 # ביטול ריצה קודמת רק ב-PR. על main כל ריצה מסיימת כדי שאימות הפרודקשן
 # של כל קומיט שנכנס ל-main לא ייעלם בשקט.
 concurrency:
@@ -14,6 +17,45 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # כלי מעבר זמני ומוגבל לענף הניקיון בלבד: מוחק רק פונקציות TS מקומיות,
+  # לא-exported, שה-TypeChecker מוכיח שאין להן אף reference. אין כאן formatter,
+  # אין מחיקת data ואין שינוי אוטומטי ל-main. אחרי שהענף נקי ה-job אינו יוצר diff.
+  hygiene-autofix:
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/repo-hygiene-final2-20260809' && github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: התקנת גרסת npm המוצמדת
+        run: npm i -g "npm@$(node -p "require('./package.json').packageManager.split('@')[1]")"
+      - run: npm ci --no-audit --no-fund
+      - name: Apply symbol-proven dead-code fixes
+        run: node scripts/hygiene-dead-code.mjs --fix
+      - name: Typecheck autofix result
+        run: npm run check
+      - run: git diff --check
+      - name: Commit safe autofix when needed
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No safe hygiene diff."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src
+          git commit -m "chore: apply safe repo hygiene autofixes"
+          git push origin HEAD:${{ github.head_ref }}
+
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -41,7 +83,7 @@ jobs:
         if: always()
         run: npm audit --omit=dev --audit-level=high || true
       - run: npx playwright install --with-deps chromium
-      # מקור אמת יחיד: repo-health → check → build → Playwright עם retries=0
+      # מקור אמת יחיד: repo-health → dead-code hygiene → check → build → Playwright עם retries=0
       # ופורט פנוי אוטומטי. אותה פקודה מיועדת גם להרצה מקומית.
       - run: npm run quality
       - name: Upload traces on failure
