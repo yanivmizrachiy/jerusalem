@@ -1274,6 +1274,38 @@ test('פתיחה נקייה: אין כפתורי פעולה על המסך עד �
   await expect(page.locator('a.start-btn')).toBeVisible();
 });
 
+test('פס "מה צפוי?": הכיתוביות רצות מלמטה למעלה ברצף — לא רוטציה (7.20, הוראת יניב 10/08)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
+  await page.goto('/');
+  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
+  await expect(page.locator('.rail')).toBeVisible();
+
+  // אנימציה רציפה ואינסופית על המסילה, עם העותק הכפול שיוצר לולאה חלקה
+  const track = page.locator('.rail .rail-track');
+  await expect(track).toHaveCount(1);
+  await expect(page.locator('.rail .rail-dup')).toHaveCount(1);
+  const anim = await track.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { name: s.animationName, state: s.animationPlayState, iteration: s.animationIterationCount };
+  });
+  expect(anim.name, 'אנימציית rail-rise פעילה').toContain('rail-rise');
+  expect(anim.state, 'המסילה רצה').toBe('running');
+  expect(anim.iteration, 'לולאה אינסופית').toBe('infinite');
+
+  // המסילה באמת נעה כלפי מעלה בין שתי מדידות
+  const yAt = () => track.evaluate((el) => el.getBoundingClientRect().y);
+  const y1 = await yAt();
+  await page.waitForTimeout(1200);
+  const y2 = await yAt();
+  expect(y1 - y2, 'המסילה עולה מלמטה למעלה').toBeGreaterThan(0.5);
+
+  // ריחוף עוצר את הריצה (7.20)
+  await page.locator('.rail-title').hover();
+  const paused = await track.evaluate((el) => getComputedStyle(el).animationPlayState);
+  expect(paused, 'ריחוף עוצר').toBe('paused');
+});
+
 /* ===== מערכת ההטמעות — חצי-חצי מדויק, גובה שווה ומסגרת משותפת (06/08/2026) ===== */
 
 for (const [w, h] of [
