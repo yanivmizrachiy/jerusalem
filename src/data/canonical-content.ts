@@ -2,6 +2,7 @@ import { choveret, materialChapters, type ChoveretChapter, type ChoveretGrade, t
 import { hafifaUnit, mishvaotUnit, toEmbed, type Unit, type UnitResource } from './units';
 import { isPublishableMaterial } from './publishing';
 import { supplementalItemsForChapter } from './project-supplements';
+import { grade7Resources } from './resources';
 
 const unitKindToItemKind = (resource: UnitResource): ItemKind => {
   if (resource.kind === 'drive') return 'drive';
@@ -24,6 +25,17 @@ const legacyUnitItems = {
   'h-congruent': hafifaUnit.resources.map((resource) => unitResourceToItem(hafifaUnit, resource)),
 } satisfies Record<string, ChoveretItem[]>;
 
+const canonicalEmbedByResourceId = new Map(
+  grade7Resources
+    .filter((resource) => Boolean(resource.embedUrl))
+    .map((resource) => [resource.id, resource.embedUrl!] as const)
+);
+
+const withVerifiedCanonicalEmbed = (item: ChoveretItem): ChoveretItem => {
+  const embed = canonicalEmbedByResourceId.get(item.id);
+  return embed ? { ...item, embed } : item;
+};
+
 const uniqueById = (items: readonly ChoveretItem[]): ChoveretItem[] => {
   const seen = new Set<string>();
   return items.filter((item) => {
@@ -36,11 +48,12 @@ const uniqueById = (items: readonly ChoveretItem[]): ChoveretItem[] => {
 /**
  * מקור התצוגה הקנוני לנושא. יחידות legacy ששייכות לנושא רגיל ומשאבי מוצר
  * שנוספו לאחר בניית קטלוג המקור מוזגים כאן, בלי לגעת בנתוני החילוץ עצמם.
+ * override של הטמעה נלקח רק מרשומת משאב קנונית שאומתה במפורש.
  */
 export function canonicalChapterItems(chapter: ChoveretChapter): ChoveretItem[] {
   const legacy = legacyUnitItems[chapter.id as keyof typeof legacyUnitItems] ?? [];
   const supplemental = supplementalItemsForChapter(chapter.id);
-  return uniqueById([...chapter.items, ...legacy, ...supplemental]);
+  return uniqueById([...chapter.items, ...legacy, ...supplemental]).map(withVerifiedCanonicalEmbed);
 }
 
 export function canonicalChapter(chapter: ChoveretChapter): ChoveretChapter {
