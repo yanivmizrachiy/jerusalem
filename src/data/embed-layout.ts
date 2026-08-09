@@ -17,9 +17,11 @@ export interface EmbedLayout {
  */
 const embedLayoutByResourceId: Readonly<Record<string, EmbedLayout>> = {
   // Interactive core resources: viewport-driven rather than document-shaped.
-  tzirim: { orientation: 'interactive', minHeight: 'clamp(560px, 72svh, 900px)' },
-  zaviyot: { orientation: 'interactive', minHeight: 'clamp(560px, 72svh, 900px)' },
-  misparim: { orientation: 'interactive', minHeight: 'clamp(560px, 72svh, 900px)' },
+  // 700px desktop floor prevents a live site from collapsing into a shallow panel;
+  // the mobile breakpoint in ResourceSplit still supplies the compact mobile bound.
+  tzirim: { orientation: 'interactive', minHeight: 'clamp(700px, calc(72svh + 2px), 900px)' },
+  zaviyot: { orientation: 'interactive', minHeight: 'clamp(700px, calc(72svh + 2px), 900px)' },
+  misparim: { orientation: 'interactive', minHeight: 'clamp(700px, calc(72svh + 2px), 900px)' },
 
   // Verified flipbook: wide viewer and materially larger than the generic embed.
   'kavit-flip': {
@@ -38,7 +40,7 @@ const kindDefault = (item: ChoveretItem): EmbedLayout => {
     return { orientation: 'landscape', aspectRatio: '16 / 10', minHeight: '460px' };
   }
 
-  return { orientation: 'interactive', minHeight: 'clamp(520px, 72svh, 900px)' };
+  return { orientation: 'interactive', minHeight: 'clamp(700px, calc(72svh + 2px), 900px)' };
 };
 
 export function embedLayoutFor(item: ChoveretItem): EmbedLayout {
