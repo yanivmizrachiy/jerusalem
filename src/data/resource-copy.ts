@@ -1,10 +1,20 @@
 export interface ResourceCopyInput {
+  id?: string;
   title: string;
   note?: string;
   source?: string;
 }
 
 const collapseSpace = (value: string) => value.replace(/\s+/g, ' ').trim();
+
+/**
+ * כותרות מקור ידועות שבהן החילוץ חיבר כמה תאי טבלה לכותרת אחת.
+ * אלה תיקונים מפורשים בלבד — אין כאן ניחוש אוטומטי לפי דמיון טקסטואלי.
+ */
+const verifiedTitleOverrides: Readonly<Record<string, string>> = {
+  'src-game-z-c9ff7e0990e6': 'מלחמה אלגברית - הצבות — מלחמה',
+  'src-game-z-2240924d847e': 'מלחמה אלגברית - הצבות — קלפים מוגדלים',
+};
 
 /**
  * `קרדיט:` הוא metadata ולא תיאור. משאירים רק את החלק התיאורי של note;
@@ -20,10 +30,12 @@ export function visibleResourceNote(item: ResourceCopyInput): string {
 }
 
 /**
- * כותרת תצוגה שמרנית: מתקנת רק כפילות מלאה מהצורה X — X.
+ * כותרת תצוגה שמרנית: קודם תיקון ידני מאומת, ואז רק כפילות מלאה X — X.
  * כותרות מורכבות אחרות דורשות reconciliation אנושי ולא ניקוי עיוור.
  */
 export function visibleResourceTitle(item: ResourceCopyInput): string {
+  if (item.id && verifiedTitleOverrides[item.id]) return verifiedTitleOverrides[item.id];
+
   const title = collapseSpace(item.title);
   const parts = title.split(/\s+[—–]\s+/u).map((part) => part.trim()).filter(Boolean);
   if (parts.length === 2 && parts[0] === parts[1]) return parts[0];
