@@ -45,7 +45,8 @@
 | עמוד שכבה — חומרים | `src/components/GradeIndex.astro` | רשימת נושאים; מונים נגזרים מהקטלוג הקנוני ובניסוח פדגוגי, לא `משימות` גנרי |
 | עמוד משאב | `src/components/ResourceSplit.astro` | embed אמיתי/fallback, `ResourceActions`, attribution, RTL, mobile |
 | פעולות משאב / Mafmar | `src/components/ResourceActions.astro` | מימוש משותף יחיד; אין מערכת `.res-actions` מקבילה |
-| סרטון פתיחה | `src/components/HeroVideo.astro` + `public/media/hero-*` | נכסי hero קנוניים בלבד; אין לשמור renders חלופיים ללא consumer |
+| המסך הראשוני והסרטון | `src/components/HeroVideo.astro` + `public/media/hero-*` | העמוד עולה מיד (RULES 6.2, 10/08/2026): אין מנגנון `heroSeen`, אין bootstrap ב-`Base.astro` ואין הסתרת ניווט/פס; הסרטון לוח קבוע ממוסגר — מושתק, פעם אחת, בלי loop; רגישי תנועה מקבלים poster בלבד; נכסי hero קנוניים בלבד |
+| כפתורי הפעולה המובילים | `src/components/HeroVideo.astro` (`nav.hero-actions`) | שלושה קישורים — `/chativat-beynayim/`, `/chativa-elyona/`, `/hodaot/` — גלויים מיד, ≥44px, גוון לכל כפתור (RULES 7.28); אין `start-btn`; `/shearim/` חי בכתובתו בלי כניסה מהעמוד הראשי |
 | לוגו ModEL | `src/data/resource-branding.ts` + `public/media/brands/` | mapping מפורש; המקור שסיפק יניב בלבד; `moodle-guide`/`moodle-slides` מיוחסים ל״צוות מודל — משרד החינוך״ |
 | proxy | `src/lib/proxyGuard.ts`, `src/lib/proxyHttp.ts` | allowlist, redirect-origin validation, timeout, methods/headers בטוחים |
 | SEO | `Base.astro`, `astro.config.mjs`, `public/robots.txt` | canonical, sitemap, metadata ו־Open Graph |

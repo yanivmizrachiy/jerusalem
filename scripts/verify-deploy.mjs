@@ -84,7 +84,7 @@ const MARKERS = [
   { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'res-panel', what: 'לוח הפעולות בעמוד המשאב (3.29, 8.2)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
-  { path: '/', needle: 'start-btn', what: 'כפתור ההתחלה בעמוד הראשי (7.28)' },
+  { path: '/', needle: 'hero-actions', what: 'כפתורי הפעולה המובילים בעמוד הראשי (7.28)' },
   { path: '/shearim/', needle: 'split-rule', what: 'המסך המחולק חצי-חצי בבחירת החטיבה (7.29)' },
   // ModEL: הייחוס אומת על ידי בעל הפרויקט (24.6.7) ולכן המשאב פומבי. שלושת
   // הסמנים יחד מוכיחים שהעמוד חי, שהלוגו מוצג ושהייחוס הארגוני מוצג.

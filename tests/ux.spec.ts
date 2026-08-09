@@ -134,28 +134,42 @@ test('לכל שכבה רשימת נושאי־על ואוספים מדויקת �
 
 /* ===== עמוד הבית ===== */
 
-test('ה-hero מלא: שכבת רקע על כל הרוחב, בלי רצועות שחורות (6.12)', async ({ page }) => {
+test('העמוד הראשי עולה מיד: hero בהיר לכל הרוחב, והכול גלוי בלי המתנה (6.2)', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
-  const media = page.locator('#hero-media');
-  const bg = page.locator('.hero-bg');
-  const mb = (await media.boundingBox())!;
-  const bb = (await bg.boundingBox())!;
-  expect(mb.width, 'ה-hero פרוס לכל הרוחב').toBeGreaterThanOrEqual(1900);
-  expect(bb.width, 'שכבת הרקע מכסה את כל האזור').toBeGreaterThanOrEqual(mb.width);
-  const bgImage = await bg.evaluate((el) => getComputedStyle(el).backgroundImage);
-  expect(bgImage, 'הרקע הוא ה-poster — לא שחור ריק').toContain('hero-poster');
+  const hero = (await page.locator('.hero-after').boundingBox())!;
+  expect(hero.width, 'המסך הראשוני פרוס לכל הרוחב').toBeGreaterThanOrEqual(1900);
+  // בלי שום מנגנון חשיפה: הניווט, הפס, הצוות והכפתורים נראים מיד
+  await expect(page.locator('#site-header .nav-list')).toBeVisible();
+  await expect(page.locator('.rail')).toBeVisible();
+  await expect(page.locator('.hero-after h1')).toHaveText('צוות הדרכה');
+  await expect(page.locator('.hero-actions a')).toHaveCount(3);
 });
 
-test('ה-poster והווידאו באותן מידות — בלי קפיצת layout (6.12)', async ({ page }) => {
+test('הסרטון קבוע וממוסגר: poster, מושתק, בלי loop ובלי שכבה מעליו (6.3–6.4)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
-  const media = (await page.locator('#hero-media').boundingBox())!;
-  const video = (await page.locator('#hero-video').boundingBox())!;
-  expect(await page.locator('#hero-video').getAttribute('poster')).toContain('hero-poster');
-  expect(Math.abs(video.height - media.height), 'הווידאו ממלא את גובה האזור').toBeLessThanOrEqual(2);
+  const video = page.locator('#hero-video');
+  expect(await video.getAttribute('poster')).toContain('hero-poster');
+  expect(await video.getAttribute('loop'), 'בלי loop').toBeNull();
+  expect(await video.getAttribute('controls'), 'בלי controls — אין כפתורים על הסרטון').toBeNull();
+  expect(await video.evaluate((el: HTMLVideoElement) => el.muted), 'מושתק').toBe(true);
+  // שום שכבה אינה יושבת על הסרטון — הנקודה במרכזו שייכת ללוח עצמו
+  const vb = (await video.boundingBox())!;
+  const owner = await page.evaluate(
+    ([x, y]) => document.elementFromPoint(x, y)?.closest('.hero-clip') !== null,
+    [Math.round(vb.x + vb.width / 2), Math.round(vb.y + vb.height / 2)] as [number, number]
+  );
+  expect(owner, 'אין שכבה מעל הסרטון').toBe(true);
+  // ואינו חופף לאף כפתור פעולה
+  for (const btn of await page.locator('.hero-actions a').all()) {
+    const bb = (await btn.boundingBox())!;
+    const overlap =
+      vb.x < bb.x + bb.width && bb.x < vb.x + vb.width && vb.y < bb.y + bb.height && bb.y < vb.y + vb.height;
+    expect(overlap, 'הסרטון אינו מפריע לכפתורים').toBe(false);
+  }
 });
 
 test('רצועת WhatsApp בלי משפט ההסבר שנמחק (7.27)', async ({ page }) => {
@@ -182,8 +196,6 @@ test('כרטיס צוות: חץ אחד בעיגול בלי כיתוב, בלי כ
   const box = (await back.boundingBox())!;
   expect(box.height, 'גובה לחיץ ≥44px').toBeGreaterThanOrEqual(44);
   expect(Math.abs(box.width - box.height), 'עיגול — רוחב וגובה שווים').toBeLessThanOrEqual(2);
-  // כפתור "התחל" מוסתר כל עוד מוצג מורה יחיד
-  await expect(page.locator('.start-btn')).toBeHidden();
   await back.click();
   await expect(page).not.toHaveURL(/#tzevet-/);
   await expect(page.locator('[data-team-details]')).toBeHidden();
@@ -918,47 +930,38 @@ test('בלי Web Share — הלחיצה מורידה את תמונת הלוח כ
   await expect(page.locator('#vac-send-status')).toContainText('הורדה');
 });
 
-/* ===== בחירת החטיבה — כפתור "התחל" והמסך המחולק (הוראת יניב, 05/08/2026) ===== */
+/* ===== כפתורי הפעולה המובילים והמסך המחולק (הוראת יניב, 10/08/2026) ===== */
 
-test('העמוד הראשי: כפתור "התחל" יחיד מתחת לצוות, מוביל לעמוד בחירת החטיבה (7.28)', async ({ page }) => {
+test('העמוד הראשי: שלושה כפתורי פעולה מובילים — בלי כפתור "התחל" (7.28)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
 
-  const start = page.locator('a.start-btn');
-  await expect(start).toHaveCount(1);
-  // לפני שתמונת הפתיחה נעלמה — הכפתור אינו נראה (7.28)
-  await expect(start).toBeHidden();
-  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
-  await expect(start).toBeVisible();
-  await expect(start).toHaveText('התחל');
-  expect(await start.getAttribute('href')).toBe('/shearim/');
+  // כפתור "התחל" נמחק מהאתר; אין שרידים של הכניסות הישנות
+  await expect(page.locator('a.start-btn')).toHaveCount(0);
+  await expect(page.locator('.gate-card')).toHaveCount(0);
+  await expect(page.locator('.hodaot-pill')).toHaveCount(0);
 
-  // מטרת מגע גדולה ולחיצה אמיתית שמגיעה לעמוד השערים
-  const box = (await start.boundingBox())!;
-  expect(box.height, 'מטרת מגע תקינה').toBeGreaterThanOrEqual(44);
+  const actions = page.locator('.hero-actions a');
+  await expect(actions).toHaveCount(3);
+  const hrefs = await actions.evaluateAll((els) => els.map((el) => el.getAttribute('href')));
+  expect(hrefs).toEqual(['/chativat-beynayim/', '/chativa-elyona/', '/hodaot/']);
 
-  // הכפתור חי בתוך מסך הפתיחה — ונראה בלי לגלול בכלל (7.28)
-  const hero = (await page.locator('.hero-after').boundingBox())!;
-  expect(box.y).toBeGreaterThan(hero.y);
-  expect(box.y + box.height, 'נראה בלי גלילה').toBeLessThanOrEqual(900);
+  // גלויים מיד, בלי גלילה ובלי מנגנון חשיפה; מטרת מגע תקינה; גוונים שונים
+  const tones = new Set<string>();
+  for (const btn of await actions.all()) {
+    await expect(btn).toBeVisible();
+    await expect(btn).toBeInViewport();
+    const box = (await btn.boundingBox())!;
+    expect(box.height, 'מטרת מגע ≥44px').toBeGreaterThanOrEqual(44);
+    tones.add(await btn.evaluate((el) => getComputedStyle(el).backgroundImage));
+  }
+  expect(tones.size, 'כל כפתור בגוון משלו — צבעוניות אמיתית').toBe(3);
   expect(await page.evaluate(() => window.scrollY), 'בלי גלילה').toBe(0);
 
-  // מדליון עגול בהיקף זהב (7.28)
-  expect(Math.abs(box.width - box.height), 'עיגול מושלם').toBeLessThanOrEqual(1);
-  const ring = await start.evaluate((el) => {
-    const cs = getComputedStyle(el);
-    return { radius: cs.borderRadius, shadow: cs.boxShadow };
-  });
-  expect(ring.radius, 'עגול').toMatch(/50%|\d+px/);
-  expect(ring.shadow, 'טבעת זהב').not.toBe('none');
-  await expect(page.locator('.start-arrow')).toHaveCount(1);
-
-  // אין שרידים של שני כרטיסי השער הישנים בעמוד הראשי
-  await expect(page.locator('.gate-card')).toHaveCount(0);
-
-  await start.click();
-  await page.waitForURL('**/shearim/');
+  // לחיצה אמיתית מגיעה ליעד
+  await actions.first().click();
+  await page.waitForURL('**/chativat-beynayim/');
 });
 
 test('בחירת החטיבה: חצי-חצי — כהה עם מלל בהיר מול בהיר עם מלל כהה (05/08)', async ({ page }) => {
@@ -1084,32 +1087,29 @@ test('בחירת החטיבה: הריחוף באמת מרחיב, וקו הזהב
   expect(Math.abs(hovRule.x + hovRule.width / 2 - hov[0].x), 'הקו זז עם התפר').toBeLessThanOrEqual(2);
 });
 
-test('כפתור "התחל": נחשף רק אחרי תמונת הפתיחה, וממורכז מול תמונות הצוות (7.28)', async ({ page }) => {
+test('כפתורי הפעולה גלויים מיד וממורכזים מול תמונות הצוות (7.28)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
-  const btn = page.locator('a.start-btn');
-  await expect(btn).toBeHidden();
-
-  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
-  await expect(btn).toBeVisible();
+  const actions = page.locator('.hero-actions');
+  await expect(actions).toBeVisible();
   await page.waitForTimeout(1300);
 
-  const b = (await btn.boundingBox())!;
+  const b = (await actions.boundingBox())!;
   const photos = await page.locator('.hero-team .hero-avatar').all();
   const boxes = await Promise.all(photos.map((p) => p.boundingBox()));
   const left = Math.min(...boxes.map((x) => x!.x));
   const right = Math.max(...boxes.map((x) => x!.x + x!.width));
-  expect(Math.abs(b.x + b.width / 2 - (left + right) / 2), 'ממורכז מול התמונות').toBeLessThanOrEqual(4);
+  expect(Math.abs(b.x + b.width / 2 - (left + right) / 2), 'ממורכזים מול התמונות').toBeLessThanOrEqual(4);
 });
 
-test('תמונת הפתיחה פרוסה עד תחתית המסך (6.3)', async ({ page }) => {
+test('המסך הראשוני פרוס עד תחתית החלון (6.2)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
   await page.waitForTimeout(900);
-  const media = (await page.locator('#hero-media').boundingBox())!;
-  expect(Math.abs(media.y + media.height - 900), 'אין שטח ריק מתחת לתמונה').toBeLessThanOrEqual(3);
+  const hero = (await page.locator('.hero-after').boundingBox())!;
+  expect(hero.y + hero.height, 'אין שטח ריק מתחת למסך הראשוני').toBeGreaterThanOrEqual(897);
 });
 
 test('בחירת החטיבה: הצבע יורד עד רצועת הווטסאפ, כיתוב הכיתות וחץ עדין (7.29)', async ({ page }) => {
@@ -1178,8 +1178,6 @@ test('ניווט עליון: "ישראל ריאלית" במקום "הודעות"
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
-  // הניווט נחשף רק אחרי שתמונת הפתיחה נעלמה (6.3)
-  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
 
   const nav = page.locator('#site-header .nav-list');
   await expect(nav.getByRole('link', { name: 'הודעות' })).toHaveCount(0);
@@ -1261,27 +1259,26 @@ test('תחתית האתר: הפס הכחול סוגר גם עמוד בלי רצ�
   expect(Math.abs(nb.y + nb.height - 900), 'הפס הכחול סוגר את העמוד').toBeLessThanOrEqual(3);
 });
 
-test('פתיחה נקייה: אין כפתורי פעולה על המסך עד שהתמונה נעלמת (6.3, הוראת יניב 05/08)', async ({ page }) => {
+test('העמוד עולה מיד: ניווט, פס וכפתורים גלויים מהרגע הראשון (6.2, הוראת יניב 10/08)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => sessionStorage.setItem('ycc-splash', '1'));
   await page.goto('/');
-  await page.waitForTimeout(600);
 
-  // הניווט העליון, פס "מה צפוי?" וכפתור ההתחלה — כולם מוסתרים ולא ניתנים למיקוד
-  await expect(page.locator('.nav-list')).toBeHidden();
-  await expect(page.locator('.rail')).toBeHidden();
-  await expect(page.locator('a.start-btn')).toBeHidden();
-
-  // התמונה מכסה את כל השטח שמתחת לפס התאריך, עד תחתית המסך
-  const media = (await page.locator('#hero-media').boundingBox())!;
-  expect(media.width, 'לכל הרוחב').toBeGreaterThanOrEqual(1400);
-  expect(Math.abs(media.y + media.height - 900), 'עד תחתית המסך').toBeLessThanOrEqual(3);
-
-  // אחרי שהתמונה נעלמה — הכול נחשף
-  await page.evaluate(() => document.documentElement.classList.add('hero-done'));
+  // בלי שום מנגנון חשיפה — הכול נראה וניתן למיקוד מיד
   await expect(page.locator('.nav-list')).toBeVisible();
   await expect(page.locator('.rail')).toBeVisible();
-  await expect(page.locator('a.start-btn')).toBeVisible();
+  await expect(page.locator('.hero-actions')).toBeVisible();
+  await expect(page.locator('a.start-btn')).toHaveCount(0);
+
+  // המסך הראשוני מכסה את השטח שמתחת לפס התאריך עד תחתית המסך
+  const hero = (await page.locator('.hero-after').boundingBox())!;
+  expect(hero.width, 'לכל הרוחב').toBeGreaterThanOrEqual(1400);
+  expect(hero.y + hero.height, 'עד תחתית המסך לפחות').toBeGreaterThanOrEqual(897);
+
+  // ואין שום שריד של מנגנון ה-session הישן ב-HTML המוגש
+  const html = await (await page.request.get('/')).text();
+  expect(html).not.toContain('heroSeen');
+  expect(html).not.toContain('hero-seen');
 });
 
 /* ===== מערכת ההטמעות — חצי-חצי מדויק, גובה שווה ומסגרת משותפת (06/08/2026) ===== */
@@ -1688,18 +1685,12 @@ test('חוזר מפמ״ר: ניגודיות AA בכיתובים הקטנים ו�
   expect(bad, 'כל כיתוב עובר את סף הניגודיות הנדרש').toEqual([]);
 });
 
-/* ===== סרטון הפתיחה — פעם אחת בכל session של הטאב (6.2.1, 6.6) =====
-   מחליף את "רץ בכל כניסה" (06/08/2026): לאחר שנצפה, כל חזרה ל"ראשי" באותו
-   session מציגה מיד את מצב הצוות, בלי ניגון ובלי הבזק של הווידאו/ה-poster. */
+/* ===== הסרטון — לוח קבוע במסך הראשוני (6.2–6.4, הוראת יניב 10/08/2026) =====
+   מחליף את מנגנון "פעם אחת בכל session": אין sessionStorage, אין bootstrap
+   ואין הסתרת תוכן. הסרטון מתנגן מושתק פעם אחת בתוך הלוח הממוסגר.
 
-/* הבדיקות אינן מורידות ואינן מנגנות וידאו אמיתי: `play/pause/load` ממוקים
-   וסופרים קריאות, ובקשת ה-mp4 נחסמת. כך נבדק בדיוק מה שהחוזה דורש — **האם
-   נעשה ניסיון ניגון** — בלי תלות בפענוח מדיה, בלי הורדה, ובזמן קבוע.
-   שום assertion לא הוחלש: הדרישה "לא ינוגן" נמדדת ישירות במונה. */
-type HeroState = {
-  play: number; src: string; videoDisplay: string; ended: boolean;
-  done: boolean; seenClass: boolean; seenKey: string | null; afterOpacity: string;
-};
+   הבדיקות אינן מנגנות וידאו אמיתי: `play` ממוקק וסופר קריאות, ובקשת ה-mp4
+   נחסמת — כך נמדד בדיוק החוזה (ניסיון ניגון מושתק) בזמן קבוע. */
 
 const armHero = async (p: import('@playwright/test').Page) => {
   await p.addInitScript(() => {
@@ -1713,117 +1704,59 @@ const armHero = async (p: import('@playwright/test').Page) => {
     };
     proto.pause = function () {};
     proto.load = function () {};
+    // ‏canplay לא יגיע כשהרשת חסומה — מדמים מדיה מוכנה כדי שהניגון ינוסה מיד
+    Object.defineProperty(HTMLMediaElement.prototype, 'readyState', { get: () => 4 });
   });
   await p.route('**/media/hero-*.mp4', (route) => route.abort());
 };
 
-const heroState = (p: import('@playwright/test').Page): Promise<HeroState> =>
+const heroState = (p: import('@playwright/test').Page) =>
   p.evaluate(() => {
     const v = document.getElementById('hero-video') as HTMLVideoElement | null;
-    const m = document.getElementById('hero-media');
-    const after = m?.querySelector('.hero-after') as HTMLElement | null;
     return {
       play: (window as unknown as { __heroPlay?: number }).__heroPlay ?? 0,
       src: v ? v.getAttribute('src') || '' : '',
-      videoDisplay: v ? getComputedStyle(v).display : 'absent',
-      ended: !!m?.classList.contains('is-ended'),
-      done: document.documentElement.classList.contains('hero-done'),
-      seenClass: document.documentElement.classList.contains('hero-seen'),
-      seenKey: sessionStorage.getItem('jerusalem.heroSeen.v1'),
-      afterOpacity: after ? getComputedStyle(after).opacity : '0',
+      muted: v ? v.muted : false,
+      loop: v ? v.loop : true,
     };
   });
 
-const endHero = (p: import('@playwright/test').Page) =>
-  p.evaluate(() => document.getElementById('hero-video')!.dispatchEvent(new Event('ended')));
-
-test('סרטון הפתיחה: בכניסה ראשונה בטאב הוא רשאי לרוץ (6.2.1)', async ({ page }) => {
+test('הסרטון: מתנגן אוטומטית מושתק, פעם אחת, בלי loop (6.4)', async ({ page }) => {
   await armHero(page);
   await page.goto('/');
 
+  await expect.poll(async () => (await heroState(page)).play, { message: 'נעשה ניסיון ניגון' }).toBeGreaterThan(0);
   const s = await heroState(page);
-  expect(s.seenKey, 'טאב חדש — המפתח עדיין ריק').toBeNull();
   expect(s.src, 'נטען מקור וידאו אמיתי').toContain('/media/hero-');
-  expect(s.play, 'נעשה ניסיון ניגון').toBeGreaterThan(0);
+  expect(s.muted, 'מושתק').toBe(true);
+  expect(s.loop, 'בלי loop').toBe(false);
+
+  // סיום הניגון אינו מפעיל אותו מחדש — פעם אחת בלבד
+  const before = s.play;
+  await page.evaluate(() => document.getElementById('hero-video')!.dispatchEvent(new Event('ended')));
+  await page.waitForTimeout(400);
+  expect((await heroState(page)).play, 'אין ניגון נוסף אחרי הסיום').toBe(before);
 });
 
-test('סרטון הפתיחה: אחרי שנצפה, חזרה ל"ראשי" מציגה מיד את הצוות בלי ניגון (6.2.1)', async ({ page }) => {
+test('רגישי תנועה: poster נייח בלבד — בלי טעינת וידאו ובלי ניגון (6.4)', async ({ page }) => {
   await armHero(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  await endHero(page);
-  await expect.poll(async () => (await heroState(page)).seenKey, { message: 'הסיום נשמר' }).toBe('1');
-
-  // יוצאים לעמוד אחר וחוזרים ל"ראשי" — בדיוק התלונה של יניב
-  await page.goto('/shearim/');
-  await page.goto('/');
+  await page.waitForTimeout(400);
 
   const s = await heroState(page);
-  expect(s.seenClass, 'hero-seen נקבע ב-bootstrap שלפני ה-paint').toBe(true);
-  expect(s.done, 'hero-done מיידי').toBe(true);
-  expect(s.ended, 'מצב הצוות מיד').toBe(true);
-  expect(s.afterOpacity, 'הצוות גלוי מיד ובלי דהייה').toBe('1');
-  expect(s.src, 'לא נטען src — אין בקשת וידאו כלל').toBe('');
-  expect(s.videoDisplay, 'הווידאו אינו מוצג — אין הבזק poster').toBe('none');
-  expect(s.play, 'לא נעשה שום ניסיון ניגון').toBe(0);
+  expect(s.src, 'לא נטען src כלל').toBe('');
+  expect(s.play, 'אין ניסיון ניגון').toBe(0);
+  expect(await page.locator('#hero-video').getAttribute('poster')).toContain('hero-poster');
+  // והעמוד עדיין שלם: צוות וכפתורים גלויים מיד
+  await expect(page.locator('.hero-after h1')).toBeVisible();
+  await expect(page.locator('.hero-actions a')).toHaveCount(3);
 });
 
-test('סרטון הפתיחה: רענון באותו session אינו מפעיל אותו מחדש (6.2.1)', async ({ page }) => {
-  await armHero(page);
-  await page.goto('/');
-  await endHero(page);
-  await expect.poll(async () => (await heroState(page)).seenKey).toBe('1');
-
-  await page.reload();
-
-  const s = await heroState(page);
-  expect(s.seenClass, 'גם אחרי reload — מצב נצפה').toBe(true);
-  expect(s.ended).toBe(true);
-  expect(s.src, 'אין טעינת וידאו ברענון').toBe('');
-  expect(s.play, 'אין ניגון ברענון').toBe(0);
-});
-
-test('סרטון הפתיחה: bfcache/history back אינם מאפסים אותו (6.2.1)', async ({ page }) => {
-  await armHero(page);
-  await page.goto('/');
-  await endHero(page);
-  await expect.poll(async () => (await heroState(page)).seenKey, { message: 'הסיום נשמר' }).toBe('1');
-  const before = (await heroState(page)).play;
-
-  // מדמים שחזור מזיכרון הניווט
-  await page.evaluate(() =>
-    dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))
-  );
-
-  const after = await heroState(page);
-  expect(after.ended, 'מצב הסיום לא נוקה').toBe(true);
-  expect(after.done, 'hero-done לא הוסר').toBe(true);
-  expect(after.play, 'לא נעשה ניסיון ניגון נוסף').toBe(before);
-});
-
-test('סרטון הפתיחה: Browser Context חדש רשאי להציג אותו שוב (6.2.1)', async ({ page, browser }) => {
-  await armHero(page);
-  await page.goto('/');
-  const base = new URL(page.url()).origin;
-  await endHero(page);
-  await expect.poll(async () => (await heroState(page)).seenKey).toBe('1');
-
-  const ctx = await browser.newContext({ baseURL: base });
-  const fresh = await ctx.newPage();
-  await armHero(fresh);
-  await fresh.goto('/');
-
-  const s = await heroState(fresh);
-  expect(s.seenKey, 'session חדש — המפתח ריק').toBeNull();
-  expect(s.src, 'נטען מקור וידאו בטאב החדש').toContain('/media/hero-');
-  expect(s.play, 'רץ שוב בטאב חדש').toBeGreaterThan(0);
-  await ctx.close();
-});
-
-test('סרטון הפתיחה: ה-bootstrap יושב ב-head לפני הגוף — אין הבזק (6.2.1)', async ({ page }) => {
-  const res = await page.request.get('/');
-  const html = await res.text();
-  const boot = html.indexOf('jerusalem.heroSeen.v1');
-  const body = html.indexOf('<body');
-  expect(boot, 'ה-bootstrap קיים ב-HTML המוגש').toBeGreaterThan(-1);
-  expect(boot, 'ה-bootstrap קודם ל-<body> — כלומר רץ לפני ה-paint').toBeLessThan(body);
+test('אין מנגנון session: ה-HTML המוגש נקי מ-heroSeen ומ-bootstrap הסתרה (6.2)', async ({ page }) => {
+  const html = await (await page.request.get('/')).text();
+  expect(html).not.toContain('jerusalem.heroSeen.v1');
+  expect(html).not.toContain('hero-seen');
+  expect(html).not.toContain('hero-done');
+  expect(html).not.toContain('start-btn');
 });
