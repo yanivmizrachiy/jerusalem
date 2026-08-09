@@ -33,7 +33,8 @@ test.describe('תיקוני ניווט בעמודי השכבות', () => {
   });
 
   test('פירורי הלחם בעמוד משאב אינם מכפילים את אותו מסלול (5.13)', async ({ page }) => {
-    await page.goto('/chativat-beynayim/reader/z/noschaot-z/');
+    // דוגמה ציבורית בעלת ייחוס מאומת; noschaot-z נשמר במקור אך אינו פומבי עד אימות יוצר.
+    await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
 
     await expect(page.locator('.crumbs a[href="/chativat-beynayim/kita-z/"]')).toHaveCount(1);
   });
