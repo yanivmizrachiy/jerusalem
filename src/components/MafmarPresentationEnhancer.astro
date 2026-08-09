@@ -53,10 +53,18 @@
 
     if (!document.fullscreenEnabled && fullscreen) fullscreen.hidden = true;
 
-    fullscreen?.addEventListener(
+    // Intercept at the deck capture phase, before the base button handler can
+    // request fullscreen on the stage alone. This keeps controls in fullscreen.
+    deck.addEventListener(
       'click',
       async (event) => {
+        const target = event.target instanceof Element
+          ? event.target.closest<HTMLElement>('[data-deck-fullscreen]')
+          : null;
+        if (!target || !deck.contains(target)) return;
+
         event.preventDefault();
+        event.stopPropagation();
         event.stopImmediatePropagation();
         try {
           if (document.fullscreenElement) await document.exitFullscreen();
