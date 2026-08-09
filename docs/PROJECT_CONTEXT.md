@@ -1,252 +1,139 @@
 # PROJECT_CONTEXT — מפת העבודה של אתר מחוז ירושלים
 
-> מסמך הקשר תפעולי. הוא אינו מחליף את `RULES.md`, אינו מקור תוכן לפרודקשן ואינו אמור לשכפל את הקוד.
+> מסמך הקשר תפעולי בלבד. הוא אינו מחליף את `RULES.md`, אינו מקור תוכן לפרודקשן ואינו אמור לשכפל את הקוד.
 >
-> **אימות ארכיטקטוני אחרון:** 04/08/2026. בכל משימה יש לבדוק מחדש את `main`, את הקבצים הרלוונטיים ואת ה־CI.
+> **אימות ארכיטקטוני אחרון:** 09/08/2026. בכל משימה יש לבדוק מחדש את הענף הפעיל, את הקבצים הרלוונטיים ואת ה־CI.
 
-## 1. זהות ומקורות אמת
+## 1. מקורות אמת
 
 - ריפו: `yanivmizrachiy/jerusalem`.
 - ענף פרודקשן: `main`.
 - אתר חי: `https://jerusalem-virid.vercel.app`.
-- פריסה: Vercel מפריס אוטומטית מ־`main`.
 - דרישות מחייבות: `RULES.md`.
 - מבנה טכני ופקודות: `README.md`.
 - קוד ותוכן פעיל: `src/`, `public/`, `tests/`.
-- מסמכי ביקורת ושחזור: `RECOVERY/`.
+- מסמכי ביקורת ושחזור: `RECOVERY/` — אינם מקור דרישות פעיל.
 
-### סדר אמינות
-
-1. הוראה מפורשת ועדכנית של יניב במשימה הנוכחית.
-2. `RULES.md`.
-3. הקוד והבדיקות ב־`main`.
-4. `README.md`.
-5. מסמך זה.
-6. עותקי Drive, מסמכים היסטוריים או סיכומי שיחה.
+סדר אמינות: הוראה מפורשת ועדכנית של יניב → `RULES.md` → הקוד והבדיקות בענף הפעיל → `README.md` → מסמך זה → מקורות היסטוריים.
 
 ## 2. ארכיטקטורה בתמצית
 
-- Astro 7, אתר ברובו סטטי, RTL מלא בעברית.
-- אדפטר Vercel; שני מסלולי שרת בלבד משמשים כ־proxy להטמעות מאושרות.
-- TypeScript מוקלד לקובצי הנתונים.
-- עיצוב גלובלי ב־`src/styles/global.css` ורכיבי Astro מקומיים.
-- Playwright מול פלט הפקה אמיתי; בדיקות דסקטופ, מובייל, רספונסיביות, אינטראקציות ונגישות axe.
-- GitHub Actions מריץ התקנה דטרמיניסטית, typecheck, build ובדיקות.
+- Astro 7, RTL מלא בעברית, אדפטר Vercel.
+- האתר ברובו סטטי. מסלולי השרת המכוונים הם `/api/em/**` ו־`/api/mam/**` בלבד, לצורכי proxy מאושרים.
+- נתוני חטיבת הביניים מתחילים ב־`src/data/choveret.ts`; שכבת התצוגה הקנונית היא `src/data/canonical-content.ts`.
+- פרסום ציבורי עובר דרך `src/data/publishing.ts`; ייחוס דרך `authors.ts`, `author-assignments.ts` ו־`attribution.ts`.
+- מיתוג משאב מפורש בלבד נמצא ב־`src/data/resource-branding.ts`.
+- הודעות שוטפות נמצאות ב־`src/data/hodaot.ts`. `src/data/news.ts` הוסר ואין ליצור אותו מחדש.
+- חוזר מפמ״ר ומצגתו נגזרים מ־`src/data/mafmar.ts`.
+- redirects ישנים מנוהלים ממקור יחיד: `src/lib/legacyRedirects.mjs`.
+- עיצוב גלובלי: `src/styles/global.css`; מעטפת/SEO: `src/layouts/Base.astro`.
+- Playwright רץ על build אמיתי, בדסקטופ וב־Pixel 7, עם `retries=0`.
 
-## 3. מפת תיקיות
+## 3. מפת עריכה
 
-| נתיב | אחריות |
-| --- | --- |
-| `src/pages/` | מסלולי האתר והעמודים |
-| `src/pages/api/em/` | proxy לאתרי המשאבים המאושרים |
-| `src/pages/api/mam/` | proxy לאתר ההמחשות |
-| `src/components/` | רכיבי UI והתנהגות משותפת |
-| `src/data/` | מקורות התוכן הקנוניים והמוקלדים |
-| `src/layouts/Base.astro` | מעטפת, SEO, canonical, RTL, פונטים ומשאבים משותפים |
-| `src/lib/proxyGuard.ts` | allowlist והגנות זמן־ריצה של ההטמעות |
-| `src/styles/global.css` | מערכת העיצוב, טיפוגרפיה, צבעים, כפתורים ו־responsive בסיסי |
-| `public/` | מדיה, פונטים, מסמכי PDF מאומתים, robots ונכסים סטטיים |
-| `tests/` | חוזי הקבלה של האתר |
-| `.github/workflows/ci.yml` | שער האיכות האוטומטי |
-| `RECOVERY/` | תיעוד ביקורות ושחזור; לא מקור דרישות פעיל |
-
-## 4. מפת עריכה לפי בקשה
-
-| בקשה | מקור העריכה הראשון | בדיקות מיוחדות |
+| בקשה | מקור העריכה הראשון | חוזה מרכזי |
 | --- | --- | --- |
-| הוספת חדשה קצרה לעמוד הראשי | `src/data/news.ts` | סדר תאריכים, אמת התוכן, תצוגת NewsRail |
-| הוספת הודעה מלאה | `src/data/hodaot.ts` | קטגוריה, קישור, תאריך, כפילות עם `news.ts` |
-| שינוי צוות או פרטי קשר | `src/data/team.ts` | טלפון בינלאומי, WhatsApp, `mailto`, `tel`, תמונה ועוגן |
-| שינוי קבוצת WhatsApp או משאב קנוני | `src/data/resources.ts` | קישור ציבורי, embed/fallback, מסלול קנוני |
-| שינוי יחידת משוואות או חפיפה | `src/data/units.ts` | היחידות **מוזגות לנושא הקנוני** (`z-equations`, `h-congruent`) ב-`canonical-content.ts`; אין עמוד־יחידה ואין נגן. לבדוק: סוג משאב, `toEmbed`, קישור ציבורי, ושכל מזהה נשאר עמוד משימה חי |
-| הוספת משאב ציבורי חדש לחט״ב | `src/data/choveret.ts` + `src/data/author-assignments.ts` | **חובה ייחוס יוצר מאומת** לפי אחת מארבע הראיות (RULES 24.1.2); בלעדיו `tests/author-coverage.spec.ts` נכשל. אין להוסיף פטור ל-`attribution.ts` |
-| הוספה או שינוי של מסלול תאימות | `src/lib/legacyRedirects.mjs` | מקור יחיד — ממנו נגזרים ההפניה ב-`astro.config.mjs`, סינון ה-sitemap, חוזי הבדיקה ו-`verify-deploy`. אסור `Astro.redirect` בעמוד prerendered: הוא מפיק 200 עם meta-refresh ולא הפניה |
-| החזרת עמוד ציבורי לחטיבה העליונה | `src/drafts/chativa-elyona/` → `src/pages/chativa-elyona/` | הזזת הקובץ + הוצאת הכתובת מ-`LEGACY_REDIRECTS`; לעדכן `tests/product-contracts.spec.ts` ואת רשימת המסלולים ב-`site.spec.ts` |
-| שינוי תוכן הספר המדפדף | `src/data/choveret.ts` | תוכן עניינים, reader, embed, הורדה, שיתוף, דפדוף ומובייל |
-| שינוי חוזר מפמ״ר | `src/data/mafmar.ts` + `public/docs/` | מקור רשמי, מספר עמודים, טווחי MAF, hash ועותק מקומי |
-| שינוי כפתור "התחל" בעמוד הבית | `src/pages/index.astro` | קישור ל-`/shearim/`, מיקום מתחת לצוות, מטרת מגע, reduced motion |
-| שינוי המסך המחולק חצי-חצי | `src/pages/shearim/index.astro` | היפוך הצבעים בין החצאים, קו הזהב, ריחוף, ערימה בנייד, נגישות, ובלי פירורי לחם — הצבע נוגע בניווט העליון; `.back-home` בתחתית מוביל ל-`/` ואינו מכווץ את החצאים בריחוף (7.29) |
-| שינוי ניווט עליון | `src/components/SiteHeader.astro` | מצב פעיל, יעדי מגע, גלישה צרה וקישורי עוגן |
-| שינוי תחתית האתר | `src/components/SiteFooter.astro` | פס כחול־כהה יחיד שסוגר את המסך (7.24): בלי ניווט תחתון ובלי "חזרה לראש העמוד"; הירוק של הווטסאפ צמוד לו דרך `main:has(> .wa-band-wrap:last-child) + .site-footer` |
-| שינוי הפס העליון והתאריך | `src/components/DateBar.astro` | אזור זמן ירושלים, עברי/לועזי, reduced motion ומובייל |
-| שינוי סרטון הפתיחה | `src/components/HeroVideo.astro` + `public/media/` | desktop/mobile, poster, preload, משקל, autoplay ו־reduced motion. **מלכודת:** הסרטון רץ **פעם אחת בכל session של הטאב** (RULES 6.2.1, 6.6) — המפתח `jerusalem.heroSeen.v1` ב-`sessionStorage`. הסימון לפני ה-paint נעשה ב-bootstrap שב-`<head>` של `Base.astro` ומוסיף `html.hero-seen`; סקריפט בסוף הרכיב מאוחר מדי ויגרום להבזק. **אסור** ש-`pageshow` עם `persisted` יאפס `is-ended`/`hero-done`/`currentTime` כשהמפתח קיים — זה בדיוק הבאג שגרם לסרטון לחזור בכל לחיצה על "ראשי" |
-| שינוי עמוד שכבה | `src/components/GradeIndex.astro` | סרגל הקפיצה הדביק, כרטיסי הקבצים, מעבר בין שכבות, מקלדת ומטרות מגע |
-| שינוי עמוד משאב | `src/components/ResourceSplit.astro` | חלוקת המסך, הטמעה עצלה, לוח פעולות, קודם/הבא, נייד ו־reduced motion. **שתי מלכודות מדודות:** `.res-panel` חייב להישאר נמוך מ-`.res-view` (כל שורה נוספת של אורבים מוסיפה ~120px), ואסור להנפיש `translate`/`transform` על `.res-panel` או `.res-view` — זה מזיז את התיבה הנמדדת ושובר את "אותו קו עליון" גם ב-`/hozer-mafmar/`, שחולק את אותן מחלקות |
-| שינוי צבעים/טיפוגרפיה | `src/styles/global.css` | ניגודיות, focus, RTL, כל רוחבי המסך ורגרסיה גלובלית |
-| שינוי כותרת לוח השנה | `src/pages/luach.astro` + `public/media/art/calendar/` | הנכס המקורי מ-Lovable בלבד (RULES 23.14, hash מתועד); נגזרות מהמקור בלבד |
-| באנר שדורש תמונה מלאה | `ArtBanner` עם `fullImage` + `width`/`height` אמיתיים | יחס טבעי, בלי חיתוך תחתית, בלי Ken Burns (RULES 5.24) |
-| התנהגות חזרה מכרטיס צוות | `src/components/TeamSection.astro` | כפתור "חזרה לתצוגה הקודמת" משחזר hash וגלילה (RULES 6.5) |
-| הוספת לוגו סביבה למשאב | `src/data/resource-branding.ts` + `public/media/brands/` | מיפוי **לפי מזהה בלבד** (RULES 24.6) — לא לפי כותרת, שם קובץ או דומיין; הנכס נגזר מהמקור דרך `scripts/build-moodle-logo.mjs`; alt מחייב, יחס תמונה וגודל לא־דומיננטי. **מיתוג אינו ייחוס** ואינו מוציא משאב מהסגר |
-| שינוי SEO | `src/layouts/Base.astro`, `astro.config.mjs`, `public/robots.txt` | canonical, sitemap, metadata ו־Open Graph |
-| שינוי proxy | `src/lib/proxyGuard.ts` ומסלולי API | allowlist, headers, SSR, 502 והגבלת יעד |
+| הודעה/עדכון שוטף | `src/data/hodaot.ts` | תאריך, קטגוריה, קישור ואמת התוכן; אין `news.ts` מקביל |
+| צוות ופרטי קשר | `src/data/team.ts` | WhatsApp, `mailto`, `tel`, תמונה ועוגן |
+| משאב ציבורי חדש בחט״ב | `src/data/choveret.ts` + `src/data/author-assignments.ts` | יוצר מאומת חובה; ללא ראיה המשאב נשמר אך אינו ציבורי |
+| שינוי שיוך/פרסום | `src/data/attribution.ts`, `src/data/publishing.ts` | `ATTRIBUTION_PENDING` הוא quarantine, לא פטור ציבורי |
+| שינוי מיתוג משאב | `src/data/resource-branding.ts` | מיפוי לפי resource ID בלבד; מיתוג אינו ייחוס |
+| משוואות/חפיפה | `src/data/units.ts` + `canonical-content.ts` | מוזגות לנושאים `z-equations` / `h-congruent`; routes ישנים הם 301 |
+| מסלול תאימות | `src/lib/legacyRedirects.mjs` | מקור יחיד ל־redirect, sitemap, tests ו־verify-deploy |
+| חטיבה עליונה | `src/drafts/chativa-elyona/` | כרגע הציבור מתכנס ל־`/chativa-elyona/`; חומר עתידי נשמר מחוץ ל־pages |
+| חוזר מפמ״ר | `src/data/mafmar.ts` + `public/docs/` | מקור רשמי, טווחי MAF, עמודים, hash ועותק מקומי |
+| עמוד שכבה — חומרים | `src/components/GradeIndex.astro` | רשימת נושאים; מונים נגזרים מהקטלוג הקנוני ובניסוח פדגוגי, לא `משימות` גנרי |
+| עמוד משאב | `src/components/ResourceSplit.astro` | embed אמיתי/fallback, `ResourceActions`, attribution, RTL, mobile |
+| פעולות משאב / Mafmar | `src/components/ResourceActions.astro` | מימוש משותף יחיד; אין מערכת `.res-actions` מקבילה |
+| סרטון פתיחה | `src/components/HeroVideo.astro` + `public/media/hero-*` | נכסי hero קנוניים בלבד; אין לשמור renders חלופיים ללא consumer |
+| לוגו ModEL | `src/data/resource-branding.ts` + `public/media/brands/` | mapping מפורש; המקור שסיפק יניב בלבד; `moodle-guide`/`moodle-slides` מיוחסים ל״צוות מודל — משרד החינוך״ |
+| proxy | `src/lib/proxyGuard.ts`, `src/lib/proxyHttp.ts` | allowlist, redirect-origin validation, timeout, methods/headers בטוחים |
+| SEO | `Base.astro`, `astro.config.mjs`, `public/robots.txt` | canonical, sitemap, metadata ו־Open Graph |
 
-## 5. זרימות מידע מרכזיות
+## 4. חטיבת הביניים — חוזים פעילים
 
-### 5.1 פרסום — הצינור המחייב (הוקשח 05/08/2026)
+- שער חטיבת הביניים מציג שלושה שלישים לכיתות ז׳/ח׳/ט׳, ולאחריהם CTA אמיתי ל־`/chativat-beynayim/mivchanim/`.
+- `/chativat-beynayim/mivchanim/` הוא hub מבחנים אמיתי; אסור להפנות אותו לכיתה ח׳.
+- עמוד החומרים של שכבה מציג נושאים/אוספים. המונה של כל נושא נגזר מן המשאבים **הקנוניים והציבוריים** שלו ומשתמש ב־`resourceCountLabel()`.
+- נושא עם משאב ציבורי אחד עובר ישירות לעמוד המשאב; 2+ נשארים בעמוד נושא.
+- משאב ללא ייחוס יוצר מאומת נשמר בנתונים אך אינו נבנה כעמוד ציבורי ואינו נספר במונים.
+- Grade 9 היא חטיבת ביניים; חומר שמסומן כחטיבה עליונה אינו מוזרק אליה אוטומטית.
 
-```
-worktree מבודד מ-origin/main → PR → quality (CI) ירוק → squash merge →
-Vercel בונה מ-main → verify-production מוכיח שהקומיט חי → מחיקת הענף
-```
+## 5. הטמעות
 
-הכללים שנגזרים מזה:
+- `tzirim`: direct embed מאומת.
+- `misparim`, `zaviyot`: דרך proxy בגלל `X-Frame-Options: SAMEORIGIN` במקור.
+- Google Drive: source קנוני יכול להיות `/view`; iframe משתמש ב־`/preview` כשנבדק כבטוח.
+- Canva Sites ו־Google Sites: אין iframe שבור; fallback לפתיחה חיצונית כאשר framing חסום.
+- `src-game-h-7a1e51bbee6f`: layout רוחבי מפורש 16:9.
+- הצלחת iframe נקבעת רק מ־load אמיתי, לא מטיימר שמדמה הצלחה.
 
-- **`main` מוגן**: ‏`quality` הוא status check מחייב, היסטוריה ליניארית (squash בלבד), בלי force-push ובלי מחיקת ענף. ‏`enforce_admins=false` — ליניב נשארת דלת חירום.
-- **לעולם לא לעבוד בעץ המשותף** (`Desktop\jerusalem`) — סשנים מקבילים מזיזים בו את ה-HEAD בין פקודה לפקודה. ‏`git worktree add -b <ענף> <path> origin/main` מהצעד הראשון.
-- **אימות פריסה הוא הוכחה, לא הנחה**: `Base.astro` מזריק `<meta name="build-commit">` מ-`VERCEL_GIT_COMMIT_SHA`, ו-`scripts/verify-deploy.mjs` ממתין עד שהפרודקשן מגיש בדיוק את הקומיט שנמזג, ואז בודק 200 בכל המסלולים הקנוניים וסמנים מחייבים (מסך השלישים, סרגל הפרקים בעמוד שכבה, לוח הפעולות בעמוד משאב, כותרת הלוח, רצועת ה-WhatsApp). רץ אוטומטית ב-CI אחרי מיזוג, וידנית: `npm run verify:deploy`.
-- **לוקפייל**: ה-CI מריץ `npm i -g npm@11` לפני `npm ci` כדי להתאים לגרסה שמייצרת את הלוקפייל בסביבת העבודה; אחרת `npm ci` נכשל ב-EUSAGE.
-- ‏`gh` כאן איטי ולעיתים נתקע ב-TLS timeout — לאמת מיזוג דרך `gh pr view --json state`, ופריסה דרך `verify:deploy`, לא דרך fetch בודד.
+## 6. ייחוס ומיתוג
 
-### 5.2 תוכן
+- לכל משאב ציבורי בחט״ב חייב להיות creator מאומת — אדם או ארגון.
+- אין לנחש אדם מדומיין, filename, URL או כותרת.
+- `ATTRIBUTION_PENDING` היא רשימת quarantine שמותר לה רק להצטמצם; התקרה הנוכחית היא 66.
+- יוצר מוצג פעם אחת. אין טקסט גלוי `קרדיט:` / `קרדיטים:`.
+- משרד החינוך וארגונים דומים אינם מקבלים עמוד מחבר אישי.
+- ModEL: `moodle-guide` ו־`moodle-slides` מיוחסים לארגון **צוות מודל — משרד החינוך**. הלוגו ממופה לפי ID בלבד.
 
-קובצי `src/data/*.ts` הם המקור הקנוני. עמודים ורכיבים צורכים אותם. אין ליצור רשימה מקבילה בעמוד Astro כאשר כבר קיים מקור נתונים.
+## 7. חריגי שימור — לא למחוק כ״קוד מת״
 
-### 5.3 חטיבת הביניים — שלושת המסכים
+- `src/components/Booklet.astro` והתלות `page-flip`: אינם מוצגים באתר, אך נשמרים במכוון לפי RULES 4.14 עבור סטודיו החוברת הפרטי.
+- `src/drafts/chativa-elyona/`: תוכן עתידי שמור, אינו route ציבורי כרגע.
+- משאבי quarantine: נשמרים במקור גם כאשר אינם ציבוריים.
+- מקורות אמנות מאושרים ונכסי provenance שה־RULES דורש לשמור: אין למחוק בגלל zero runtime consumer בלבד.
+- `UnitPlaylist.astro`: עדיין בשימוש ב־`/pituach-miktzoi/ai-geometria/`.
 
-`src/data/choveret.ts` מגדיר שכבות, פרקים ופריטים; ממנו נגזרים שלושת המסכים, בלי רשימה מקבילה בשום עמוד. **החוברת המדפדפת הוסרה מזרימת האתר ב-05/08/2026** (הוראת יניב, RULES 3.26, 3.29). `Booklet.astro` והתלות `page-flip` **נשמרו בריפו במכוון ואין למחוק אותם** — הרכיב אינו מיובא בשום עמוד, ולכן אינו נבנה ואינו נשלח לגולשים, והוא קובץ היעד של סטודיו החוברת הפרטי (RULES 4.14). החזרת החוברת לאתר = ייבוא הרכיב מעמוד, ורק בהוראה מפורשת של יניב.
+## 8. שער איכות ופרסום
 
-**שער** — `chativat-beynayim/index.astro`: כותרת וחותמת עדכון, ואז `.split3` — שלושה `.third` שווי-רוחב לכיתות ז׳/ח׳/ט׳ בשפת `/shearim/` (נייבי מול נייר, קו זהב מפריד, חץ, ריחוף שמרחיב). מתחתיו `.klali-band` — רצועה אחת לעמוד "משותף לכל השכבות". הגובה נמדד ב-JS כדי שהצבע ימלא את שארית המסך; בנייד השלישים נערמים והמדידה כבויה.
-
-**עמוד שכבה** — `GradeIndex.astro` (משמש את `kita-z|kita-h|kita-t|klali`): כותרת, מניין אמיתי, סרגל `.chapter-bar` דביק (`top: var(--header-h) + 6px`) עם שבב לכל פרק, ואז מקטע `section.chapter#{id}` לכל פרק עם רשת `.rcard`. הכרטיס כולו קישור — `itemHref()` מחזיר `pageHref` אם קיים, אחרת עמוד המשאב. בתחתית מעבר לשכבה הקודמת/הבאה לפי סדר `choveret`.
-
-**עמוד משאב** — `ResourceSplit.astro` דרך `reader/[grade]/[item].astro`: הכתובות הקנוניות לא השתנו. **50/50 מדויק ומסגרת משותפת (06/08/2026):** `.res-split` הוא `repeat(2, minmax(0, 1fr))` — סטייה מרבית של פיקסל בין הצדדים, באותו גובה ובאותו קו עליון; ה-gap מ-`--embed-column-gap`. כל המסגרות (`res-frame`, `semb-frame`, `mam-frame`, `viewer-shell`, `mrange-shell`) נושאות את `.embed-frame` מ-`global.css` — **מסגרת נייבי-זהב אחת** (RULES 8.26, הוראת יניב 06/08/2026); אין CSS מסגרת מקומי, והצבע, הרדיוס, הריפוד והצל חיים בטוקני `--embed-*` בלבד. `UnitPlaylist` מקבל `block-size: var(--embed-workspace)` כדי שהרשימה תגלול בתוך גובה מוגבל. `.res-panel` קודם ב-DOM (כדי שה-`h1` יקדים את כותרות ההטמעה) ומוצב שמאלה ב-`order`, מול `.res-view` שבעמודה הראשונה — הימנית ב-RTL — בגריד `repeat(2, minmax(0, 1fr))` — 50/50 מדויק; בנייד עמודה אחת וההטמעה ראשונה. **גובה ההטמעה — עמוד שלם, לא התאמה לחלון (תוקן 06/08/2026):** מנגנון ה-`--fit` **אינו קיים עוד** — אין `--fit` בשום מקום ב-`src/`, ואין סקריפט מדידת גובה ב-`ResourceSplit`. הניסוח הקודם כאן תיאר מנגנון שהוסר, והוא מטעה במיוחד: הוא מרמז שהפאנל מוגבל בגובה וגולל בתוך עצמו, ולכן מסתיר את החוזה האמיתי שלמטה. בפועל גובה `.res-view` נגזר מסוג המשאב — `aspect-ratio: 1/1.414` למסמך/PDF/Drive (`min-block-size: 640px`, `max-block-size: 1180px`), `16/10` למצגת וחוברת דפדוף, ו-`--embed-full-height` לאתר חי. העמוד עצמו כן נגלל אנכית כדי להציג עמוד שלם, וזה מכוון: `tests/ux.spec.ts:421` מאמת רק שההטמעה נשארת גבוהה מ-420px. **`.res-panel` הוא `align-self: start` ו*חייב להישאר נמוך מ-`.res-view`*** (`tests/ux.spec.ts:976`, RULES 19.34, 8.2) — כל תוספת לצד המידע נמדדת מול גובה ההטמעה, ולכן שינוי בלוח הפעולות יכול להפיל את הבדיקה הזו. הפרופ `tall` נמחק מהרכיב; `SiteEmbed` שומר `tall` משלו — `ResourcePageShell` כן משתמש בו. פריט `maf` מוגש כ-`MafmarRange fill`. בנייד הכול חוזר לזרימה טבעית.
-
-**לוח הפעולות — אורבים (06/08/2026):** הפעולות בעמוד המשאב אינן `.res-actions`/`.btn` אלא `.orbs` ובתוכו `.orb` (עיגול צבעוני, טבעת זהב מסתובבת, הילה וכיתוב). הבדיקות מאתרות אותן לפי `.orbs` ולפי **היעד האמיתי** של כל פעולה — `a[href^="https://wa.me/"]`, `a[href^="mailto:"]`, `[data-copy]` — ולא לפי שם מחלקה, כדי שרענון עיצובי לא ישבור את חוזה הקבלה. המידות מכוונות כך שכל שבע הפעולות נכנסות לשורה אחת ברוחב הפאנל (543.5px מתוך 551px ב-1440): שורה שנייה מוסיפה ~120px לצד המידע ומפילה את חוזה הגובה שלמעלה. חשיפת הפאנל היא **עמעום בלבד** — `translate` על `.res-panel` מזיז את התיבה הנמדדת ושובר את "אותו קו עליון". **`/hozer-mafmar/` עדיין משתמש ב-`.res-actions` + `.btn`** — שתי משפחות כפתורים לאותו תפקיד; פתוח להכרעת יניב (RULES 5.1, 8.26). ההטמעה נטענת ב-IntersectionObserver עם `.res-skel` ורשת ביטחון של 8ש׳; `navigator.pdfViewerEnabled === false` מחליף אותה בכרטיס פתיחה (`[hidden]{display:none!important}` — הכרטיס לעולם לא מתחת להטמעה חיה). קודם/הבא נגזרים מ-`itemNeighbours()` לפי סדר הפרקים. פריט `maf` מוגש כ-`MafmarRange fill`.
-
-**מפריד בין השער להמחשות (05/08/2026):** `hr.section-rule` ב-`chativat-beynayim/index.astro` — קו `--navy` ברוחב מלא (`100vw` עם `margin-inline: calc(50% - 50vw)`), דוהה לשוליים, חוט זהב מתחתיו ומרווח `clamp(3rem, 7vw, 5.5rem)` משני צדדיו.
-
-### 5.4 יחידות הוראה
-
-`src/data/units.ts` מגדיר יחידות ומשאבים. `UnitPlaylist.astro` מטפל בבחירה, הטמעה, תוויות סוג וקישורי עומק. שינוי בזיהוי סוגי URL עלול להשפיע על כל המשאבים.
-
-**מלכודת (09/08/2026):** ‏`UnitPlaylist` **אינו** עוד חוזה פעיל למשוואות ולחפיפה. שתי היחידות נטמעו בנושא הקנוני (`z-equations`, `h-congruent`) דרך `legacyUnitItems` ב-`canonical-content.ts`, והכתובות הישנות הן הפניית 301 בלבד. הרכיב מוצג היום רק ב-`/pituach-miktzoi/ai-geometria/` — ושם נאכף חוזה הפריסה שלו ב-`tests/ux.spec.ts`.
-
-### 5.4.1 ייחוס יוצרים (RULES 24)
-
-`src/data/authors.ts` (ישויות), `src/data/author-assignments.ts` (שיוכים; מעל כל קבוצה כתובה הראיה שהפיקה אותה) ו-`src/data/attribution.ts` (הכלל ורשימת ההמתנה) הם מקור אמת אחד, בלי רשימה מקבילה. השער `tests/author-coverage.spec.ts` נכשל על משאב ציבורי בלי ייחוס ובלי סימון המתנה, ועל כל גדילה של רשימת ההמתנה (תקרה 68). **אין להוסיף שיוך בלי ראיה**, ואין להסיק **אדם** מדומיין או משם קובץ.
-
-### 5.4.2 החטיבה העליונה — התכנסות זמנית
-
-הכניסה הציבורית היא `/chativa-elyona/` בלבד. חמש הכתובות הפנימיות מפנות אליו ב-301 מ-`legacyRedirects.mjs`, וקובצי העמודים שמורים ב-`src/drafts/chativa-elyona/` (מחוץ ל-`src/pages/`, ולכן אינם נבנים). מקורות הנתונים — `mafmar.ts` ו-`hsUnit` — לא נגעו. ראו `src/drafts/README.md`.
-
-### 5.5 מקורות רשמיים ועותקים מקומיים
-
-קישור רשמי נשאר הקנוני לשיתוף ולפתיחה. כאשר מקור חיצוני איטי או אינו מתאים להטמעה, עותק מאומת ב־`public/docs/` משמש לצפייה same-origin. כל החלפת מקור דורשת אימות חזותי, מספר עמודים ותיעוד hash בהתאם ל־`RULES.md`.
-
-### 5.6 הטמעות proxy
-
-רק יעדים שנמצאים ב־allowlist עוברים דרך `/api/em` או `/api/mam`. אין להרחיב allowlist בלי בדיקת בעלות, תוכן, headers, אבטחה והתנהגות fallback.
-
-## 6. חוזי האיכות הקיימים
-
-- `tests/site.spec.ts`: מסלולים מרכזיים, HTTP 200, עברית, RTL, canonical, `main`, title, אפס גלילה אופקית ואפס שגיאות console מהותיות.
-- `tests/interactions.spec.ts`: תאריך, ספירה לאחור, MAF, נגן יחידה, צוות, WhatsApp, קישורי עומק והתנהגות ממשית.
-- `tests/responsive.spec.ts`: 360, 390, 768, 1280 ו־1920 פיקסלים; יעדי מגע והטמעות בתוך המסך.
-- `tests/a11y.spec.ts`: axe לפי WCAG 2.2 AA בעמודים מייצגים, ללא הפרות serious/critical.
-- `playwright.config.ts`: דסקטופ ו־Pixel 7 מול `.vercel/output/static`, עם trace בכישלון.
-
-### שער מינימלי לכל שינוי
+הפקודה הקנונית לפני merge משמעותי:
 
 ```bash
 npm ci
-npm run check
-npm run build
-npm test
+npm run quality
 ```
 
-לשינוי קטן אפשר להריץ תחילה בדיקה ממוקדת, אך לפני מיזוג משמעותי יש להריץ את השער המלא.
+`npm run quality` מריץ לפי הסדר:
 
-## 7. Google Drive — מדיניות שימוש
+1. `scripts/repo-health.mjs`
+2. `npm run check`
+3. `npm run build`
+4. Playwright עם `--retries=0`, דסקטופ + Pixel 7
 
-Drive משמש עבור:
+ה־CI משתמש ב־Node מתוך `.nvmrc` ובגרסת npm המוצמדת ב־`packageManager`. פגיעוּת Critical בתלויות production חוסמת; High מדווחת לפי החוזה הנוכחי.
 
-- תמונות מקור ונכסים באיכות מלאה.
-- סרטונים, טייקים וקובצי הפקה כבדים.
-- מסמכים פרטיים וחומרי עבודה.
-- חומרי משרד החינוך, Canva וקובצי מקור לפני אישור לפרסום.
+אחרי push ל־`main`, job `verify-production` מריץ `scripts/verify-deploy.mjs` ומחכה שהפרודקשן יגיש את ה־SHA שנמזג לפני בדיקות routes/proxies/redirects.
 
-Drive **אינו** מקור האמת של הקוד. קיימים בו עותקי סביבת עבודה הכוללים גם `.git`, `node_modules`, `.vercel`, `dist`, `.astro` ו־`test-results`; אין לסנכרן אותם חזרה לריפו.
+## 9. ניקיון ריפו
 
-לפני שימוש בנכס Drive:
+`scripts/repo-health.mjs` חוסם build output, קבצי temp/log, merge markers, secret-shaped values, path collisions ו־`hero-alt-*` יתומים. הוא גם מדווח על binary גדול מ־5MB לבדיקת consumer/סיבת שימור.
 
-1. אמת בעלות והרשאת פרסום.
-2. אמת שהקישור נגיש לקהל היעד ללא התחברות, כאשר הוא אמור להיות ציבורי.
-3. העתק לריפו רק נכס שאושר ונדרש לפרודקשן.
-4. בצע אופטימיזציה ושמור מידות ויחס מתאימים.
-5. אין לרשום במסמך ציבורי מזהי תיקיות פרטיות, מפתחות או פרטי גישה.
+בכל cleanup:
 
-## 8. סיכונים ידועים
+1. הוכח zero-consumer לפני מחיקה.
+2. הפרד בין **runtime consumer** לבין **חוזה שימור מפורש**.
+3. אל תמחק מקור נתונים רק מפני שהוא כרגע quarantined או draft.
+4. אל תשאיר source/provenance מיותר תחת `public/` אם הוא נדרש לריפו אך לא אמור להיות מוגש — העבר אותו לתיקיית מקור לא־ציבורית ועדכן את כלי הגזירה.
+5. אחרי מחיקה: `check` → `build` → tests ממוקדים → `quality` מלא.
 
-### תוכן וקישורים
+## 10. סיכונים ידועים
 
 - קישורי Drive, Canva, YouTube ואתרי ממשלה עלולים להשתנות או להיחסם.
-- `news.ts` ו־`hodaot.ts` מציגים רמות שונות של אותו תחום; יש להימנע מכפילות או סתירה.
-- אירועים ותאריכים הם מידע מתיישן ודורשים אימות מקור לפני פרסום.
+- עותקי PDF מקומיים עלולים לסטות מהמסמך הרשמי; שינוי עמודים יכול לשבור טווחי MAF.
+- iframe חיצוני יכול לשנות XFO/CSP; fallback חייב להישאר אמיתי.
+- סרטוני hero ו־PDF גדולים הם מוקדי משקל; נכס חדש דורש consumer ברור ואופטימיזציה.
+- הריפו ציבורי: אין credentials, כלי ניהול אישיים או חומרי Drive פרטיים.
+- מסמך זה עצמו יכול להתיישן; עדכון ארכיטקטוני צריך לשנות כאן רק את מפת העבודה הקבועה, לא להעתיק DOM/CSS או היסטוריית debugging.
 
-### מסמכים רשמיים
-
-- עותקים מקומיים עלולים לסטות מהמסמך החי של משרד החינוך.
-- שינוי במספר העמודים עלול לשבור את מפת MAF ואת קישורי העומק.
-
-### חוויית משתמש
-
-- `ResourceSplit.astro` מרכז הטמעה עצלה, לוח פעולות ומצבי fallback; שינוי רחב בו דורש בדיקות ידניות וממוכנות.
-- סרטוני hero וקובצי PDF הם נקודת משקל מרכזית; אין להחליף נכס ללא מדידה והשוואה.
-- iframe חיצוני יכול להיחסם על ידי CSP/X-Frame-Options; חייב להיות fallback אמיתי.
-
-### אבטחה ופרטיות
-
-- ה־proxy חייב להישאר allowlist קשיח.
-- הריפו ציבורי; אין להכניס מידע פרטי, credentials או קבצי Drive שאינם מיועדים לציבור.
-- **כלי ניהול אישיים אינם חיים בריפו הזה** (הוראת יניב, 05/08/2026): הסטודיו
-  הועבר לריפו הפרטי `yanivmizrachiy/jerusalem-booklet-studio`. הריפו הזה ציבורי,
-  ולכן קוד של כלי ניהול — זרימת התחברות, בדיקות הרשאה ולוגיקת כתיבה לריפו — נחשף
-  לכל. הסטודיו ממשיך לפרסם לאתר כרגיל (כותב ל-`src/components/Booklet.astro` דרך
-  GitHub API עם משתני סביבה ב-Vercel); רק מיקום הקוד השתנה. **קובץ היעד נשמר בריפו
-  ואין למחוק אותו** (RULES 4.14). בתיקייה
-  `workbook-studio/` נשאר דף הודעה בלבד, למקרה שפרויקט ה-Vercel עדיין מצביע לכאן.
-
-### תחזוקה
-
-- מסמך זה יכול להתיישן. בכל שינוי ארכיטקטוני יש לעדכן רק את הסעיף הרלוונטי ולא להעתיק קוד שלם לתוכו.
-
-## 9. פרוטוקול שינוי חכם
-
-1. סנכרן וקרא את `main` הנוכחי.
-2. קרא את סעיפי `RULES.md` הרלוונטיים.
-3. זהה מקור אמת יחיד וקבצים מושפעים.
-4. בדוק האם קיים נכס או מקור מאושר ב־Drive.
-5. נסח תוכנית קצרה, סיכונים וקריטריוני קבלה.
-6. צור ענף ממוקד.
-7. בצע שינוי קטן ככל האפשר.
-8. הרץ בדיקות ממוקדות ואז את שער האיכות הנדרש.
-9. בדוק diff, קישורים, RTL, נייד ונגישות.
-10. פתח PR עם תוצאות מדויקות.
-11. מזג רק אחרי CI ירוק ואימות Vercel.
-12. עדכן את `RULES.md`, `README.md` או מסמך זה רק כאשר תחום האחריות שלהם השתנה.
-
-## 10. מתי לעדכן כל מסמך
-
-| אירוע | מסמך |
-| --- | --- |
-| יניב קובע דרישה חדשה או משנה החלטה | `RULES.md` |
-| משתנה stack, פקודה או מבנה תיקיות | `README.md` |
-| משתנה מקור עריכה, זרימת מידע, סיכון או playbook | `docs/PROJECT_CONTEXT.md` |
-| נדרשת הנחיית bootstrap קצרה לקלוד | `CLAUDE.md` |
-| ביקורת חד־פעמית או שחזור | `RECOVERY/` |
-
-אין לעדכן מסמך רק כדי לתעד כל commit. יש לעדכן כאשר הידע הקבוע הדרוש לעבודה עתידית השתנה.
-
-## 11. בדיקת פתיחה מומלצת ל־Claude Code
-
-בתחילת סשן משמעותי:
+## 11. פתיחת סשן משמעותי
 
 ```bash
 git status --short --branch
 git fetch --prune
 git log -5 --oneline
-npm --version
 node --version
+npm --version
 ```
 
-לאחר מכן יש לקרוא את `CLAUDE.md`, `RULES.md`, `README.md`, מסמך זה והקבצים הספציפיים למשימה.
+לאחר מכן קרא את `RULES.md`, `README.md`, מסמך זה ואת הקבצים הספציפיים למשימה. אל תניח ש־PR, SHA, CI או deployment מהסשן הקודם עדיין עדכניים.
