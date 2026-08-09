@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/plan-prisa-extract.yml
       - scripts/extract-plan-prisa-content.py
+      - scripts/apply-plan-prisa-html.mjs
       - public/docs/plan-7-tashpaz.pdf
       - public/docs/prisa-7-tashpaz.pdf
       - public/docs/plan-8-tashpaz.pdf
@@ -30,14 +31,17 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Extract every plan/prisa PDF
         run: python3 scripts/extract-plan-prisa-content.py
-      - name: Commit generated content
+      - name: Apply fail-closed web-reader wiring
+        run: node scripts/apply-plan-prisa-html.mjs
+      - name: Commit generated content and wiring
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/plan-prisa-content.generated.ts
+          git add src/data/plan-prisa-content.generated.ts src/data/choveret.ts src/components/ResourceSplit.astro RULES.md
+          git diff --cached --check
           if git diff --cached --quiet; then
-            echo "Generated content is already current."
+            echo "Plan/prisa web reader is already current."
             exit 0
           fi
-          git commit -m "data(plan-prisa): extract complete Tashpaz PDF text"
+          git commit -m "feat(plan-prisa): replace PDF embeds with web reader"
           git push origin HEAD:feat/plan-prisa-html-20260810
