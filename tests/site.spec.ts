@@ -41,7 +41,8 @@ const routes = [
   '/chativat-beynayim/nose/z/tichnun/',
   '/chativat-beynayim/nose/h/hozer/',
   '/chativat-beynayim/nose/t/yahal4/',
-  '/chativat-beynayim/nose/z/noschaot/',
+  // נושא בלי אף משאב ציבורי אחרי quarantine אינו route חי; deep-review-regressions
+  // גוזר את כל המקרים האלה מהמודל הקנוני ודורש עבורם 404.
   // החטיבה העליונה מתכנסת לעמוד כניסה אחד; חמש הכתובות הפנימיות מפנות אליו
   // דרך LEGACY_REDIRECTS ולכן נאכפות בלולאת התאימות שלמטה, לא כאן.
   '/chativa-elyona/',
@@ -71,10 +72,6 @@ for (const route of routes) {
     await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
     await expect(page.locator('main')).toBeVisible();
 
-    // אפס גלילה אופקית (5.8, חוזה הרספונסיביות).
-    // המדידה נלקחת רק אחרי שהגופנים נטענו ואחרי פריים ציור אחד: גופן
-    // התצוגה מחליף מידות טקסט אחרי load, ומדידה מיידית נתנה כשל מהבהב
-    // (נמדד 09/08/2026 — retries=0 הופך הבהוב כזה לחסימת מיזוג אקראית).
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
     const overflow = await page.evaluate(
@@ -82,11 +79,6 @@ for (const route of routes) {
     );
     expect(overflow, 'גלילה אופקית אסורה').toBeLessThanOrEqual(1);
 
-    // אפס שגיאות console (4.5).
-    // מסוננות אך ורק תקלות של מקורות **חיצוניים**: ב-headless מקורות צד
-    // שלישי נחסמים, וזה בדיוק התרחיש שה-fallback שלנו מטפל בו (8.8).
-    // כשל טעינה של נכס משלנו (127.0.0.1) **אינו** מסונן — סינון גורף של
-    // "Failed to load resource" הסתיר עד היום גם 404 של נכס ראשוני.
     const isFirstParty = (e: string) => /127\.0\.0\.1|localhost/.test(e);
     const hard = errors.filter((e) => {
       if (e.includes(COMPUTE_PRESSURE_DENIED)) return false;
@@ -101,15 +93,6 @@ for (const route of routes) {
   });
 }
 
-/**
- * מסלולי התאימות (src/lib/legacyRedirects.mjs) הם היום הפניית HTTP אמיתית
- * שנפלטת לשכבת הניתוב של Vercel, ולא עמוד 200 עם meta-refresh.
- *
- * שרת הקבצים הסטטי של הסוללה אינו מכיר את שכבת הניתוב, ולכן ה-301 עצמו
- * מאומת מול הפרודקשן ב-scripts/verify-deploy.mjs. כאן נאכף מה שכן ניתן
- * להוכיח מקומית, ושתי הבדיקות האלה הן שתופסות נסיגה חזרה ל-meta-refresh:
- * שאין יותר עמוד תוכן בכתובת הישנה, ושהיעד עצמו חי ואמיתי.
- */
 for (const [legacy, target] of Object.entries(LEGACY_REDIRECTS)) {
   test(`מסלול תאימות אינו עמוד 200: ${legacy}`, async ({ page }) => {
     const res = await page.request.fetch(legacy, { redirect: 'manual' });
@@ -124,9 +107,6 @@ for (const [legacy, target] of Object.entries(LEGACY_REDIRECTS)) {
     expect(res?.status()).toBe(200);
     await expect(page.locator('h1')).toBeVisible();
 
-    // יעד שהוא עמוד נושא חייב להגיע עם התוכן עצמו, לא עם מעטפת ריקה:
-    // זו ההגנה שהגיעה מבדיקת ה-moved הישנה, שהוחלפה כאן (הכתובת הישנה
-    // כבר אינה עמוד עם meta-refresh אלא 301 אמיתי בשכבת הניתוב).
     if (target.includes('/nose/')) {
       await expect(page.locator('h1.chapter-title')).toBeVisible();
       expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);

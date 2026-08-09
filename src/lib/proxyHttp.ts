@@ -14,8 +14,9 @@
  * - **אין העברת סודות**: ‏cookie, ‏authorization ו-set-cookie לעולם אינם
  *   עוברים בשני הכיוונים. הגולש אינו מזוהה מול המקור, והמקור אינו יכול
  *   לשתול עוגייה על הדומיין שלנו.
- * - **גוף חסום בגודל**: גוף בקשה נקרא עד תקרה קשיחה ומעליה 413, כדי
- *   שהפונקציה לא תיפול על זיכרון.
+ * - **גוף חסום בגודל בזמן הקריאה**: ‏Content-Length גדול נדחה לפני buffering;
+ *   כשאין length אמין, ה-stream נקרא בהדרגה ונקטע מיד אחרי 1MiB. כך התקרה
+ *   מגינה באמת על זיכרון הפונקציה ולא נבדקת רק אחרי שכל הגוף כבר נטען.
  */
 
 /** הפעלים היחידים שהפרוקסי מעביר. כל השאר → 405. */
@@ -65,6 +66,58 @@ export class ProxyRequestError extends Error {
 const plain = (body: string, status: number) =>
   new Response(body, { status, headers: { 'content-type': 'text/plain; charset=utf-8' } });
 
+const tooLarge = () => new ProxyRequestError(plain('גוף הבקשה גדול מדי.', 413));
+
+/**
+ * קורא גוף בקשה עד תקרה קשיחה בלי לטעון קודם את כל ה-stream לזיכרון.
+ * גם `Content-Length` שקרי/חסר אינו עוקף את הגבול: הספירה האמיתית נעשית
+ * על ה-chunks שנקראו. מוחזר ArrayBuffer אמיתי כדי להתאים ל-BodyInit בכל
+ * סביבת TypeScript/Fetch הנתמכת, בלי להסתמך על טיפוס Uint8Array רחב יותר.
+ */
+async function readBoundedBody(request: Request): Promise<ArrayBuffer> {
+  const declared = request.headers.get('content-length');
+  if (declared) {
+    const declaredBytes = Number(declared);
+    if (Number.isFinite(declaredBytes) && declaredBytes > MAX_BODY_BYTES) {
+      throw tooLarge();
+    }
+  }
+
+  if (!request.body) return new ArrayBuffer(0);
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value?.byteLength) continue;
+
+      total += value.byteLength;
+      if (total > MAX_BODY_BYTES) {
+        await reader.cancel('proxy request body exceeds 1MiB');
+        throw tooLarge();
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const body = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  // `body` is freshly allocated above, therefore its backing buffer covers exactly
+  // the bytes we want to forward and is an ArrayBuffer (not SharedArrayBuffer).
+  return body.buffer as ArrayBuffer;
+}
+
 /**
  * בונה את ה-init של ה-fetch אל המקור מתוך הבקשה הנכנסת.
  * זורק ProxyRequestError עם תגובה מוכנה כאשר הבקשה נדחית.
@@ -99,10 +152,7 @@ export async function upstreamInit(request: Request, timeoutMs = 12_000): Promis
   };
 
   if (!BODYLESS.has(method)) {
-    const raw = await request.arrayBuffer();
-    if (raw.byteLength > MAX_BODY_BYTES) {
-      throw new ProxyRequestError(plain('גוף הבקשה גדול מדי.', 413));
-    }
+    const raw = await readBoundedBody(request);
     if (raw.byteLength > 0) {
       init.body = raw;
       const ct = request.headers.get('content-type');
