@@ -39,7 +39,11 @@ export const authors: AuthorRecord[] = [
     id: 'national-primary-teachers-center',
     slug: 'national-primary-teachers-center',
     name: 'מרכז המורים הארצי למתמטיקה בחינוך היסודי באוניברסיטת חיפה',
-    aliases: ['מרכז ארצי למורים יסודי', 'מרכז המורים הארצי למתמטיקה בחינוך היסודי'],
+    aliases: [
+      'מרכז מורים ארצי ליסודי',
+      'מרכז ארצי למורים יסודי',
+      'מרכז המורים הארצי למתמטיקה בחינוך היסודי',
+    ],
     kind: 'organization',
     pageEligible: false,
   },
@@ -52,9 +56,6 @@ export const authors: AuthorRecord[] = [
     pageEligible: false,
   },
   {
-    // אומת ישירות על ידי בעל הפרויקט עבור moodle-guide / moodle-slides.
-    // נשמר בדיוק כפי שנמסר; אין להרחיב alias כללי ל"צוות המודל" בלי ראיה
-    // שמדובר באותה ישות שמופיעה בקרדיטים אחרים בקטלוג.
     id: 'model-team',
     slug: 'tzevet-model',
     name: 'צוות מודל — משרד החינוך',
@@ -92,8 +93,6 @@ export const authors: AuthorRecord[] = [
     pageEligible: false,
   },
   {
-    // הקרדיט במסמך המקור הוא "צוות המודל". לא מוסיפים "חטיבת הביניים"
-    // ולא מאחדים עם model-team עד שתהיה ראיה מפורשת שמדובר באותה ישות.
     id: 'model-team-middle-school',
     slug: 'model-team-middle-school',
     name: 'צוות המודל',
@@ -102,8 +101,6 @@ export const authors: AuthorRecord[] = [
     pageEligible: false,
   },
   {
-    // ברשומות המקור הקרדיט הוא "צוות ההדרכה הארצי". אין להרחיב את השם
-    // ל"במתמטיקה — חטיבת הביניים" בלי מקור שמנסח זאת כך במפורש.
     id: 'national-math-guidance-team',
     slug: 'national-math-guidance-team',
     name: 'צוות ההדרכה הארצי',
