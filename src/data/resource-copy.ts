@@ -6,6 +6,11 @@ export interface ResourceCopyInput {
 }
 
 const collapseSpace = (value: string) => value.replace(/\s+/g, ' ').trim();
+const trimSeparators = (value: string) =>
+  collapseSpace(value)
+    .replace(/^[,;·|—–\-\s]+/u, '')
+    .replace(/[,;·|—–\-\s]+$/u, '')
+    .trim();
 
 /**
  * כותרות מקור ידועות שבהן החילוץ חיבר כמה תאי טבלה/metadata לכותרת אחת.
@@ -45,23 +50,27 @@ export function visibleResourceTitle(item: ResourceCopyInput): string {
 
 /**
  * מקור מוצג רק בדף המידע. כאשר היוצר כבר מוצג בייחוס הקנוני, מסירים
- * מהמחרוזת רק מקטע מקור שזהה לשם/כינוי שלו; מידע מקור אחר נשמר.
+ * מתוך מקטע המקור רק את שם/כינוי היוצר שכבר מוצג. כך לדוגמה
+ * `למידה זה שם המשחק-בתיה מירזאיב` נשאר `למידה זה שם המשחק`, ולא
+ * משכפל את שם המחברת ולא מוחק את שם המיזם.
  */
 export function visibleResourceSource(item: ResourceCopyInput, creatorAliases: readonly string[] = []): string {
   const source = collapseSpace(item.source ?? '');
   if (!source) return '';
 
-  const aliases = new Set(creatorAliases.map(collapseSpace).filter(Boolean));
-  if (aliases.size === 0) return source;
+  const aliases = [...new Set(creatorAliases.map(collapseSpace).filter(Boolean))]
+    .sort((a, b) => b.length - a.length);
+  if (aliases.length === 0) return source;
 
   const parts = source
     .split(/\s*[·|]\s*/u)
-    .map(collapseSpace)
-    .filter(Boolean)
-    .filter((part) => {
-      const withoutCredit = collapseSpace(part.replace(/^קרדיט(?:ים)?\s*:\s*/u, ''));
-      return !aliases.has(part) && !aliases.has(withoutCredit);
-    });
+    .map((part) => collapseSpace(part.replace(/^קרדיט(?:ים)?\s*:\s*/u, '')))
+    .map((part) => {
+      let cleaned = part;
+      for (const alias of aliases) cleaned = cleaned.split(alias).join(' ');
+      return trimSeparators(cleaned);
+    })
+    .filter(Boolean);
 
-  return parts.join(' · ');
+  return [...new Set(parts)].join(' · ');
 }
