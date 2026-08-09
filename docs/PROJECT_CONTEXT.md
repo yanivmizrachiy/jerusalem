@@ -58,7 +58,10 @@
 | הוספת הודעה מלאה | `src/data/hodaot.ts` | קטגוריה, קישור, תאריך, כפילות עם `news.ts` |
 | שינוי צוות או פרטי קשר | `src/data/team.ts` | טלפון בינלאומי, WhatsApp, `mailto`, `tel`, תמונה ועוגן |
 | שינוי קבוצת WhatsApp או משאב קנוני | `src/data/resources.ts` | קישור ציבורי, embed/fallback, מסלול קנוני |
-| שינוי יחידת משוואות או חפיפה | `src/data/units.ts` | סוג משאב, `toEmbed`, קישור ציבורי, נגן יחידה וקישור עומק |
+| שינוי יחידת משוואות או חפיפה | `src/data/units.ts` | היחידות **מוזגות לנושא הקנוני** (`z-equations`, `h-congruent`) ב-`canonical-content.ts`; אין עמוד־יחידה ואין נגן. לבדוק: סוג משאב, `toEmbed`, קישור ציבורי, ושכל מזהה נשאר עמוד משימה חי |
+| הוספת משאב ציבורי חדש לחט״ב | `src/data/choveret.ts` + `src/data/author-assignments.ts` | **חובה ייחוס יוצר מאומת** לפי אחת מארבע הראיות (RULES 24.1.2); בלעדיו `tests/author-coverage.spec.ts` נכשל. אין להוסיף פטור ל-`attribution.ts` |
+| הוספה או שינוי של מסלול תאימות | `src/lib/legacyRedirects.mjs` | מקור יחיד — ממנו נגזרים ההפניה ב-`astro.config.mjs`, סינון ה-sitemap, חוזי הבדיקה ו-`verify-deploy`. אסור `Astro.redirect` בעמוד prerendered: הוא מפיק 200 עם meta-refresh ולא הפניה |
+| החזרת עמוד ציבורי לחטיבה העליונה | `src/drafts/chativa-elyona/` → `src/pages/chativa-elyona/` | הזזת הקובץ + הוצאת הכתובת מ-`LEGACY_REDIRECTS`; לעדכן `tests/product-contracts.spec.ts` ואת רשימת המסלולים ב-`site.spec.ts` |
 | שינוי תוכן הספר המדפדף | `src/data/choveret.ts` | תוכן עניינים, reader, embed, הורדה, שיתוף, דפדוף ומובייל |
 | שינוי חוזר מפמ״ר | `src/data/mafmar.ts` + `public/docs/` | מקור רשמי, מספר עמודים, טווחי MAF, hash ועותק מקומי |
 | שינוי כפתור "התחל" בעמוד הבית | `src/pages/index.astro` | קישור ל-`/shearim/`, מיקום מתחת לצוות, מטרת מגע, reduced motion |
@@ -114,6 +117,16 @@ Vercel בונה מ-main → verify-production מוכיח שהקומיט חי →
 ### 5.4 יחידות הוראה
 
 `src/data/units.ts` מגדיר יחידות ומשאבים. `UnitPlaylist.astro` מטפל בבחירה, הטמעה, תוויות סוג וקישורי עומק. שינוי בזיהוי סוגי URL עלול להשפיע על כל המשאבים.
+
+**מלכודת (09/08/2026):** ‏`UnitPlaylist` **אינו** עוד חוזה פעיל למשוואות ולחפיפה. שתי היחידות נטמעו בנושא הקנוני (`z-equations`, `h-congruent`) דרך `legacyUnitItems` ב-`canonical-content.ts`, והכתובות הישנות הן הפניית 301 בלבד. הרכיב מוצג היום רק ב-`/pituach-miktzoi/ai-geometria/` — ושם נאכף חוזה הפריסה שלו ב-`tests/ux.spec.ts`.
+
+### 5.4.1 ייחוס יוצרים (RULES 24)
+
+`src/data/authors.ts` (ישויות), `src/data/author-assignments.ts` (שיוכים; מעל כל קבוצה כתובה הראיה שהפיקה אותה) ו-`src/data/attribution.ts` (הכלל ורשימת ההמתנה) הם מקור אמת אחד, בלי רשימה מקבילה. השער `tests/author-coverage.spec.ts` נכשל על משאב ציבורי בלי ייחוס ובלי סימון המתנה, ועל כל גדילה של רשימת ההמתנה (תקרה 68). **אין להוסיף שיוך בלי ראיה**, ואין להסיק **אדם** מדומיין או משם קובץ.
+
+### 5.4.2 החטיבה העליונה — התכנסות זמנית
+
+הכניסה הציבורית היא `/chativa-elyona/` בלבד. חמש הכתובות הפנימיות מפנות אליו ב-301 מ-`legacyRedirects.mjs`, וקובצי העמודים שמורים ב-`src/drafts/chativa-elyona/` (מחוץ ל-`src/pages/`, ולכן אינם נבנים). מקורות הנתונים — `mafmar.ts` ו-`hsUnit` — לא נגעו. ראו `src/drafts/README.md`.
 
 ### 5.5 מקורות רשמיים ועותקים מקומיים
 

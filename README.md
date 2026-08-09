@@ -38,11 +38,15 @@ src/
   pages/api/   פרוקסי em/ ו-mam/ להטמעת האתרים הקנוניים (allowlist קשיח בלבד)
   components/  GradeIndex, ResourceSplit, SplashIntro, SiteHeader/Footer, HeroVideo, DateBar ועוד
                (Booklet.astro שמור ואינו מיובא בשום עמוד — RULES 4.14; אין למחוק)
-  data/        התוכן כ-TypeScript מוקלד: משאבים, צוות, שכבות חט״ב, יחידות, הודעות
+  data/        התוכן כ-TypeScript מוקלד: משאבים, צוות, שכבות חט״ב, יחידות, הודעות,
+               ייחוס יוצרים (authors, author-assignments, attribution — RULES 24)
+  drafts/      תוכן שמור שאינו מסלול ציבורי (עמודי החטיבה העליונה); ראו src/drafts/README.md
   layouts/     Base.astro — SEO, canonical, פונטים, RTL
   lib/         proxyGuard — משמר זמן-הריצה של ההטמעות
+               legacyRedirects — מקור יחיד למסלולי התאימות (301 אמיתי, RULES 24.3)
 scripts/       שערי quality, repo-health ואימות פרודקשן
-tests/         סוללת הקבלה: site, ux, interactions, responsive, a11y,
+tests/         סוללת הקבלה: site, ux, interactions, responsive, a11y, product-contracts,
+               author-coverage וחוזי הייחוס, catalog/resource contracts,
                embed-production-guards, grade-navigation-regression
 public/        מדיה, מסמכי PDF קנוניים, פונטים, robots.txt
 RULES.md       חוקת הפרויקט — כל הדרישות הממוספרות; מחייבת כל שינוי
