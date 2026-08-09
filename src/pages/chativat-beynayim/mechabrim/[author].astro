@@ -5,6 +5,7 @@ import { authorsForResource, type AuthorRecord } from '../../../data/authors';
 import { canonicalReaderItems } from '../../../data/canonical-content';
 import { itemHref, gradeLabel, type ChoveretChapter, type ChoveretGrade, type ChoveretItem } from '../../../data/choveret';
 import { resourceDisplayLabel } from '../../../data/resource-labels';
+import { visibleResourceNote, visibleResourceTitle } from '../../../data/resource-copy';
 
 interface AuthorEntry {
   grade: ChoveretGrade;
@@ -64,7 +65,7 @@ const gradeGroups = ['z', 'h', 't']
   title={`${author.name} — חומרי הוראה — מחוז ירושלים`}
   description={`כל חומרי ההוראה של ${author.name} באתר, מסודרים לפי שכבה ונושא.`}
 >
-  <main class="container author-page">
+  <div class="container author-page">
     <Breadcrumbs
       items={[
         { label: 'ראשי', href: '/' },
@@ -93,13 +94,17 @@ const gradeGroups = ['z', 'h', 't']
               <section class="topic-group">
                 <h3>{chapter.title}</h3>
                 <div class="resource-grid">
-                  {chapterEntries.map(({ item }) => (
-                    <a href={itemHref(grade.slug, item)}>
-                      <span class="type-pill">{resourceDisplayLabel(item)}</span>
-                      <strong>{item.title}</strong>
-                      {item.note && <span>{item.note}</span>}
-                    </a>
-                  ))}
+                  {chapterEntries.map(({ item }) => {
+                    const title = visibleResourceTitle(item);
+                    const note = visibleResourceNote(item);
+                    return (
+                      <a href={itemHref(grade.slug, item)}>
+                        <span class="type-pill">{resourceDisplayLabel(item)}</span>
+                        <strong>{title}</strong>
+                        {note && <span>{note}</span>}
+                      </a>
+                    );
+                  })}
                 </div>
               </section>
             ))}
@@ -107,7 +112,7 @@ const gradeGroups = ['z', 'h', 't']
         </section>
       ))}
     </div>
-  </main>
+  </div>
 </Base>
 
 <style>
