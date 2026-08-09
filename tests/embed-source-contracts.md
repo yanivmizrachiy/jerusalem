@@ -1,0 +1,1 @@
+This branch adds a focused regression contract in `tests/embed-source-contracts.spec.ts`: the coordinate-system primary resource must retain the exact runtime-verified direct embed source, while unknown resource IDs must not gain an inferred iframe source.
