@@ -6,10 +6,22 @@ import { resourceCountLabel } from '../../../../data/resource-labels';
 import { canonicalGrade } from '../../../../data/canonical-content';
 // `itemHref` נראה ל-astro-check כבלתי בשימוש (רמז ts6133) אך הוא בשימוש
 // בהפניה של נושא בעל משאב יחיד שלמטה — אין להסירו.
-import { chapterPaths, gradeBySlug, itemHref } from '../../../../data/choveret';
+import { chapterPaths, gradeBySlug, gradeMaterialsHref, itemHref } from '../../../../data/choveret';
+
+/**
+ * נושא בלי אף משאב ציבורי אינו route ציבורי. נתוני המקור נשמרים בקטלוג,
+ * אבל quarantine אינו אמור לייצר עמוד 200 ריק או כתובת sitemap ריקה.
+ * נושאי materials=false נשמרים כאן כי הם מסלולי תאימות שמפנים ליעד שלהם.
+ */
+const publishableChapterPaths = chapterPaths.filter(({ grade, chapter }) => {
+  const canonical = canonicalGrade(grade).chapters.find((candidate) => candidate.id === chapter.id);
+  if (!canonical) return false;
+  if (canonical.materials === false) return true;
+  return publishableItems(canonical.items).length > 0;
+});
 
 export function getStaticPaths() {
-  return chapterPaths.map(({ grade, chapter }) => ({
+  return publishableChapterPaths.map(({ grade, chapter }) => ({
     params: { grade: grade.slug, chapter: chapter.id },
     props: { gradeSlug: grade.slug, chapterId: chapter.id },
   }));
@@ -21,10 +33,16 @@ const grade = canonicalGrade(sourceGrade);
 const chapter = grade.chapters.find((c) => c.id === chapterId)!;
 
 if (chapter.materials === false) {
-  return Astro.redirect(chapter.redirectHref ?? `/chativat-beynayim/kita-${grade.slug}/chomarim/`, 301);
+  return Astro.redirect(chapter.redirectHref ?? gradeMaterialsHref(grade.slug), 301);
 }
 
 const publicItems = publishableItems(chapter.items);
+
+// הגנת עומק למקרה שהמסלול נפתר בסביבת dev/SSR שלא משתמשת ברשימת ה-SSG
+// בדיוק כמו build: אין עמוד נושא ציבורי ריק.
+if (publicItems.length === 0) {
+  return Astro.redirect(gradeMaterialsHref(grade.slug), 301);
+}
 
 if (publicItems.length === 1) {
   return Astro.redirect(itemHref(grade.slug, publicItems[0]), 301);
