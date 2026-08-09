@@ -389,8 +389,24 @@ test('האוספים הגדולים מוצגים בכל שכבה, ותנופה �
 
   await page.goto('/chativat-beynayim/kita-t/chomarim/');
   await expect(page.locator('.topics')).not.toContainText('הכנה ל־4 יח״ל');
-  const transition = await page.request.get('/chativat-beynayim/maavar-4-yahal/');
-  expect(transition.status()).toBe(200);
+
+  // הקביעה נשארת בדיוק כשהייתה — 200 ותו לא. מה שמנוסה שוב הוא **התעבורה**
+  // ולא התוצאה: שרת הקבצים הסטטי של הסוללה החזיר ECONNRESET תחת עומד ריצה
+  // מקבילה ב-CI (נמדד 09/08/2026), וזו תקלת חיבור ולא רגרסיית מוצר. ‏404
+  // אמיתי היה ממשיך לחזור 404 עד סוף הפולינג והבדיקה הייתה נכשלת — ולכן
+  // זה אינו retry שמסתיר כשל (RULES 24.2.1).
+  await expect
+    .poll(
+      async () => {
+        try {
+          return (await page.request.get('/chativat-beynayim/maavar-4-yahal/')).status();
+        } catch {
+          return 0;
+        }
+      },
+      { timeout: 15_000, message: 'עמוד המעבר ל-4 יח״ל חייב להיות חי' }
+    )
+    .toBe(200);
 });
 
 test('כל משימה בכל נושא בכל שכבה מובילה לעמוד משימה מחולק (3.30)', async ({ page }) => {
