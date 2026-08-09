@@ -38,17 +38,31 @@ try {
   if (!expected.data.equals(rebuilt.data)) {
     let changedPixels = 0;
     let maxChannelDelta = 0;
+    const samples = [];
     for (let i = 0; i < expected.data.length; i += expected.channels) {
       let pixelChanged = false;
+      let pixelMaxDelta = 0;
       for (let channel = 0; channel < expected.channels; channel += 1) {
         const delta = Math.abs(expected.data[i + channel] - rebuilt.data[i + channel]);
         if (delta) pixelChanged = true;
+        if (delta > pixelMaxDelta) pixelMaxDelta = delta;
         if (delta > maxChannelDelta) maxChannelDelta = delta;
       }
-      if (pixelChanged) changedPixels += 1;
+      if (!pixelChanged) continue;
+      changedPixels += 1;
+      if (samples.length < 8) {
+        const pixel = i / expected.channels;
+        const x = pixel % expected.width;
+        const y = Math.floor(pixel / expected.width);
+        samples.push(
+          `(${x},${y}) repo=[${[...expected.data.subarray(i, i + expected.channels)].join(',')}] ` +
+            `rebuilt=[${[...rebuilt.data.subarray(i, i + rebuilt.channels)].join(',')}] Δmax=${pixelMaxDelta}`
+        );
+      }
     }
     throw new Error(
-      `ModEL logo rebuild changed visual pixels: ${changedPixels} pixels differ, max channel delta=${maxChannelDelta}.`
+      `ModEL logo rebuild changed visual pixels: ${changedPixels} pixels differ, max channel delta=${maxChannelDelta}.` +
+        `\nSamples:\n${samples.join('\n')}`
     );
   }
 
