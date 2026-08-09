@@ -192,15 +192,19 @@ test('G: דמיון בכתובת או בדומיין אינו מקנה מיתו�
 });
 
 test('משאבים ציבוריים אחרים אינם מציגים את הלוגו', async ({ page }) => {
+  // דגימה מכוונת מארבע משפחות הטמעה: PDF רשמי, אתר חי, Google Doc ו-Heyzine.
   const samples = [
     { grade: 'z', id: 'tochnit-z' },
     { grade: 'z', id: 'misparim' },
-    { grade: 't', id: 'ruach-tochnit' },
+    { grade: 't', id: 'src-curriculum-124e4cb32286' },
     { grade: 'h', id: 'kavit-flip' },
   ];
 
   for (const { grade, id } of samples) {
+    // דגימה שנכנסה ל-quarantine אינה עמוד ציבורי — הבדיקה הייתה עוברת על 404 ריק.
+    expect(isAttributionPending(id), `${id}: הדגימה חייבת להיות משאב ציבורי`).toBe(false);
     await page.goto(readerHref(grade, id));
+    await expect(page.locator('.res-panel'), `${id}: עמוד המשאב באמת קיים`).toBeVisible();
     await expect(page.locator('[data-resource-brand]'), `${id}: בלי לוגו מיתוג`).toHaveCount(0);
   }
 });

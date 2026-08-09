@@ -38,8 +38,12 @@ export const authors: AuthorRecord[] = [
   {
     id: 'national-primary-teachers-center',
     slug: 'national-primary-teachers-center',
-    name: 'מרכז ארצי למורים יסודי',
-    aliases: ['מרכז ארצי למורים יסודי'],
+    name: 'מרכז המורים הארצי למתמטיקה בחינוך היסודי באוניברסיטת חיפה',
+    aliases: [
+      'מרכז מורים ארצי ליסודי',
+      'מרכז ארצי למורים יסודי',
+      'מרכז המורים הארצי למתמטיקה בחינוך היסודי',
+    ],
     kind: 'organization',
     pageEligible: false,
   },
@@ -52,17 +56,13 @@ export const authors: AuthorRecord[] = [
     pageEligible: false,
   },
   {
-    // ייחוס שאומת ישירות על ידי בעל הפרויקט (הוראת יניב, 09/08/2026):
-    // המפרסם של אתר המודל ושל גיליון המצגות הוא צוות מודל במשרד החינוך.
-    // גוף מפרסם — ולכן ללא עמוד מחבר אישי (24.1.1).
     id: 'model-team',
     slug: 'tzevet-model',
     name: 'צוות מודל — משרד החינוך',
-    aliases: ['צוות מודל — משרד החינוך', 'צוות מודל', 'צוות המודל'],
+    aliases: ['צוות מודל — משרד החינוך', 'צוות מודל - משרד החינוך'],
     kind: 'organization',
     pageEligible: false,
   },
-  // ---- גופים מפרסמים שזוהו בראיה מתועדת (ראו src/data/attribution.ts) ----
   {
     id: 'rama',
     slug: 'rama',
@@ -74,8 +74,13 @@ export const authors: AuthorRecord[] = [
   {
     id: 'haifa-teachers-center',
     slug: 'haifa-teachers-center',
-    name: 'מרכז המורים למתמטיקה — אוניברסיטת חיפה',
-    aliases: ['מרכז המורים למתמטיקה', 'מרכז מורים', 'מרכז המורים'],
+    name: 'המרכז הארצי למורים למתמטיקה בחינוך העל יסודי',
+    aliases: [
+      'המרכז הארצי למורים למתמטיקה בחינוך העל יסודי',
+      'מרכז המורים למתמטיקה',
+      'מרכז מורים',
+      'מרכז המורים',
+    ],
     kind: 'organization',
     pageEligible: false,
   },
@@ -90,16 +95,16 @@ export const authors: AuthorRecord[] = [
   {
     id: 'model-team-middle-school',
     slug: 'model-team-middle-school',
-    name: 'צוות המודל — חטיבת הביניים',
-    aliases: ['צוות המודל חטב', 'צוות מודל', 'צוות המודל'],
+    name: 'צוות המודל',
+    aliases: ['צוות המודל'],
     kind: 'organization',
     pageEligible: false,
   },
   {
     id: 'national-math-guidance-team',
     slug: 'national-math-guidance-team',
-    name: 'צוות ההדרכה הארצי במתמטיקה — חטיבת הביניים',
-    aliases: ['צוות ההדרכה הארצי במתמטיקה חט"ב', 'צוות ההדרכה הארצי'],
+    name: 'צוות ההדרכה הארצי',
+    aliases: ['צוות ההדרכה הארצי'],
     kind: 'organization',
     pageEligible: false,
   },
@@ -232,7 +237,6 @@ export const authors: AuthorRecord[] = [
     kind: 'person',
     pageEligible: true,
   },
-  // ---- יוצרים אישיים ששמם מופיע במפורש בכותרת או בתיאור המשאב במסמך המקור ----
   {
     id: 'eyal-shlomo',
     slug: 'eyal-shlomo',

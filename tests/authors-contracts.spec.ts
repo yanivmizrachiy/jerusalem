@@ -19,8 +19,26 @@ test('כל author-id משויך קיים במקור האמת ושמות המחב
   }
 });
 
+test('aliases של ישויות אינם עמומים בין שני מחברים שונים', () => {
+  const owners = new Map<string, string[]>();
+  for (const author of authors) {
+    for (const alias of new Set([author.name, ...author.aliases])) {
+      const normalized = alias.trim().replace(/\s+/g, ' ');
+      owners.set(normalized, [...(owners.get(normalized) ?? []), author.id]);
+    }
+  }
+
+  const ambiguous = [...owners.entries()]
+    .filter(([, ids]) => new Set(ids).size > 1)
+    .map(([alias, ids]) => `${alias} => ${[...new Set(ids)].join(', ')}`);
+
+  expect(
+    ambiguous,
+    `alias אחד לא יכול לזהות שתי ישויות שונות בלי ראיה מפורשת שהן אותה ישות:\n${ambiguous.join('\n')}`
+  ).toEqual([]);
+});
+
 test('כל קרדיט מפורש בקטלוג המקור מחובר לישות מחבר קנונית', () => {
-  // אין \b לפני עברית: word-boundary של JavaScript אינו Unicode-aware במובן הדרוש כאן.
   const explicitlyCredited = sourceMaterialResources.filter((resource) => /קרדיט(?:ים)?\s*:/u.test(resource.note ?? ''));
   expect(explicitlyCredited.length, 'יש קרדיטים מפורשים אמיתיים לבדיקה').toBeGreaterThan(0);
 
@@ -29,6 +47,27 @@ test('כל קרדיט מפורש בקטלוג המקור מחובר לישות �
     .map((resource) => `${resource.id} — ${resource.note}`);
 
   expect(missing, `קרדיטים מפורשים ללא author-id:\n${missing.join('\n')}`).toEqual([]);
+});
+
+test('כל יוצר ששויך לרשומת קרדיט מפורש מופיע ממש בטקסט המקור', () => {
+  const bad: string[] = [];
+
+  for (const resource of sourceMaterialResources.filter((item) => /קרדיט(?:ים)?\s*:/u.test(item.note ?? ''))) {
+    const evidenceText = `${resource.title} ${resource.note}`.replace(/\s+/g, ' ');
+    for (const authorId of authorAssignments[resource.id] ?? []) {
+      const author = authorById(authorId)!;
+      const aliases = new Set([author.name, ...author.aliases]);
+      const evidenced = [...aliases].some((alias) => evidenceText.includes(alias));
+      if (!evidenced) {
+        bad.push(`${resource.id}: ${authorId} אינו מופיע בקרדיט — ${resource.note}`);
+      }
+    }
+  }
+
+  expect(
+    bad,
+    `author assignment לא יכול להסתמך על "נראה הגיוני" כאשר יש קרדיט מפורש:\n${bad.join('\n')}`
+  ).toEqual([]);
 });
 
 test('משרד החינוך הוא ייחוס טקסטואלי בלבד — בלי עמוד מחבר אישי', () => {
