@@ -1,10 +1,8 @@
 ---
 /**
- * משמר הקשר לעמוד משאב קנוני.
- *
- * משאב יכול להיות מוצב בכמה נושאים, אבל יש לו URL קנוני יחיד. ההקשר
- * נשמר ב-sessionStorage רגע לפני הניווט, ובכניסה לעמוד מאומת שוב מול
- * הפרקים שבהם המשאב באמת מפורסם. document.referrer הוא fallback טבעי.
+ * שומר הקשר לעמוד משאב קנוני שמופיע ביותר מנושא אחד.
+ * ה-URL הקנוני נשאר יחיד; sessionStorage/referrer משמשים רק להחזרת
+ * המשתמש לנושא שממנו הגיע, מתוך allowlist שנגזר מהדאטה הציבורי.
  */
 import { chapterHref, type ChoveretGrade, type ChoveretItem } from '../data/choveret';
 
@@ -64,8 +62,6 @@ const contexts = grade.chapters
       storedId = '';
     }
 
-    // referrer עדיף על state ישן; בכל מקרה ההקשר נבחר רק מתוך allowlist
-    // שנגזר מהדאטה של המשאב והשכבה הנוכחיים.
     const context =
       contexts.find((entry) => entry.href === referrerPath) ??
       contexts.find((entry) => entry.id === storedId);
@@ -74,7 +70,7 @@ const contexts = grade.chapters
       try {
         sessionStorage.setItem(storageKey, context.id);
       } catch {
-        // אין תלות חובה ב-storage; העמוד עדיין תקין עם ההקשר ברירת המחדל.
+        // העמוד נשאר תקין גם כאשר storage חסום.
       }
 
       const page = document.querySelector('.res-page');

@@ -12,7 +12,18 @@ const viewports = [
   { name: 'desktop-1920', width: 1920, height: 1080 },
 ];
 
-const pages = ['/', '/shearim/', '/luach/', '/chativat-beynayim/', '/hozer-mafmar/', '/chativa-elyona/bchinot/'];
+// עמוד הבחינות של החטיבה העליונה התכנס לעמוד כניסה אחד; במקומו נבדק עמוד
+// משאב עשיר עם טווח MAF מוטמע — אותה משפחת רכיבים, כיסוי רספונסיבי זהה.
+const pages = [
+  '/',
+  '/shearim/',
+  '/luach/',
+  '/hodaot/',
+  '/hozer-mafmar-presentation/',
+  '/chativat-beynayim/',
+  '/hozer-mafmar/',
+  '/chativat-beynayim/reader/z/maf-05-z/',
+];
 
 for (const vp of viewports) {
   test.describe(`${vp.name} (${vp.width}px)`, () => {
@@ -44,8 +55,8 @@ for (const vp of viewports) {
         await expect(page.locator('main')).toBeVisible();
         await expect(page.locator('.datebar')).toBeVisible();
 
-        // ההטמעה הדומיננטית אינה חורגת מהמסך
-        const frame = page.locator('.mam-frame, .viewer-shell, .cal-wrap').first();
+        // ההטמעה/מצגת הדומיננטית אינה חורגת מהמסך
+        const frame = page.locator('.mam-frame, .viewer-shell, .cal-wrap, .mafmar-deck, .pdf-shell').first();
         if (await frame.count()) {
           const fb = await frame.boundingBox();
           if (fb) expect(fb.width, 'הטמעה בגבולות המסך').toBeLessThanOrEqual(vp.width + 1);

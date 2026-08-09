@@ -18,6 +18,10 @@ const forbiddenPathPatterns = [
   /\.(bak|old|orig|tmp|temp|swp|swo|log)$/i,
   /(^|\/)npm-debug\.log/i,
   /(^|\/)claude-evidence(?:-[^/]*)?(\/|$)/i,
+  // שלוש חלופות hero נגזרות הוכחו ב-09/08/2026 כחסרות consumer: הקוד טוען
+  // רק hero-1080/720 + hero-poster. אם בעתיד רוצים חלופה חדשה, היא חייבת
+  // להיכנס דרך חוזה runtime מפורש — לא להישאר כ-binary יתום בתוך public/.
+  /^public\/media\/hero-alt-/i,
 ];
 
 const allowedEnv = new Set(['.env.example']);
@@ -83,6 +87,9 @@ for (const path of tracked) {
   const ext = extname(path).toLowerCase();
   if (size > 1_000_000 && textExtensions.has(ext)) {
     warn.push(`קובץ טקסט גדול מ-1MB: ${path} (${Math.ceil(size / 1024)}KB)`);
+  }
+  if (size > 5_000_000 && !textExtensions.has(ext)) {
+    warn.push(`קובץ בינארי גדול מ-5MB — ודא שיש לו consumer/סיבת שימור: ${path} (${Math.ceil(size / 1024 / 1024)}MB)`);
   }
 
   if (!textExtensions.has(ext) || size > 2_000_000) continue;

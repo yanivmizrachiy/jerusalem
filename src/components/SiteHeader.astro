@@ -122,5 +122,27 @@ const isActive = (href: string) =>
     const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 24);
     onScroll();
     addEventListener('scroll', onScroll, { passive: true });
+
+    /**
+     * הגובה האמיתי של הכותרת הדביקה → --header-real-h, שממנו נגזר מרווח
+     * הגלילה של כל עוגן (global.css). ‏--header-h הוא ערך עיצוב קבוע
+     * ומשמש כרצפה; כשהניווט נשבר לשתי שורות הכותרת גבוהה ממנו הרבה
+     * (נמדד 09/08/2026: ‏154px ב-360px רוחב) והעוגן נחת מתחתיה (5.17).
+     *
+     * נכתב על :root ולא על הכותרת, ואינו משתתף ב-min-block-size שלה —
+     * ולכן אינו יכול ליצור לולאת משוב שמשנה את גובה הכותרת עצמה.
+     */
+    const syncHeight = () => {
+      const real = Math.round(header.getBoundingClientRect().height);
+      if (real > 0) document.documentElement.style.setProperty('--header-real-h', `${real}px`);
+    };
+    syncHeight();
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(syncHeight).observe(header);
+    } else {
+      addEventListener('resize', syncHeight, { passive: true });
+    }
+    // הגופנים משנים את מידות הניווט אחרי הצביעה הראשונה
+    document.fonts?.ready.then(syncHeight);
   }
 </script>

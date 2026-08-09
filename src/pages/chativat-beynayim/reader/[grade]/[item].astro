@@ -1,29 +1,22 @@
 ---
-/**
- * עמוד המשאב הקנוני (RULES 8.2; הוראת יניב 05/08/2026): כתובת יציבה
- * לשיתוף לכל קובץ — המשאב מוטמע בצד אחד של המסך והפעולות בצד השני.
- * פריט `needsReview` אינו מקבל route פומבי עד לאימות אנושי.
- *
- * `publicGrade` מסנן את ה-quarantine גם לפני חישוב קודם/הבא ב-ResourceSplit,
- * כך שעמוד פומבי לעולם אינו מפנה לשכן שה-route שלו חסום.
- */
 import Base from '../../../../layouts/Base.astro';
 import ResourceContext from '../../../../components/ResourceContext.astro';
 import ResourceSplit from '../../../../components/ResourceSplit.astro';
+import { authorsForResource } from '../../../../data/authors';
 import { isPublishableMaterial } from '../../../../data/publishing';
-import { choveret, readerItems } from '../../../../data/choveret';
+import { canonicalGrades, canonicalReaderItems } from '../../../../data/canonical-content';
+import { gradeMaterialsHref } from '../../../../data/choveret';
+import { visibleResourceNote, visibleResourceSource, visibleResourceTitle } from '../../../../data/resource-copy';
 
 export function getStaticPaths() {
-  return readerItems
-    .filter(({ item }) => isPublishableMaterial(item))
-    .map(({ grade, item }) => ({
-      params: { grade: grade.slug, item: item.id },
-      props: { gradeSlug: grade.slug, itemId: item.id },
-    }));
+  return canonicalReaderItems.map(({ grade, item }) => ({
+    params: { grade: grade.slug, item: item.id },
+    props: { gradeSlug: grade.slug, itemId: item.id },
+  }));
 }
 
 const { gradeSlug, itemId } = Astro.props;
-const grade = choveret.find((g) => g.slug === gradeSlug)!;
+const grade = canonicalGrades.find((candidate) => candidate.slug === gradeSlug)!;
 const publicGrade = {
   ...grade,
   chapters: grade.chapters.map((currentChapter) => ({
@@ -31,16 +24,33 @@ const publicGrade = {
     items: currentChapter.items.filter(isPublishableMaterial),
   })),
 };
-const chapter = publicGrade.chapters.find((c) => c.items.some((i) => i.id === itemId))!;
-const item = chapter.items.find((i) => i.id === itemId)!;
+const chapter = publicGrade.chapters.find((candidate) => candidate.items.some((item) => item.id === itemId))!;
+const item = chapter.items.find((candidate) => candidate.id === itemId)!;
+const creators = authorsForResource(item.id);
+const creatorAliases = creators.flatMap((creator) => [creator.name, ...creator.aliases]);
+const displayItem = {
+  ...item,
+  title: visibleResourceTitle(item),
+  note: visibleResourceNote(item),
+  source: visibleResourceSource(item, creatorAliases),
+};
 
-// פריטי החוזר אינם נושאים note (הכותרת והטווח מדברים בעד עצמם), ובלי
-// גיבוי הם נבנו עם description ריק — כלומר גם og:description ריק (18.1)
+/**
+ * נושא עם משאב ציבורי יחיד מפנה 301 ישירות לעמוד המשאב, ולכן קישור "חזרה
+ * לנושא" היה מחזיר מיד לאותו עמוד ויוצר לולאת ניווט. ResourceSplit כבר
+ * יודע להשתמש ב-redirectHref כאשר materials=false; כאן מעבירים לו עותק
+ * לצורכי ניווט בלבד, בלי לשנות את נתוני הפרק הקנוניים.
+ */
+const navigationChapter =
+  chapter.items.length === 1
+    ? { ...chapter, materials: false, redirectHref: gradeMaterialsHref(grade.slug) }
+    : chapter;
+
 const description =
-  item.note || item.source || `${item.title} — ${chapter.title}, ${grade.title}, מחוז ירושלים.`;
+  displayItem.note || displayItem.source || `${displayItem.title} — ${chapter.title}, ${grade.title}, מחוז ירושלים.`;
 ---
 
-<Base title={`${item.title} — ${grade.title} — מחוז ירושלים`} description={description}>
-  <ResourceSplit grade={publicGrade} chapter={chapter} item={item} />
+<Base title={`${displayItem.title} — ${grade.title} — מחוז ירושלים`} description={description}>
+  <ResourceSplit grade={publicGrade} chapter={navigationChapter} item={displayItem} />
   <ResourceContext grade={publicGrade} item={item} />
 </Base>

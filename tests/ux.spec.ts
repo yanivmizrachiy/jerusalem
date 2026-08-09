@@ -7,6 +7,31 @@ import {
   sourceMaterialResources,
   sourceNoLinkRows,
 } from '../src/data/source-materials';
+import { hafifaUnit, mishvaotUnit } from '../src/data/units';
+import { LEGACY_REDIRECTS } from '../src/lib/legacyRedirects.mjs';
+import { isAttributionPending } from '../src/data/attribution';
+import { publishableItems } from '../src/data/publishing';
+import { canonicalGrade } from '../src/data/canonical-content';
+
+/**
+ * משאב מסמך ציבורי ומיוחס, לבדיקות פריסת "מסמך" (הטמעת Google Doc).
+ * הוא מחליף משאב שעבר ל-quarantine בהיעדר ראיית ייחוס — אותה משפחת
+ * הטמעה בדיוק, כדי שהחוזה הנבדק לא ייחלש (24.1).
+ */
+const PUBLIC_DOC_RESOURCE = '/chativat-beynayim/reader/t/ruach-tochnit/';
+
+/**
+ * מספר המשאבים ה**ציבוריים** בנושא, לפי הקטלוג הקנוני — אותה נוסחה שקובעת
+ * ב-`nose/[grade]/[chapter].astro` אם הנושא מפנה ישירות למשאב יחיד או מציג
+ * רשימה. הבדיקות משוות מול המודל הזה במקום לספור מחלקות CSS, כי משאב מרכזי
+ * מוצג ככרטיס-גיבור ולא כ-`.rcard` (ראו ההערה בבדיקת הנושאים).
+ */
+const publicTopicResourceCount = (gradeSlug: string, topicHref: string): number => {
+  const chapterId = topicHref.replace(/\/$/, '').split('/').pop()!;
+  const grade = choveret.find((g) => g.slug === gradeSlug)!;
+  const chapter = canonicalGrade(grade).chapters.find((c) => c.id === chapterId)!;
+  return publishableItems(chapter.items).length;
+};
 
 /**
  * בדיקות הקבלה של תיקון ה-UX המלא (RULES 19.34, הוראת יניב 04–05/08/2026):
@@ -14,9 +39,29 @@ import {
  * עמודי האינטרנט של חטיבת הביניים וכותרת ה-Lovable של לוח השנה.
  */
 
-// מצבי מסך נבדקים במפורש דרך setViewportSize בפרויקט הדסקטופ; אין צורך
-// בהרצה כפולה בפרופיל המובייל (מצב צר נבדק בבדיקה ייעודית)
-test.skip(({ isMobile }) => isMobile === true, 'רץ בפרויקט הדסקטופ עם viewports מפורשים');
+/**
+ * חלוקת הפרויקטים (תוקן 09/08/2026): עד כה הקובץ כולו דילג על פרופיל
+ * המובייל, וכל בדיקה שכותרתה "בנייד" רצה בכרום דסקטופ עם setViewportSize
+ * בלבד. ‏viewport צר אינו מכשיר: אין בו מגע, אין userAgent של מובייל ואין
+ * DPR אמיתי — ולכן דווקא הקביעות על "מטרת מגע" ועל התנהגות נייד נבדקו
+ * בסביבה שאינה נייד.
+ *
+ * מעכשיו בדיקה שכותרתה "בנייד" רצה **רק** בפרופיל Pixel 7 האמיתי, וכל
+ * השאר רצות **רק** בפרויקט הדסקטופ. אין הרצה כפולה, ואין דילוג שמסתיר כשל.
+ */
+test.beforeEach(({ isMobile }, testInfo) => {
+  const wantsMobile = testInfo.title.includes('בנייד');
+  test.skip(
+    wantsMobile !== (isMobile === true),
+    wantsMobile ? 'רץ בפרופיל המובייל האמיתי בלבד' : 'רץ בפרויקט הדסקטופ בלבד',
+  );
+});
+
+/** בדיקת נייד חייבת לרוץ על מכשיר מגע אמיתי — שלא תידרדר בשקט חזרה לדסקטופ צר. */
+const assertRealMobile = async (page: Page) => {
+  const touch = await page.evaluate(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0);
+  expect(touch, 'בדיקת נייד חייבת לרוץ בפרופיל מכשיר אמיתי, לא ב-viewport צר').toBe(true);
+};
 
 /* ===== קטלוג חומרי ההוראה ===== */
 
@@ -230,6 +275,7 @@ test('שער חטיבת הביניים: שלושה שלישים שווים, בל
 
 test('שער חטיבת הביניים בנייד: השלישים נערמים ונשארים גדולים (19.32)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await assertRealMobile(page);
   await page.goto('/chativat-beynayim/');
   const thirds = page.locator('.split3 .third');
   await expect(thirds).toHaveCount(3);
@@ -360,20 +406,62 @@ test('האוספים הגדולים מוצגים בכל שכבה, ותנופה �
   }
 
   await page.goto('/chativat-beynayim/nose/t/mivchanim/');
-  for (const id of ['mifrat-tnufa', 'tnufa-rama', 'tnufa-mankal', 'kvatzim-nosim']) {
+  for (const id of ['mifrat-tnufa', 'tnufa-rama', 'tnufa-mankal']) {
     await expect(page.locator(`a.rcard[href="/chativat-beynayim/reader/t/${id}/"]`), id).toHaveCount(1);
   }
 
+  // `kvatzim-nosim` נשמר במקור אך אינו מיוחס, ולכן הוא ב-quarantine ואינו
+  // מוצג — הוכחה ישירה שאין דליפה של פריט אנונימי לרשימה הציבורית (24.1).
+  expect(isAttributionPending('kvatzim-nosim'), 'kvatzim-nosim ב-quarantine').toBe(true);
+  await expect(
+    page.locator('a.rcard[href="/chativat-beynayim/reader/t/kvatzim-nosim/"]'),
+    'משאב ללא ייחוס אינו מופיע ברשימה הציבורית'
+  ).toHaveCount(0);
+
   await page.goto('/chativat-beynayim/kita-t/chomarim/');
   await expect(page.locator('.topics')).not.toContainText('הכנה ל־4 יח״ל');
-  const transition = await page.request.get('/chativat-beynayim/maavar-4-yahal/');
-  expect(transition.status()).toBe(200);
+
+  // הקביעה נשארת בדיוק כשהייתה — 200 ותו לא. מה שמנוסה שוב הוא **התעבורה**
+  // ולא התוצאה: שרת הקבצים הסטטי של הסוללה החזיר ECONNRESET תחת עומד ריצה
+  // מקבילה ב-CI (נמדד 09/08/2026), וזו תקלת חיבור ולא רגרסיית מוצר. ‏404
+  // אמיתי היה ממשיך לחזור 404 עד סוף הפולינג והבדיקה הייתה נכשלת — ולכן
+  // זה אינו retry שמסתיר כשל (RULES 24.2.1).
+  await expect
+    .poll(
+      async () => {
+        try {
+          return (await page.request.get('/chativat-beynayim/maavar-4-yahal/')).status();
+        } catch {
+          return 0;
+        }
+      },
+      { timeout: 15_000, message: 'עמוד המעבר ל-4 יח״ל חייב להיות חי' }
+    )
+    .toBe(200);
 });
 
 test('כל משימה בכל נושא בכל שכבה מובילה לעמוד משימה מחולק (3.30)', async ({ page }) => {
+  // הבדיקה מנווטת בפועל לכל הנושאים בשלוש השכבות ולמדגם משימות — כ-60
+  // ניווטים. סולו היא לוקחת ~10 שניות, אבל תחת ריצה מקבילה מלאה היא חצתה
+  // את תקרת 45 השניות ונפלה כ-flake (נמדד 09/08/2026). ‏retries=0 הוא חלק
+  // מחוזה האיכות, ולכן התקציב מורחב במקום להחזיר ניסיונות חוזרים.
+  //
+  // החוזה עודכן (Issue #73): נושא אינו חייב להציג רשימה. נושא שיש בו בדיוק
+  // משאב ציבורי אחד עובר **ישירות** למשאב עצמו (301 ב-`nose/[grade]/[chapter]`),
+  // ונושא עם שניים ומעלה מציג רשימת משימות. שני המסלולים נבדקים כאן בפועל,
+  // ושניהם חייבים להתקיים — כדי שהבדיקה לא תעבור על ידי ביטול אחד מהם.
+  test.slow();
   await page.setViewportSize({ width: 1440, height: 900 });
   let tasks = 0;
+  let singleItemTopics = 0;
+  let listTopics = 0;
   const sample: string[] = [];
+
+  /** מחכה עד שהניווט נח: או רשימת משימות, או עמוד המשימה עצמו */
+  const settle = async () => {
+    await page.locator('.rcard, .res-view').first().waitFor({ state: 'attached' });
+    return new URL(page.url()).pathname;
+  };
 
   for (const [slug, materials] of [
     ['z', '/chativat-beynayim/kita-z/chomarim/'],
@@ -386,26 +474,66 @@ test('כל משימה בכל נושא בכל שכבה מובילה לעמוד מ
       .evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')!));
     expect(topicHrefs.length, `לשכבה ${slug} יש נושאים`).toBeGreaterThan(0);
 
+    const taskPath = new RegExp(`^/chativat-beynayim/reader/${slug}/[^/]+/$`);
+
     for (const topic of topicHrefs) {
       expect(topic, 'נושא מוביל לעמוד נושא').toMatch(new RegExp(`^/chativat-beynayim/nose/${slug}/`));
       await page.goto(topic);
-      const hrefs = await page
-        .locator('.rcard')
-        .evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')!));
-      expect(hrefs.length, `לנושא ${topic} יש משימות`).toBeGreaterThan(0);
-      for (const h of hrefs) {
-        expect(h, `משימה בנושא ${topic} מובילה לעמוד משימה`).toMatch(
-          new RegExp(`^/chativat-beynayim/reader/${slug}/[^/]+/$`)
-        );
+      const landed = await settle();
+
+      if (landed === topic) {
+        // נושא עם שתי משימות ומעלה — רשימה לחיצה.
+        //
+        // נמדד 09/08/2026: אסור לספור `.rcard` בלבד. בנושא שיש בו משאב
+        // מרכזי (`.primary-resource`) הוא מוצג ככרטיס-גיבור ולא כ-`.rcard`,
+        // ולכן נושא עם שני משאבים ציבוריים — מרכזי + אחד — מציג `.rcard`
+        // אחד בלבד (למשל z-angles). ספירה לפי מחלקה הייתה מסיקה בטעות
+        // "משאב יחיד" ומפילה נושא תקין. הספירה היא לפי **יעדי המשאב
+        // בפועל**, מנוכי כפילות, כדי שתתאים לחוזה הקנוני שב-
+        // `nose/[grade]/[chapter].astro` (הפניה כאשר publicItems.length === 1).
+        const targets = await page
+          .locator('a[data-resource-context]')
+          .evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')!));
+        const hrefs = [...new Set(targets)];
+        expect(hrefs.length, `נושא שמציג רשימה חייב שני משאבים ומעלה: ${topic}`).toBeGreaterThan(1);
+        for (const h of hrefs) {
+          expect(h, `משימה בנושא ${topic} מובילה לעמוד משימה`).toMatch(taskPath);
+          tasks++;
+        }
+
+        // והמודל הקנוני מסכים: לנושא הזה באמת יותר ממשאב ציבורי אחד
+        expect(
+          publicTopicResourceCount(slug, topic),
+          `${topic}: הקטלוג הקנוני מסכים שיש כאן יותר ממשאב אחד`
+        ).toBeGreaterThan(1);
+
+        sample.push(hrefs[0]);
+        listTopics++;
+      } else {
+        // נושא עם משאב ציבורי יחיד — מעבר ישיר למשימה, בלי מסך ביניים ריק
+        expect(landed, `נושא עם משאב יחיד עובר ישירות למשימה: ${topic}`).toMatch(taskPath);
+        await expect(page.locator('.res-view'), landed).toBeVisible();
+        await expect(page.locator('.res-panel'), landed).toBeVisible();
+        await expect(page.locator('.orbs'), landed).toBeVisible();
+        expect(await page.locator('.rcard').count(), `אין רשימה בעמוד משימה: ${landed}`).toBe(0);
+
+        // והמודל הקנוני מסכים: כאן באמת יש בדיוק משאב ציבורי אחד
+        expect(
+          publicTopicResourceCount(slug, topic),
+          `${topic}: הקטלוג הקנוני מסכים שיש כאן בדיוק משאב אחד`
+        ).toBe(1);
+
         tasks++;
+        singleItemTopics++;
       }
-      sample.push(hrefs[0]);
     }
   }
 
   expect(tasks, 'נספרו משימות אמיתיות').toBeGreaterThan(40);
+  expect(listTopics, 'קיימים נושאים שמציגים רשימת משימות').toBeGreaterThan(0);
+  expect(singleItemTopics, 'קיימים נושאים שעוברים ישירות למשאב היחיד').toBeGreaterThan(0);
 
-  // מדגם משימות — כל אחת באמת עמוד מחולק: הטמעה מצד אחד, פעולות מהצד השני (8.2)
+  // מדגם משימות מתוך הרשימות — כל אחת באמת עמוד מחולק (8.2)
   for (const href of sample.slice(0, 6)) {
     await page.goto(href);
     await expect(page.locator('.res-view'), href).toBeVisible();
@@ -428,25 +556,107 @@ test('משימת חוזר נשמרת במסלול הקנוני אך אינה מ�
   await page.waitForURL('**/hozer-mafmar/');
 });
 
-test('יחידות ועמודים ייעודיים עברו לעמוד המבוא — ולא נמחקו (3.30)', async ({ page }) => {
-  const moved = {
-    z: '/chativat-beynayim/mishvaot/',
-    h: '/chativat-beynayim/hafifat-meshulashim/',
-    t: '/chativa-elyona/',
-  } as const;
+test('יחידות המשוואות והחפיפה נשמרו בתוך הנושא הקנוני — בלי כרטיס ייעודי (3.30)', async ({ page }) => {
+  // החוזה עודכן (Issue #73): יחידות ההוראה הישנות אינן עוד כרטיס ייעודי בעמוד
+  // המבוא ואינן עמוד־נגן נפרד. כל חומריהן חיים בתוך הנושא הקנוני, והכתובת
+  // הישנה נשארת חיה כהפניה — כדי שקישורים ששותפו לא יישברו (5.17, 3.6, 3.12).
+  test.slow();
+  const units = [
+    { slug: 'z', legacy: '/chativat-beynayim/mishvaot/', topic: '/chativat-beynayim/nose/z/z-equations/', unit: mishvaotUnit },
+    { slug: 'h', legacy: '/chativat-beynayim/hafifat-meshulashim/', topic: '/chativat-beynayim/nose/h/h-congruent/', unit: hafifaUnit },
+  ] as const;
 
-  for (const [slug, href] of Object.entries(moved)) {
+  for (const { slug, legacy, topic, unit } of units) {
+    // 1. אין כרטיס ייעודי בעמוד המבוא של השכבה
     await page.goto(`/chativat-beynayim/kita-${slug}/`);
-    const link = page.locator(`[data-grade-page][href="${href}"]`);
-    await expect(link, `${slug}: היחידה מוצגת בעמוד המבוא`).toHaveCount(1);
-    expect((await link.boundingBox())!.height, 'מטרת מגע').toBeGreaterThanOrEqual(44);
+    await expect(
+      page.locator(`[data-grade-page][href="${legacy}"]`),
+      `${slug}: אין עוד כרטיס ייעודי ליחידה בעמוד המבוא`
+    ).toHaveCount(0);
 
-    // והעמוד עצמו חי — שום חומר לא נמחק
-    const res = await page.request.get(href);
-    expect(res.status(), `${href} חי`).toBe(200);
+    // 2. הכתובת הישנה רשומה במקור התאימות היחיד ומפנה לנושא הקנוני.
+    //    ההפניה עצמה היא 301 בשכבת הניתוב, ולכן היא נאכפת מול הפרודקשן
+    //    ב-scripts/verify-deploy.mjs; מקומית נאכף מה שכן ניתן להוכיח —
+    //    שאין יותר עמוד ביניים עם meta-refresh בכתובת הישנה.
+    expect(LEGACY_REDIRECTS[legacy], `${legacy} רשום במקור התאימות`).toBe(topic);
+    const stale = await page.request.fetch(legacy, { redirect: 'manual' });
+    expect(stale.status(), `${legacy} אינו עוד עמוד 200`).toBe(404);
+
+    // 3. הנושא הקנוני חי — בלי נגן יחידה
+    await page.goto(topic);
+    await expect(page.locator('h1.chapter-title')).toBeVisible();
+    expect(await page.locator('.uplay-viewer, .uplay-list').count(), 'אין נגן יחידה במסלול הזה').toBe(0);
+
+    // 4. הנושא הקנוני מציג בפועל את משאבי היחידה כמשימות לחיצות
+    const cardHrefs = new Set(
+      await page
+        .locator('a.rcard')
+        .evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')!))
+    );
+    expect(cardHrefs.size, `${topic}: רשימת משימות אמיתית`).toBeGreaterThan(1);
+
+    // 5. אפס אובדן חומר — ושני מסלולים נפרדים, לפי חוזה הייחוס הקשיח (24.1):
+    //
+    //    כל מזהי היחידה הישנה חייבים להישאר קיימים בשכבת המקור הקנונית.
+    //    משאב שיש לו ייחוס מאומת מתפרסם כעמוד משימה חי (200); משאב שטרם
+    //    נמצאה לו ראיית ייחוס נשמר בנתונים אך נמצא ב-quarantine ואינו
+    //    פומבי. "אפס אובדן משאבים" אינו "כל משאב חייב להיות ציבורי" —
+    //    ואסור לתקן כאן בהחזרת משאב אנונימי לציבור.
+    const chapterId = topic.replace(/\/$/, '').split('/').pop()!;
+    const sourceIds = new Set(
+      canonicalGrade(choveret.find((g) => g.slug === slug)!)
+        .chapters.find((c) => c.id === chapterId)!
+        .items.map((item) => item.id)
+    );
+
+    const lost: string[] = [];
+    const unpublished: string[] = [];
+    const leaked: string[] = [];
+
+    for (const resource of unit.resources) {
+      // 5a. שימור: המזהה קיים בקטלוג הקנוני של הנושא
+      if (!sourceIds.has(resource.id)) lost.push(resource.id);
+
+      const href = `/chativat-beynayim/reader/${slug}/${resource.id}/`;
+      const status = (await page.request.get(href)).status();
+
+      if (isAttributionPending(resource.id)) {
+        // 5b. quarantine: אינו דולף לציבור
+        if (status === 200) leaked.push(`${resource.id} (200)`);
+      } else if (status !== 200) {
+        // 5c. משאב מיוחס חייב להתפרסם
+        unpublished.push(`${resource.id} (${status})`);
+      }
+    }
+
+    expect(lost, `מזהים שאבדו מקטלוג המקור של ${unit.title}: ${lost.join(', ')}`).toHaveLength(0);
+    expect(
+      unpublished,
+      `משאבים מיוחסים שלא התפרסמו ב-${unit.title}: ${unpublished.join(', ')}`
+    ).toHaveLength(0);
+    expect(
+      leaked,
+      `משאבים ללא ייחוס שדלפו לציבור ב-${unit.title}: ${leaked.join(', ')}`
+    ).toHaveLength(0);
+
+    // 5d. והחוזה אינו ריק משני צדדיו: ביחידות האלה יש גם מיוחס וגם ב-quarantine
+    expect(
+      unit.resources.some((r) => !isAttributionPending(r.id)),
+      `${unit.title}: קיים משאב מיוחס שמתפרסם`
+    ).toBe(true);
+    expect(
+      unit.resources.some((r) => isAttributionPending(r.id)),
+      `${unit.title}: קיים משאב ב-quarantine`
+    ).toBe(true);
   }
 
-  // ומנגד: הם כבר לא יושבים בתוך רשימת הנושאים
+  // שער החטיבה העליונה נשאר קישור בעמוד המבוא של ט׳ — הוא אינו יחידת הוראה
+  await page.goto('/chativat-beynayim/kita-t/');
+  const gateway = page.locator('[data-grade-page][href="/chativa-elyona/"]');
+  await expect(gateway, 'ט׳: השער לחטיבה העליונה נשאר בעמוד המבוא').toHaveCount(1);
+  expect((await gateway.boundingBox())!.height, 'מטרת מגע').toBeGreaterThanOrEqual(44);
+
+  // ומנגד: היחידות אינן חוזרות כנושא מלאכותי ברשימת הנושאים
   for (const [slug, materials] of [
     ['z', '/chativat-beynayim/kita-z/chomarim/'],
     ['h', '/chativat-beynayim/kita-h/chomarim/'],
@@ -469,6 +679,7 @@ test('החומרים המשותפים חולקו לשלוש הכיתות ואי�
 
 test('עמוד מבוא בנייד: הכול נגיש בלי גלילה אופקית (19.32)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await assertRealMobile(page);
   await page.goto('/chativat-beynayim/kita-h/');
   await expect(page.locator('#ma-melamdim .band-title')).toBeVisible();
   await expect(page.locator('[data-materials]')).toBeVisible();
@@ -483,7 +694,9 @@ test('עמוד מבוא בנייד: הכול נגיש בלי גלילה אופק
 
 test('עמוד משאב: חצי-חצי — הטמעה מימין, פעולות משמאל (8.2)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
+  // מסמך Google ציבורי ומיוחס — אותה משפחת הטמעה שנבדקה כאן קודם, אחרי
+  // שהמשאב הקודם עבר ל-quarantine בהיעדר ראיית ייחוס (24.1).
+  await page.goto(PUBLIC_DOC_RESOURCE);
 
   const view = (await page.locator('.res-view').boundingBox())!;
   const panel = (await page.locator('.res-panel').boundingBox())!;
@@ -540,7 +753,7 @@ test('עמוד משאב במסך רחב: פס גלילה אחד — העמוד �
   await page.setViewportSize({ width: 1440, height: 900 });
   for (const route of [
     '/chativat-beynayim/reader/z/misparim/', // אלגברה — סביבה אינטראקטיבית מוטמעת
-    '/chativat-beynayim/reader/t/sheelot-t/', // מסמך
+    PUBLIC_DOC_RESOURCE, // מסמך
     '/chativat-beynayim/reader/z/maf-02/', // טווח מהחוזר
   ]) {
     await page.goto(route);
@@ -556,7 +769,8 @@ test('עמוד משאב במסך רחב: פס גלילה אחד — העמוד �
 
 test('עמוד משאב בנייד: ההטמעה לפני ההסבר (8.6)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
+  await assertRealMobile(page);
+  await page.goto(PUBLIC_DOC_RESOURCE);
   const view = (await page.locator('.res-view').boundingBox())!;
   const panel = (await page.locator('.res-panel').boundingBox())!;
   expect(view.y, 'ההטמעה מוצגת ראשונה').toBeLessThan(panel.y);
@@ -832,6 +1046,7 @@ test('בחירת החטיבה: ריחוף על כפתור החזרה אינו מ
 
 test('בחירת החטיבה בנייד: החצאים נערמים בלי גלילה אופקית (05/08)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await assertRealMobile(page);
   await page.goto('/shearim/');
   const halves = page.locator('.split .half');
   const a = (await halves.nth(0).boundingBox())!;
@@ -1112,7 +1327,7 @@ test('עמוד מסמך שלם בהטמעה, וכל הפעולות רק בצד �
     [1920, 1080],
   ] as const) {
     await page.setViewportSize({ width: w, height: h });
-    await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
+    await page.goto(PUBLIC_DOC_RESOURCE);
 
     const f = (await page.locator('.res-frame iframe').boundingBox())!;
     expect(f.height / f.width, `${w}: יחס עמוד — כל רוחב הדף נראה`).toBeGreaterThan(1.3);
@@ -1178,8 +1393,12 @@ test('כל ההטמעות חולקות את אותה מסגרת (.embed-frame) �
 });
 
 test('UnitPlaylist: שתי עמודות שוות והרשימה באמת גוללת בתוך גובה מוגבל', async ({ page }) => {
+  // המסלול עודכן (Issue #73): ‏`/chativat-beynayim/mishvaot/` אינו עוד עמוד נגן
+  // אלא הפניה לנושא הקנוני, ולכן חוזה הפריסה של הרכיב נאכף כאן על המסלול החי
+  // שבו הוא באמת מוצג — מיזם ה-AI. ההגנה זהה: שתי עמודות שוות, גלילה פנימית
+  // אמיתית ואפס גלילה אופקית.
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/chativat-beynayim/mishvaot/');
+  await page.goto('/pituach-miktzoi/ai-geometria/');
 
   const viewer = (await page.locator('.uplay-viewer').boundingBox())!;
   const list = (await page.locator('.uplay-list').boundingBox())!;
@@ -1207,6 +1426,7 @@ test('UnitPlaylist: שתי עמודות שוות והרשימה באמת גול�
 
 test('בנייד: ההטמעה ראשונה, בלי גלילה אופקית ובלי scrollbar בלוח המידע (8.6)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await assertRealMobile(page);
   await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
   const view = (await page.locator('.res-view').boundingBox())!;
   const panel = (await page.locator('.res-panel').boundingBox())!;

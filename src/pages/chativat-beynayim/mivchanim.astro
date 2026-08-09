@@ -1,30 +1,226 @@
 ---
-/**
- * העמוד המרוכז של המבחנים הוחלף בפרקי "דפי הנוסחאות הרשמיים" ו"מבחן
- * דמוי מיצ״ב והנחיות" שבעמוד "משותף לכל השכבות"
- * (RULES 1.10, 3.13, 3.29 — הוראת יניב, 05/08/2026). הכתובת הישנה
- * נשארת חיה לקישורים ששותפו, ומפנה מיידית לעמוד החדש.
- */
-const target = '/chativat-beynayim/nose/h/mivchanim/';
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { choveret, gradeHref, gradeLabel, itemHref, type ChoveretItem } from '../../data/choveret';
+import { publishableItems } from '../../data/publishing';
+import { resourceCountLabel, resourceDisplayLabel } from '../../data/resource-labels';
+import { visibleResourceNote, visibleResourceTitle } from '../../data/resource-copy';
+
+const examPriority = (item: ChoveretItem) => {
+  if (item.resourceType === 'test') return 0;
+  if (item.resourceType === 'assessment-guide') return 1;
+  if (item.resourceType === 'formula-sheet') return 2;
+  if (item.resourceType === 'worksheet') return 3;
+  return 4;
+};
+
+const examGroups = choveret.map((grade) => {
+  const chapter = grade.chapters.find((candidate) => candidate.id === 'mivchanim');
+  const items = [...publishableItems(chapter?.items ?? [])].sort((a, b) => examPriority(a) - examPriority(b));
+  return { grade, chapter, items };
+});
+
+const isTnufa = (item: ChoveretItem) => item.title.includes('תנופה');
+const isTnufaSpec = (item: ChoveretItem) => isTnufa(item) && item.title.includes('מפרט');
 ---
 
-<!doctype html>
-<html lang="he" dir="rtl">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>החומרים עברו לעמוד המשותף — מחוז ירושלים</title>
-    <meta name="robots" content="noindex" />
-    <link rel="canonical" href="https://jerusalem-virid.vercel.app/chativat-beynayim/" />
-    <meta http-equiv="refresh" content={`0;url=${target}`} />
-    <script is:inline define:vars={{ target }}>
-      location.replace(target);
-    </script>
-  </head>
-  <body>
-    <p style="font-family: system-ui, sans-serif; padding: 2rem; text-align: center;">
-      חומרי הבחינות וההערכה עברו לעמוד המבחנים של כיתה ח׳ —
-      <a href={target}>מעבר מיידי</a>
-    </p>
-  </body>
-</html>
+<Base
+  title="מאגר מבחנים לחטיבת הביניים — מחוז ירושלים"
+  description="מאגר המבחנים של כיתות ז׳, ח׳ וט׳, עם מבחנים וחומרי הערכה מתוך קטלוג המשאבים הקנוני של האתר."
+>
+  <div class="container exams-page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
+        { label: 'מאגר מבחנים לחטיבת הביניים' },
+      ]}
+    />
+
+    <header class="exams-head" data-reveal>
+      <p class="eyebrow">כיתות ז׳–ט׳</p>
+      <h1>מאגר מבחנים לחטיבת הביניים</h1>
+      <p>המבחנים וחומרי ההערכה שכבר קיימים באתר, מסודרים לפי שכבה. בכל שכבה המבחנים עצמם מופיעים לפני חומרי ההנחיה וההכנה.</p>
+    </header>
+
+    <nav class="grade-jump" aria-label="מעבר מהיר לשכבה">
+      {examGroups.map(({ grade, items }) => (
+        <a href={`#grade-${grade.slug}`} style={`--grade:${grade.color}`}>
+          <strong>מבחנים לכיתה {grade.letter}</strong>
+          <span>{resourceCountLabel(items)}</span>
+        </a>
+      ))}
+    </nav>
+
+    <div class="grade-sections">
+      {examGroups.map(({ grade, items }) => {
+        const tnufa = grade.slug === 't' ? items.filter(isTnufa) : [];
+        const tnufaSpec = tnufa.find(isTnufaSpec);
+        const tnufaMore = tnufa.filter((item) => item.id !== tnufaSpec?.id);
+        const regularItems = grade.slug === 't' ? items.filter((item) => !isTnufa(item)) : items;
+
+        return (
+          <section id={`grade-${grade.slug}`} class="grade-exams" style={`--grade:${grade.color}; --grade-dark:${grade.dark}`} data-reveal>
+            <div class="grade-heading">
+              <div>
+                <p>{grade.title}</p>
+                <h2>מבחנים לכיתה {grade.letter}</h2>
+              </div>
+              <a class="grade-link" href={gradeHref(grade.slug)}>לעמוד {gradeLabel(grade)}</a>
+            </div>
+
+            {grade.slug === 't' && tnufa.length > 0 && (
+              <section class="tnufa-hub" aria-labelledby="tnufa-title">
+                <div class="tnufa-title-row">
+                  <p class="tnufa-kicker">מוקד הערכה לכיתה ט׳</p>
+                  <h3 id="tnufa-title">מבחן תנופה לכיתה ט׳</h3>
+                </div>
+
+                {tnufaSpec && (
+                  <a class="tnufa-spec" href={itemHref(grade.slug, tnufaSpec)}>
+                    <span class="spec-label">המפרט — מתחילים כאן</span>
+                    <strong>{visibleResourceTitle(tnufaSpec)}</strong>
+                    {visibleResourceNote(tnufaSpec) && <span>{visibleResourceNote(tnufaSpec)}</span>}
+                    <span class="spec-action">פתיחת המפרט וההטמעה</span>
+                  </a>
+                )}
+
+                {tnufaMore.length > 0 && (
+                  <div class="tnufa-more" aria-label="חומרים נוספים למבחן תנופה">
+                    {tnufaMore.map((item) => {
+                      const note = visibleResourceNote(item);
+                      return (
+                        <a href={itemHref(grade.slug, item)}>
+                          <span class="type-pill">{resourceDisplayLabel(item)}</span>
+                          <strong>{visibleResourceTitle(item)}</strong>
+                          {note && <span>{note}</span>}
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {regularItems.length > 0 ? (
+              <div class="exam-grid">
+                {regularItems.map((item) => {
+                  const note = visibleResourceNote(item);
+                  return (
+                    <a class="exam-card" href={itemHref(grade.slug, item)}>
+                      <span class="type-pill">{resourceDisplayLabel(item)}</span>
+                      <strong>{visibleResourceTitle(item)}</strong>
+                      {note && <span>{note}</span>}
+                    </a>
+                  );
+                })}
+              </div>
+            ) : (
+              <p class="empty">אין כרגע פריטים נוספים לשכבה זו.</p>
+            )}
+          </section>
+        );
+      })}
+    </div>
+  </div>
+</Base>
+
+<style>
+  .exams-page { padding-block: 1rem 3.5rem; }
+  .exams-head { max-width: 860px; margin-block: 1rem 2rem; }
+  .eyebrow { margin: 0 0 0.35rem; color: var(--gold-deep); font-weight: 800; }
+  .exams-head h1 { margin: 0; color: var(--navy); font-family: var(--font-display); font-size: clamp(2.2rem, 6vw, 4rem); line-height: 1.05; }
+  .exams-head p:last-child { max-width: 70ch; color: var(--ink-soft); font-size: 1.03rem; line-height: 1.75; }
+
+  .grade-jump {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin-block: 0 2.8rem;
+  }
+  .grade-jump a {
+    min-block-size: 88px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid color-mix(in srgb, var(--grade) 38%, var(--line));
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--grade) 6%, #fff);
+    color: var(--navy);
+    text-decoration: none;
+    box-shadow: var(--shadow-soft);
+  }
+  .grade-jump a:hover { border-color: var(--grade); transform: translateY(-2px); }
+  .grade-jump a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  .grade-jump strong { font-family: var(--font-display); font-size: 1.2rem; }
+  .grade-jump span { color: var(--ink-faint); font-size: 0.86rem; }
+
+  .grade-sections { display: grid; gap: 3.2rem; }
+  .grade-exams { scroll-margin-top: calc(var(--header-h) + 1.5rem); }
+  .grade-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-block-end: 1rem; padding-block-end: 0.8rem; border-block-end: 2px solid color-mix(in srgb, var(--grade) 40%, var(--line)); }
+  .grade-heading p { margin: 0; color: var(--grade-dark); font-weight: 800; }
+  .grade-heading h2 { margin: 0.15rem 0 0; color: var(--navy); font-family: var(--font-display); font-size: clamp(1.7rem, 4vw, 2.5rem); }
+  .grade-link { min-block-size: 44px; display: inline-flex; align-items: center; color: var(--grade-dark); font-weight: 700; }
+
+  .exam-grid, .tnufa-more { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 0.85rem; }
+  .exam-card, .tnufa-more a {
+    min-block-size: 132px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .exam-card:hover, .tnufa-more a:hover { border-color: color-mix(in srgb, var(--grade) 42%, var(--line)); box-shadow: var(--shadow-soft); }
+  .exam-card:focus-visible, .tnufa-more a:focus-visible, .tnufa-spec:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  .exam-card strong, .tnufa-more strong { color: var(--navy); font-size: 1.03rem; }
+  .exam-card > span:last-child:not(.type-pill), .tnufa-more a > span:last-child:not(.type-pill) { color: var(--ink-soft); line-height: 1.55; font-size: 0.88rem; }
+
+  .type-pill { align-self: flex-start; border-radius: 999px; padding: 0.18rem 0.55rem; background: var(--paper-soft); color: var(--gold-deep); font-size: 0.74rem; font-weight: 800; }
+
+  .tnufa-hub {
+    margin-block: 0.5rem 1.4rem;
+    padding: clamp(1rem, 3vw, 1.6rem);
+    border: 1px solid color-mix(in srgb, var(--grade) 42%, var(--line));
+    border-radius: calc(var(--radius-lg) + 4px);
+    background: linear-gradient(145deg, color-mix(in srgb, var(--grade) 7%, #fff), var(--paper));
+  }
+  .tnufa-title-row { margin-block-end: 1rem; }
+  .tnufa-kicker { margin: 0; color: var(--grade-dark); font-size: 0.82rem; font-weight: 850; }
+  .tnufa-title-row h3 { margin: 0.2rem 0 0; color: var(--navy); font-family: var(--font-display); font-size: clamp(1.7rem, 4vw, 2.55rem); }
+
+  .tnufa-spec {
+    min-block-size: 210px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.7rem;
+    margin-block-end: 1rem;
+    padding: clamp(1.25rem, 4vw, 2rem);
+    border-radius: var(--radius-lg);
+    background: var(--navy);
+    color: var(--paper);
+    text-decoration: none;
+    box-shadow: var(--shadow-lift);
+  }
+  .tnufa-spec strong { font-family: var(--font-display); font-size: clamp(1.45rem, 4vw, 2.25rem); }
+  .tnufa-spec > span:not(.spec-label):not(.spec-action) { color: rgb(251 249 245 / 0.82); line-height: 1.65; }
+  .spec-label { color: #e8c877; font-size: 0.82rem; font-weight: 850; }
+  .spec-action { margin-block-start: 0.3rem; color: #e8c877; font-weight: 800; }
+  .empty { color: var(--ink-faint); }
+
+  @media (max-width: 760px) {
+    .grade-jump { grid-template-columns: 1fr; }
+    .grade-heading { align-items: flex-start; flex-direction: column; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .grade-jump a, .exam-card, .tnufa-more a { transition: transform 220ms var(--ease), border-color 220ms var(--ease), box-shadow 220ms var(--ease); }
+  }
+</style>

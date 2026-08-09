@@ -1,13 +1,16 @@
 ---
 /**
- * עמוד משאב מחולק (RULES 8.2; הוראת יניב 05/08/2026 — מחליף את עמוד
- * המשאב שבתוך החוברת): בצד אחד של המסך המשאב עצמו מוטמע חי, ובצד השני
- * כותרת, הסבר, מקור ולוח הפעולות שלו. בנייד ההטמעה ראשונה וההסבר אחריה
- * (8.6). ההטמעה נטענת רק כשהעמוד נגלל אליה, עם שלד טעינה יוקרתי (8.9),
- * ודפדפן בלי מציג PDF מקבל כרטיס פתיחה אמיתי ולא מסגרת ריקה (8.8).
+ * עמוד משאב מחולק: ההטמעה מימין ולוח מידע/פעולות משמאל במסך רחב,
+ * ובנייד ההטמעה קודמת למידע. כל metadata גלוי נגזר מהמודל הפדגוגי
+ * הקנוני; פעולות משותפות לכל משאב דרך ResourceActions.
  */
 import Breadcrumbs from './Breadcrumbs.astro';
+import AuthorAttribution from './AuthorAttribution.astro';
+import ResourceBrand from './ResourceBrand.astro';
 import MafmarRange from './MafmarRange.astro';
+import ResourceActions from './ResourceActions.astro';
+import { embedLayoutFor } from '../data/embed-layout';
+import { resourceDisplayLabel } from '../data/resource-labels';
 import {
   chapterHref,
   gradeHref,
@@ -15,7 +18,6 @@ import {
   gradeLabel,
   itemHref,
   itemNeighbours,
-  kindLabel,
   type ChoveretChapter,
   type ChoveretGrade,
   type ChoveretItem,
@@ -31,13 +33,15 @@ const { grade, chapter, item } = Astro.props;
 
 const site = 'https://jerusalem-virid.vercel.app';
 const canonical = `${site}${itemHref(grade.slug, item)}`;
-const copyTarget = item.url.startsWith('/') ? `${site}${item.url}` : item.url;
 const { prev, next } = itemNeighbours(grade, item.id);
 const chapterBackHref =
   chapter.materials === false
     ? (chapter.redirectHref ?? gradeMaterialsHref(grade.slug))
     : chapterHref(grade.slug, chapter.id);
 const waText = `${item.title} — ${grade.title} — ${canonical}`;
+const semanticKind = resourceDisplayLabel(item);
+const embedLayout = embedLayoutFor(item);
+const embedStyle = `--resource-aspect:${embedLayout.aspectRatio ?? 'auto'}; --resource-min-h:${embedLayout.minHeight ?? '520px'}`;
 ---
 
 <div
@@ -64,132 +68,36 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
       </p>
 
       <h1 class="res-title">{item.title}</h1>
+      <p class="res-kind">{semanticKind}</p>
 
-      <p class="res-kind">{kindLabel[item.kind]}</p>
+      <ResourceBrand resourceId={item.id} />
+      <AuthorAttribution resourceId={item.id} />
 
       {item.note && <p class="res-note">{item.note}</p>}
       {item.source && <p class="res-source">{item.source}</p>}
 
-      <div class="orbs" role="group" aria-label="פעולות">
-  {item.download && (
-    <a
-      class="orb"
-      style="--orb-c:#d4af5c; --orb-c2:var(--gold-deep); --orb-i:0ms"
-      href={item.download}
-      target="_blank"
-      rel="noopener"
-      download
-    >
-      <span class="orb-glow" aria-hidden="true" />
-      <span class="orb-face">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M4.5 19.5h15" />
-        </svg>
-      </span>
-      <span class="orb-label">הורדה</span>
-    </a>
-  )}
-
-  <a
-    class="orb"
-    style="--orb-c:#2ee06f; --orb-c2:#1cb457; --orb-i:80ms"
-    href={`https://wa.me/?text=${encodeURIComponent(waText)}`}
-    target="_blank"
-    rel="noopener"
-    aria-label={`שיתוף ${item.title} ב־WhatsApp`}
-  >
-    <span class="orb-glow" aria-hidden="true" />
-    <span class="orb-face">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" /></svg>
-    </span>
-    <span class="orb-label">שיתוף</span>
-  </a>
-
-  <a
-    class="orb"
-    style="--orb-c:#ea4335; --orb-c2:#c5221f; --orb-i:160ms"
-    href={`mailto:?subject=${encodeURIComponent(item.title)}&body=${encodeURIComponent(`${item.title} — ${canonical}`)}`}
-    aria-label={`שליחת ${item.title} בדוא״ל`}
-  >
-    <span class="orb-glow" aria-hidden="true" />
-    <span class="orb-face is-light">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="#4285F4" d="M1.636 20.5h3.819V11.73L0 7.64v11.223c0 .904.732 1.636 1.636 1.636Z" />
-        <path fill="#34A853" d="M18.545 20.5h3.819c.904 0 1.636-.732 1.636-1.636V7.64l-5.455 4.09Z" />
-        <path fill="#FBBC04" d="M18.545 5.457v6.273L24 7.64V6.275c0-2.023-2.309-3.178-3.927-1.964Z" />
-        <path fill="#EA4335" d="M5.455 11.73V5.457L12 10.366l6.545-4.909v6.273L12 16.639Z" />
-        <path fill="#C5221F" d="M0 6.275v1.365l5.455 4.09V5.457L4.073 4.42C2.309 3.098 0 4.252 0 6.275Z" />
-      </svg>
-    </span>
-    <span class="orb-label">דוא״ל</span>
-  </a>
-
-  <button class="orb" style="--orb-c:#8ab8d8; --orb-c2:#4b7fa3; --orb-i:240ms" type="button" data-copy={copyTarget}>
-    <span class="orb-glow" aria-hidden="true" />
-    <span class="orb-face">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-        <path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 1 0-5.66-5.66l-1 1" />
-        <path d="M14 10a4 4 0 0 0-5.66 0l-3 3A4 4 0 1 0 11 18.66l1-1" />
-      </svg>
-    </span>
-    <span class="orb-label">העתקת קישור</span>
-  </button>
-
-  <button
-    class="orb"
-    style="--orb-c:#c9a6f0; --orb-c2:#6f4f95; --orb-i:320ms"
-    type="button"
-    data-share={canonical}
-    data-share-title={item.title}
-    hidden
-  >
-    <span class="orb-glow" aria-hidden="true" />
-    <span class="orb-face">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="6" cy="12" r="2.6" /><circle cx="17" cy="6" r="2.6" /><circle cx="17" cy="18" r="2.6" />
-        <path d="m8.4 10.8 6.2-3.4M8.4 13.2l6.2 3.4" />
-      </svg>
-    </span>
-    <span class="orb-label">שיתוף</span>
-  </button>
-
-  <a
-    class="orb"
-    style="--orb-c:#d18a72; --orb-c2:#a44f38; --orb-i:400ms"
-    href={item.url}
-    target={item.url.startsWith('/') ? undefined : '_blank'}
-    rel="noopener"
-  >
-    <span class="orb-glow" aria-hidden="true" />
-    <span class="orb-face">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M14 4h6v6" /><path d="M20 4 11 13" />
-        <path d="M18.5 14.5v4a1.5 1.5 0 0 1-1.5 1.5H5.5A1.5 1.5 0 0 1 4 18.5V7A1.5 1.5 0 0 1 5.5 5.5h4" />
-      </svg>
-    </span>
-    <span class="orb-label">פתיחה במקור</span>
-  </a>
-
-  {item.embed && item.kind !== 'maf' && (
-    <button class="orb" style="--orb-c:#9bad78; --orb-c2:#5f6f3c; --orb-i:480ms" type="button" data-fs hidden>
-      <span class="orb-glow" aria-hidden="true" />
-      <span class="orb-face">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5" />
-        </svg>
-      </span>
-      <span class="orb-label">מסך מלא</span>
-    </button>
-  )}
-</div>
+      <ResourceActions
+        downloadUrl={item.download}
+        whatsappText={waText}
+        emailSubject={item.title}
+        emailBody={`${item.title} — ${canonical}`}
+        copyUrl={canonical}
+        shareUrl={canonical}
+        shareTitle={item.title}
+        sourceUrl={item.url}
+        sourceInternal={item.url.startsWith('/')}
+        fullscreen={Boolean(item.embed && item.kind !== 'maf')}
+        fullscreenTarget="[data-frame]"
+        statusTarget="[data-status]"
+      />
 
       <p class="res-status" data-status role="status" aria-live="polite"></p>
 
-      <nav class="res-pager" aria-label="ניווט בין הקבצים">
+      <nav class="res-pager" aria-label="ניווט בין המשאבים">
         {
           prev ? (
             <a class="pager-link" href={itemHref(grade.slug, prev.item)}>
-              <span class="pager-tag">הקובץ הקודם</span>
+              <span class="pager-tag">המשאב הקודם →</span>
               <span class="pager-title">{prev.item.title}</span>
             </a>
           ) : (
@@ -199,7 +107,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
         {
           next ? (
             <a class="pager-link" href={itemHref(grade.slug, next.item)}>
-              <span class="pager-tag">הקובץ הבא</span>
+              <span class="pager-tag">← המשאב הבא</span>
               <span class="pager-title">{next.item.title}</span>
             </a>
           ) : (
@@ -213,13 +121,19 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
       </a>
     </aside>
 
-    <div class="res-view" data-view data-kind={item.kind}>
+    <div
+      class="res-view"
+      data-view
+      data-kind={item.kind}
+      data-orientation={embedLayout.orientation}
+      style={embedStyle}
+    >
       {
         item.kind === 'maf' && item.maf ? (
           <MafmarRange sectionId={item.maf} accent={chapter.color} fill />
         ) : item.embed ? (
           <>
-            <div class="res-frame embed-frame" data-frame>
+            <div class="res-frame embed-frame" data-frame aria-busy="true">
               <iframe
                 data-esrc={item.embed}
                 title={`${item.title} — תצוגה חיה`}
@@ -254,17 +168,12 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
 </div>
 
 <style>
-  /* מיכל רחב במיוחד — המשאב והפעולות מנצלים את המסך, בלי לגלוש לקצוות */
   .res-page {
     inline-size: var(--embed-page-inline);
     margin-inline: auto;
     padding-block: 1.2rem clamp(2.6rem, 5vw, 4rem);
   }
 
-  /* ===== חצי-חצי במסך רחב: המשאב מימין, הפעולות משמאל (8.2) =====
-     לוח המידע קודם ב-DOM כדי שה-h1 של המשאב יופיע לפני כותרות המשנה
-     שבתוך ההטמעה (סדר כותרות תקין לקורא מסך), והסדר החזותי נשמר
-     באמצעות order: ההטמעה בעמודה הראשונה — הימנית ב-RTL. */
   .res-split {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -273,39 +182,23 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
     align-items: start;
   }
 
-  .res-view { order: 1; }
-  .res-panel { order: 2; }
+  .res-view { order: 1; min-inline-size: 0; }
+  .res-panel { order: 2; align-self: start; }
 
-  /* ===== עמוד שלם בהטמעה (הוראת יניב, 06/08/2026) =====
-     קודם הצדדים נדחסו לגובה שנשאר בחלון, ולכן מסמך הוצג חתוך. עכשיו
-     גובה ההטמעה נגזר מיחס העמוד עצמו: ברוחב הצד, עמוד A4 שלם נכנס
-     במלואו — כל הרוחב נראה, הגלילה אנכית ואין צורך לגרור לצדדים.
-     צד המידע אינו נמתח לגובה הזה, כדי שלא ייווצר בו שטח לבן ענק. */
-  .res-view { min-inline-size: 0; }
-
-  .res-panel { align-self: start; }
-
-  /* ===== התאמה לפי סוג המשאב (הוראת יניב, 06/08/2026) =====
-     הסוגים הם בדיוק אלה שקיימים ב-ItemKind (src/data/choveret.ts).
-     מסמך: יחס עמוד A4 — עמוד שלם נכנס ברוחב הצד, בלי חיתוך צדדים.
-     מצגת וחוברת דפדוף: יחס מצגת. אתר חי: viewer גבוה ונוח לגלישה. */
   .res-frame iframe { block-size: auto; }
 
-  .res-view[data-kind='pdf'] .res-frame iframe,
-  .res-view[data-kind='doc'] .res-frame iframe,
-  .res-view[data-kind='drive'] .res-frame iframe {
-    aspect-ratio: 1 / 1.414;
-    min-block-size: 640px;
+  .res-view[data-orientation='portrait'] .res-frame iframe,
+  .res-view[data-orientation='landscape'] .res-frame iframe {
+    aspect-ratio: var(--resource-aspect);
+    min-block-size: var(--resource-min-h);
     max-block-size: 1180px;
   }
 
-  .res-view[data-kind='canva'] .res-frame iframe,
-  .res-view[data-kind='flip'] .res-frame iframe { aspect-ratio: 16 / 10; min-block-size: 460px; }
+  .res-view[data-orientation='interactive'] .res-frame iframe {
+    block-size: var(--resource-min-h);
+    min-block-size: var(--resource-min-h);
+  }
 
-  .res-view[data-kind='site'] .res-frame iframe,
-  .res-view[data-kind='link'] .res-frame iframe { block-size: var(--embed-full-height); }
-
-  /* מקטע מהחוזר — אותו יחס עמוד, דרך ה-shell של MafmarRange */
   .res-view[data-kind='maf'] :global(.mrange.is-fill .mrange-shell) {
     aspect-ratio: 1 / 1.3;
     block-size: auto;
@@ -313,13 +206,8 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
     max-block-size: 1120px;
   }
 
-  /* פריט מהחוזר ממלא את הצד שלו באותו אופן */
   .res-view :global(.mrange.is-fill) { block-size: 100%; }
 
-  /* ===== המסגרת מגיעה מ-.embed-frame ב-global.css (8.26) ===== */
-
-  /* ייחודי לעמוד המשאב: רצפת גובה וחשיפה הדרגתית אחרי הטעינה (8.9);
-     המידות, הגבול, הרדיוס והרקע מגיעים מ-.embed-frame > iframe */
   .res-frame iframe {
     opacity: 0;
     transition: opacity 420ms var(--ease);
@@ -353,7 +241,6 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   }
 
   .res-skel-txt { color: var(--ink-faint); font-size: 0.88rem; }
-
   @keyframes res-spin { to { rotate: 360deg; } }
 
   .res-open-card {
@@ -368,11 +255,8 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
   }
 
   .res-frame[hidden] { display: none !important; }
-
-  /* טקסט בהיר על מזרן ההטמעה הנייבי (8.26) — ניגודיות גבוהה כמו פס התחתית */
   .res-open-card p { margin: 0; font-weight: 600; color: #eef1f7; }
 
-  /* ===== לוח המידע והפעולות ===== */
   .res-panel {
     padding: var(--embed-panel-padding);
     border-radius: var(--embed-radius);
@@ -380,10 +264,8 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
     background: #fff;
     box-shadow: var(--shadow-soft);
     border-inline-start: 5px solid var(--ch);
+    --ch-ink: color-mix(in srgb, var(--ch-dark) 76%, #10141c);
   }
-
-  /* גוון קריא של צבע הפרק — עומד ב-AA גם בטקסט קטן על הגוון הרך שלו */
-  .res-panel { --ch-ink: color-mix(in srgb, var(--ch-dark) 76%, #10141c); }
 
   .res-eyebrow {
     margin: 0 0 0.5rem;
@@ -417,17 +299,9 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
     font-weight: 700;
   }
 
+  .res-panel :global(.author-attribution) { margin-block-start: 0.8rem; }
   .res-note { margin: 1.2rem 0 0; color: var(--ink-soft); line-height: 1.75; }
   .res-source { margin: 0.6rem 0 0; color: var(--ink-faint); font-size: 0.83rem; }
-
-  .res-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin-block-start: clamp(1.5rem, 2.6vw, 2.1rem);
-  }
-
   .res-status { margin: 0.7rem 0 0; min-block-size: 1.2rem; font-size: 0.85rem; color: var(--gold-deep); font-weight: 600; }
 
   .res-pager {
@@ -454,23 +328,19 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
 
   .pager-link:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
   .pager-link:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-
   .pager-tag { font-size: 0.75rem; font-weight: 700; color: var(--gold-deep); }
   .pager-title { font-weight: 600; font-size: 0.92rem; line-height: 1.4; }
   .pager-spacer { display: none; }
-
   .res-back { margin-block-start: 1.1rem; inline-size: 100%; justify-content: center; }
 
-  /* ===== נייד: ההטמעה ראשונה, ההסבר והפעולות אחריה (8.6) =====
-     כאן העמוד זורם וגולל כרגיל — אין חלוקה לשני צדדים ולכן אין
-     שני פסי גלילה זה לצד זה. */
   @media (max-width: 1099px) {
     .res-split { grid-template-columns: 1fr; block-size: auto; gap: clamp(1.4rem, 4vw, 2.2rem); }
     .res-view { block-size: auto; }
     .res-panel { block-size: auto; overflow: visible; }
-    .res-view[data-kind='pdf'] .res-frame iframe,
-    .res-view[data-kind='doc'] .res-frame iframe,
-    .res-view[data-kind='drive'] .res-frame iframe { min-block-size: 520px; max-block-size: none; }
+    .res-view[data-orientation] .res-frame iframe {
+      min-block-size: clamp(420px, 72svh, 640px);
+      max-block-size: none;
+    }
     .res-pager { grid-template-columns: 1fr; }
   }
 
@@ -485,38 +355,36 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
 <script>
   const page = document.querySelector<HTMLElement>('.res-page');
   if (page) {
-    const status = page.querySelector<HTMLElement>('[data-status]');
-    const say = (text: string) => {
-      if (!status) return;
-      status.textContent = text;
-      setTimeout(() => {
-        if (status.textContent === text) status.textContent = '';
-      }, 3200);
-    };
-
-    // דפדפן בלי מציג PDF מובנה — כרטיס פתיחה אמיתי, לא מסגרת ריקה (8.8)
     const fb = page.querySelector<HTMLElement>('[data-pdf-fb]');
     const frame = page.querySelector<HTMLElement>('[data-frame]');
     const noPdf = 'pdfViewerEnabled' in navigator && navigator.pdfViewerEnabled === false;
     if (fb && frame && noPdf) {
       frame.hidden = true;
+      frame.setAttribute('aria-busy', 'false');
       fb.hidden = false;
     }
 
-    // ההטמעה נטענת כשהעמוד באמת מוצג, ונחשפת בעדינות אחרי load (8.9)
+    // הצלחת טעינה נקבעת רק מאירוע load אמיתי של ה-iframe. אין timeout
+    // שמסמן הצלחה מלאכותית; כך כשל חיצוני לא הופך ל-false green.
     const iframe = frame?.querySelector<HTMLIFrameElement>('iframe[data-esrc]');
     if (frame && iframe && !frame.hidden) {
       const load = () => {
         if (iframe.src) return;
-        iframe.addEventListener('load', () => frame.classList.add('is-loaded'), { once: true });
+        iframe.addEventListener(
+          'load',
+          () => {
+            frame.classList.add('is-loaded');
+            frame.setAttribute('aria-busy', 'false');
+          },
+          { once: true }
+        );
         iframe.src = iframe.dataset.esrc ?? '';
-        // רשת ביטחון: לא משאירים שלד טעינה תקוע אם ה-load לא נורה
-        setTimeout(() => frame.classList.add('is-loaded'), 8000);
       };
+
       if ('IntersectionObserver' in window) {
         const io = new IntersectionObserver(
           (entries) => {
-            if (entries.some((e) => e.isIntersecting)) {
+            if (entries.some((entry) => entry.isIntersecting)) {
               io.disconnect();
               load();
             }
@@ -526,71 +394,5 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
         io.observe(frame);
       } else load();
     }
-
-    page.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const value = btn.dataset.copy ?? '';
-        try {
-          await navigator.clipboard.writeText(value);
-          say('הקישור הועתק');
-        } catch {
-          say('ההעתקה נחסמה בדפדפן');
-        }
-      });
-    });
-
-    // שיתוף במנגנון המכשיר — מוצג רק כשהוא באמת נתמך (8.22)
-    const shareBtn = page.querySelector<HTMLButtonElement>('[data-share]');
-    if (shareBtn && typeof navigator.share === 'function') {
-      shareBtn.hidden = false;
-      shareBtn.addEventListener('click', async () => {
-        try {
-          await navigator.share({ title: shareBtn.dataset.shareTitle, url: shareBtn.dataset.share });
-          say('הועבר למנגנון השיתוף');
-        } catch {
-          /* המשתמש ביטל — אין מה לדווח */
-        }
-      });
-    }
-
-    const fsBtn = page.querySelector<HTMLButtonElement>('[data-fs]');
-    if (fsBtn && frame && frame.requestFullscreen) {
-      fsBtn.hidden = false;
-      fsBtn.addEventListener('click', async () => {
-        try {
-          await frame.requestFullscreen();
-        } catch {
-          say('המסך המלא נחסם בדפדפן');
-        }
-      });
-    }
   }
-
-// ============================================================
-// מגנטיות עדינה לאורבים — נוסף לבלוק ה-<script> של ResourceSplit.astro
-// הכפתור נמשך מעט אל הסמן וההילה מתחזקת. מכובד prefers-reduced-motion,
-// ופועל רק במצביע מדויק (עכבר) — במגע אין ריחוף.
-// ============================================================
-
-const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const fine = matchMedia('(pointer: fine)').matches;
-
-if (!calm && fine) {
-  document.querySelectorAll<HTMLElement>('.orb').forEach((orb) => {
-    const face = orb.querySelector<HTMLElement>('.orb-face');
-    if (!face) return;
-
-    const move = (e: PointerEvent) => {
-      const r = face.getBoundingClientRect();
-      const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
-      const dy = (e.clientY - (r.top + r.height / 2)) / r.height;
-      face.style.transform = `translate(${dx * 10}px, ${dy * 10 - 4}px) scale(1.07)`;
-    };
-
-    orb.addEventListener('pointermove', move);
-    orb.addEventListener('pointerleave', () => { face.style.transform = ''; });
-    orb.addEventListener('pointerdown', () => { face.style.transform = 'scale(.94)'; });
-    orb.addEventListener('pointerup', move);
-  });
-}
 </script>

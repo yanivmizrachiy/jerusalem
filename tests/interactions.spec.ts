@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { LEGACY_REDIRECTS } from '../src/lib/legacyRedirects.mjs';
 
 /** אינטראקציות הליבה — התנהגות אמיתית, לא הנחות (19.3) */
 
@@ -37,14 +38,19 @@ test('MafmarRange: דפדוף כלוא לטווח המאומת', async ({ page }
   await expect(next).toBeDisabled();
 });
 
-test('נגן יחידה: החלפת משאב, hash עמוק ותווית סוג (יחידות ההוראה)', async ({ page }) => {
-  await page.goto('/chativat-beynayim/hafifat-meshulashim/#TRI-013');
-  await expect(page.locator('[data-status]')).toContainText('יישומון משפטי חפיפה');
-  await page.locator('#TRI-005 [data-item]').click();
-  await expect(page).toHaveURL(/#TRI-005$/);
-  const src = await page.locator('[data-frame]').getAttribute('src');
-  expect(src).toContain('youtube-nocookie.com/embed/');
-  await expect(page.locator('[data-open]')).toHaveAttribute('href', /youtube\.com\/watch/);
+test('חפיפת משולשים: כתובת legacy מגיעה לנושא הקנוני בלי עמוד ייעודי', async ({ page }) => {
+  // הכתובת הישנה היא היום הפניית HTTP אמיתית ולא עמוד עם meta-refresh, ולכן
+  // מקומית נאכף שאין בה עוד עמוד; ההפניה עצמה מאומתת מול הפרודקשן
+  // ב-scripts/verify-deploy.mjs, שנגזר מאותו מקור תאימות.
+  expect(LEGACY_REDIRECTS['/chativat-beynayim/hafifat-meshulashim/']).toBe(
+    '/chativat-beynayim/nose/h/h-congruent/'
+  );
+  expect((await page.request.fetch('/chativat-beynayim/hafifat-meshulashim/', { redirect: 'manual' })).status()).toBe(404);
+
+  await page.goto('/chativat-beynayim/nose/h/h-congruent/');
+  await expect(page.locator('h1.chapter-title')).toContainText('חפיפת משולשים');
+  expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);
+  await expect(page.locator('.uplay-viewer')).toHaveCount(0);
 });
 
 test('אחרי הסרטון מופיע צוות ההדרכה — לא תוכן אחר (6.5)', async ({ page }) => {
@@ -69,17 +75,15 @@ test('כרטיסי צוות: קישורי WhatsApp ודוא״ל תקינים ו�
   await expect(ayelet.locator('a[href="tel:+972502721656"]')).toBeVisible();
 });
 
-test('ניווט פדגוגי: משוואות משולבת בשרשרת ז׳ (5.12)', async ({ page }) => {
-  // mishvaot.astro הוא עמוד ייעודי מלא (UnitPlaylist) — הקודם/הבא מפנים לכתובות קנוניות
-  await page.goto('/chativat-beynayim/mishvaot/');
-  const prev = page.locator('.pager-link', { hasText: 'מספרים מכוונים' });
-  await expect(prev).toBeVisible();
-  await expect(prev).toHaveAttribute('href', '/chativat-beynayim/reader/z/misparim/');
-  const next = page.locator('.pager-link', { hasText: 'אתר זוויות' });
-  await expect(next).toBeVisible();
-  await expect(next).toHaveAttribute('href', '/chativat-beynayim/reader/z/zaviyot/');
-  // כפתור חזרה לכיתה
-  await expect(page.locator('a.btn-ghost', { hasText: 'חזרה לכיתה' })).toBeVisible();
+test('משוואות: כתובת legacy מגיעה לנושא הקנוני וכל חומרי היחידה נשמרים', async ({ page }) => {
+  expect(LEGACY_REDIRECTS['/chativat-beynayim/mishvaot/']).toBe('/chativat-beynayim/nose/z/z-equations/');
+  expect((await page.request.fetch('/chativat-beynayim/mishvaot/', { redirect: 'manual' })).status()).toBe(404);
+
+  await page.goto('/chativat-beynayim/nose/z/z-equations/');
+  await expect(page.locator('h1.chapter-title')).toContainText('משוואות');
+  expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);
+  await expect(page.locator('.uplay-viewer')).toHaveCount(0);
+  await expect(page.locator('a[data-to-topics]')).toBeVisible();
 });
 
 test('כפתורי WhatsApp אמיתיים: כל כפתור מוביל ישירות למספר הנכון (7.16)', async ({ page }) => {

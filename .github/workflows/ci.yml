@@ -21,12 +21,25 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
-      # npm 11 — אותה גרסה שמייצרת את הלוקפייל בסביבת העבודה; בלעדיה
-      # לוקפייל שנוצר מקומית עלול להידחות כאן ב-EUSAGE.
-      - run: npm i -g npm@11
+      # גרסת npm מוצמדת ב-package.json (packageManager) ונקראת ממנו, כדי
+      # ששרשרת ההתקנה תהיה זהה בכל ריצה. ‏npm@11 צף התקין גרסה אחרת בכל
+      # פעם, והלוקפייל שנוצר מקומית נדחה כאן ב-EUSAGE.
+      - name: התקנת גרסת npm המוצמדת
+        run: npm i -g "npm@$(node -p "require('./package.json').packageManager.split('@')[1]")"
       - run: npm ci --no-audit --no-fund
+      # שער תלויות בעל רעש נמוך: חוסם אך ורק פגיעוּת Critical בתלויות
+      # ההפקה. נמדד 09/08/2026 שקיימות 4 פגיעוּיות High פתוחות
+      # (path-to-regexp דרך @astrojs/vercel) — הן נכסי בנייה וניתוב ואינן
+      # נשלחות לדפדפן, ושדרוגן דורש שדרוג אדפטר. לכן High מדווח ואינו
+      # חוסם, ו-Critical חוסם: היום יש 0 כאלה, כך שהשער fail-closed מבלי
+      # לצבוע את הצינור אדום ביום הראשון.
+      - name: פגיעוּת Critical בתלויות הפקה חוסמת
+        run: npm audit --omit=dev --audit-level=critical
+      - name: דוח פגיעוּיות High (מדווח, אינו חוסם)
+        if: always()
+        run: npm audit --omit=dev --audit-level=high || true
       - run: npx playwright install --with-deps chromium
       # מקור אמת יחיד: repo-health → check → build → Playwright עם retries=0
       # ופורט פנוי אוטומטי. אותה פקודה מיועדת גם להרצה מקומית.
@@ -50,6 +63,6 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version-file: .nvmrc
       - name: הפרודקשן מגיש את הקומיט הזה וכל הסמנים חיים
         run: node scripts/verify-deploy.mjs --sha "${GITHUB_SHA:0:7}" --timeout 480

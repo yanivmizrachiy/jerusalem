@@ -5,7 +5,19 @@ import { expect, test } from '@playwright/test';
  * המטרה: למנוע חזרה של viewer נמוך שמציג רק חצי עמוד, ולוודא שכל
  * פעולות האתר נשארות בחצי השמאלי ולא זולגות אל אזור ההטמעה.
  */
-test.skip(({ isMobile }) => isMobile === true, 'רץ בפרויקט הדסקטופ עם viewports מפורשים');
+/**
+ * חלוקת הפרויקטים (תוקן 09/08/2026): הקובץ כולו דילג על פרופיל המובייל,
+ * ולכן הבדיקה שכותרתה "בנייד" רצה בכרום דסקטופ עם viewport צר בלבד —
+ * בלי מגע ובלי userAgent של מובייל. מעכשיו היא רצה בפרופיל Pixel 7
+ * האמיתי, ושאר הבדיקות בפרויקט הדסקטופ בלבד.
+ */
+test.beforeEach(({ isMobile }, testInfo) => {
+  const wantsMobile = testInfo.title.includes('בנייד');
+  test.skip(
+    wantsMobile !== (isMobile === true),
+    wantsMobile ? 'רץ בפרופיל המובייל האמיתי בלבד' : 'רץ בפרויקט הדסקטופ בלבד',
+  );
+});
 
 const desktopViewports = [
   { width: 1440, height: 900 },
@@ -47,7 +59,14 @@ for (const viewport of desktopViewports) {
 
 test('מסמך מוטמע מקבל יחס עמוד מלא ולא viewer אופקי נמוך', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/chativat-beynayim/reader/t/sheelot-t/');
+  // מסמך Google ציבורי ומיוחס (משרד החינוך). המשאב שנבדק כאן קודם נשמר במקור
+  // אך נמצא ב-quarantine עד שתימצא ראיית ייחוס (24.1).
+  //
+  // נמדד 09/08/2026: אסור להחליף כאן ב-PDF. בדפדפן הבדיקה אין מציג PDF
+  // מובנה (`navigator.pdfViewerEnabled === false`), ולכן משאב PDF מסתיר את
+  // ההטמעה ומציג במקומה את כרטיס הפתיחה — בדיוק כנדרש ב-8.8. יחס העמוד של
+  // מסמך מוטמע נבדק על משאב מאותה משפחת הטמעה בלבד.
+  await page.goto('/chativat-beynayim/reader/t/ruach-tochnit/');
 
   const view = (await page.locator('.res-view').boundingBox())!;
   const iframe = page.locator('.res-frame iframe');
@@ -77,7 +96,7 @@ test('כל פעולות עמוד המשאב נמצאות רק בחצי השמא�
 
   for (const route of [
     '/chativat-beynayim/reader/z/misparim/',
-    '/chativat-beynayim/reader/t/sheelot-t/',
+    '/chativat-beynayim/reader/z/tochnit-z/',
   ]) {
     await page.goto(route);
 
@@ -101,6 +120,9 @@ test('כל פעולות עמוד המשאב נמצאות רק בחצי השמא�
 
 test('בנייד ההטמעה ראשונה, גבוהה ונוחה, והפעולות אחריה', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  // מוודא שאנחנו באמת בפרופיל מכשיר ולא ב-viewport צר של דסקטופ
+  const touch = await page.evaluate(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0);
+  expect(touch, 'בדיקת נייד חייבת לרוץ בפרופיל מכשיר אמיתי').toBe(true);
   await page.goto('/chativat-beynayim/reader/z/misparim/');
 
   const view = (await page.locator('.res-view').boundingBox())!;
@@ -113,30 +135,23 @@ test('בנייד ההטמעה ראשונה, גבוהה ונוחה, והפעול�
 });
 
 /* ===== שומר האורבים במסלול reader אמיתי =====
-   נוסף אחרי שיניב דיווח שאינו רואה את כפתורי הפעולה. האבחון מול הפרודקשן
-   הראה שהם חיים ותקינים, ושהם קיימים אך ורק במסלולי `reader/` — לא בעמוד
-   הראשי, לא בשער החטיבה ולא בעמוד השכבה. הבדיקה נועלת בדיוק את זה, כדי
-   ששקט עתידי לא ייראה כמו תקינות. */
+   הבדיקה רצה רק על משאבים ציבוריים בעלי ייחוס מאומת. משאב שנכנס ל-quarantine
+   אינו דוגמת UI תקפה עד לאימות הייחוס שלו. */
 const readerRoutes = [
   '/chativat-beynayim/reader/z/tochnit-z/',
   '/chativat-beynayim/reader/z/misparim/',
-  '/chativat-beynayim/reader/t/sheelot-t/',
+  '/chativat-beynayim/reader/h/kavit-flip/',
 ] as const;
 
 /* חוסם משאבים חיצוניים (Google Docs, אתרי ההמחשות). הם אינם נדרשים כדי לאמת
    את לוח הפעולות, והם שהפכו את הבדיקה לאיטית ולתלוית-רשת. */
 const blockExternal = (p: import('@playwright/test').Page) =>
-  // מיירטים אך ורק מארחים חיצוניים — בקשות מקומיות אינן עוברות דרך ה-handler
-  // ולכן אין תקורת ניתוב על כל נכס של האתר עצמו.
   p.route(
     (url) => url.hostname !== '127.0.0.1' && url.hostname !== 'localhost',
     (route) => route.abort()
   );
 
 test.describe('שומר לוח הפעולות', () => {
-  /* `prefers-reduced-motion` מבטל את כניסת `orb-rise` דרך ה-CSS של המוצר עצמו
-     (global.css), ולכן האורבים גלויים כבר בפריים הראשון — בלי sleep קבוע
-     ובלי לשנות שורה אחת במוצר. */
   test.use({ reducedMotion: 'reduce' });
 
 for (const size of [
@@ -149,9 +164,6 @@ for (const size of [
 
     for (const route of readerRoutes) {
       await page.goto(route);
-      /* המתנה לתנאי DOM אמיתי — לא sleep קבוע. `toBeVisible()` לבדו אינו
-         מספיק: הוא מתעלם מ-opacity, ולאורבים כניסה מדורגת עם השהיה
-         (`orb-rise`, ‏fill-mode: both) שמשאירה אותם ב-opacity 0 בתחילה. */
       await expect
         .poll(
           () =>

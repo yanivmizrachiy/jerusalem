@@ -1,20 +1,19 @@
 ---
 /**
- * "מה חדש?" (RULES 7.20) — פס חדשות בצד שמאל של המסך הרחב, כיתוביות
- * עולות ברצף עדין; נעצר במעבר עכבר/מיקוד; ברוחב צר הופך לרשימה שקטה.
- * התוכן נערך על ידי יניב ב-src/data/news.ts — הודעות אמיתיות בלבד.
+ * פס הצד "מה צפוי?". תוכן האתר אינו מציג הודעות דמו/רצות: המידע הקבוע
+ * היחיד מתחת לכלי העזר הוא מניין המשאבים האמיתי שנגזר ממקור הנתונים הקנוני.
  */
-import { news } from '../data/news';
 import { whatsappCommunity } from '../data/resources';
-
-const accents = ['var(--amber)', 'var(--sky)', 'var(--terracotta)', 'var(--olive)', 'var(--rose)', 'var(--lilac)'];
+import { middleSchoolResourceCountText } from '../data/site-counts';
 ---
 
 <aside class="rail" id="ma-chadash" aria-label="מה צפוי?">
   <h2 class="rail-title">מה צפוי?</h2>
+
   <p class="rail-countdown" data-countdown>
     <span class="cd-label">פתיחת שנת הלימודים תשפ״ז: 1/9/2026</span>
   </p>
+
   <div class="rail-wa">
     <a
       class="btn btn-whatsapp rail-wa-btn"
@@ -29,202 +28,49 @@ const accents = ['var(--amber)', 'var(--sky)', 'var(--terracotta)', 'var(--olive
       <a class="rail-wa-head" href={whatsappCommunity.url} target="_blank" rel="noopener">הצטרפו לקבוצת המורים בווטסאפ</a>
     </span>
   </div>
-  <div class="rail-viewport">
-    <div class="rail-track">
-      <ul class="rail-list">
-        {
-          news.map((n, i) => (
-            <li class="rail-item" style={`--item-accent:${accents[i % accents.length]}`}>
-              <time class="rail-date">{n.date}</time>
-              <p class="rail-text">{n.text}</p>
-            </li>
-          ))
-        }
-      </ul>
-      <ul class="rail-list rail-dup" aria-hidden="true">
-        {
-          news.map((n, i) => (
-            <li class="rail-item" style={`--item-accent:${accents[i % accents.length]}`}>
-              <time class="rail-date">{n.date}</time>
-              <p class="rail-text">{n.text}</p>
-            </li>
-          ))
-        }
-      </ul>
-    </div>
-  </div>
+
+  <section class="rail-live-count" aria-label="מניין התוכן באתר">
+    <span class="count-kicker">מתעדכן אוטומטית</span>
+    <strong>{middleSchoolResourceCountText}</strong>
+  </section>
 </aside>
 
 <style>
-  .rail {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-soft);
-    padding: 1.3rem 1.2rem 0.6rem;
-  }
-
-  .rail-title {
-    font-size: 1.25rem;
-    margin: 0 0 0.9rem;
-    padding-block-end: 0.7rem;
-    border-block-end: 2px solid transparent;
-    border-image: linear-gradient(90deg, var(--amber), var(--terracotta), var(--sky)) 1;
-    border-image-slice: 0 0 1 0;
-  }
-
-  /* ספירה לאחור אמיתית לפתיחת תשפ״ז — בכחול־אור זוהר (7.20) */
-  .rail-countdown {
-    margin: 0 0 0.9rem;
-    padding: 0.7rem 0.8rem 0.65rem;
-    border-radius: 10px;
-    background: linear-gradient(180deg, #0b1524, #0e1c31);
-    color: #7ed2ff;
-    font-weight: 700;
-    text-align: center;
-    line-height: 1.4;
-    font-variant-numeric: tabular-nums;
-    text-shadow:
-      0 0 2px rgb(126 210 255 / 0.9),
-      0 0 12px rgb(126 210 255 / 0.5);
-  }
-
-  .rail-countdown :global(.cd-num) {
-    display: block;
-    font-family: var(--font-display);
-    font-size: 2rem;
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: 0.04em;
-    text-shadow:
-      0 0 3px rgb(126 210 255 / 0.95),
-      0 0 18px rgb(126 210 255 / 0.55),
-      0 0 38px rgb(64 156 255 / 0.4);
-  }
-
-  .rail-countdown :global(.cd-label) {
-    display: block;
-    font-size: 0.88rem;
-  }
-
-  /* הקישור הירוק המהיר לקבוצת המורים (7.20) */
-  .rail-wa {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    margin: 0 0 0.9rem;
-    padding: 0.55rem 0.7rem;
-    border-radius: 10px;
-    background: var(--vacation-soft);
-    border: 1px solid color-mix(in srgb, var(--whatsapp) 45%, transparent);
-  }
-
-  /* הלוגו העגול העדין — הצטרפות מיידית (7.20) */
-  .rail-wa-btn {
-    flex: none;
-    inline-size: 44px;
-    block-size: 44px;
-  }
-
-  .rail-wa-texts {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    min-inline-size: 0;
-  }
-
-  .rail-wa-head {
-    font-size: 0.9rem;
-    font-weight: 800;
-    color: var(--vacation);
-    text-decoration: none;
-  }
-
+  .rail { background: #fff; border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); padding: 1.3rem 1.2rem; }
+  .rail-title { font-size: 1.25rem; margin: 0 0 0.9rem; padding-block-end: 0.7rem; border-block-end: 2px solid transparent; border-image: linear-gradient(90deg, var(--amber), var(--terracotta), var(--sky)) 1; border-image-slice: 0 0 1 0; }
+  .rail-countdown { margin: 0 0 0.9rem; padding: 0.7rem 0.8rem 0.65rem; border-radius: 10px; background: linear-gradient(180deg, #0b1524, #0e1c31); color: #7ed2ff; font-weight: 700; text-align: center; line-height: 1.4; font-variant-numeric: tabular-nums; text-shadow: 0 0 2px rgb(126 210 255 / 0.9), 0 0 12px rgb(126 210 255 / 0.5); }
+  .rail-countdown :global(.cd-num) { display: block; font-family: var(--font-display); font-size: 2rem; font-weight: 800; line-height: 1.1; letter-spacing: 0.04em; text-shadow: 0 0 3px rgb(126 210 255 / 0.95), 0 0 18px rgb(126 210 255 / 0.55), 0 0 38px rgb(64 156 255 / 0.4); }
+  .rail-countdown :global(.cd-label) { display: block; font-size: 0.88rem; }
+  .rail-wa { display: flex; align-items: center; gap: 0.65rem; margin: 0 0 0.9rem; padding: 0.55rem 0.7rem; border-radius: 10px; background: var(--vacation-soft); border: 1px solid color-mix(in srgb, var(--whatsapp) 45%, transparent); }
+  .rail-wa-btn { flex: none; inline-size: 44px; block-size: 44px; }
+  .rail-wa-texts { display: flex; flex-direction: column; gap: 0.1rem; min-inline-size: 0; }
+  .rail-wa-head { font-size: 0.9rem; font-weight: 800; color: var(--vacation); text-decoration: none; }
   .rail-wa-head:hover { color: #0a5230; }
 
-  .rail-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .rail-live-count {
     display: flex;
     flex-direction: column;
-    gap: 0.9rem;
+    gap: 0.35rem;
+    padding: 1rem 0.9rem;
+    border-inline-start: 3px solid var(--gold);
+    border-radius: 0 10px 10px 0;
+    background: var(--paper-soft);
   }
+  .count-kicker { color: var(--gold-deep); font-size: 0.76rem; font-weight: 850; }
+  .rail-live-count strong { color: var(--navy); font-family: var(--font-display); font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.45; }
 
-  .rail-item {
-    border-inline-start: 3px solid var(--item-accent, var(--gold));
-    padding-inline-start: 0.8rem;
-    padding-block: 0.15rem;
-  }
-
-  .rail-date {
-    display: inline-block;
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: var(--ink-faint);
-    letter-spacing: 0.03em;
-    margin-block-end: 0.15rem;
-  }
-
-  .rail-text {
-    margin: 0;
-    font-size: 0.95rem;
-    line-height: 1.55;
-    color: var(--ink-soft);
-  }
-
-  .rail-dup { display: none; }
-
-  /* מסך רחב: פס קבוע בצד שמאל, כיתוביות עולות */
   @media (min-width: 1280px) {
     .rail {
       position: fixed;
       left: clamp(0.9rem, 2vw, 1.6rem);
       top: calc(var(--header-h) + 1.4rem);
-      bottom: 1.4rem;
       width: var(--rail-w);
       z-index: 60;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
     }
-
-    .rail-viewport {
-      flex: 1;
-      overflow: hidden;
-      mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 90%, transparent 100%);
-    }
-
-    .rail-track {
-      display: flex;
-      flex-direction: column;
-      gap: 0.9rem;
-      animation: rail-rise 32s linear infinite;
-    }
-
-    .rail-dup { display: flex; }
-
-    .rail:hover .rail-track,
-    .rail:focus-within .rail-track {
-      animation-play-state: paused;
-    }
-  }
-
-  @keyframes rail-rise {
-    from { transform: translateY(0); }
-    to { transform: translateY(calc(-50% - 0.45rem)); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .rail-track { animation: none !important; }
-    .rail-dup { display: none !important; }
-    .rail-viewport { mask-image: none; overflow-y: auto; }
   }
 </style>
 
 <script>
-  // מספר הימים המדויק עד פתיחת שנת הלימודים תשפ״ז (1/9/2026), לפי שעון ירושלים,
-  // מתעדכן מדי יממה בזמן אמת (7.20). ללא JS מוצג התאריך הקבוע — אמיתי בכל מקרה.
   const el = document.querySelector<HTMLElement>('[data-countdown]');
   if (el) {
     const dayInJerusalem = (d: Date) => {
@@ -234,15 +80,12 @@ const accents = ['var(--amber)', 'var(--sky)', 'var(--terracotta)', 'var(--olive
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
-        })
-          .formatToParts(d)
-          .map((x) => [x.type, x.value])
+        }).formatToParts(d).map((x) => [x.type, x.value])
       );
       return Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day));
     };
 
-    const OPENING = Date.UTC(2026, 8, 1); // 1/9/2026 — פתיחת תשפ״ז
-
+    const OPENING = Date.UTC(2026, 8, 1);
     const render = () => {
       const days = Math.round((OPENING - dayInJerusalem(new Date())) / 86_400_000);
       el.innerHTML =

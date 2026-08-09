@@ -1,0 +1,188 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import { authorsForResource, type AuthorRecord } from '../../../data/authors';
+import { canonicalGrades } from '../../../data/canonical-content';
+import { isPublishableMaterial } from '../../../data/publishing';
+import {
+  itemHref,
+  gradeLabel,
+  materialChapters,
+  type ChoveretChapter,
+  type ChoveretGrade,
+  type ChoveretItem,
+} from '../../../data/choveret';
+import { resourceDisplayLabel } from '../../../data/resource-labels';
+import { visibleResourceNote, visibleResourceTitle } from '../../../data/resource-copy';
+
+interface AuthorEntry {
+  grade: ChoveretGrade;
+  item: ChoveretItem;
+  chapters: ChoveretChapter[];
+}
+
+const entriesFor = (author: AuthorRecord): AuthorEntry[] => {
+  const entries = new Map<string, AuthorEntry>();
+
+  for (const grade of canonicalGrades) {
+    for (const chapter of materialChapters(grade)) {
+      for (const item of chapter.items) {
+        if (item.pageHref || !isPublishableMaterial(item)) continue;
+        if (!authorsForResource(item.id).some((candidate) => candidate.id === author.id)) continue;
+
+        const key = `${grade.slug}:${item.id}`;
+        const existing = entries.get(key);
+        if (existing) {
+          if (!existing.chapters.some((candidate) => candidate.id === chapter.id)) existing.chapters.push(chapter);
+          continue;
+        }
+
+        entries.set(key, { grade, item, chapters: [chapter] });
+      }
+    }
+  }
+
+  return [...entries.values()];
+};
+
+export async function getStaticPaths() {
+  // Astro compiles getStaticPaths in an isolated scope. Load path dependencies
+  // inside the function so the build never relies on frontmatter closures.
+  const { pageAuthors, authorsForResource } = await import('../../../data/authors');
+  const { canonicalReaderItems } = await import('../../../data/canonical-content');
+
+  return pageAuthors
+    .filter((author) =>
+      canonicalReaderItems.some(({ item }) =>
+        authorsForResource(item.id).some((candidate) => candidate.id === author.id)
+      )
+    )
+    .map((author) => ({
+      params: { author: author.slug },
+      props: { author },
+    }));
+}
+
+const { author } = Astro.props as { author: AuthorRecord };
+const entries = entriesFor(author);
+const gradeGroups = ['z', 'h', 't']
+  .map((slug) => {
+    const gradeEntries = entries.filter(({ grade }) => grade.slug === slug);
+    const grade = gradeEntries[0]?.grade;
+    if (!grade) return undefined;
+
+    // כל משאב מופיע פעם אחת בלבד. אם הוא מוצב בכמה נושאים, הוא מקובץ
+    // תחת הנושא הראשון בסדר הקנוני ומציג על הכרטיס את כל שיוכי הנושא.
+    const chapterOrder = materialChapters(grade);
+    const chapters = chapterOrder
+      .map((chapter) => ({
+        chapter,
+        entries: gradeEntries.filter((entry) => entry.chapters[0]?.id === chapter.id),
+      }))
+      .filter(({ entries }) => entries.length > 0);
+
+    return { grade, chapters };
+  })
+  .filter(Boolean) as { grade: ChoveretGrade; chapters: { chapter: ChoveretChapter; entries: AuthorEntry[] }[] }[];
+---
+
+<Base
+  title={`${author.name} — חומרי הוראה — מחוז ירושלים`}
+  description={`כל חומרי ההוראה של ${author.name} באתר, מסודרים לפי שכבה ונושא.`}
+>
+  <div class="container author-page">
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
+        { label: author.name },
+      ]}
+    />
+
+    <header class="author-head" data-reveal>
+      <p class="eyebrow">יוצר/ת תוכן</p>
+      <h1>{author.name}</h1>
+      {author.role && <p class="author-role">{author.role}</p>}
+      <p class="author-count">{entries.length} קבצים וקישורים באתר</p>
+    </header>
+
+    <div class="author-grades">
+      {gradeGroups.map(({ grade, chapters }) => (
+        <section class="author-grade" style={`--grade:${grade.color}; --grade-dark:${grade.dark}`}>
+          <div class="grade-head">
+            <p>{gradeLabel(grade)}</p>
+            <h2>{grade.title}</h2>
+          </div>
+
+          <div class="topic-groups">
+            {chapters.map(({ chapter, entries: chapterEntries }) => (
+              <section class="topic-group">
+                <h3>{chapter.title}</h3>
+                <div class="resource-grid">
+                  {chapterEntries.map(({ item, chapters: placements }) => {
+                    const title = visibleResourceTitle(item);
+                    const note = visibleResourceNote(item);
+                    return (
+                      <a href={itemHref(grade.slug, item)} data-topic-count={placements.length}>
+                        <span class="type-pill">{resourceDisplayLabel(item)}</span>
+                        <strong>{title}</strong>
+                        {note && <span class="resource-note">{note}</span>}
+                        <span class="topic-tags" aria-label="נושאים">
+                          {placements.map((placement) => <span>{placement.title}</span>)}
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </div>
+</Base>
+
+<style>
+  .author-page { padding-block: 1rem 4rem; }
+  .author-head { max-width: 880px; margin-block: 1rem 2.4rem; }
+  .eyebrow { margin: 0 0 0.35rem; color: var(--ink-faint); font-size: 0.88rem; font-weight: 750; }
+  .author-head h1 {
+    margin: 0;
+    color: var(--gold-deep);
+    font-family: var(--font-body);
+    font-size: clamp(2.4rem, 7vw, 4.8rem);
+    font-weight: 900;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+  }
+  .author-role { max-width: 68ch; margin: 0.65rem 0 0; color: var(--ink-soft); line-height: 1.65; }
+  .author-count { margin: 0.6rem 0 0; color: var(--navy); font-weight: 750; }
+
+  .author-grades { display: grid; gap: 3rem; }
+  .author-grade { padding-block-start: 1rem; border-block-start: 3px solid color-mix(in srgb, var(--grade) 55%, var(--line)); }
+  .grade-head p { margin: 0; color: var(--grade-dark); font-weight: 850; }
+  .grade-head h2 { margin: 0.1rem 0 1.2rem; color: var(--navy); font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.7rem); }
+  .topic-groups { display: grid; gap: 1.8rem; }
+  .topic-group h3 { margin: 0 0 0.75rem; color: var(--grade-dark); font-size: 1.1rem; }
+  .resource-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 0.8rem; }
+  .resource-grid > a {
+    min-block-size: 148px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 1rem 1.05rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .resource-grid > a:hover { border-color: color-mix(in srgb, var(--grade) 42%, var(--line)); box-shadow: var(--shadow-soft); }
+  .resource-grid > a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  .resource-grid strong { color: var(--navy); }
+  .resource-note { color: var(--ink-soft); font-size: 0.87rem; line-height: 1.55; }
+  .type-pill { align-self: flex-start; padding: 0.18rem 0.55rem; border-radius: 999px; background: var(--paper-soft); color: var(--gold-deep); font-size: 0.73rem; font-weight: 800; }
+  .topic-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-block-start: auto; }
+  .topic-tags > span { padding: 0.14rem 0.45rem; border-radius: 999px; background: color-mix(in srgb, var(--grade) 7%, #fff); color: var(--grade-dark); font-size: 0.7rem; font-weight: 750; }
+</style>

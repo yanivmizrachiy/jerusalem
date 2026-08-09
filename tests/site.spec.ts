@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+// מקור יחיד למסלולי התאימות — הבדיקה נגזרת מאותו קובץ שמזין את astro.config
+import { LEGACY_PATHS, LEGACY_REDIRECTS, trimSlash } from '../src/lib/legacyRedirects.mjs';
 
 /**
  * אזהרת Chromium שאינה בשליטתנו, ולכן מסוננת במחרוזת המדויקת שלה בלבד.
@@ -35,21 +37,15 @@ const routes = [
   '/chativat-beynayim/kita-z/chomarim/',
   '/chativat-beynayim/kita-h/chomarim/',
   '/chativat-beynayim/kita-t/chomarim/',
+  '/chativat-beynayim/mivchanim/',
   '/chativat-beynayim/nose/z/tichnun/',
   '/chativat-beynayim/nose/h/hozer/',
   '/chativat-beynayim/nose/t/yahal4/',
-  '/chativat-beynayim/nose/z/noschaot/',
-  '/chativat-beynayim/misparim-mechuvanim/',
-  '/chativat-beynayim/zaviyot/',
-  '/chativat-beynayim/maarechet-tzirim/',
-  '/chativat-beynayim/mishvaot/',
-  '/chativat-beynayim/hafifat-meshulashim/',
+  // נושא בלי אף משאב ציבורי אחרי quarantine אינו route חי; deep-review-regressions
+  // גוזר את כל המקרים האלה מהמודל הקנוני ודורש עבורם 404.
+  // החטיבה העליונה מתכנסת לעמוד כניסה אחד; חמש הכתובות הפנימיות מפנות אליו
+  // דרך LEGACY_REDIRECTS ולכן נאכפות בלולאת התאימות שלמטה, לא כאן.
   '/chativa-elyona/',
-  '/chativa-elyona/3-yahal/',
-  '/chativa-elyona/4-yahal/',
-  '/chativa-elyona/5-yahal/',
-  '/chativa-elyona/bchinot/',
-  '/chativa-elyona/homrei-horaa/',
   '/pituach-miktzoi/',
   '/pituach-miktzoi/ai-geometria/',
   '/hodaot/',
@@ -76,40 +72,60 @@ for (const route of routes) {
     await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
     await expect(page.locator('main')).toBeVisible();
 
-    // אפס גלילה אופקית (5.8, חוזה הרספונסיביות)
+    await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
     );
     expect(overflow, 'גלילה אופקית אסורה').toBeLessThanOrEqual(1);
 
-    // אפס שגיאות console (4.5). מסוננות: תקלות טעינה של מקורות חיצוניים ב-headless
-    // וחסימת iframe על ידי אתר חיצוני — התרחיש שה-fallback שלנו מטפל בו (8.8).
-    const hard = errors.filter(
-      (e) =>
-        !/net::|Failed to load resource|third-party cookie/i.test(e) &&
-        !e.includes(COMPUTE_PRESSURE_DENIED) &&
-        !(
-          /Refused to display|violates the following Content Security Policy/.test(e) &&
-          !/127\.0\.0\.1|localhost/.test(e)
-        )
-    );
+    const isFirstParty = (e: string) => /127\.0\.0\.1|localhost/.test(e);
+    const hard = errors.filter((e) => {
+      if (e.includes(COMPUTE_PRESSURE_DENIED)) return false;
+      if (/third-party cookie/i.test(e)) return false;
+      if (/net::|Failed to load resource/i.test(e)) return isFirstParty(e);
+      if (/Refused to display|violates the following Content Security Policy/.test(e)) {
+        return isFirstParty(e);
+      }
+      return true;
+    });
     expect(hard, `שגיאות console: ${hard.join(' | ')}`).toHaveLength(0);
   });
 }
 
-// העמודים המרוכזים של מבחנים ומשחקים הוחלפו בפרקים שבתוך עמודי הכיתות
-// (1.10, 3.29, 3.31); הכתובות הישנות נשארות חיות ומפנות מיידית לפרק
-// הנכון — קישורים ששותפו לא נשברים
-const moved: Record<string, string> = {
-  '/chativat-beynayim/mivchanim/': '/chativat-beynayim/nose/h/mivchanim/',
-  '/chativat-beynayim/mischakim/': '/chativat-beynayim/nose/z/mischakim/',
-};
-for (const [old, target] of Object.entries(moved)) {
-  test(`הפניה לעמוד הנושא: ${old}`, async ({ page }) => {
-    await page.goto(old);
-    await page.waitForURL((u) => u.pathname === target, { timeout: 10_000 });
-    // עמוד הנושא שאליו הופנינו באמת קיים ומציג משימות
-    await expect(page.locator('h1.chapter-title')).toBeVisible();
-    expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);
+for (const [legacy, target] of Object.entries(LEGACY_REDIRECTS)) {
+  test(`מסלול תאימות אינו עמוד 200: ${legacy}`, async ({ page }) => {
+    const res = await page.request.fetch(legacy, { redirect: 'manual' });
+    expect(
+      res.status(),
+      `${legacy} עדיין מוגש כעמוד — ההפניה חזרה להיות meta-refresh`,
+    ).toBe(404);
+  });
+
+  test(`יעד מסלול התאימות חי: ${legacy} → ${target}`, async ({ page }) => {
+    const res = await page.goto(target);
+    expect(res?.status()).toBe(200);
+    await expect(page.locator('h1')).toBeVisible();
+
+    if (target.includes('/nose/')) {
+      await expect(page.locator('h1.chapter-title')).toBeVisible();
+      expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);
+    }
   });
 }
+
+test('מסלולי התאימות אינם מתפרסמים כעמודים קנוניים ב-sitemap (18)', async ({ page }) => {
+  const index = await (await page.request.fetch('/sitemap-index.xml')).text();
+  const files = [...index.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  expect(files.length).toBeGreaterThan(0);
+
+  const urls: string[] = [];
+  for (const file of files) {
+    const xml = await (await page.request.fetch(new URL(file).pathname)).text();
+    urls.push(...[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]));
+  }
+  expect(urls.length).toBeGreaterThan(0);
+
+  const leaked = urls.filter((url) => LEGACY_PATHS.has(trimSlash(new URL(url).pathname) + '/'));
+  expect(leaked, `כתובות שרק מפנות דלפו ל-sitemap: ${leaked.join(', ')}`).toHaveLength(0);
+});

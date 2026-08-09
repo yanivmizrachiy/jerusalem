@@ -1,10 +1,4 @@
 ---
-/**
- * שער חטיבת הביניים (הוראת יניב, 05/08/2026): החוברת המדפדפת בוטלה.
- * במקומה — מסך מחולק שליש־שליש־שליש בין כיתה ז׳, כיתה ח׳ וכיתה ט׳,
- * באותה שפה של מסך בחירת החטיבה (7.29), ומתחתיו רצועת "כללי" עם
- * החומרים המשותפים לכל השכבות.
- */
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import ArtBanner from '../../components/ArtBanner.astro';
@@ -13,7 +7,6 @@ import { whatsappCommunity } from '../../data/resources';
 import { publishedGradeCount } from '../../data/publishing';
 import { choveret, gradeHref } from '../../data/choveret';
 
-// חותמת עדכון אמת (3.25): זמן הבנייה בפועל — מתחדשת אוטומטית בכל פריסה
 const stamp = Object.fromEntries(
   new Intl.DateTimeFormat('he', {
     timeZone: 'Asia/Jerusalem',
@@ -28,8 +21,6 @@ const stamp = Object.fromEntries(
     .map((p) => [p.type, p.value])
 );
 const updatedLine = `מאגר הקבצים עודכן ב${stamp.weekday}, ${Number(stamp.day)}/${Number(stamp.month)}/${stamp.year}, בשעה ${stamp.hour}:${stamp.minute}`;
-
-// שלושת השלישים נגזרים מהנתונים — כולל מניין החומרים הפומביים בלבד (3.27)
 const thirds = choveret;
 ---
 
@@ -71,6 +62,17 @@ const thirds = choveret;
     }
   </section>
 
+  <div class="container exams-cta-wrap" data-reveal>
+    <a class="exams-cta" href="/chativat-beynayim/mivchanim/">
+      <span class="exams-cta-copy">
+        <span class="exams-cta-kicker">כיתות ז׳ · ח׳ · ט׳</span>
+        <strong>מאגר מבחנים לחטיבת הביניים</strong>
+        <span>מבחנים וחומרי הערכה שכבר קיימים באתר — מסודרים לפי שכבה</span>
+      </span>
+      <span class="exams-cta-arrow" aria-hidden="true">←</span>
+    </a>
+  </div>
+
   <div class="container page-rest">
     <hr class="section-rule" aria-hidden="true" />
 
@@ -102,8 +104,6 @@ const thirds = choveret;
   .page-head { max-width: 760px; margin-block: 0.6rem 1.2rem; }
   .page-rest { padding-block: 0 2.2rem; }
 
-  /* ===== מסך השלישים (הוראת יניב, 05/08/2026) =====
-     אותה שפה של מסך בחירת החטיבה — רק בשלושה חלקים שווים */
   .split3 {
     position: relative;
     display: flex;
@@ -188,14 +188,10 @@ const thirds = choveret;
   }
 
   .third-cta svg { inline-size: clamp(44px, 4.4vw, 60px); block-size: auto; display: block; }
-
-  .third:hover .third-cta,
-  .third:focus-visible .third-cta { translate: -10px 0; opacity: 1; }
-  .third:hover .third-mark,
-  .third:focus-visible .third-mark { inline-size: 108px; }
+  .third:hover .third-cta, .third:focus-visible .third-cta { translate: -10px 0; opacity: 1; }
+  .third:hover .third-mark, .third:focus-visible .third-mark { inline-size: 108px; }
   .third:focus-visible { outline: 3px solid var(--tone-cta); outline-offset: -8px; }
 
-  /* הילת צבע השכבה — מה שמבדיל בין השלישים מעבר לניגוד נייבי/נייר */
   .third-glow {
     position: absolute;
     inset: -20%;
@@ -205,7 +201,6 @@ const thirds = choveret;
     background: radial-gradient(45% 45% at 50% 50%, var(--grade) 0%, transparent 70%);
     transition: opacity 600ms var(--ease);
   }
-
   .third:hover .third-glow { opacity: 0.2; }
 
   .split-rule {
@@ -218,6 +213,34 @@ const thirds = choveret;
     background: linear-gradient(180deg, transparent 0%, var(--gold) 22%, #e8c877 50%, var(--gold) 78%, transparent 100%);
   }
 
+  .exams-cta-wrap { padding-block: clamp(1rem, 2vw, 1.5rem) 0; }
+  .exams-cta {
+    inline-size: 100%;
+    min-block-size: clamp(116px, 14vw, 156px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: clamp(1.25rem, 3vw, 2rem) clamp(1.3rem, 4vw, 2.6rem);
+    border: 1px solid rgb(232 200 119 / 0.65);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(100% 180% at 10% 120%, rgb(176 141 62 / 0.28), transparent 60%),
+      linear-gradient(110deg, #172033, var(--navy) 60%, #293754);
+    color: var(--paper);
+    text-decoration: none;
+    box-shadow: var(--shadow-lift);
+    transition: transform 300ms var(--ease-lift), box-shadow 300ms var(--ease), border-color 300ms var(--ease);
+  }
+  .exams-cta:hover { transform: translateY(-4px); border-color: #e8c877; box-shadow: 0 30px 68px -24px rgb(31 41 61 / 0.55); }
+  .exams-cta:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
+  .exams-cta-copy { display: flex; flex-direction: column; gap: 0.25rem; }
+  .exams-cta-kicker { color: #e8c877; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.02em; }
+  .exams-cta strong { font-family: var(--font-display); font-size: clamp(1.65rem, 4vw, 2.7rem); line-height: 1.1; }
+  .exams-cta-copy > span:last-child { color: rgb(251 249 245 / 0.78); font-size: clamp(0.9rem, 1.5vw, 1.02rem); }
+  .exams-cta-arrow { flex: 0 0 auto; color: #e8c877; font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1; transition: translate 260ms var(--ease); }
+  .exams-cta:hover .exams-cta-arrow { translate: -8px 0; }
+
   @media (min-width: 1000px) and (pointer: fine) {
     .split3:hover .third { flex-basis: 29%; filter: saturate(0.94); }
     .split3 .third:hover { flex-basis: 42%; filter: none; }
@@ -225,10 +248,7 @@ const thirds = choveret;
 
   @media (prefers-reduced-motion: no-preference) {
     .third { animation: third-in 900ms var(--ease) both; animation-delay: calc(var(--i) * 120ms); }
-    .third-inner {
-      animation: third-content-in 800ms var(--ease) both;
-      animation-delay: calc(300ms + var(--i) * 120ms);
-    }
+    .third-inner { animation: third-content-in 800ms var(--ease) both; animation-delay: calc(300ms + var(--i) * 120ms); }
     .split-rule { animation: rule-in 1100ms var(--ease) both; animation-delay: 160ms; }
 
     @keyframes third-in {
@@ -245,21 +265,13 @@ const thirds = choveret;
     }
   }
 
-  /* ===== המפריד בין האזורים (הוראת יניב, 05/08/2026) ===== */
   .section-rule {
     inline-size: 100vw;
     margin-inline: calc(50% - 50vw);
     margin-block: clamp(3rem, 7vw, 5.5rem);
     border: 0;
     block-size: 3px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      color-mix(in srgb, var(--navy) 45%, transparent) 12%,
-      var(--navy) 50%,
-      color-mix(in srgb, var(--navy) 45%, transparent) 88%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--navy) 45%, transparent) 12%, var(--navy) 50%, color-mix(in srgb, var(--navy) 45%, transparent) 88%, transparent 100%);
     position: relative;
   }
 
@@ -273,31 +285,16 @@ const thirds = choveret;
   }
 
   .wa-row { display: flex; justify-content: center; }
-
-  .wa-join {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.9rem;
-    text-decoration: none;
-    border-radius: 999px;
-  }
-
+  .wa-join { display: inline-flex; align-items: center; gap: 0.9rem; text-decoration: none; border-radius: 999px; }
   .wa-text { font-weight: 700; color: var(--vacation); transition: color 300ms var(--ease); }
-
   .wa-join:hover .wa-text { color: #0a5230; }
-  .wa-join:hover .btn-whatsapp {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 12px 26px -10px rgb(37 211 102 / 0.75);
-  }
+  .wa-join:hover .btn-whatsapp { transform: translateY(-3px) scale(1.05); box-shadow: 0 12px 26px -10px rgb(37 211 102 / 0.75); }
   .wa-join:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
-
   .section-block { margin-block-start: clamp(2rem, 4vw, 2.8rem); }
 
-  /* נייד: השלישים נערמים ונשארים גדולים ונוחים */
   @media (max-width: 860px) {
     .split3 { flex-direction: column; min-block-size: 0; }
     .third { flex: 1 1 auto; min-block-size: 190px; }
-
     .split-rule {
       inset-block: 0 auto;
       inset-inline: 0;
@@ -305,20 +302,21 @@ const thirds = choveret;
       block-size: 2px;
       background: linear-gradient(90deg, transparent 0%, var(--gold) 22%, #e8c877 50%, var(--gold) 78%, transparent 100%);
     }
-
-    @media (prefers-reduced-motion: no-preference) {
-      .split-rule { animation-name: rule-in-h; }
-    }
-
+    .exams-cta { align-items: flex-start; }
+    @media (prefers-reduced-motion: no-preference) { .split-rule { animation-name: rule-in-h; } }
     @keyframes rule-in-h {
       from { scale: 0 1; opacity: 0; }
       to { scale: 1 1; opacity: 1; }
     }
   }
+
+  @media (max-width: 560px) {
+    .exams-cta { gap: 0.7rem; padding: 1.25rem; }
+    .exams-cta-arrow { font-size: 2.2rem; }
+  }
 </style>
 
 <script>
-  // גובה מדויק: השלישים ממלאים את מה שנשאר מהמסך, בלי שטח מת מתחתיהם
   const split = document.querySelector<HTMLElement>('.split3');
   if (split && matchMedia('(min-width: 861px)').matches) {
     const fit = () => {

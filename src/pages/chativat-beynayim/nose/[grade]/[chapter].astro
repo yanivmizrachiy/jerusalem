@@ -1,29 +1,55 @@
 ---
-/**
- * עמוד הנושא (הוראת יניב, 06/08/2026): רשימת הנושאים שבתצוגת החומרים
- * מובילה לכאן, וכאן רשימת המשימות של הנושא. כל משימה מובילה לעמוד
- * המשימה המחולק (8.2).
- */
 import Base from '../../../../layouts/Base.astro';
 import ChapterIndex from '../../../../components/ChapterIndex.astro';
-import { chapterPaths, gradeBySlug } from '../../../../data/choveret';
+import { publishableItems } from '../../../../data/publishing';
+import { resourceCountLabel } from '../../../../data/resource-labels';
+import { canonicalGrade } from '../../../../data/canonical-content';
+// `itemHref` נראה ל-astro-check כבלתי בשימוש (רמז ts6133) אך הוא בשימוש
+// בהפניה של נושא בעל משאב יחיד שלמטה — אין להסירו.
+import { chapterPaths, gradeBySlug, gradeMaterialsHref, itemHref } from '../../../../data/choveret';
 
+/**
+ * נושא בלי אף משאב ציבורי אינו route ציבורי. נתוני המקור נשמרים בקטלוג,
+ * אבל quarantine אינו אמור לייצר עמוד 200 ריק או כתובת sitemap ריקה.
+ * Astro מריץ getStaticPaths בסקופ מבודד, לכן החישוב נשאר בתוך הפונקציה
+ * ומשתמש רק ב-imports — לא ב-const חיצוני שנעלם בזמן prerender.
+ */
 export function getStaticPaths() {
-  return chapterPaths.map(({ grade, chapter }) => ({
-    params: { grade: grade.slug, chapter: chapter.id },
-    props: { gradeSlug: grade.slug, chapterId: chapter.id },
-  }));
+  return chapterPaths
+    .filter(({ grade, chapter }) => {
+      const canonical = canonicalGrade(grade).chapters.find((candidate) => candidate.id === chapter.id);
+      if (!canonical) return false;
+      if (canonical.materials === false) return true;
+      return publishableItems(canonical.items).length > 0;
+    })
+    .map(({ grade, chapter }) => ({
+      params: { grade: grade.slug, chapter: chapter.id },
+      props: { gradeSlug: grade.slug, chapterId: chapter.id },
+    }));
 }
 
 const { gradeSlug, chapterId } = Astro.props;
-const grade = gradeBySlug(gradeSlug)!;
+const sourceGrade = gradeBySlug(gradeSlug)!;
+const grade = canonicalGrade(sourceGrade);
 const chapter = grade.chapters.find((c) => c.id === chapterId)!;
 
 if (chapter.materials === false) {
-  return Astro.redirect(chapter.redirectHref ?? `/chativat-beynayim/kita-${grade.slug}/chomarim/`, 301);
+  return Astro.redirect(chapter.redirectHref ?? gradeMaterialsHref(grade.slug), 301);
 }
 
-const description = `${chapter.title} — ${chapter.items.length} משימות ב${grade.title}, מחוז ירושלים.`;
+const publicItems = publishableItems(chapter.items);
+
+// הגנת עומק למקרה שהמסלול נפתר בסביבת dev/SSR שלא משתמשת ברשימת ה-SSG
+// בדיוק כמו build: אין עמוד נושא ציבורי ריק.
+if (publicItems.length === 0) {
+  return Astro.redirect(gradeMaterialsHref(grade.slug), 301);
+}
+
+if (publicItems.length === 1) {
+  return Astro.redirect(itemHref(grade.slug, publicItems[0]), 301);
+}
+
+const description = `${chapter.title} — ${resourceCountLabel(publicItems)} ב${grade.title}, מחוז ירושלים.`;
 ---
 
 <Base title={`${chapter.title} — ${grade.title} — מחוז ירושלים`} description={description}>

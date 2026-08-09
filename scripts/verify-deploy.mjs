@@ -10,6 +10,8 @@
  * יציאה 0 = הפריסה אומתה; יציאה 1 = לא אומתה.
  */
 
+import { LEGACY_REDIRECTS, LEGACY_REDIRECT_STATUS } from '../src/lib/legacyRedirects.mjs';
+
 const args = process.argv.slice(2);
 const argOf = (name, fallback) => {
   const i = args.indexOf(`--${name}`);
@@ -39,14 +41,37 @@ const ROUTES = [
   '/chativat-beynayim/reader/z/tochnit-z/',
 ];
 
-/** מסלולי תאימות שאסור להסוות כ-200 באמצעות follow */
-const REDIRECTS = [
-  {
-    path: '/chativat-beynayim/nose/z/tichnun/',
-    status: 301,
-    target: '/chativat-beynayim/kita-z/#ma-melamdim',
-    what: 'פרק התכנון המנהלי נשאר מחוץ לחומרים',
-  },
+/**
+ * מסלולי תאימות שאסור להסוות כ-200 באמצעות follow. הרשימה נגזרת מהמקור
+ * היחיד (src/lib/legacyRedirects.mjs) — אין כאן טבלה מקבילה שמתיישנת.
+ *
+ * הכתובות נבדקות בשתי הצורות, עם לוכסן סופי ובלעדיו: הקישורים ששותפו
+ * בעבר נשאו לוכסן סופי, ואילו ה-regex שנפלט ל-Vercel נכתב בלעדיו.
+ */
+const REDIRECTS = Object.entries(LEGACY_REDIRECTS).flatMap(([path, target]) =>
+  [path, path.replace(/\/$/, '')].map((variant) => ({
+    path: variant,
+    status: LEGACY_REDIRECT_STATUS,
+    target,
+    what: `מסלול תאימות ${variant}`,
+  })),
+);
+
+/**
+ * נקודות הפרוקסי הן הקוד היחיד שרץ כפונקציה בפרודקשן, ולכן הן היחידות
+ * שסוללת Playwright המקומית (שרת קבצים סטטי) אינה יכולה לבדוק כלל.
+ * בלי הבדיקות האלה אפשר לשבור את שתי ההטמעות המרכזיות בלי ששום שער יצעק.
+ */
+const PROXY_CHECKS = [
+  { path: '/api/em/misparim/', needle: '__EM_PROXY__', what: 'פרוקסי מספרים מכוונים (9.4)' },
+  { path: '/api/em/zaviyot/', needle: '__EM_PROXY__', what: 'פרוקסי זוויות (9.5)' },
+  { path: '/api/mam/', needle: '__EM_PROXY__', what: 'פרוקסי אתר ההמחשות (9.1)' },
+];
+
+/** יעד שאינו ב-allowlist חייב להיחסם — הגבול הזה הוא כל האבטחה של הפרוקסי. */
+const PROXY_REJECTS = [
+  { path: '/api/em/evil/', status: 404, what: 'יעד שאינו ב-allowlist נדחה' },
+  { path: '/api/em/', status: 404, what: 'פרוקסי בלי שם אתר נדחה' },
 ];
 
 /** סמנים מחייבים: אם אחד מהם נעלם — רגרסיה שקטה בפרודקשן */
@@ -61,17 +86,38 @@ const MARKERS = [
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
   { path: '/', needle: 'start-btn', what: 'כפתור ההתחלה בעמוד הראשי (7.28)' },
   { path: '/shearim/', needle: 'split-rule', what: 'המסך המחולק חצי-חצי בבחירת החטיבה (7.29)' },
+  // ModEL: הייחוס אומת על ידי בעל הפרויקט (24.6.7) ולכן המשאב פומבי. שלושת
+  // הסמנים יחד מוכיחים שהעמוד חי, שהלוגו מוצג ושהייחוס הארגוני מוצג.
+  { path: '/chativat-beynayim/reader/z/moodle-guide/', needle: 'data-resource-brand="moodle"', what: 'לוגו המודל בעמוד המשאב (24.6)' },
+  { path: '/chativat-beynayim/reader/z/moodle-guide/', needle: 'לוגו מודל מתמטיקה לחטיבת הביניים', what: 'הטקסט החלופי של לוגו המודל (24.6.5)' },
+  { path: '/chativat-beynayim/reader/z/moodle-slides/', needle: 'צוות מודל — משרד החינוך', what: 'ייחוס צוות מודל — משרד החינוך (24.6.7)' },
 ];
 
-const get = async (path, redirect = 'follow') => {
+/** נכסים שחייבים להיות מוגשים בפועל (לא רק מוזכרים ב-markup). */
+const ASSETS = [
+  { path: '/media/brands/moodle-logo.png', type: 'image/png', what: 'נכס לוגו המודל (24.6.4)' },
+];
+
+/**
+ * תקרת זמן לכל בקשה בודדת. בלעדיה בקשה תלויה מקפיאה את האימות עד
+ * לטיים-אאוט של ה-job, והפלט נראה כאילו הבדיקה עוד רצה במקום שנכשלה.
+ */
+const REQUEST_TIMEOUT_MS = 20_000;
+
+const get = async (path, redirect = 'follow', init = {}) => {
   const res = await fetch(BASE + path, {
     redirect,
-    headers: { 'cache-control': 'no-cache' },
+    headers: { 'cache-control': 'no-cache', ...(init.headers ?? {}) },
+    method: init.method ?? 'GET',
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
+  const body = init.method === 'HEAD' ? '' : await res.text();
   return {
     status: res.status,
-    html: await res.text(),
+    html: body,
     location: res.headers.get('location') ?? '',
+    contentType: res.headers.get('content-type') ?? '',
+    allow: res.headers.get('allow') ?? '',
   };
 };
 
@@ -168,6 +214,79 @@ for (const { path, needle, what } of MARKERS) {
   }
 }
 
+// נכס שמוזכר ב-markup אך אינו מוגש בפועל הוא תמונה שבורה אצל הגולש
+for (const { path, type, what } of ASSETS) {
+  try {
+    const { status, contentType } = await get(path);
+    if (status !== 200) fail(`${what}: ${path} החזיר ${status}`);
+    else if (!contentType.includes(type)) fail(`${what}: ${path} הוגש כ-${contentType}`);
+    else console.log(`✓ ${what}`);
+  } catch (e) {
+    fail(`בדיקת "${what}" נכשלה: ${e.message}`);
+  }
+}
+
+// ===== שלב ב׳2: נקודות הפרוקסי — הפונקציות היחידות שרצות בפרודקשן =====
+for (const { path, needle, what } of PROXY_CHECKS) {
+  try {
+    const { status, html, contentType } = await get(path);
+    if (status !== 200) {
+      fail(`${what}: ${path} החזיר ${status}`);
+      continue;
+    }
+    if (!contentType.includes('text/html')) {
+      fail(`${what}: content-type הוא "${contentType}" ולא text/html`);
+      continue;
+    }
+    // הסמן מוכיח שהפונקציה באמת רצה והזריקה את משמר זמן-הריצה,
+    // ולא שקיבלנו דף שגיאה כלשהו עם קוד 200
+    if (!html.includes(needle)) {
+      fail(`${what}: הסמן "${needle}" חסר — הפונקציה לא הזריקה את המשמר`);
+      continue;
+    }
+    console.log(`✓ ${what}`);
+  } catch (e) {
+    fail(`${what} נכשל: ${e.name === 'TimeoutError' ? `אין תשובה בתוך ${REQUEST_TIMEOUT_MS / 1000}s` : e.message}`);
+  }
+}
+
+for (const { path, status: expected, what } of PROXY_REJECTS) {
+  try {
+    const { status } = await get(path);
+    if (status === expected) console.log(`✓ ${what} (${status})`);
+    else fail(`${what}: ${path} החזיר ${status} במקום ${expected}`);
+  } catch (e) {
+    fail(`${what} נכשל: ${e.message}`);
+  }
+}
+
+/**
+ * החוזה: פועל שאינו נתמך לעולם אינו מבוצע בשקט כ-GET. הפונקציה שלנו עונה
+ * ‏405 (proxyHttp.ts), אבל נמדד בפועל (09/08/2026) ש-Vercel חוסם DELETE
+ * ב-403 כבר בקצה, לפני שהבקשה מגיעה אלינו. שני הקודים מקיימים את החוזה;
+ * ‏200 היה מפר אותו — ולכן הבדיקה נכשלת רק על הצלחה מדומה.
+ */
+try {
+  const { status, allow } = await get('/api/em/misparim/', 'manual', { method: 'DELETE' });
+  if (status === 405) console.log(`✓ פועל אסור נחסם בפונקציה (405, allow: ${allow || 'חסר'})`);
+  else if (status === 403) console.log('✓ פועל אסור נחסם בקצה Vercel (403) — לא הגיע לפונקציה');
+  else fail(`פועל אסור: DELETE החזיר ${status} — פועל שאינו נתמך חייב להיחסם, לא להתבצע`);
+} catch (e) {
+  fail(`בדיקת הפועל האסור נכשלה: ${e.message}`);
+}
+
+// HEAD נושא כותרות בלבד — גוף כאן היה מעיד שהפועל לא הועבר
+try {
+  const { status, html, contentType } = await get('/api/em/misparim/', 'follow', { method: 'HEAD' });
+  if (status === 200 && contentType.includes('text/html') && html === '') {
+    console.log('✓ HEAD מחזיר כותרות בלבד');
+  } else {
+    fail(`HEAD: status=${status} content-type="${contentType}" גוף=${html.length} בייטים`);
+  }
+} catch (e) {
+  fail(`בדיקת HEAD נכשלה: ${e.message}`);
+}
+
 // ===== שלב ג׳: מבנה — כמות נכונה, לא רק נוכחות מחרוזת =====
 const countOf = (html, re) => (html.match(re) || []).length;
 try {
@@ -193,10 +312,24 @@ try {
     if (topics > 0 && links.length > 0) console.log(`✓ שכבה ${slug} — ${topics} נושאים (3.29)`);
     else fail(`שכבה ${slug}: ${topics} נושאים ו-${links.length} קישורי נושא (3.29)`);
 
-    const first = markup((await fetchOnce(links[0])).html);
-    const cards = countOf(first, /class="rcard"/g);
-    if (cards > 0) console.log(`✓ ${links[0]} — ${cards} כרטיסים (3.29)`);
-    else fail(`${links[0]}: אין כרטיסי קבצים בעמוד הנושא (3.29)`);
+    // חוזה הנושא (Issue #73): נושא עם 2+ משאבים ציבוריים מציג רשימת כרטיסים,
+    // ונושא עם משאב יחיד מפנה ישירות אל עמוד המשימה. אסור נושא ריק.
+    const first = links[0];
+    const raw = await get(first, 'manual');
+    if (raw.status === LEGACY_REDIRECT_STATUS || raw.status === 308 || raw.status === 302) {
+      const to = normalizedLocation(raw.location);
+      if (!/^\/chativat-beynayim\/reader\/[^/]+\/[^/]+\/$/.test(to)) {
+        fail(`${first}: נושא עם משאב יחיד הפנה ל-${to || 'לא ידוע'} ולא לעמוד משימה (3.30)`);
+      } else if (!markup((await fetchOnce(to)).html).includes('res-panel')) {
+        fail(`${first} → ${to}: היעד אינו עמוד משימה מחולק (8.2)`);
+      } else {
+        console.log(`✓ ${first} — משאב יחיד, מעבר ישיר ל-${to} (3.30)`);
+      }
+    } else {
+      const cards = countOf(markup(raw.html), /class="rcard"/g);
+      if (cards > 1) console.log(`✓ ${first} — ${cards} כרטיסים (3.29)`);
+      else fail(`${first}: ${cards} כרטיסים — נושא שמציג רשימה חייב שתי משימות ומעלה (3.30)`);
+    }
   }
 
   const reader = markup((await fetchOnce('/chativat-beynayim/reader/z/tochnit-z/')).html);
@@ -212,4 +345,16 @@ if (process.exitCode === 1) {
   console.error('\n✗ הפריסה לא אומתה — אין להכריז על הצלחה.');
   process.exit(1);
 }
-console.log('\n✓ הפריסה אומתה במלואה.');
+// ההכרזה מפרטת מה נבדק בפועל — "אומת" בלי רשימה הוא בדיוק סוג ההצהרה
+// שאסורה לפי 1.14 ו-4.6
+console.log(
+  [
+    '',
+    '✓ הפריסה אומתה — כל החוזים הבאים נבדקו בפועל:',
+    `  · ${ROUTES.length} מסלולים קנוניים = 200`,
+    `  · ${REDIRECTS.length} מסלולי תאימות = ${LEGACY_REDIRECT_STATUS} עם Location מדויק`,
+    `  · ${PROXY_CHECKS.length} נקודות פרוקסי חיות + ${PROXY_REJECTS.length} דחיות allowlist + 405 + HEAD`,
+    `  · ${MARKERS.length} סמנים מחייבים ב-markup + ${ASSETS.length} נכסים מוגשים`,
+    '  · אינווריאנטים מבניים: שלישים, נושאים, כרטיסים, מסגור PDF',
+  ].join('\n'),
+);

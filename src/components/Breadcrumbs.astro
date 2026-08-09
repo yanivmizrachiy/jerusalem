@@ -8,15 +8,13 @@ interface Props {
 }
 const { items } = Astro.props;
 
-// אין להציג שתי רמות סמוכות שמובילות לאותה כתובת. הדבר חשוב במיוחד
-// ב"כללי", שבו עמוד השכבה ועמוד החומרים הם אותו מסלול.
 const visibleItems = items.filter((crumb, index) => {
   if (!crumb.href || index === 0) return true;
   return items[index - 1]?.href !== crumb.href;
 });
 ---
 
-<nav class="crumbs" aria-label="פירורי לחם">
+<nav class="crumbs" aria-label="פירורי לחם" dir="rtl">
   <ol>
     {
       visibleItems.map((c, i) => (
@@ -38,36 +36,39 @@ const visibleItems = items.filter((crumb, index) => {
   .crumbs ol {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
+    align-items: center;
     gap: 0.15rem;
     list-style: none;
     margin: 0;
     padding: 0;
+    direction: rtl;
   }
 
-  /* היררכיה מדורגת (5.26): הכללי ביותר הגדול ביותר, ויורד עם העומק */
   .crumbs li {
     display: inline-flex;
-    align-items: baseline;
+    align-items: center;
     font-size: clamp(0.8rem, calc(1.14rem - var(--depth, 0) * 0.09rem), 1.14rem);
   }
 
   .crumbs li:first-child a { font-weight: 800; color: var(--ink); }
 
+  /* בעברית ההתקדמות בהיררכיה היא מימין לשמאל. */
   .crumbs li + li::before {
-    content: '‹';
+    content: '←';
     margin-inline: 0.55rem;
     color: var(--ink-faint);
+    font-size: 0.9em;
   }
 
   .crumbs a {
     color: var(--ink-soft);
     font-weight: 600;
-    min-block-size: 34px;
+    min-block-size: 44px;
     display: inline-flex;
     align-items: center;
   }
   .crumbs a:hover { color: var(--gold-deep); }
+  .crumbs a:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
 
   .crumbs [aria-current='page'] {
     color: var(--ink);

@@ -14,7 +14,6 @@
  *   במקום להימחק או לקבל שיוך מומצא.
  */
 import { MAFMAR_URL, MAFMAR_LOCAL, mafmarSections } from './mafmar';
-import { hafifaUnit, mishvaotUnit } from './units';
 import {
   sourceCatalogConservation,
   sourceLinkLedger,
@@ -1081,14 +1080,9 @@ export const choveret: ChoveretGrade[] = [
     dark: '#155fa8',
     letter: 'ז׳',
     title: 'מתמטיקה לכיתה ז׳',
-    pages: [
-      {
-        title: 'הוראת משוואות ללא מספרים שליליים',
-        note: 'יחידת הוראה מלאה בנגן אחד — המחשות, שקילות, פתרון, דפי עבודה ומשחק.',
-        href: '/chativat-beynayim/mishvaot/',
-        count: mishvaotUnit.resources.length,
-      },
-    ],
+    // יחידת "הוראת משוואות ללא מספרים שליליים" אינה עוד כרטיס ייעודי כאן:
+    // כל חומריה חיים בתוך הנושא הקנוני `z-equations` (canonical-content.ts),
+    // והכתובת הישנה מפנה אליו ב-301 (src/lib/legacyRedirects.mjs).
     chapters: [
       administrativeChapter('hozer', 'מהחוזר הרשמי', '/hozer-mafmar/', [
         maf('maf-02', 'MAF-02', ''),
@@ -1151,14 +1145,8 @@ export const choveret: ChoveretGrade[] = [
     dark: '#047857',
     letter: 'ח׳',
     title: 'מתמטיקה לכיתה ח׳',
-    pages: [
-      {
-        title: 'חפיפת משולשים',
-        note: 'יחידת הוראה מלאה — שלושת משפטי החפיפה, תרגול מדורג, הוכחות ובוחן מסכם.',
-        href: '/chativat-beynayim/hafifat-meshulashim/',
-        count: hafifaUnit.resources.length,
-      },
-    ],
+    // יחידת "חפיפת משולשים" אינה עוד כרטיס ייעודי כאן: כל חומריה חיים בתוך
+    // הנושא הקנוני `h-congruent`, והכתובת הישנה מפנה אליו ב-301.
     chapters: [
       administrativeChapter('hozer', 'מהחוזר הרשמי', '/hozer-mafmar/', [
         maf('maf-03', 'MAF-03', ''),
@@ -1244,7 +1232,9 @@ export const choveret: ChoveretGrade[] = [
       },
       {
         title: 'שער החטיבה העליונה',
-        note: 'כל חומרי החטיבה העליונה באתר — ההמשך הטבעי של כיתה ט׳.',
+        // בשלב זה עמוד הכניסה לחטיבה העליונה הוא עמוד המתנה; הניסוח כאן
+        // אומר את המצב כפי שהוא ואינו מבטיח תוכן שאינו על המסך (4.6, 8.25)
+        note: 'ההמשך הטבעי של כיתה ט׳. עמוד הכניסה לחטיבה העליונה יתעדכן בהמשך.',
         href: '/chativa-elyona/',
       },
     ],
