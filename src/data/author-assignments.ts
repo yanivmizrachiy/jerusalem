@@ -32,6 +32,11 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'kdam-functions': ['ministry-of-education'],
   'kdam-geometry': ['ministry-of-education'],
   'graph-teacher': ['ministry-of-education'],
+  'tnufa-mankal': ['ministry-of-education'],
+
+  // ראמ״ה — הזיהוי מפורש בשם המשאב ובמקור rama.edu.gov.il / תיקיית Rama.
+  'mifrat-tnufa': ['rama'],
+  'tnufa-rama': ['rama'],
 
   'kavit-flip': ['ayelet-crispin'],
   'al-haretzef': ['michal-david'],
