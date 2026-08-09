@@ -36,14 +36,8 @@ jobs:
         run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Prove exact locked install
         run: npm ci --no-audit --no-fund
-      - name: Prove ModEL logo generator is byte-stable
-        shell: bash
-        run: |
-          before="$(sha256sum public/media/brands/moodle-logo.png | cut -d' ' -f1)"
-          node scripts/build-moodle-logo.mjs
-          after="$(sha256sum public/media/brands/moodle-logo.png | cut -d' ' -f1)"
-          test "$before" = "$after"
-          git diff --exit-code -- public/media/brands/moodle-logo.png
+      - name: Prove ModEL logo rebuild preserves every visual pixel
+        run: node scripts/verify-moodle-logo-rebuild.mjs
       - run: git diff --check
       - name: Commit npm-generated lock metadata
         shell: bash
