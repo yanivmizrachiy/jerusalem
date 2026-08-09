@@ -42,7 +42,25 @@ export function visibleResourceTitle(item: ResourceCopyInput): string {
   return title;
 }
 
-/** מקור מוצג רק בדף המידע, לא בכרטיסי רשימה. */
-export function visibleResourceSource(item: ResourceCopyInput): string {
-  return collapseSpace(item.source ?? '');
+/**
+ * מקור מוצג רק בדף המידע. כאשר היוצר כבר מוצג בייחוס הקנוני, מסירים
+ * מהמחרוזת רק מקטע מקור שזהה לשם/כינוי שלו; מידע מקור אחר נשמר.
+ */
+export function visibleResourceSource(item: ResourceCopyInput, creatorAliases: readonly string[] = []): string {
+  const source = collapseSpace(item.source ?? '');
+  if (!source) return '';
+
+  const aliases = new Set(creatorAliases.map(collapseSpace).filter(Boolean));
+  if (aliases.size === 0) return source;
+
+  const parts = source
+    .split(/\s*[·|]\s*/u)
+    .map(collapseSpace)
+    .filter(Boolean)
+    .filter((part) => {
+      const withoutCredit = collapseSpace(part.replace(/^קרדיט(?:ים)?\s*:\s*/u, ''));
+      return !aliases.has(part) && !aliases.has(withoutCredit);
+    });
+
+  return parts.join(' · ');
 }
