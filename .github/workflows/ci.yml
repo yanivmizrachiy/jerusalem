@@ -19,6 +19,16 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # אבחון קריאה־בלבד וזמני לענף #91. נמחק אחרי שנקבל zero-consumer proof.
+  hygiene-reference-probe:
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/final-hygiene-current-main-20260809'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v5
+      - name: Probe remaining duplicate/dead exports
+        run: node scripts/hygiene-reference-probe.mjs
+
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 15
