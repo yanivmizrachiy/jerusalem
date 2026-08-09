@@ -1,9 +1,10 @@
 ---
 /**
- * פס הצד "מה צפוי?" (RULES 7.20): כיתוביות אמיתיות העולות ברצף איטי ועדין,
- * נגזרות ממקור ההודעות הקנוני היחיד — `src/data/hodaot.ts` (הוחזרו בהוראת
- * יניב, 10/08/2026; אין כאן רשימת תוכן מקבילה). נעצר בריחוף ובמגע, נגיש
- * למקלדת, ורגישי-תנועה רואים רשימה נייחת.
+ * פס הצד "מה צפוי?" (RULES 7.20): הכיתוביות רצות מלמטה למעלה בתנועה רציפה
+ * ואינסופית — המסילה כולה נעה מעלה בלולאה חלקה (עותק כפול נסתר לרצף), לא
+ * החלפת כיתובית-אחת-אחת (הוראת יניב, 10/08/2026). התוכן נגזר ממקור ההודעות
+ * הקנוני היחיד — src/data/hodaot.ts; נעצר בריחוף, במגע ובמיקוד מקלדת,
+ * ורגישי-תנועה רואים רשימה נייחת.
  */
 import { whatsappCommunity } from '../data/resources';
 import { middleSchoolResourceCountText } from '../data/site-counts';
@@ -45,20 +46,39 @@ const railNotices = [...[...feedDated].sort(byDateDesc), ...feedStanding].slice(
   </div>
 
   <section class="rail-news" aria-label="עדכונים שוטפים" data-rail-news>
-    <ul class="news-track">
-      {railNotices.map((notice) => (
-        <li class="news-item" style={`--accent:${notice.accent}`}>
-          <a
-            class="news-link"
-            href={notice.href}
-            {...(notice.external ? { target: '_blank', rel: 'noopener' } : {})}
-          >
-            <span class="news-cat">{notice.category}{notice.date ? ` · ${notice.date}` : ''}</span>
-            <span class="news-title">{notice.title}</span>
-          </a>
-        </li>
-      ))}
-    </ul>
+    <div class="rail-viewport">
+      <div class="rail-track">
+        <ul class="news-list">
+          {railNotices.map((notice) => (
+            <li class="news-item" style={`--accent:${notice.accent}`}>
+              <a
+                class="news-link"
+                href={notice.href}
+                {...(notice.external ? { target: '_blank', rel: 'noopener' } : {})}
+              >
+                <span class="news-cat">{notice.category}{notice.date ? ` · ${notice.date}` : ''}</span>
+                <span class="news-title">{notice.title}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <ul class="news-list rail-dup" aria-hidden="true">
+          {railNotices.map((notice) => (
+            <li class="news-item" style={`--accent:${notice.accent}`}>
+              <a
+                class="news-link"
+                href={notice.href}
+                tabindex="-1"
+                {...(notice.external ? { target: '_blank', rel: 'noopener' } : {})}
+              >
+                <span class="news-cat">{notice.category}{notice.date ? ` · ${notice.date}` : ''}</span>
+                <span class="news-title">{notice.title}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
     <a class="news-all" href="/hodaot/">לכל ההודעות השוטפות</a>
   </section>
 
@@ -69,7 +89,7 @@ const railNotices = [...[...feedDated].sort(byDateDesc), ...feedStanding].slice(
 </aside>
 
 <style>
-  .rail { background: #fff; border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); padding: 1.3rem 1.2rem; }
+  .rail { background: #fff; border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); padding: 1.3rem 1.2rem 0.9rem; }
   .rail-title { font-size: 1.25rem; margin: 0 0 0.9rem; padding-block-end: 0.7rem; border-block-end: 2px solid transparent; border-image: linear-gradient(90deg, var(--amber), var(--terracotta), var(--sky)) 1; border-image-slice: 0 0 1 0; }
   .rail-countdown { margin: 0 0 0.9rem; padding: 0.7rem 0.8rem 0.65rem; border-radius: 10px; background: linear-gradient(180deg, #0b1524, #0e1c31); color: #7ed2ff; font-weight: 700; text-align: center; line-height: 1.4; font-variant-numeric: tabular-nums; text-shadow: 0 0 2px rgb(126 210 255 / 0.9), 0 0 12px rgb(126 210 255 / 0.5); }
   .rail-countdown :global(.cd-num) { display: block; font-family: var(--font-display); font-size: 2rem; font-weight: 800; line-height: 1.1; letter-spacing: 0.04em; text-shadow: 0 0 3px rgb(126 210 255 / 0.95), 0 0 18px rgb(126 210 255 / 0.55), 0 0 38px rgb(64 156 255 / 0.4); }
@@ -80,30 +100,20 @@ const railNotices = [...[...feedDated].sort(byDateDesc), ...feedStanding].slice(
   .rail-wa-head { font-size: 0.9rem; font-weight: 800; color: var(--vacation); text-decoration: none; }
   .rail-wa-head:hover { color: #0a5230; }
 
-  /* ההודעות הרצות (7.20): כיתובית אחת נראית, עולה ומתחלפת לאט ובעדינות */
-  .rail-news { position: relative; margin: 0 0 0.9rem; }
-  .news-track {
-    position: relative;
+  /* ההודעות הרצות (7.20): המסילה כולה עולה מלמטה למעלה ברצף אינסופי */
+  .rail-news { margin: 0 0 0.9rem; }
+  .news-list {
+    list-style: none;
     margin: 0;
     padding: 0;
-    list-style: none;
-    block-size: 74px;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
   }
-  .news-item {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    translate: 0 14px;
-    transition: opacity 900ms var(--ease), translate 900ms var(--ease);
-    pointer-events: none;
-  }
-  .news-item.is-active { opacity: 1; translate: none; pointer-events: auto; }
   .news-link {
     display: flex;
     flex-direction: column;
     gap: 0.28rem;
-    block-size: 100%;
     padding: 0.6rem 0.75rem;
     border-inline-start: 3px solid var(--accent, var(--gold));
     border-radius: 0 10px 10px 0;
@@ -125,12 +135,7 @@ const railNotices = [...[...feedDated].sort(byDateDesc), ...feedStanding].slice(
   .news-all:hover { text-decoration: underline; text-underline-offset: 0.2em; }
   .news-all:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 
-  /* רגישי תנועה: רשימה נייחת של שלוש ההודעות הראשונות — בלי הנפשה */
-  @media (prefers-reduced-motion: reduce) {
-    .news-track { block-size: auto; display: grid; gap: 0.45rem; }
-    .news-item { position: static; opacity: 1; translate: none; transition: none; pointer-events: auto; }
-    .news-item:nth-child(n + 4) { display: none; }
-  }
+  .rail-dup { display: none; }
 
   .rail-live-count {
     display: flex;
@@ -144,14 +149,60 @@ const railNotices = [...[...feedDated].sort(byDateDesc), ...feedStanding].slice(
   .count-kicker { color: var(--gold-deep); font-size: 0.76rem; font-weight: 850; }
   .rail-live-count strong { color: var(--navy); font-family: var(--font-display); font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.45; }
 
+  /* מסך רחב: פס קבוע בצד שמאל, המסילה רצה מלמטה למעלה בלולאה חלקה */
   @media (min-width: 1280px) {
     .rail {
       position: fixed;
       left: clamp(0.9rem, 2vw, 1.6rem);
       top: calc(var(--header-h) + 1.4rem);
+      bottom: 1.4rem;
       width: var(--rail-w);
       z-index: 60;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
+
+    .rail-news {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-block-size: 0;
+      margin-block-end: 0.7rem;
+    }
+
+    .rail-viewport {
+      flex: 1;
+      overflow: hidden;
+      mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 90%, transparent 100%);
+    }
+
+    .rail-track {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      animation: rail-rise 32s linear infinite;
+    }
+
+    .rail-dup { display: flex; }
+
+    .rail:hover .rail-track,
+    .rail:focus-within .rail-track,
+    .rail.is-touch-paused .rail-track {
+      animation-play-state: paused;
+    }
+  }
+
+  @keyframes rail-rise {
+    from { transform: translateY(0); }
+    to { transform: translateY(calc(-50% - 0.45rem)); }
+  }
+
+  /* רגישי תנועה: רשימה נייחת, בלי עותק כפול ובלי הנפשה */
+  @media (prefers-reduced-motion: reduce) {
+    .rail-track { animation: none !important; }
+    .rail-dup { display: none !important; }
+    .rail-viewport { mask-image: none; overflow-y: auto; }
   }
 </style>
 
@@ -187,33 +238,14 @@ const railNotices = [...[...feedDated].sort(byDateDesc), ...feedStanding].slice(
     setInterval(render, 60_000);
   }
 
-  // ההודעות הרצות (7.20): רוטציה איטית; נעצרת בריחוף, במגע ובמיקוד מקלדת.
+  // עצירה במגע (7.20): הריצה הרציפה נעצרת כל עוד אצבע נוגעת בפס
   {
-    const rail = document.querySelector<HTMLElement>('[data-rail-news]');
-    const items = rail ? [...rail.querySelectorAll<HTMLElement>('.news-item')] : [];
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (rail && items.length > 0 && !reduced) {
-      let index = 0;
-      let paused = false;
-      const show = (next: number) => {
-        items[index]?.classList.remove('is-active');
-        index = (next + items.length) % items.length;
-        items[index]?.classList.add('is-active');
-      };
-      show(0);
-      const timer = setInterval(() => {
-        if (!paused) show(index + 1);
-      }, 7000);
-      const pause = () => { paused = true; };
-      const resume = () => { paused = false; };
-      rail.addEventListener('pointerenter', pause);
-      rail.addEventListener('pointerleave', resume);
-      rail.addEventListener('touchstart', pause, { passive: true });
-      rail.addEventListener('focusin', pause);
-      rail.addEventListener('focusout', resume);
-      window.addEventListener('pagehide', () => clearInterval(timer), { once: true });
-    } else if (items.length > 0) {
-      items[0].classList.add('is-active');
+    const rail = document.querySelector<HTMLElement>('.rail');
+    if (rail) {
+      rail.addEventListener('touchstart', () => rail.classList.add('is-touch-paused'), { passive: true });
+      const release = () => rail.classList.remove('is-touch-paused');
+      rail.addEventListener('touchend', release);
+      rail.addEventListener('touchcancel', release);
     }
   }
 </script>
