@@ -55,9 +55,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
       addEventListener('pagereveal', (e) => {
         if (!e.viewTransition) return;
         try {
-          const navigation = (window as Window & {
-            navigation?: { activation?: { from?: { url?: string } } };
-          }).navigation;
+          const navigation = Reflect.get(window, 'navigation');
           const from = navigation?.activation?.from?.url;
           if (from && new URL(from).pathname === '/' && location.pathname === '/shearim/') {
             const root = document.documentElement;
