@@ -86,6 +86,16 @@ const MARKERS = [
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
   { path: '/', needle: 'start-btn', what: 'כפתור ההתחלה בעמוד הראשי (7.28)' },
   { path: '/shearim/', needle: 'split-rule', what: 'המסך המחולק חצי-חצי בבחירת החטיבה (7.29)' },
+  // ModEL: הייחוס אומת על ידי בעל הפרויקט (24.6.7) ולכן המשאב פומבי. שלושת
+  // הסמנים יחד מוכיחים שהעמוד חי, שהלוגו מוצג ושהייחוס הארגוני מוצג.
+  { path: '/chativat-beynayim/reader/z/moodle-guide/', needle: 'data-resource-brand="moodle"', what: 'לוגו המודל בעמוד המשאב (24.6)' },
+  { path: '/chativat-beynayim/reader/z/moodle-guide/', needle: 'לוגו מודל מתמטיקה לחטיבת הביניים', what: 'הטקסט החלופי של לוגו המודל (24.6.5)' },
+  { path: '/chativat-beynayim/reader/z/moodle-slides/', needle: 'צוות מודל — משרד החינוך', what: 'ייחוס צוות מודל — משרד החינוך (24.6.7)' },
+];
+
+/** נכסים שחייבים להיות מוגשים בפועל (לא רק מוזכרים ב-markup). */
+const ASSETS = [
+  { path: '/media/brands/moodle-logo.png', type: 'image/png', what: 'נכס לוגו המודל (24.6.4)' },
 ];
 
 /**
@@ -199,6 +209,18 @@ for (const { path, needle, what } of MARKERS) {
     const { html } = await fetchOnce(path);
     if (markup(html).includes(needle)) console.log(`✓ ${what}`);
     else fail(`${what} — הסמן "${needle}" חסר ב-${path}`);
+  } catch (e) {
+    fail(`בדיקת "${what}" נכשלה: ${e.message}`);
+  }
+}
+
+// נכס שמוזכר ב-markup אך אינו מוגש בפועל הוא תמונה שבורה אצל הגולש
+for (const { path, type, what } of ASSETS) {
+  try {
+    const { status, contentType } = await get(path);
+    if (status !== 200) fail(`${what}: ${path} החזיר ${status}`);
+    else if (!contentType.includes(type)) fail(`${what}: ${path} הוגש כ-${contentType}`);
+    else console.log(`✓ ${what}`);
   } catch (e) {
     fail(`בדיקת "${what}" נכשלה: ${e.message}`);
   }
@@ -332,7 +354,7 @@ console.log(
     `  · ${ROUTES.length} מסלולים קנוניים = 200`,
     `  · ${REDIRECTS.length} מסלולי תאימות = ${LEGACY_REDIRECT_STATUS} עם Location מדויק`,
     `  · ${PROXY_CHECKS.length} נקודות פרוקסי חיות + ${PROXY_REJECTS.length} דחיות allowlist + 405 + HEAD`,
-    `  · ${MARKERS.length} סמנים מחייבים ב-markup`,
+    `  · ${MARKERS.length} סמנים מחייבים ב-markup + ${ASSETS.length} נכסים מוגשים`,
     '  · אינווריאנטים מבניים: שלישים, נושאים, כרטיסים, מסגור PDF',
   ].join('\n'),
 );
