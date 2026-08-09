@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import ArtBanner from '../components/ArtBanner.astro';
 import MafmarPresentation from '../components/MafmarPresentation.astro';
+import MafmarPresentationEnhancer from '../components/MafmarPresentationEnhancer.astro';
 import { MAFMAR_LOCAL, MAFMAR_VIEW } from '../data/mafmar';
 import { feedDated, feedStanding } from '../data/hodaot';
 ---
@@ -65,6 +66,8 @@ import { feedDated, feedStanding } from '../data/hodaot';
         </article>
       </div>
     </section>
+
+    <MafmarPresentationEnhancer />
 
     <ArtBanner
       art="city"
