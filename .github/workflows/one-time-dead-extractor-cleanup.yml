@@ -1,0 +1,67 @@
+name: One-time dead extractor cleanup
+
+on:
+  push:
+    branches:
+      - cleanup/issue68-dead-extractors-v2-20260809
+    paths:
+      - .github/workflows/one-time-dead-extractor-cleanup.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: cleanup/issue68-dead-extractors-v2-20260809
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - name: Remove exactly the four compiler-proven dead extractors
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const file = 'src/data/choveret.ts';
+          const text = fs.readFileSync(file, 'utf8');
+          const markers = [
+            'const extractedDrive = (',
+            'const extractedDoc = (',
+            'const extractedPdf = (',
+            '// ===== Existing live-site items =====',
+          ];
+          for (const marker of markers) {
+            const count = text.split(marker).length - 1;
+            if (count !== 1) throw new Error(`Expected exactly one marker ${marker}; found ${count}`);
+          }
+          const drive = text.indexOf(markers[0]);
+          const doc = text.indexOf(markers[1]);
+          const pdf = text.indexOf(markers[2]);
+          const live = text.indexOf(markers[3]);
+          if (!(drive < doc && doc < pdf && pdf < live)) throw new Error('Extractor marker order changed; refusing to edit');
+          const next = text.slice(0, drive) + text.slice(doc, pdf) + text.slice(live);
+          for (const dead of ['extractedDrive', 'extractedPdf', 'extractedLink', 'extractedSite']) {
+            if (next.includes(dead)) throw new Error(`${dead} still exists after cleanup`);
+          }
+          if (!next.includes('const extractedDoc = (')) throw new Error('Live extractedDoc helper was lost');
+          if (next === text) throw new Error('No change produced');
+          fs.writeFileSync(file, next);
+          NODE
+      - name: Prove the patch is surgical
+        shell: bash
+        run: |
+          git diff --check
+          test "$(git diff --name-only)" = "src/data/choveret.ts"
+      - name: Commit the guarded cleanup
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/choveret.ts
+          git commit -m "cleanup: remove four unused extracted helpers"
+          git push origin HEAD:cleanup/issue68-dead-extractors-v2-20260809
