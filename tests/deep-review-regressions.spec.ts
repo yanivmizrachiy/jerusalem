@@ -68,7 +68,7 @@ test('proxy still forwards a body exactly at the 1MiB boundary', async () => {
 
   const request = new Request('https://proxy.test/', { method: 'POST', body });
   const init = await upstreamInit(request);
-  const forwarded = init.body as Uint8Array;
+  const forwarded = new Uint8Array(init.body as ArrayBuffer);
 
   expect(forwarded.byteLength).toBe(MAX_BODY_BYTES);
   expect(forwarded[0]).toBe(7);
