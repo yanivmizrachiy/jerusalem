@@ -5,6 +5,7 @@ import ResourceSplit from '../../../../components/ResourceSplit.astro';
 import { authorsForResource } from '../../../../data/authors';
 import { isPublishableMaterial } from '../../../../data/publishing';
 import { canonicalGrades, canonicalReaderItems } from '../../../../data/canonical-content';
+import { gradeMaterialsHref } from '../../../../data/choveret';
 import { visibleResourceNote, visibleResourceSource, visibleResourceTitle } from '../../../../data/resource-copy';
 
 export function getStaticPaths() {
@@ -34,11 +35,22 @@ const displayItem = {
   source: visibleResourceSource(item, creatorAliases),
 };
 
+/**
+ * נושא עם משאב ציבורי יחיד מפנה 301 ישירות לעמוד המשאב, ולכן קישור "חזרה
+ * לנושא" היה מחזיר מיד לאותו עמוד ויוצר לולאת ניווט. ResourceSplit כבר
+ * יודע להשתמש ב-redirectHref כאשר materials=false; כאן מעבירים לו עותק
+ * לצורכי ניווט בלבד, בלי לשנות את נתוני הפרק הקנוניים.
+ */
+const navigationChapter =
+  chapter.items.length === 1
+    ? { ...chapter, materials: false, redirectHref: gradeMaterialsHref(grade.slug) }
+    : chapter;
+
 const description =
   displayItem.note || displayItem.source || `${displayItem.title} — ${chapter.title}, ${grade.title}, מחוז ירושלים.`;
 ---
 
 <Base title={`${displayItem.title} — ${grade.title} — מחוז ירושלים`} description={description}>
-  <ResourceSplit grade={publicGrade} chapter={chapter} item={displayItem} />
+  <ResourceSplit grade={publicGrade} chapter={navigationChapter} item={displayItem} />
   <ResourceContext grade={publicGrade} item={item} />
 </Base>
