@@ -6,42 +6,29 @@ on:
       - feat/plan-prisa-html-20260810
     paths:
       - .github/workflows/plan-prisa-extract.yml
-      - scripts/extract-plan-prisa-content.py
-      - scripts/apply-plan-prisa-html.mjs
-      - public/docs/plan-7-tashpaz.pdf
-      - public/docs/prisa-7-tashpaz.pdf
-      - public/docs/plan-8-tashpaz.pdf
-      - public/docs/prisa-8-tashpaz.pdf
-      - public/docs/plan-9a-tashpaz.pdf
-      - public/docs/prisa-9a-tashpaz.pdf
-      - public/docs/plan-9b-tashpaz.pdf
-      - public/docs/prisa-9b-tashpaz.pdf
+      - scripts/finalize-plan-prisa-html.mjs
 
 permissions:
   contents: write
 
 jobs:
-  extract:
+  finalize:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install Poppler
-        run: sudo apt-get update && sudo apt-get install -y poppler-utils
-      - name: Extract every plan/prisa PDF
-        run: python3 scripts/extract-plan-prisa-content.py
-      - name: Apply fail-closed web-reader wiring
-        run: node scripts/apply-plan-prisa-html.mjs
-      - name: Commit generated content and wiring
+      - name: Apply final fail-closed contracts
+        run: node scripts/finalize-plan-prisa-html.mjs
+      - name: Commit final plan/prisa contracts
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/plan-prisa-content.generated.ts src/data/choveret.ts src/components/ResourceSplit.astro RULES.md
+          git add tests/quick-links-contracts.spec.ts src/components/PlanPrisaWeb.astro src/components/ResourceSplit.astro scripts/verify-deploy.mjs
           git diff --cached --check
           if git diff --cached --quiet; then
-            echo "Plan/prisa web reader is already current."
+            echo "Final plan/prisa contracts are already current."
             exit 0
           fi
-          git commit -m "feat(plan-prisa): replace PDF embeds with web reader"
+          git commit -m "test(plan-prisa): enforce HTML reader contracts"
           git push origin HEAD:feat/plan-prisa-html-20260810
