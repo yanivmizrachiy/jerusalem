@@ -10,12 +10,14 @@ import {
   type ChoveretGrade,
   type ChoveretItem,
 } from '../src/data/choveret';
-import { publishableItems, publishedGradeCount } from '../src/data/publishing';
+import { publishableItems } from '../src/data/publishing';
 import {
   sourceMaterialPlacements,
   sourceMaterialResources,
   sourceNeedsReviewResources,
 } from '../src/data/source-materials';
+import { canonicalGrade, canonicalGrades, canonicalPublishedGradeCount } from '../src/data/canonical-content';
+import { primaryResourceId } from '../src/data/primary-resources';
 
 /**
  * בדיקות קטלוג דטרמיניסטיות. אין טעם להריץ אותן שוב בפרויקט mobile —
@@ -52,16 +54,29 @@ test('קטלוג המקור: מזהים ייחודיים וכל placement מצב
   }
 });
 
-test('needsReview נשמר בקטלוג אך אינו מופיע בכרטיסי החומרים', async ({ page }) => {
+test('needsReview נשמר בקטלוג אך אינו מופיע בתצוגת החומרים הקנונית', async ({ page }) => {
   const quarantined = reviewIds();
   expect(quarantined.size, 'יש quarantine אמיתי לבדיקה').toBeGreaterThan(0);
 
-  for (const grade of choveret) {
+  for (const grade of canonicalGrades) {
     for (const chapter of materialChapters(grade)) {
       const expectedVisible = publishableItems(chapter.items);
-      await page.goto(chapterHref(grade.slug, chapter.id));
+      if (expectedVisible.length === 0) continue;
+
+      const response = await page.goto(chapterHref(grade.slug, chapter.id));
+      expect(response?.status(), `${grade.slug}/${chapter.id}: הנושא נגיש`).toBeLessThan(400);
+
+      if (expectedVisible.length === 1) {
+        await page.waitForURL((url) => url.pathname === itemHref(grade.slug, expectedVisible[0]));
+        expect(page.url()).not.toMatch(new RegExp([...quarantined].join('|')));
+        continue;
+      }
+
+      const primaryId = primaryResourceId(chapter.id);
+      const visiblePrimary = primaryId ? expectedVisible.find((item) => item.id === primaryId) : undefined;
+      const expectedCards = expectedVisible.length - (visiblePrimary ? 1 : 0);
       const cards = page.locator('a.rcard');
-      await expect(cards, `${grade.slug}/${chapter.id}: מספר הכרטיסים הפומביים`).toHaveCount(expectedVisible.length);
+      await expect(cards, `${grade.slug}/${chapter.id}: מספר הכרטיסים המשניים הפומביים`).toHaveCount(expectedCards);
 
       const hrefs = await cards.evaluateAll((anchors) => anchors.map((anchor) => (anchor as HTMLAnchorElement).href));
       for (const reviewId of quarantined) {
@@ -84,18 +99,20 @@ test('needsReview אינו מקבל route reader פומבי', async ({ request }
   }
 });
 
-test('כל המונים הציבוריים סופרים רק חומרים שפורסמו', async ({ page }) => {
+test('כל המונים הציבוריים נגזרים מהקטלוג הקנוני שפורסם', async ({ page }) => {
   await page.goto('/chativat-beynayim/');
-  for (const grade of choveret) {
-    const expected = publishedGradeCount(grade);
+  for (const sourceGrade of choveret) {
+    const grade = canonicalGrade(sourceGrade);
+    const expected = canonicalPublishedGradeCount(grade);
     await expect(
       page.locator(`a.third[href="${gradeHref(grade.slug)}"] .third-count`),
       `שער חטיבת הביניים — ${grade.slug}`
     ).toContainText(`${expected} קבצים, קישורים ופעילויות`);
   }
 
-  for (const grade of choveret) {
-    const expected = publishedGradeCount(grade);
+  for (const sourceGrade of choveret) {
+    const grade = canonicalGrade(sourceGrade);
+    const expected = canonicalPublishedGradeCount(grade);
     await page.goto(gradeHref(grade.slug));
     await expect(page.locator('.band-materials .band-count'), `עמוד מבוא שכבה — ${grade.slug}`).toContainText(
       `${expected} קבצים, קישורים ופעילויות`
@@ -161,8 +178,6 @@ test('multi-placement: canonical נשאר יחיד אבל חזרה זוכרת א
   expect(candidate, 'בקטלוג קיים לפחות משאב פומבי אחד שמוצב ביותר מנושא אחד').toBeTruthy();
 
   const { grade, item, chapterIds } = candidate!;
-  // בוחרים בכוונה placement שאינו הראשון — כדי להוכיח שהעמוד לא נופל
-  // אוטומטית להקשר ברירת המחדל של אותו משאב.
   const chapterId = chapterIds[1];
   const chapterPath = chapterHref(grade.slug, chapterId);
   const readerPath = itemHref(grade.slug, item);
