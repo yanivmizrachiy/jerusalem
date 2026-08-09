@@ -24,6 +24,14 @@ export const authors: AuthorRecord[] = [
     pageEligible: false,
   },
   {
+    id: 'weizmann-integrated-math',
+    slug: 'weizmann-integrated-math',
+    name: 'מתמטיקה משולבת — מכון ויצמן',
+    aliases: ['מתמטיקה משולבת-מכון ויצמן', 'מתמטיקה משולבת — מכון ויצמן'],
+    kind: 'organization',
+    pageEligible: false,
+  },
+  {
     id: 'ayelet-crispin',
     slug: 'ayelet-crispin',
     name: 'איילת קריספין',
@@ -158,6 +166,8 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'kavit-flip': ['ayelet-crispin'],
   'al-haretzef': ['michal-david'],
   'mishakim-tavnit': ['shilat-dadashi'],
+  'src-game-z-c9ff7e0990e6': ['weizmann-integrated-math'],
+  'src-game-z-2240924d847e': ['weizmann-integrated-math'],
 
   // סמיון ויינר.
   'src-game-z-78f405097bb9': ['semion-wiener'],
