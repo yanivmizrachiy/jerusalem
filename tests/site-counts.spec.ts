@@ -19,11 +19,13 @@ test('site-wide middle-school count is deduplicated and derived', () => {
   expect(middleSchoolResourceCountText).toBe(`${expected.size} קבצים, קישורים ומסמכים באתר`);
 });
 
-test('the home rail shows the canonical count instead of a running demo-news list', async ({ page }) => {
+test('the home rail shows the canonical count alongside the real running notices (7.20)', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.rail-live-count')).toContainText(middleSchoolResourceCountText);
-  await expect(page.locator('.rail-track')).toHaveCount(0);
-  await expect(page.locator('.rail-dup')).toHaveCount(0);
+  // הריצה הרציפה מלמטה למעלה חזרה בהוראת יניב (10/08/2026): מסילה אחת + עותק
+  // כפול נסתר ללולאה חלקה. התוכן נגזר מ-hodaot.ts הקנוני — אין רשימת דמו.
+  await expect(page.locator('.rail-track')).toHaveCount(1);
+  await expect(page.locator('.rail-dup')).toHaveCount(1);
 });
 
 test('grade topic counters match canonical public content and never fall back to generic "משימות"', async ({ page }) => {
