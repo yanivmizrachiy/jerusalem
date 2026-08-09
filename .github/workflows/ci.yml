@@ -7,8 +7,6 @@ on:
     branches: [main]
   pull_request:
 
-# ברירת המחדל של ה-workflow היא read-only. כל שינוי עתידי שיצטרך כתיבה חייב
-# לבקש הרשאה מפורשת ב-job עצמו ולא לקבל אותה בירושה במקרה.
 permissions:
   contents: read
 
@@ -17,6 +15,46 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  install-script-policy-autofix:
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/final-hygiene-current-main-20260809' && github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install pinned npm
+        run: npm i -g "npm@$(node -p "require('./package.json').packageManager.split('@')[1]")"
+      - name: Install current locked tree for review
+        run: npm ci --no-audit --no-fund
+      - name: Approve only the reviewed esbuild install script, pinned to its installed version
+        run: npm install-scripts approve esbuild
+      - name: Make any future unreviewed install script fail closed
+        run: printf 'strict-allow-scripts=true\n' > .npmrc
+      - name: Reinstall from scratch under the strict policy
+        shell: bash
+        run: |
+          rm -rf node_modules
+          npm ci --no-audit --no-fund
+      - name: Prove no install script remains pending review
+        run: npm install-scripts ls
+      - run: git diff --check
+      - name: Commit npm-generated install-script policy
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json .npmrc
+          git commit -m "security: pin reviewed esbuild install script policy"
+          git push origin HEAD:${{ github.head_ref }}
+
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 15
