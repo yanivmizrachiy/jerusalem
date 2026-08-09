@@ -106,22 +106,6 @@ for (const route of routes) {
   });
 }
 
-// המשחקים המרוכזים הוחלפו בפרק בתוך עמודי הכיתות (1.10, 3.29, 3.31);
-// הכתובת הישנה נשארת חיה ומפנה מיידית לפרק הקנוני.
-// מאגר המבחנים, לעומת זאת, הוא כעת עמוד מרכזי אמיתי ולכן **אינו** ברשימה
-// הזו — הוא נאכף כ-hub בבדיקה נפרדת ואסור שיהפוך להפניה.
-const moved: Record<string, string> = {
-  '/chativat-beynayim/mischakim/': '/chativat-beynayim/nose/z/mischakim/',
-};
-for (const [old, target] of Object.entries(moved)) {
-  test(`הפניה לעמוד הנושא: ${old}`, async ({ page }) => {
-    await page.goto(old);
-    await page.waitForURL((u) => u.pathname === target, { timeout: 10_000 });
-    await expect(page.locator('h1.chapter-title')).toBeVisible();
-    expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);
-  });
-}
-
 /**
  * מסלולי התאימות (src/lib/legacyRedirects.mjs) הם היום הפניית HTTP אמיתית
  * שנפלטת לשכבת הניתוב של Vercel, ולא עמוד 200 עם meta-refresh.
@@ -144,6 +128,14 @@ for (const [legacy, target] of Object.entries(LEGACY_REDIRECTS)) {
     const res = await page.goto(target);
     expect(res?.status()).toBe(200);
     await expect(page.locator('h1')).toBeVisible();
+
+    // יעד שהוא עמוד נושא חייב להגיע עם התוכן עצמו, לא עם מעטפת ריקה:
+    // זו ההגנה שהגיעה מבדיקת ה-moved הישנה, שהוחלפה כאן (הכתובת הישנה
+    // כבר אינה עמוד עם meta-refresh אלא 301 אמיתי בשכבת הניתוב).
+    if (target.includes('/nose/')) {
+      await expect(page.locator('h1.chapter-title')).toBeVisible();
+      expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);
+    }
   });
 }
 

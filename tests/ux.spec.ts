@@ -7,6 +7,7 @@ import {
   sourceMaterialResources,
   sourceNoLinkRows,
 } from '../src/data/source-materials';
+import { hafifaUnit, mishvaotUnit } from '../src/data/units';
 
 /**
  * בדיקות הקבלה של תיקון ה-UX המלא (RULES 19.34, הוראת יניב 04–05/08/2026):
@@ -396,10 +397,23 @@ test('כל משימה בכל נושא בכל שכבה מובילה לעמוד מ
   // ניווטים. סולו היא לוקחת ~10 שניות, אבל תחת ריצה מקבילה מלאה היא חצתה
   // את תקרת 45 השניות ונפלה כ-flake (נמדד 09/08/2026). ‏retries=0 הוא חלק
   // מחוזה האיכות, ולכן התקציב מורחב במקום להחזיר ניסיונות חוזרים.
+  //
+  // החוזה עודכן (Issue #73): נושא אינו חייב להציג רשימה. נושא שיש בו בדיוק
+  // משאב ציבורי אחד עובר **ישירות** למשאב עצמו (301 ב-`nose/[grade]/[chapter]`),
+  // ונושא עם שניים ומעלה מציג רשימת משימות. שני המסלולים נבדקים כאן בפועל,
+  // ושניהם חייבים להתקיים — כדי שהבדיקה לא תעבור על ידי ביטול אחד מהם.
   test.slow();
   await page.setViewportSize({ width: 1440, height: 900 });
   let tasks = 0;
+  let singleItemTopics = 0;
+  let listTopics = 0;
   const sample: string[] = [];
+
+  /** מחכה עד שהניווט נח: או רשימת משימות, או עמוד המשימה עצמו */
+  const settle = async () => {
+    await page.locator('.rcard, .res-view').first().waitFor({ state: 'attached' });
+    return new URL(page.url()).pathname;
+  };
 
   for (const [slug, materials] of [
     ['z', '/chativat-beynayim/kita-z/chomarim/'],
@@ -412,26 +426,43 @@ test('כל משימה בכל נושא בכל שכבה מובילה לעמוד מ
       .evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')!));
     expect(topicHrefs.length, `לשכבה ${slug} יש נושאים`).toBeGreaterThan(0);
 
+    const taskPath = new RegExp(`^/chativat-beynayim/reader/${slug}/[^/]+/$`);
+
     for (const topic of topicHrefs) {
       expect(topic, 'נושא מוביל לעמוד נושא').toMatch(new RegExp(`^/chativat-beynayim/nose/${slug}/`));
       await page.goto(topic);
-      const hrefs = await page
-        .locator('.rcard')
-        .evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')!));
-      expect(hrefs.length, `לנושא ${topic} יש משימות`).toBeGreaterThan(0);
-      for (const h of hrefs) {
-        expect(h, `משימה בנושא ${topic} מובילה לעמוד משימה`).toMatch(
-          new RegExp(`^/chativat-beynayim/reader/${slug}/[^/]+/$`)
-        );
+      const landed = await settle();
+
+      if (landed === topic) {
+        // נושא עם שתי משימות ומעלה — רשימה לחיצה
+        const hrefs = await page
+          .locator('.rcard')
+          .evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')!));
+        expect(hrefs.length, `נושא שמציג רשימה חייב שתי משימות ומעלה: ${topic}`).toBeGreaterThan(1);
+        for (const h of hrefs) {
+          expect(h, `משימה בנושא ${topic} מובילה לעמוד משימה`).toMatch(taskPath);
+          tasks++;
+        }
+        sample.push(hrefs[0]);
+        listTopics++;
+      } else {
+        // נושא עם משאב ציבורי יחיד — מעבר ישיר למשימה, בלי מסך ביניים ריק
+        expect(landed, `נושא עם משאב יחיד עובר ישירות למשימה: ${topic}`).toMatch(taskPath);
+        await expect(page.locator('.res-view'), landed).toBeVisible();
+        await expect(page.locator('.res-panel'), landed).toBeVisible();
+        await expect(page.locator('.orbs'), landed).toBeVisible();
+        expect(await page.locator('.rcard').count(), `אין רשימה בעמוד משימה: ${landed}`).toBe(0);
         tasks++;
+        singleItemTopics++;
       }
-      sample.push(hrefs[0]);
     }
   }
 
   expect(tasks, 'נספרו משימות אמיתיות').toBeGreaterThan(40);
+  expect(listTopics, 'קיימים נושאים שמציגים רשימת משימות').toBeGreaterThan(0);
+  expect(singleItemTopics, 'קיימים נושאים שעוברים ישירות למשאב היחיד').toBeGreaterThan(0);
 
-  // מדגם משימות — כל אחת באמת עמוד מחולק: הטמעה מצד אחד, פעולות מהצד השני (8.2)
+  // מדגם משימות מתוך הרשימות — כל אחת באמת עמוד מחולק (8.2)
   for (const href of sample.slice(0, 6)) {
     await page.goto(href);
     await expect(page.locator('.res-view'), href).toBeVisible();
@@ -454,25 +485,55 @@ test('משימת חוזר נשמרת במסלול הקנוני אך אינה מ�
   await page.waitForURL('**/hozer-mafmar/');
 });
 
-test('יחידות ועמודים ייעודיים עברו לעמוד המבוא — ולא נמחקו (3.30)', async ({ page }) => {
-  const moved = {
-    z: '/chativat-beynayim/mishvaot/',
-    h: '/chativat-beynayim/hafifat-meshulashim/',
-    t: '/chativa-elyona/',
-  } as const;
+test('יחידות המשוואות והחפיפה נשמרו בתוך הנושא הקנוני — בלי כרטיס ייעודי (3.30)', async ({ page }) => {
+  // החוזה עודכן (Issue #73): יחידות ההוראה הישנות אינן עוד כרטיס ייעודי בעמוד
+  // המבוא ואינן עמוד־נגן נפרד. כל חומריהן חיים בתוך הנושא הקנוני, והכתובת
+  // הישנה נשארת חיה כהפניה — כדי שקישורים ששותפו לא יישברו (5.17, 3.6, 3.12).
+  test.slow();
+  const units = [
+    { slug: 'z', legacy: '/chativat-beynayim/mishvaot/', topic: '/chativat-beynayim/nose/z/z-equations/', unit: mishvaotUnit },
+    { slug: 'h', legacy: '/chativat-beynayim/hafifat-meshulashim/', topic: '/chativat-beynayim/nose/h/h-congruent/', unit: hafifaUnit },
+  ] as const;
 
-  for (const [slug, href] of Object.entries(moved)) {
+  for (const { slug, legacy, topic, unit } of units) {
+    // 1. אין כרטיס ייעודי בעמוד המבוא של השכבה
     await page.goto(`/chativat-beynayim/kita-${slug}/`);
-    const link = page.locator(`[data-grade-page][href="${href}"]`);
-    await expect(link, `${slug}: היחידה מוצגת בעמוד המבוא`).toHaveCount(1);
-    expect((await link.boundingBox())!.height, 'מטרת מגע').toBeGreaterThanOrEqual(44);
+    await expect(
+      page.locator(`[data-grade-page][href="${legacy}"]`),
+      `${slug}: אין עוד כרטיס ייעודי ליחידה בעמוד המבוא`
+    ).toHaveCount(0);
 
-    // והעמוד עצמו חי — שום חומר לא נמחק
-    const res = await page.request.get(href);
-    expect(res.status(), `${href} חי`).toBe(200);
+    // 2. הכתובת הישנה מגיעה לנושא הקנוני — ולא ל-404 ולא לעמוד נגן
+    await page.goto(legacy);
+    await page.waitForURL((u) => u.pathname === topic, { timeout: 10_000 });
+    await expect(page.locator('h1.chapter-title')).toBeVisible();
+    expect(await page.locator('.uplay-viewer, .uplay-list').count(), 'אין נגן יחידה במסלול הזה').toBe(0);
+
+    // 3. הנושא הקנוני מציג בפועל את משאבי היחידה כמשימות לחיצות
+    const cardHrefs = new Set(
+      await page
+        .locator('a.rcard')
+        .evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute('href')!))
+    );
+    expect(cardHrefs.size, `${topic}: רשימת משימות אמיתית`).toBeGreaterThan(1);
+
+    // 4. אפס אובדן מזהי משאב: כל פריט מהיחידה הישנה קיים כעמוד משימה קנוני
+    const missing: string[] = [];
+    for (const resource of unit.resources) {
+      const href = `/chativat-beynayim/reader/${slug}/${resource.id}/`;
+      const res = await page.request.get(href);
+      if (res.status() !== 200) missing.push(`${resource.id} (${res.status()})`);
+    }
+    expect(missing, `חומרים שאבדו מיחידת ${unit.title}: ${missing.join(', ')}`).toHaveLength(0);
   }
 
-  // ומנגד: הם כבר לא יושבים בתוך רשימת הנושאים
+  // שער החטיבה העליונה נשאר קישור בעמוד המבוא של ט׳ — הוא אינו יחידת הוראה
+  await page.goto('/chativat-beynayim/kita-t/');
+  const gateway = page.locator('[data-grade-page][href="/chativa-elyona/"]');
+  await expect(gateway, 'ט׳: השער לחטיבה העליונה נשאר בעמוד המבוא').toHaveCount(1);
+  expect((await gateway.boundingBox())!.height, 'מטרת מגע').toBeGreaterThanOrEqual(44);
+
+  // ומנגד: היחידות אינן חוזרות כנושא מלאכותי ברשימת הנושאים
   for (const [slug, materials] of [
     ['z', '/chativat-beynayim/kita-z/chomarim/'],
     ['h', '/chativat-beynayim/kita-h/chomarim/'],
@@ -1207,8 +1268,12 @@ test('כל ההטמעות חולקות את אותה מסגרת (.embed-frame) �
 });
 
 test('UnitPlaylist: שתי עמודות שוות והרשימה באמת גוללת בתוך גובה מוגבל', async ({ page }) => {
+  // המסלול עודכן (Issue #73): ‏`/chativat-beynayim/mishvaot/` אינו עוד עמוד נגן
+  // אלא הפניה לנושא הקנוני, ולכן חוזה הפריסה של הרכיב נאכף כאן על המסלול החי
+  // שבו הוא באמת מוצג — מיזם ה-AI. ההגנה זהה: שתי עמודות שוות, גלילה פנימית
+  // אמיתית ואפס גלילה אופקית.
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/chativat-beynayim/mishvaot/');
+  await page.goto('/pituach-miktzoi/ai-geometria/');
 
   const viewer = (await page.locator('.uplay-viewer').boundingBox())!;
   const list = (await page.locator('.uplay-list').boundingBox())!;
