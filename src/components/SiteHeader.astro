@@ -6,18 +6,18 @@ const { transparent = false } = Astro.props;
 const path = Astro.url.pathname;
 
 const links = [
-  { href: '/', label: 'ראשי' },
-  { href: '/chativat-beynayim/', label: 'חטיבת ביניים' },
-  { href: '/chativa-elyona/', label: 'חטיבה עליונה' },
-  { href: '/hozer-mafmar/', label: 'חוזר מפמ״ר' },
-  { href: '/israel-realit/', label: 'ישראל ריאלית' },
-  { href: '/luach/', label: 'לוח שנה' },
-  { href: '/chativat-beynayim/#hamchashot', label: 'אתר ההמחשות' },
+  { href: '/', label: 'ראשי', tone: 'gold' },
+  { href: '/chativat-beynayim/', label: 'חטיבת ביניים', tone: 'sky' },
+  { href: '/chativa-elyona/', label: 'חטיבה עליונה', tone: 'lilac' },
+  { href: '/hozer-mafmar/', label: 'חוזר מפמ״ר', tone: 'amber' },
+  { href: '/israel-realit/', label: 'ישראל ריאלית', tone: 'terracotta' },
+  { href: '/luach/', label: 'לוח שנה', tone: 'olive' },
+  { href: '/chativat-beynayim/#hamchashot', label: 'אתר ההמחשות', tone: 'rose' },
   // ‎#tzevet‎ הוא מקטע פרטי הקשר, שמוסתר דרך קבע ונחשף רק בלחיצה על חבר
   // צוות (RULES 6.5) — קישור אליו הוביל ליעד שאינו נראה לעולם (5.13).
   // צוות ההדרכה מוצג ב-hero שאחרי הסרטון, וזה היעד הנכון.
-  { href: '/#hero-after', label: 'צוות ההדרכה' },
-];
+  { href: '/#hero-after', label: 'צוות ההדרכה', tone: 'navy' },
+] as const;
 
 const isActive = (href: string) =>
   href === '/' ? path === '/' : !href.includes('#') && path.startsWith(href);
@@ -30,8 +30,13 @@ const isActive = (href: string) =>
         {
           links.map((l) => (
             <li>
-              <a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined}>
-                {l.label}
+              <a
+                href={l.href}
+                data-tone={l.tone}
+                aria-current={isActive(l.href) ? 'page' : undefined}
+              >
+                <span class="nav-dot" aria-hidden="true"></span>
+                <span>{l.label}</span>
               </a>
             </li>
           ))
@@ -50,16 +55,18 @@ const isActive = (href: string) =>
     display: flex;
     align-items: center;
     padding-inline: max(0px, env(safe-area-inset-right)) max(0px, env(safe-area-inset-left));
-    background: color-mix(in srgb, var(--paper) 88%, transparent);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-block-end: 1px solid var(--line);
-    transition: background-color 400ms var(--ease), border-color 400ms var(--ease);
+    background: color-mix(in srgb, var(--paper) 90%, transparent);
+    backdrop-filter: blur(18px) saturate(1.08);
+    -webkit-backdrop-filter: blur(18px) saturate(1.08);
+    border-block-end: 1px solid color-mix(in srgb, var(--gold) 18%, var(--line));
+    box-shadow: 0 12px 34px -34px rgb(31 41 61 / 0.55);
+    transition: background-color 400ms var(--ease), border-color 400ms var(--ease), box-shadow 400ms var(--ease);
   }
 
   .site-header.is-transparent:not(.is-scrolled) {
     background: transparent;
     border-block-end-color: transparent;
+    box-shadow: none;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -70,49 +77,133 @@ const isActive = (href: string) =>
     justify-content: center;
     gap: 1rem;
     flex-wrap: wrap;
-    padding-block: 0.4rem;
+    padding-block: 0.42rem;
+  }
+
+  nav {
+    position: relative;
+    max-inline-size: 100%;
+    padding: 0.28rem;
+    border: 1px solid color-mix(in srgb, var(--gold) 20%, var(--line));
+    border-radius: 999px;
+    background: color-mix(in srgb, #fff 76%, var(--paper-soft));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 12px 30px -28px rgb(31 41 61 / 0.58);
+    transition: background-color 350ms var(--ease), border-color 350ms var(--ease), box-shadow 350ms var(--ease);
+  }
+
+  .site-header.is-transparent:not(.is-scrolled) nav {
+    background: color-mix(in srgb, #fff 72%, transparent);
+    border-color: rgb(255 255 255 / 0.52);
+    box-shadow: 0 14px 36px -28px rgb(0 0 0 / 0.45);
+    backdrop-filter: blur(16px) saturate(1.1);
+    -webkit-backdrop-filter: blur(16px) saturate(1.1);
   }
 
   .nav-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem;
+    justify-content: center;
+    gap: 0.18rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .nav-list a {
+    --nav-accent: var(--gold);
+    position: relative;
     display: inline-flex;
     align-items: center;
+    gap: 0.42rem;
     min-block-size: 44px;
-    padding: 0.35rem 0.95rem;
+    padding: 0.36rem 0.82rem;
+    border: 1px solid transparent;
     border-radius: 999px;
     color: var(--ink-soft);
-    font-weight: 600;
-    font-variation-settings: 'wght' 600; /* פונט משתנה — מעבר משקל חלק */
-    font-size: 0.98rem;
-    transition: color 250ms var(--ease), background-color 250ms var(--ease),
+    font-weight: 650;
+    font-variation-settings: 'wght' 650;
+    font-size: 0.94rem;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      color 240ms var(--ease),
+      background-color 280ms var(--ease),
+      border-color 280ms var(--ease),
+      box-shadow 280ms var(--ease),
+      transform 420ms var(--ease-lift),
       font-variation-settings 300ms var(--ease);
+  }
+
+  .nav-list a[data-tone='gold'] { --nav-accent: var(--gold); }
+  .nav-list a[data-tone='sky'] { --nav-accent: var(--sky); }
+  .nav-list a[data-tone='lilac'] { --nav-accent: var(--lilac); }
+  .nav-list a[data-tone='amber'] { --nav-accent: var(--amber); }
+  .nav-list a[data-tone='terracotta'] { --nav-accent: var(--terracotta); }
+  .nav-list a[data-tone='olive'] { --nav-accent: var(--olive); }
+  .nav-list a[data-tone='rose'] { --nav-accent: var(--rose); }
+  .nav-list a[data-tone='navy'] { --nav-accent: var(--navy); }
+
+  .nav-dot {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    flex: none;
+    border-radius: 50%;
+    background: var(--nav-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--nav-accent) 12%, transparent);
+    transition: transform 360ms var(--ease-lift), box-shadow 280ms var(--ease);
   }
 
   .nav-list a:hover,
   .nav-list a[aria-current='page'] {
-    font-variation-settings: 'wght' 720;
+    color: var(--ink);
+    font-variation-settings: 'wght' 740;
+    border-color: color-mix(in srgb, var(--nav-accent) 34%, var(--line));
+    background: color-mix(in srgb, var(--nav-accent) 10%, #fff);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 9px 22px -18px color-mix(in srgb, var(--nav-accent) 65%, transparent);
   }
 
   .nav-list a:hover {
-    color: var(--ink);
-    background: var(--paper-soft);
+    transform: translateY(-1px);
   }
 
-  .nav-list a[aria-current='page'] {
-    color: var(--ink); /* ניגודיות מלאה — הזהות נשמרת ברקע המוזהב */
-    background: color-mix(in srgb, var(--gold) 16%, transparent);
+  .nav-list a:hover .nav-dot,
+  .nav-list a[aria-current='page'] .nav-dot {
+    transform: scale(1.16);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--nav-accent) 16%, transparent);
   }
 
-  @media (max-width: 640px) {
-    .nav-list a { padding-inline: 0.7rem; font-size: 0.92rem; }
+  .nav-list a[aria-current='page']::after {
+    content: '';
+    position: absolute;
+    inset-inline: 1rem;
+    inset-block-end: 0.16rem;
+    block-size: 2px;
+    border-radius: 999px;
+    background: var(--nav-accent);
+    opacity: 0.88;
+  }
+
+  @media (max-width: 760px) {
+    nav { border-radius: calc(var(--radius) + 8px); }
+    .nav-list { gap: 0.12rem; }
+    .nav-list a { padding-inline: 0.66rem; font-size: 0.88rem; }
+    .nav-dot { inline-size: 0.42rem; block-size: 0.42rem; }
+  }
+
+  @media (max-width: 440px) {
+    .header-inner { width: calc(100% - 0.8rem); }
+    nav { inline-size: 100%; padding: 0.22rem; }
+    .nav-list a { min-block-size: 42px; padding-inline: 0.56rem; font-size: 0.84rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-list a,
+    .nav-dot { transition-duration: 1ms; }
+    .nav-list a:hover { transform: none; }
   }
 </style>
 
