@@ -196,7 +196,18 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'src-curriculum-965bf8827411': ['maya-koren'],
   'src-curriculum-3380820b5724': ['achva-college'],
 
-  // ===== סביבה מחוזית ש-RULES מגדיר במפורש כמשאב של המחוז =====
+  // ===== סביבות המחוז =====
+  //
+  // misparim / zaviyot / tzirim — district-designated (RULES 24.1.2(4) דרך
+  // 9.4–9.6) **וגם קרדיט עצמי שנמדד באתרים החיים ב-09/08/2026**: שלוש
+  // הסביבות מציגות בעצמן את הכותרת "מחוז ירושלים והעיר ירושלים — מנח״י,
+  // בהובלת איילת קריספין", ו-zaviyot ו-tzirim נושאות גם את הקרדיט האישי
+  // "יניב רז · מדריך מחוזי חט״ב בעיר ירושלים". זו הזדהות של המשאב עצמו —
+  // לא לוגו על מסמך זר ולא הופעה ברשימת קישורים.
+  //
+  // MZ-27 / MZ-29 — explicit-credit: כותרת המשאב היא "המצגת המחוזית".
+  // MZ-36 — explicit-credit: כותרת המשאב היא "מסמך הפיקוח".
+  // chinuch-meyuchad — explicit-credit: כותרתו "אתר החינוך המיוחד המחוזי".
   'misparim': ['jerusalem-district-math'],
   'tzirim': ['jerusalem-district-math'],
   'MZ-27': ['jerusalem-district-math'],
