@@ -6,10 +6,35 @@ interface Props {
   accent: string;
 }
 
+type ReaderRow = { readonly text: string; readonly cells: readonly string[] };
+
 const { document, accent } = Astro.props;
 const monthPattern = /(ספטמבר|אוקטובר|נובמבר|דצמבר|ינואר|פברואר|מרץ|אפריל|מאי|יוני|יולי|אוגוסט)/;
 const totalPattern = /(סה"כ|סה״כ|שעות|תחום אלגברי|תחום גאומטרי|תחום מספרי|אי ודאות)/;
 const rootId = `plan-prisa-${document.id}`;
+const prepareRow = (row: ReaderRow) => {
+  const isMonth = monthPattern.test(row.text);
+  const isTotal = totalPattern.test(row.text);
+  const isShortSingle = row.cells.length === 1 && row.text.length <= 72;
+  return {
+    ...row,
+    rowClass: isMonth
+      ? 'is-month'
+      : isTotal
+        ? 'is-total'
+        : isShortSingle
+          ? 'is-heading'
+          : row.cells.length > 1
+            ? 'is-grid'
+            : 'is-text',
+    columns: Math.min(Math.max(row.cells.length, 1), 5),
+    search: row.text.toLocaleLowerCase('he'),
+  };
+};
+const preparedPages = document.pages.map((page) => ({
+  page: page.page,
+  rows: page.rows.map(prepareRow),
+}));
 ---
 
 <section class="ppw" id={rootId} style={`--pp-accent:${accent}`} dir="rtl" data-plan-prisa-web>
@@ -26,7 +51,7 @@ const rootId = `plan-prisa-${document.id}`;
   </header>
 
   <nav class="ppw-pages" aria-label="מעבר בין עמודי המסמך">
-    {document.pages.map((page) => (
+    {preparedPages.map((page) => (
       <a href={`#${rootId}-page-${page.page}`}>עמוד {page.page}</a>
     ))}
   </nav>
@@ -34,34 +59,27 @@ const rootId = `plan-prisa-${document.id}`;
   <p class="ppw-result" role="status" aria-live="polite" data-pp-result></p>
 
   <div class="ppw-stack">
-    {document.pages.map((page) => (
+    {preparedPages.map((page) => (
       <section class="ppw-page" id={`${rootId}-page-${page.page}`} data-pp-page>
         <header class="ppw-page-head">
           <span>עמוד {page.page}</span>
           <a href={`#${rootId}`} aria-label={`חזרה לראש תצוגת ${document.label}`}>לתפריט המסמך</a>
         </header>
         <div class="ppw-rows">
-          {page.rows.map((row, index) => {
-            const isMonth = monthPattern.test(row.text);
-            const isTotal = totalPattern.test(row.text);
-            const isShortSingle = row.cells.length === 1 && row.text.length <= 72;
-            const rowClass = isMonth ? 'is-month' : isTotal ? 'is-total' : isShortSingle ? 'is-heading' : row.cells.length > 1 ? 'is-grid' : 'is-text';
-            const columns = Math.min(Math.max(row.cells.length, 1), 5);
-            return (
-              <div
-                class:list={['ppw-row', rowClass]}
-                style={`--pp-cols:${columns}; --pp-row:${index}`}
-                data-pp-row
-                data-search={row.text.toLocaleLowerCase('he')}
-              >
-                {row.cells.length > 1 ? (
-                  row.cells.map((cell) => <span class="ppw-cell">{cell}</span>)
-                ) : (
-                  <p>{row.text}</p>
-                )}
-              </div>
-            );
-          })}
+          {page.rows.map((row) => (
+            <div
+              class:list={['ppw-row', row.rowClass]}
+              style={`--pp-cols:${row.columns}`}
+              data-pp-row
+              data-search={row.search}
+            >
+              {row.cells.length > 1 ? (
+                row.cells.map((cell) => <span class="ppw-cell">{cell}</span>)
+              ) : (
+                <p>{row.text}</p>
+              )}
+            </div>
+          ))}
         </div>
       </section>
     ))}
