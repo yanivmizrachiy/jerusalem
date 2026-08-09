@@ -2,13 +2,14 @@
 /**
  * תצוגת החומרים של שכבה (הוראת יניב, 06/08/2026):
  * **רשימת נושאים בלבד** — ברורה, גדולה ונוחה. כל נושא הוא שורה לחיצה
- * אחת שמובילה לעמוד הנושא, ובו רשימת המשימות שלו. כל השאר (הניווט בין
+ * אחת שמובילה לעמוד הנושא, ובו רשימת המשאבים שלו. כל השאר (הניווט בין
  * השכבות וחזרה לשער) יורד ממש לתחתית העמוד, כדי שהמסך הראשון יהיה
  * רשימת הנושאים ותו לא.
  */
 import Breadcrumbs from './Breadcrumbs.astro';
 import GradeNav from './GradeNav.astro';
 import { publishableItems, publishedGradeCount } from '../data/publishing';
+import { resourceCountLabel } from '../data/resource-labels';
 import { chapterHref, gradeHref, gradeLabel, materialChapters, type ChoveretGrade } from '../data/choveret';
 
 interface Props {
@@ -17,7 +18,10 @@ interface Props {
 
 const { grade } = Astro.props;
 const chapters = materialChapters(grade)
-  .map((chapter) => ({ chapter, count: publishableItems(chapter.items).length }))
+  .map((chapter) => {
+    const items = publishableItems(chapter.items);
+    return { chapter, items, count: items.length, countLabel: resourceCountLabel(items) };
+  })
   .filter(({ count }) => count > 0);
 const publishedCount = publishedGradeCount(grade);
 ---
@@ -40,13 +44,13 @@ const publishedCount = publishedGradeCount(grade);
 
   <ul class="topics" aria-label="נושאי הלימוד">
     {
-      chapters.map(({ chapter: ch, count }) => (
+      chapters.map(({ chapter: ch, countLabel }) => (
         <li id={ch.id} data-kind={ch.kind ?? 'topic'} style={`--ch:${ch.color}; --ch-dark:${ch.dark}`}>
           <a class="topic" href={chapterHref(grade.slug, ch.id)}>
             <span class="topic-dot" aria-hidden="true" />
             <span class="topic-text">
               <span class="topic-title">{ch.title}</span>
-              <span class="topic-n">{count} משימות</span>
+              <span class="topic-n">{countLabel}</span>
             </span>
             <span class="topic-go" aria-hidden="true">
               <svg viewBox="0 0 34 12" fill="none" stroke="currentColor" stroke-width="1.6">
