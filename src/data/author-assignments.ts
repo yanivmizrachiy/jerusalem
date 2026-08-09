@@ -119,6 +119,8 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'prisot-pdf-t': ['ministry-of-education'],
   'tochnit-t': ['ministry-of-education'],
   'prisa-t': ['ministry-of-education'],
+  'tochnit-t-b': ['ministry-of-education'],
+  'prisa-t-b': ['ministry-of-education'],
   'maf-05-t': ['ministry-of-education'],
   'maf-06-t': ['ministry-of-education'],
   'kdam-algebra': ['ministry-of-education'],
@@ -215,4 +217,14 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'chinuch-meyuchad': ['jerusalem-district-math'],
   'MZ-29': ['jerusalem-district-math'],
   'MZ-36': ['jerusalem-district-math'],
+
+  // ===== פריסות ספטמבר — עידן אחוון =====
+  //
+  // owner-verified: מסירה מפורשת של יניב (09/08/2026) — היוצר הוא עידן
+  // אחוון, מדריך בית ספרי בעיר ירושלים. וגם explicit-credit שנמדד באתרים
+  // עצמם (09/08/2026): שלושת עמודי ספטמבר נושאים את הקרדיט "עידן אחוון —
+  // מדריך בית ספרי". בתצוגה שלנו מוצג עידן אחוון בלבד (הוראת יניב).
+  'prisa-september-z': ['idan-ahvan'],
+  'prisa-september-h': ['idan-ahvan'],
+  'prisa-september-t': ['idan-ahvan'],
 };

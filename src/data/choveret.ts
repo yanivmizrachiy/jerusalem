@@ -114,6 +114,12 @@ export interface ChoveretGrade {
    */
   mainPlan?: string;
   mainPrisa?: string;
+  /**
+   * מזהה הפריסה **החודשית** הנוכחית של השכבה ("רגע לפני"). הפריט חי בפרק
+   * `rega-lifney`; עמוד המבוא והטבלה מציגים אותו לצד התוכנית והפריסה
+   * השנתיות. בחודש חדש: מוסיפים פריט ומעדכנים את המזהה — מקור אחד.
+   */
+  mainMonthly?: string;
   chapters: ChoveretChapter[];
   /** יחידות ועמודים ייעודיים — מוצגים בעמוד המבוא, מחוץ לרשימת הנושאים */
   pages?: GradePage[];
@@ -1006,11 +1012,32 @@ const tnufaMankal = hozerLink(
 
 // ===== Final catalog =====
 
+/**
+ * "רגע לפני" — כיתוב אחיד לפריסה החודשית הנוכחית (ספטמבר תשפ״ז), משותף
+ * לעמוד המבוא, לטבלת הקישורים ולבדיקות. בחודש חדש מעדכנים כאן פעם אחת.
+ */
+export const MONTHLY_DOC_LABEL = 'רגע לפני — ספטמבר';
+
+/**
+ * פריסת ספטמבר של עידן אחוון (הוראת יניב, 09/08/2026). אתרי my.canva.site
+ * שולחים X-Frame-Options: SAMEORIGIN (נמדד 09/08/2026, בהתאם ל-24.4.1),
+ * ולכן אין `embed` — הקורא מציג כרטיס פתיחה אמיתי (8.8). הייחוס: עידן
+ * אחוון (authors.ts); המיפוי שכבה→כתובת קשיח ומאומת — ז׳→7th, ח׳→8th, ט׳→9th.
+ */
+const septemberPrisa = (id: string, letter: string, canvaGrade: string): ChoveretItem => ({
+  id,
+  title: `פריסת ספטמבר לכיתה ${letter}`,
+  note: `הפריסה החודשית של חודש ספטמבר לכיתה ${letter}.`,
+  url: `https://idanahvan.my.canva.site/${canvaGrade}`,
+  kind: 'link',
+});
+
 export const choveret: ChoveretGrade[] = [
   {
     slug: 'z',
     mainPlan: 'tochnit-z',
     mainPrisa: 'prisa-z',
+    mainMonthly: 'prisa-september-z',
     color: '#1d7ed8',
     dark: '#155fa8',
     letter: 'ז׳',
@@ -1019,6 +1046,9 @@ export const choveret: ChoveretGrade[] = [
     // כל חומריה חיים בתוך הנושא הקנוני `z-equations` (canonical-content.ts),
     // והכתובת הישנה מפנה אליו ב-301 (src/lib/legacyRedirects.mjs).
     chapters: [
+      administrativeChapter('rega-lifney', 'רגע לפני — הפריסה החודשית', '/chativat-beynayim/kita-z/#ma-melamdim', [
+        septemberPrisa('prisa-september-z', 'ז׳', '9-26-7th-grade'),
+      ]),
       administrativeChapter('hozer', 'מהחוזר הרשמי', '/hozer-mafmar/', [
         maf('maf-02', 'MAF-02', ''),
         hozerLink(
@@ -1076,6 +1106,7 @@ export const choveret: ChoveretGrade[] = [
     slug: 'h',
     mainPlan: 'tochnit-h',
     mainPrisa: 'prisa-h',
+    mainMonthly: 'prisa-september-h',
     color: '#059669',
     dark: '#047857',
     letter: 'ח׳',
@@ -1083,6 +1114,9 @@ export const choveret: ChoveretGrade[] = [
     // יחידת "חפיפת משולשים" אינה עוד כרטיס ייעודי כאן: כל חומריה חיים בתוך
     // הנושא הקנוני `h-congruent`, והכתובת הישנה מפנה אליו ב-301.
     chapters: [
+      administrativeChapter('rega-lifney', 'רגע לפני — הפריסה החודשית', '/chativat-beynayim/kita-h/#ma-melamdim', [
+        septemberPrisa('prisa-september-h', 'ח׳', '9-26-8th-grade'),
+      ]),
       administrativeChapter('hozer', 'מהחוזר הרשמי', '/hozer-mafmar/', [
         maf('maf-03', 'MAF-03', ''),
         hozerLink(
@@ -1154,6 +1188,7 @@ export const choveret: ChoveretGrade[] = [
     slug: 't',
     mainPlan: 'tochnit-t',
     mainPrisa: 'prisa-t',
+    mainMonthly: 'prisa-september-t',
     color: '#ea580c',
     dark: '#b45309',
     letter: 'ט׳',
@@ -1174,6 +1209,9 @@ export const choveret: ChoveretGrade[] = [
       },
     ],
     chapters: [
+      administrativeChapter('rega-lifney', 'רגע לפני — הפריסה החודשית', '/chativat-beynayim/kita-t/#ma-melamdim', [
+        septemberPrisa('prisa-september-t', 'ט׳', '9-26-9th-grade'),
+      ]),
       administrativeChapter('hozer', 'מהחוזר הרשמי', '/hozer-mafmar/', [
         maf('maf-04', 'MAF-04', ''),
         maf('maf-10', 'MAF-10', ''),
@@ -1194,6 +1232,8 @@ export const choveret: ChoveretGrade[] = [
         ),
         gov('tochnit-t', 'plan_9A.pdf', '/docs/plan-9a-tashpaz.pdf', 'תוכנית הוראה ט׳', 'התוכנית הרשמית לתשפ״ז — מותאמת לכיתה ט׳ לפני העדכון.'),
         gov('prisa-t', 'prisa_9A.pdf', '/docs/prisa-9a-tashpaz.pdf', 'פריסת הוראה ט׳', 'הפריסה הרשמית לתשפ״ז — פירוט הנושאים וחומרי הלמידה לאורך השנה.'),
+        gov('tochnit-t-b', 'plan_9B.pdf', '/docs/plan-9b-tashpaz.pdf', 'תוכנית הוראה ט׳ מצומצמת', 'התוכנית הרשמית לתשפ״ז — הרמה המצומצמת של כיתה ט׳.'),
+        gov('prisa-t-b', 'prisa_9B.pdf', '/docs/prisa-9b-tashpaz.pdf', 'פריסת הוראה ט׳ מצומצמת', 'הפריסה הרשמית לתשפ״ז — הרמה המצומצמת של כיתה ט׳.'),
         maf('maf-05-t', 'MAF-05', '', 'מבחן תנופה והערכה בחט״ב'),
         maf('maf-06-t', 'MAF-06', '', 'Moodle — שני מרחבים בכיתה ט׳'),
         ...sharedHozer,
@@ -1307,7 +1347,7 @@ export function chapterNeighbours(grade: ChoveretGrade, chapterId: string) {
 export function gradeMainDocs(grade: ChoveretGrade) {
   const all = grade.chapters.flatMap((chapter) => chapter.items.map((item) => ({ chapter, item })));
   const byId = (id?: string) => (id ? all.find((entry) => entry.item.id === id) : undefined);
-  return { plan: byId(grade.mainPlan), prisa: byId(grade.mainPrisa) };
+  return { plan: byId(grade.mainPlan), prisa: byId(grade.mainPrisa), monthly: byId(grade.mainMonthly) };
 }
 
 /** סדר קריאה פדגוגי: רק המשאבים המוצגים בחומרים, ללא כפילויות אוסף/נושא */
