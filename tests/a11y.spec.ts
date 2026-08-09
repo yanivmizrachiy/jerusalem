@@ -44,7 +44,7 @@ const blockThirdParty = async (page: import('@playwright/test').Page) => {
 };
 
 for (const route of pages) {
-  test(`axe נקי (serious+critical): ${route}`, async ({ page }) => {
+  test(`axe נקי לפי WCAG 2.2 AA: ${route}`, async ({ page }) => {
     // סריקת axe מלאה על עמוד עשיר היא ממושכת גם בלי מקורות חיצוניים.
     // ‏retries=0 הוא חלק מחוזה האיכות, ולכן מרחיבים תקציב ולא מחזירים ניסיונות.
     test.slow();
@@ -57,26 +57,12 @@ for (const route of pages) {
       .exclude('iframe')
       .analyze();
 
-    const severe = results.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
-    );
-
-    // ‏moderate/minor אינם חוסמים (הסף המתועד הוא serious+critical), אבל עד
-    // כה הם נזרקו בשקט ולכן היו בלתי נראים לגמרי. מעכשיו הם מודפסים.
-    const lesser = results.violations.filter(
-      (v) => v.impact !== 'critical' && v.impact !== 'serious'
-    );
-    if (lesser.length) {
-      console.log(
-        `· ${route} — ${lesser.length} הפרות moderate/minor (מדווח, אינו חוסם): ` +
-          lesser.map((v) => `${v.id}×${v.nodes.length}`).join(', '),
-      );
-    }
-
-    const detail = severe
-      .map((v) => `${v.id}: ${v.nodes.length} nodes (${v.nodes[0]?.target})`)
+    // WCAG conformance נקבע לפי הכלל שנכשל, לא לפי דירוג impact של axe.
+    // לכן כל violation תחת תגיות ה-A/AA שבחרנו חוסם build — גם moderate/minor.
+    const detail = results.violations
+      .map((v) => `${v.id} [${v.impact ?? 'unknown'}]: ${v.nodes.length} nodes (${v.nodes[0]?.target})`)
       .join('\n');
-    expect(severe, detail).toHaveLength(0);
+    expect(results.violations, detail).toHaveLength(0);
   });
 }
 
