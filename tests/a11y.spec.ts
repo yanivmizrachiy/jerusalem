@@ -9,7 +9,8 @@ const pages = [
   '/chativat-beynayim/',
   '/chativat-beynayim/kita-z/',
   '/chativat-beynayim/kita-z/chomarim/',
-  '/chativat-beynayim/reader/t/sheelot-t/',
+  // מסמך ציבורי מאומת של משרד החינוך; משאבים ללא ייחוס נשארים ב-quarantine.
+  '/chativat-beynayim/reader/z/tochnit-z/',
   // הנושא הקנוני של יחידת החפיפה (הכתובת הישנה היא היום הפניה בלבד)
   '/chativat-beynayim/nose/h/h-congruent/',
   // תחליף חי לעמוד הבחינות של החטיבה העליונה, שהתכנס לעמוד כניסה אחד:
@@ -84,7 +85,7 @@ for (const route of pages) {
  * הבדיקה הזו סוגרת בדיוק את הפער הזה.
  */
 const embedPages = [
-  '/chativat-beynayim/reader/t/sheelot-t/',
+  '/chativat-beynayim/reader/z/tochnit-z/',
   '/chativat-beynayim/reader/z/misparim/',
   '/hozer-mafmar/',
 ];
