@@ -133,8 +133,21 @@ test('הטבלה בעמוד חטיבת הביניים: כל תא מוביל לי
     }
   }
 
-  // תא ספטמבר קיים; תוכנו מנוהל בנפרד ואינו ננעל כאן.
-  await expect(table.locator('a:has-text("ספטמבר")')).toHaveCount(1);
+  // תא ספטמבר: שלושת קישורי השכבות ליעדים הקנוניים — חוזה חזק יותר מהקודם
+  // (שרק דרש שהתא קיים), באותו commit שממלא את התא בתוכן אמיתי (24.2.2).
+  const monthlyCell = table.locator('[data-monthly-cell]');
+  await expect(monthlyCell, 'תא ספטמבר קיים').toHaveCount(1);
+  await expect(monthlyCell.locator('a'), 'שלוש שכבות — שלושה קישורים').toHaveCount(3);
+  for (const [slug, id] of [
+    ['z', 'prisa-september-z'],
+    ['h', 'prisa-september-h'],
+    ['t', 'prisa-september-t'],
+  ] as const) {
+    await expect(
+      monthlyCell.locator(`a[href="/chativat-beynayim/reader/${slug}/${id}/"]`),
+      `ספטמבר ${slug} מקושר לפריט הקנוני`
+    ).toHaveCount(1);
+  }
 });
 
 test('תוכנית הוראה ח׳ נפתחת בעמוד המשאב עם הקובץ המאומת של תשפ״ז', async ({ page }) => {
