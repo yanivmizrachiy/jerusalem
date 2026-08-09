@@ -1,0 +1,284 @@
+---
+import type { PlanPrisaDocument } from '../data/plan-prisa-web';
+
+interface Props {
+  document: PlanPrisaDocument;
+  accent: string;
+}
+
+type ReaderRow = { readonly text: string; readonly cells: readonly string[] };
+
+const { document, accent } = Astro.props;
+const monthPattern = /(ספטמבר|אוקטובר|נובמבר|דצמבר|ינואר|פברואר|מרץ|אפריל|מאי|יוני|יולי|אוגוסט)/;
+const totalPattern = /(סה"כ|סה״כ|שעות|תחום אלגברי|תחום גאומטרי|תחום מספרי|אי ודאות)/;
+const rootId = `plan-prisa-${document.id}`;
+const prepareRow = (row: ReaderRow) => {
+  const isMonth = monthPattern.test(row.text);
+  const isTotal = totalPattern.test(row.text);
+  const isShortSingle = row.cells.length === 1 && row.text.length <= 72;
+  return {
+    ...row,
+    rowClass: isMonth
+      ? 'is-month'
+      : isTotal
+        ? 'is-total'
+        : isShortSingle
+          ? 'is-heading'
+          : row.cells.length > 1
+            ? 'is-grid'
+            : 'is-text',
+    columns: Math.min(Math.max(row.cells.length, 1), 5),
+    search: row.text.toLocaleLowerCase('he'),
+  };
+};
+const preparedPages = document.pages.map((page) => ({
+  page: page.page,
+  rows: page.rows.map(prepareRow),
+}));
+---
+
+<section class="ppw" id={rootId} style={`--pp-accent:${accent}`} dir="rtl" data-plan-prisa-web>
+  <header class="ppw-head">
+    <div>
+      <p class="ppw-kicker">תצוגת אינטרנט מלאה</p>
+      <h2>{document.label}</h2>
+      <p class="ppw-meta">{document.pageCount} עמודים · כל המלל חולץ מהמסמך הרשמי תשפ״ז</p>
+    </div>
+    <label class="ppw-search">
+      <span>חיפוש בתוך המסמך</span>
+      <input type="search" inputmode="search" placeholder="לדוגמה: ספטמבר, משוואות, גאומטריה…" data-pp-search />
+    </label>
+  </header>
+
+  <nav class="ppw-pages" aria-label="מעבר בין עמודי המסמך">
+    {preparedPages.map((page) => (
+      <a href={`#${rootId}-page-${page.page}`}>עמוד {page.page}</a>
+    ))}
+  </nav>
+
+  <p class="ppw-result" role="status" aria-live="polite" data-pp-result></p>
+
+  <div class="ppw-stack">
+    {preparedPages.map((page) => (
+      <section class="ppw-page" id={`${rootId}-page-${page.page}`} data-pp-page>
+        <header class="ppw-page-head">
+          <span>עמוד {page.page}</span>
+          <a href={`#${rootId}`} aria-label={`חזרה לראש תצוגת ${document.label}`}>לתפריט המסמך</a>
+        </header>
+        <div class="ppw-rows">
+          {page.rows.map((row) => (
+            <div
+              class:list={['ppw-row', row.rowClass]}
+              style={`--pp-cols:${row.columns}`}
+              data-pp-row
+              data-search={row.search}
+            >
+              {row.cells.length > 1 ? (
+                row.cells.map((cell) => <span class="ppw-cell">{cell}</span>)
+              ) : (
+                <p>{row.text}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+
+  <noscript>
+    <p class="ppw-noscript">כל תוכן המסמך מוצג גם ללא JavaScript; החיפוש בלבד דורש JavaScript.</p>
+  </noscript>
+</section>
+
+<script>
+  const roots = document.querySelectorAll<HTMLElement>('[data-plan-prisa-web]');
+  for (const root of roots) {
+    if (root.dataset.ppBound === '1') continue;
+    root.dataset.ppBound = '1';
+    const input = root.querySelector<HTMLInputElement>('[data-pp-search]');
+    const result = root.querySelector<HTMLElement>('[data-pp-result]');
+    const rows = Array.from(root.querySelectorAll<HTMLElement>('[data-pp-row]'));
+    const pages = Array.from(root.querySelectorAll<HTMLElement>('[data-pp-page]'));
+    if (!input || !result) continue;
+
+    const apply = () => {
+      const query = input.value.trim().toLocaleLowerCase('he');
+      let visible = 0;
+      for (const row of rows) {
+        const match = !query || (row.dataset.search ?? '').includes(query);
+        row.hidden = !match;
+        if (match) visible += 1;
+      }
+      for (const page of pages) {
+        page.hidden = Boolean(query) && !page.querySelector('[data-pp-row]:not([hidden])');
+      }
+      result.textContent = query ? (visible ? `${visible} שורות מתאימות נמצאו` : 'לא נמצאה התאמה במסמך') : '';
+    };
+    input.addEventListener('input', apply);
+  }
+</script>
+
+<style>
+  .ppw {
+    min-inline-size: 0;
+    color: var(--ink, #182033);
+  }
+
+  .ppw-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.72fr);
+    gap: clamp(1rem, 2vw, 1.6rem);
+    align-items: end;
+    padding: clamp(1rem, 2.2vw, 1.55rem);
+    border: 1px solid color-mix(in srgb, var(--pp-accent) 24%, #dfe5ee);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--pp-accent) 14%, transparent), transparent 36%),
+      linear-gradient(145deg, #fff, #fbfaf7);
+    box-shadow: 0 18px 42px rgb(26 34 52 / 0.08);
+  }
+
+  .ppw-kicker {
+    margin: 0 0 0.28rem;
+    color: color-mix(in srgb, var(--pp-accent) 68%, #182033);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  .ppw h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    color: var(--navy, #0e2140);
+    font-size: clamp(1.35rem, 2.6vw, 2rem);
+    line-height: 1.15;
+  }
+
+  .ppw-meta {
+    margin: 0.48rem 0 0;
+    color: var(--ink-soft, #596274);
+    font-size: 0.88rem;
+  }
+
+  .ppw-search { display: grid; gap: 0.38rem; font-size: 0.78rem; font-weight: 750; color: var(--ink-soft, #596274); }
+  .ppw-search input {
+    min-block-size: 46px;
+    inline-size: 100%;
+    border: 1px solid color-mix(in srgb, var(--pp-accent) 28%, #cbd2dc);
+    border-radius: 14px;
+    padding: 0.7rem 0.9rem;
+    background: rgb(255 255 255 / 0.94);
+    color: var(--ink, #182033);
+    font: inherit;
+    font-weight: 600;
+    outline: none;
+  }
+  .ppw-search input:focus-visible { border-color: var(--pp-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pp-accent) 18%, transparent); }
+
+  .ppw-pages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-block: 0.85rem 1rem;
+  }
+  .ppw-pages a,
+  .ppw-page-head a {
+    min-block-size: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+  .ppw-pages a {
+    padding-inline: 0.9rem;
+    background: color-mix(in srgb, var(--pp-accent) 11%, #fff);
+    border: 1px solid color-mix(in srgb, var(--pp-accent) 25%, #d9dee7);
+    color: color-mix(in srgb, var(--pp-accent) 66%, #151c2a);
+  }
+  .ppw-pages a:hover { translate: 0 -2px; box-shadow: 0 8px 18px rgb(20 29 45 / 0.08); }
+
+  .ppw-result { min-block-size: 1.25rem; margin: 0 0 0.65rem; color: var(--ink-soft, #596274); font-size: 0.82rem; font-weight: 700; }
+  .ppw-stack { display: grid; gap: clamp(1rem, 2.2vw, 1.55rem); }
+
+  .ppw-page {
+    overflow: clip;
+    border: 1px solid #e1e5eb;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 14px 34px rgb(20 29 45 / 0.07);
+  }
+  .ppw-page[hidden] { display: none; }
+
+  .ppw-page-head {
+    min-block-size: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.72rem clamp(0.85rem, 2vw, 1.2rem);
+    color: #fff;
+    background: linear-gradient(112deg, color-mix(in srgb, var(--pp-accent) 78%, #17233a), #17233a);
+    font-weight: 850;
+  }
+  .ppw-page-head a { min-block-size: 36px; padding-inline: 0.78rem; color: #fff; border: 1px solid rgb(255 255 255 / 0.34); }
+
+  .ppw-rows { padding: clamp(0.65rem, 1.8vw, 1rem); display: grid; gap: 0.48rem; }
+  .ppw-row {
+    position: relative;
+    min-inline-size: 0;
+    border-radius: 14px;
+    border: 1px solid #e7eaf0;
+    background: #fff;
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+  .ppw-row::before {
+    content: '';
+    position: absolute;
+    inset-block: 9px;
+    inset-inline-start: 0;
+    inline-size: 4px;
+    border-radius: 99px;
+    background: color-mix(in srgb, var(--pp-accent) 62%, #d5a24f);
+  }
+  .ppw-row:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--pp-accent) 30%, #dfe4ec); box-shadow: 0 8px 18px rgb(19 28 44 / 0.06); }
+  .ppw-row[hidden] { display: none; }
+
+  .ppw-row p { margin: 0; padding: 0.72rem 0.9rem; line-height: 1.68; }
+  .ppw-row.is-text p { color: var(--ink-soft, #596274); }
+  .ppw-row.is-heading p { font-weight: 850; color: var(--navy, #0e2140); background: color-mix(in srgb, var(--pp-accent) 6%, #fff); }
+  .ppw-row.is-month { border-color: color-mix(in srgb, var(--pp-accent) 34%, #d9dee7); background: color-mix(in srgb, var(--pp-accent) 8%, #fff); }
+  .ppw-row.is-total { background: linear-gradient(90deg, color-mix(in srgb, var(--pp-accent) 8%, #fff), #fff); }
+  .ppw-row.is-total p, .ppw-row.is-total .ppw-cell { font-weight: 800; }
+
+  .ppw-row.is-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--pp-cols), minmax(0, 1fr));
+    align-items: stretch;
+  }
+  .ppw-cell {
+    min-inline-size: 0;
+    padding: 0.72rem 0.78rem;
+    line-height: 1.48;
+    overflow-wrap: anywhere;
+    border-inline-end: 1px solid #edf0f4;
+  }
+  .ppw-cell:first-child { border-inline-end: 0; }
+
+  .ppw-noscript { padding: 0.8rem 1rem; border-radius: 12px; background: #fff7df; color: #59430f; }
+
+  @media (max-width: 760px) {
+    .ppw-head { grid-template-columns: 1fr; align-items: stretch; }
+    .ppw-row.is-grid { grid-template-columns: 1fr; }
+    .ppw-cell { border-inline-end: 0; border-block-start: 1px solid #edf0f4; }
+    .ppw-cell:first-child { border-block-start: 0; }
+    .ppw-page-head { align-items: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ppw-row, .ppw-pages a { transition: none; }
+    .ppw-row:hover, .ppw-pages a:hover { transform: none; translate: none; }
+  }
+</style>

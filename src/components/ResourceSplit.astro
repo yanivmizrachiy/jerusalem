@@ -9,7 +9,9 @@ import AuthorAttribution from './AuthorAttribution.astro';
 import ResourceBrand from './ResourceBrand.astro';
 import MafmarRange from './MafmarRange.astro';
 import ResourceActions from './ResourceActions.astro';
+import PlanPrisaWeb from './PlanPrisaWeb.astro';
 import { embedLayoutFor } from '../data/embed-layout';
+import { planPrisaDocumentFor } from '../data/plan-prisa-web';
 import { resourceDisplayLabel } from '../data/resource-labels';
 import {
   chapterHref,
@@ -42,6 +44,7 @@ const waText = `${item.title} — ${grade.title} — ${canonical}`;
 const semanticKind = resourceDisplayLabel(item);
 const embedLayout = embedLayoutFor(item);
 const embedStyle = `--resource-aspect:${embedLayout.aspectRatio ?? 'auto'}; --resource-min-h:${embedLayout.minHeight ?? '520px'}`;
+const planPrisaDoc = planPrisaDocumentFor(item.download);
 ---
 
 <div
@@ -59,7 +62,7 @@ const embedStyle = `--resource-aspect:${embedLayout.aspectRatio ?? 'auto'}; --re
     ]}
   />
 
-  <div class="res-split">
+  <div class:list={['res-split', { 'is-web-doc': Boolean(planPrisaDoc) }]}>
     <aside class="res-panel">
       <p class="res-eyebrow">
         <a href={gradeHref(grade.slug)}>{gradeLabel(grade)}</a>
@@ -86,7 +89,7 @@ const embedStyle = `--resource-aspect:${embedLayout.aspectRatio ?? 'auto'}; --re
         shareTitle={item.title}
         sourceUrl={item.url}
         sourceInternal={item.url.startsWith('/')}
-        fullscreen={Boolean(item.embed && item.kind !== 'maf')}
+        fullscreen={Boolean(item.embed && item.kind !== 'maf' && !planPrisaDoc)}
         fullscreenTarget="[data-frame]"
         statusTarget="[data-status]"
       />
@@ -126,11 +129,14 @@ const embedStyle = `--resource-aspect:${embedLayout.aspectRatio ?? 'auto'}; --re
       data-view
       data-kind={item.kind}
       data-orientation={embedLayout.orientation}
+      data-web-document={planPrisaDoc ? 'true' : undefined}
       style={embedStyle}
     >
       {
         item.kind === 'maf' && item.maf ? (
           <MafmarRange sectionId={item.maf} accent={chapter.color} fill />
+        ) : planPrisaDoc ? (
+          <PlanPrisaWeb document={planPrisaDoc} accent={chapter.color} />
         ) : item.embed ? (
           <>
             <div class="res-frame embed-frame" data-frame aria-busy="true">
@@ -181,6 +187,7 @@ const embedStyle = `--resource-aspect:${embedLayout.aspectRatio ?? 'auto'}; --re
     margin-block-start: clamp(1.4rem, 3vw, 2.4rem);
     align-items: start;
   }
+
 
   .res-view { order: 1; min-inline-size: 0; }
   .res-panel { order: 2; align-self: start; }

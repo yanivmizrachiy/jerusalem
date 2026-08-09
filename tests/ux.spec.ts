@@ -786,24 +786,17 @@ test('פריט מהחוזר מוצג עם טווח העמודים המאומת �
   await expect(page.locator('.res-view .mrange')).toHaveCount(1);
 });
 
-test('עמוד משאב: ההטמעה ממלאת את הדף — כרטיס הפתיחה מוסתר באמת (8.8, 8.26)', async ({ page }) => {
+test('עמוד תוכנית/פריסה: תצוגת ה-HTML ממלאת את צד המשאב בלי fallback של PDF (3.32.1)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
-  // כרטיס הפתיחה קיים ב-DOM אך חייב להיעלם בפועל כשיש מציג PDF בדפדפן
-  const leaked = await page.evaluate(
-    () =>
-      [...document.querySelectorAll('[data-pdf-fb][hidden], .mrange-fallback[hidden], .res-frame[hidden]')].filter(
-        (el) => getComputedStyle(el).display !== 'none'
-      ).length
-  );
-  expect(leaked, 'כרטיס פתיחה עם hidden חייב להיעלם — לא לגנוב חצי עמוד').toBe(0);
-  // ההטמעה ממלאת את צד המשאב לגובה
+  await expect(page.locator('[data-plan-prisa-web]')).toHaveCount(1);
+  await expect(page.locator('.res-view iframe, [data-pdf-fb], .res-open-card')).toHaveCount(0);
   const fill = await page.evaluate(() => {
-    const f = document.querySelector<HTMLElement>('.res-frame:not([hidden])');
-    const host = f?.closest<HTMLElement>('.res-view');
-    return f && host ? f.getBoundingClientRect().height / host.getBoundingClientRect().height : 0;
+    const reader = document.querySelector<HTMLElement>('[data-plan-prisa-web]');
+    const host = reader?.closest<HTMLElement>('.res-view');
+    return reader && host ? reader.getBoundingClientRect().width / host.getBoundingClientRect().width : 0;
   });
-  expect(fill, 'ההטמעה ממלאת כמעט את כל הצד שלה').toBeGreaterThan(0.9);
+  expect(fill, 'תצוגת ה-HTML ממלאת כמעט את כל רוחב הצד שלה').toBeGreaterThan(0.98);
 });
 
 test('הטמעות PDF בלי סרגל השחור של הדפדפן (8.26)', async ({ page }) => {
@@ -1315,7 +1308,7 @@ for (const [w, h] of [
   test(`עמוד משאב ב-${w}: שני הצדדים שווים ברוחב ובגובה עד פיקסל (8.2)`, async ({ page }) => {
     await page.setViewportSize({ width: w, height: h });
     for (const route of [
-      '/chativat-beynayim/reader/z/tochnit-z/', // PDF
+      '/chativat-beynayim/reader/z/tochnit-z/', // HTML מלא שנגזר מ-PDF רשמי
       '/chativat-beynayim/reader/z/misparim/', // אלגברה — פעילות אינטראקטיבית
       '/chativat-beynayim/reader/z/maf-02/', // מקטע מהחוזר
     ]) {
@@ -1397,7 +1390,7 @@ test('הטמעות אתר שלם גדולות ומרווחות — לא קורס
 test('כל ההטמעות חולקות את אותה מסגרת (.embed-frame) — לא CSS מקומי (8.26)', async ({ page }) => {
   const seen: Record<string, string> = {};
   for (const [route, sel] of [
-    ['/chativat-beynayim/reader/z/tochnit-z/', '.res-frame'],
+    ['/chativat-beynayim/reader/z/amat-tashpaz/', '.res-frame'],
     ['/chativat-beynayim/', '.mam-frame'],
     ['/chativat-beynayim/reader/z/misparim/', '.res-frame'],
     ['/hozer-mafmar/', '.viewer-shell'],

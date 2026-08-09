@@ -72,16 +72,15 @@ test('מסמך מוטמע מקבל יחס עמוד מלא ולא viewer אופק
   expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
 });
 
-test('PDF מבקש התאמה לרוחב כבר בכתובת ההטמעה', async ({ page }) => {
+test('תוכנית/פריסה מוצגת כעמוד HTML אמיתי ולא כ-PDF מוטמע', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
 
-  const iframe = page.locator('.res-frame iframe').first();
-  const requestedSource = (await iframe.getAttribute('src')) ?? (await iframe.getAttribute('data-esrc')) ?? '';
-  expect(requestedSource, 'מציג ה-PDF נפתח במצב התאמה לרוחב').toContain('view=FitH');
-
-  const aspectRatio = await iframe.evaluate((node) => getComputedStyle(node).aspectRatio);
-  expect(aspectRatio, 'יחס A4 מוגדר גם כאשר הדפדפן מחליף את מציג ה-PDF').toContain('1');
+  const webReader = page.locator('[data-plan-prisa-web]');
+  await expect(webReader, 'תצוגת האינטרנט המלאה קיימת').toHaveCount(1);
+  await expect(page.locator('.res-view iframe'), 'אין iframe/PDF viewer בתוכנית ההוראה').toHaveCount(0);
+  expect(await webReader.locator('[data-pp-row]').count(), 'המלל מוצג כשורות HTML אמיתיות').toBeGreaterThan(10);
+  await expect(page.locator('a[href="/docs/plan-7-tashpaz.pdf"]').first(), 'ה-PDF הרשמי נשאר להורדה בלבד').toBeVisible();
 });
 
 test('כל פעולות עמוד המשאב נמצאות רק בחצי השמאלי', async ({ page }) => {
