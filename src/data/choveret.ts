@@ -180,8 +180,9 @@ const folder = (id: string, folderId: string, title: string, note: string): Chov
 });
 /**
  * תוכניות ופריסות תשפ״ז — הקובץ הרשמי plan&prisa.pdf (החוזר, עמ׳ 3) הוא המקור:
- * הקישור החי של משרד החינוך נשאר הקנוני (מועתק, משותף ונפתח במקור), וההטמעה
- * וההורדה מוגשות מעותק same-origin מאומת ב-/docs/ (RULES 8.26, 9.8).
+ * הקישור החי של משרד החינוך נשאר הקנוני (מועתק, משותף ונפתח במקור). התצוגה
+ * באתר היא HTML שחולץ מעותק same-origin מאומת; ה-PDF נשאר להורדה ולמקור בלבד
+ * ואינו מוטמע (RULES 3.32.1, 8.26, 9.8).
  */
 const TASHPAZ = 'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz';
 const gov = (
@@ -196,7 +197,6 @@ const gov = (
   title,
   note,
   url: `${TASHPAZ}/${remote}`,
-  embed: `${local}${PDF_VIEW}`,
   download: local,
   kind: 'pdf',
   source,
