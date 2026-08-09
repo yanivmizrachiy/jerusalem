@@ -385,26 +385,4 @@ const semanticKind = resourceDisplayLabel(item);
       } else load();
     }
   }
-
-  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const fine = matchMedia('(pointer: fine)').matches;
-
-  if (!calm && fine) {
-    document.querySelectorAll<HTMLElement>('.orb').forEach((orb) => {
-      const face = orb.querySelector<HTMLElement>('.orb-face');
-      if (!face) return;
-
-      const move = (e: PointerEvent) => {
-        const r = face.getBoundingClientRect();
-        const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
-        const dy = (e.clientY - (r.top + r.height / 2)) / r.height;
-        face.style.transform = `translate(${dx * 10}px, ${dy * 10 - 4}px) scale(1.07)`;
-      };
-
-      orb.addEventListener('pointermove', move);
-      orb.addEventListener('pointerleave', () => { face.style.transform = ''; });
-      orb.addEventListener('pointerdown', () => { face.style.transform = 'scale(.94)'; });
-      orb.addEventListener('pointerup', move);
-    });
-  }
 </script>
