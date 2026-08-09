@@ -71,9 +71,10 @@ const tooLarge = () => new ProxyRequestError(plain('גוף הבקשה גדול �
 /**
  * קורא גוף בקשה עד תקרה קשיחה בלי לטעון קודם את כל ה-stream לזיכרון.
  * גם `Content-Length` שקרי/חסר אינו עוקף את הגבול: הספירה האמיתית נעשית
- * על ה-chunks שנקראו. מערך ריק מוחזר לבקשה בלי גוף.
+ * על ה-chunks שנקראו. מוחזר ArrayBuffer אמיתי כדי להתאים ל-BodyInit בכל
+ * סביבת TypeScript/Fetch הנתמכת, בלי להסתמך על טיפוס Uint8Array רחב יותר.
  */
-async function readBoundedBody(request: Request): Promise<Uint8Array> {
+async function readBoundedBody(request: Request): Promise<ArrayBuffer> {
   const declared = request.headers.get('content-length');
   if (declared) {
     const declaredBytes = Number(declared);
@@ -82,7 +83,7 @@ async function readBoundedBody(request: Request): Promise<Uint8Array> {
     }
   }
 
-  if (!request.body) return new Uint8Array(0);
+  if (!request.body) return new ArrayBuffer(0);
 
   const reader = request.body.getReader();
   const chunks: Uint8Array[] = [];
@@ -111,7 +112,10 @@ async function readBoundedBody(request: Request): Promise<Uint8Array> {
     body.set(chunk, offset);
     offset += chunk.byteLength;
   }
-  return body;
+
+  // `body` is freshly allocated above, therefore its backing buffer covers exactly
+  // the bytes we want to forward and is an ArrayBuffer (not SharedArrayBuffer).
+  return body.buffer as ArrayBuffer;
 }
 
 /**
