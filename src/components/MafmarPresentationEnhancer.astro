@@ -1,0 +1,79 @@
+---
+/**
+ * Progressive enhancement for MafmarPresentation.
+ * Uses only native browser APIs and keeps the presentation framework-free.
+ */
+---
+
+<style is:global>
+  /* The Mafmar source is A4 portrait (595.32×841.92). The updates page must
+     show a complete page rather than a 16:9 crop/scroll viewport. */
+  .mafmar-feature .mafmar-embeds .pdf-shell {
+    aspect-ratio: 595.32 / 841.92;
+    min-height: 0;
+  }
+
+  /* Fullscreen must include the controls, not only the slide stage. */
+  .mafmar-deck:fullscreen {
+    max-inline-size: none;
+    inline-size: 100vw;
+    block-size: 100vh;
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-items: center;
+    background: #111827;
+  }
+
+  .mafmar-deck:fullscreen .deck-stage {
+    inline-size: min(100%, calc((100vh - 5.5rem) * 16 / 9));
+    max-block-size: calc(100vh - 5.5rem);
+    margin-inline: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .mafmar-deck:fullscreen .deck-controls {
+    margin-block-start: 0.65rem;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-mafmar-deck]').forEach((deck) => {
+    if (deck.dataset.strongEnhancement === 'true') return;
+    deck.dataset.strongEnhancement = 'true';
+
+    const stage = deck.querySelector<HTMLElement>('.deck-stage');
+    const fullscreen = deck.querySelector<HTMLButtonElement>('[data-deck-fullscreen]');
+
+    if (stage) {
+      stage.tabIndex = 0;
+      stage.setAttribute('role', 'region');
+      stage.setAttribute('aria-label', 'מצגת חוזר מפמ״ר — השתמשו בחיצים ימינה ושמאלה לדפדוף');
+    }
+
+    if (!document.fullscreenEnabled && fullscreen) fullscreen.hidden = true;
+
+    // Intercept at the deck capture phase, before the base button handler can
+    // request fullscreen on the stage alone. This keeps controls in fullscreen.
+    deck.addEventListener(
+      'click',
+      async (event) => {
+        const target = event.target instanceof Element
+          ? event.target.closest<HTMLElement>('[data-deck-fullscreen]')
+          : null;
+        if (!target || !deck.contains(target)) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await deck.requestFullscreen();
+        } catch {
+          // Fullscreen is optional progressive enhancement; core navigation remains usable.
+        }
+      },
+      { capture: true },
+    );
+  });
+</script>

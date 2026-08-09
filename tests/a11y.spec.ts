@@ -6,6 +6,8 @@ const pages = [
   '/',
   '/shearim/',
   '/hozer-mafmar/',
+  '/hozer-mafmar-presentation/',
+  '/hodaot/',
   '/chativat-beynayim/',
   '/chativat-beynayim/kita-z/',
   '/chativat-beynayim/kita-z/chomarim/',
@@ -88,6 +90,7 @@ const embedPages = [
   '/chativat-beynayim/reader/z/tochnit-z/',
   '/chativat-beynayim/reader/z/misparim/',
   '/hozer-mafmar/',
+  '/hodaot/',
 ];
 
 for (const route of embedPages) {
