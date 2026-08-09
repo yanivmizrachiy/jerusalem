@@ -4,13 +4,12 @@ import { canonicalReaderItems } from '../src/data/canonical-content';
 import {
   ATTRIBUTION_PENDING,
   ATTRIBUTION_PENDING_CEILING,
-  isAttributionPending,
 } from '../src/data/attribution';
 
 /**
  * שער הייחוס (הוראת יניב, 09/08/2026):
  * **לכל משאב ציבורי בחטיבת הביניים חייב להיות ייחוס יוצר מאומת.**
- * ייחוס שאינו ידוע חייב להיות מסומן במפורש — ולא להישאר אנונימי בשקט.
+ * ייחוס שאינו ידוע נשמר ב-quarantine ואינו נכנס לקטלוג הציבורי.
  *
  * החוזה זהה בכל מכשיר; בדיקת נתונים אחת בדסקטופ מספיקה.
  */
@@ -25,21 +24,20 @@ const publicResources = (() => {
   return [...seen.values()];
 })();
 
-test('אין משאב ציבורי אנונימי: לכל משאב יש ייחוס מאומת או סימון מפורש להשלמה', () => {
+test('אין משאב ציבורי אנונימי: לכל משאב פומבי יש ייחוס מאומת', () => {
   expect(publicResources.length, 'יש קטלוג ציבורי אמיתי לבדיקה').toBeGreaterThan(100);
 
   const anonymous = publicResources
     .filter((resource) => (authorAssignments[resource.id] ?? []).length === 0)
-    .filter((resource) => !isAttributionPending(resource.id))
     .map((resource) => `${resource.id} (${resource.grade}) — ${resource.title}`);
 
   expect(
     anonymous,
-    `משאבים ציבוריים בלי ייחוס ובלי סימון להשלמה:\n${anonymous.join('\n')}`
+    `משאבים ציבוריים בלי ייחוס מאומת:\n${anonymous.join('\n')}`
   ).toEqual([]);
 });
 
-test('כל ייחוס מצביע על ישות קיימת, ואדם משויך רק כשהוא מוכר כאדם', () => {
+test('כל ייחוס ציבורי מצביע על ישות קיימת', () => {
   for (const resource of publicResources) {
     for (const authorId of authorAssignments[resource.id] ?? []) {
       const author = authorById(authorId);
@@ -49,10 +47,10 @@ test('כל ייחוס מצביע על ישות קיימת, ואדם משויך �
   }
 });
 
-test('רשימת ההמתנה מצטמצמת בלבד, ואין בה משאב שכבר קיבל ייחוס', () => {
+test('רשימת ההמתנה היא quarantine אמיתי ומצטמצמת בלבד', () => {
   expect(
     ATTRIBUTION_PENDING.length,
-    'רשימת ההמתנה גדלה — משאב ציבורי חדש חייב להגיע עם ייחוס, לא עם פטור'
+    'רשימת ההמתנה גדלה — משאב חדש חייב להגיע עם ייחוס מאומת או להישאר מחוץ לפרסום'
   ).toBeLessThanOrEqual(ATTRIBUTION_PENDING_CEILING);
 
   expect(new Set(ATTRIBUTION_PENDING).size, 'אין כפילות ברשימת ההמתנה').toBe(ATTRIBUTION_PENDING.length);
@@ -66,8 +64,11 @@ test('רשימת ההמתנה מצטמצמת בלבד, ואין בה משאב ש
   ).toEqual([]);
 
   const publicIds = new Set(publicResources.map((resource) => resource.id));
-  const stale = ATTRIBUTION_PENDING.filter((id) => !publicIds.has(id));
-  expect(stale, `רשומות המתנה שאינן משאב ציבורי: ${stale.join(', ')}`).toEqual([]);
+  const leaked = ATTRIBUTION_PENDING.filter((id) => publicIds.has(id));
+  expect(
+    leaked,
+    `משאבים ממתינים דלפו לקטלוג הציבורי: ${leaked.join(', ')}`
+  ).toEqual([]);
 });
 
 test('משרד החינוך וגופים מפרסמים אינם מקבלים עמוד מחבר אישי', () => {
