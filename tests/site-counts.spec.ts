@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { canonicalGrades } from '../src/data/canonical-content';
-import { middleSchoolResourceCount, middleSchoolResourceIds } from '../src/data/site-counts';
+import { middleSchoolResourceCount, middleSchoolResourceCountText, middleSchoolResourceIds } from '../src/data/site-counts';
 import { isPublishableMaterial } from '../src/data/publishing';
 
 test('site-wide middle-school count is deduplicated and derived', () => {
@@ -15,4 +15,12 @@ test('site-wide middle-school count is deduplicated and derived', () => {
   expect(middleSchoolResourceIds.size).toBe(expected.size);
   expect(middleSchoolResourceCount).toBe(expected.size);
   expect(middleSchoolResourceCount).toBeGreaterThan(0);
+  expect(middleSchoolResourceCountText).toBe(`${expected.size} קבצים, קישורים ומסמכים באתר`);
+});
+
+test('the home rail shows the canonical count instead of a running demo-news list', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.rail-live-count')).toContainText(middleSchoolResourceCountText);
+  await expect(page.locator('.rail-track')).toHaveCount(0);
+  await expect(page.locator('.rail-dup')).toHaveCount(0);
 });
