@@ -3,6 +3,7 @@ import Base from '../../../../layouts/Base.astro';
 import AuthorAttribution from '../../../../components/AuthorAttribution.astro';
 import ResourceContext from '../../../../components/ResourceContext.astro';
 import ResourceSplit from '../../../../components/ResourceSplit.astro';
+import { authorsForResource } from '../../../../data/authors';
 import { isPublishableMaterial } from '../../../../data/publishing';
 import { canonicalGrades, canonicalReaderItems } from '../../../../data/canonical-content';
 import { visibleResourceNote, visibleResourceSource, visibleResourceTitle } from '../../../../data/resource-copy';
@@ -25,11 +26,13 @@ const publicGrade = {
 };
 const chapter = publicGrade.chapters.find((candidate) => candidate.items.some((item) => item.id === itemId))!;
 const item = chapter.items.find((candidate) => candidate.id === itemId)!;
+const creators = authorsForResource(item.id);
+const creatorAliases = creators.flatMap((creator) => [creator.name, ...creator.aliases]);
 const displayItem = {
   ...item,
   title: visibleResourceTitle(item),
   note: visibleResourceNote(item),
-  source: visibleResourceSource(item),
+  source: visibleResourceSource(item, creatorAliases),
 };
 
 const description =
