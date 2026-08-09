@@ -35,6 +35,7 @@ const routes = [
   '/chativat-beynayim/kita-z/chomarim/',
   '/chativat-beynayim/kita-h/chomarim/',
   '/chativat-beynayim/kita-t/chomarim/',
+  '/chativat-beynayim/mivchanim/',
   '/chativat-beynayim/nose/z/tichnun/',
   '/chativat-beynayim/nose/h/hozer/',
   '/chativat-beynayim/nose/t/yahal4/',
@@ -97,18 +98,15 @@ for (const route of routes) {
   });
 }
 
-// העמודים המרוכזים של מבחנים ומשחקים הוחלפו בפרקים שבתוך עמודי הכיתות
-// (1.10, 3.29, 3.31); הכתובות הישנות נשארות חיות ומפנות מיידית לפרק
-// הנכון — קישורים ששותפו לא נשברים
+// המשחקים המרוכזים הוחלפו בפרק בתוך עמודי הכיתות; הכתובת הישנה נשארת חיה
+// ומפנה לפרק הקנוני. מאגר המבחנים, לעומת זאת, הוא כעת עמוד מרכזי אמיתי.
 const moved: Record<string, string> = {
-  '/chativat-beynayim/mivchanim/': '/chativat-beynayim/nose/h/mivchanim/',
   '/chativat-beynayim/mischakim/': '/chativat-beynayim/nose/z/mischakim/',
 };
 for (const [old, target] of Object.entries(moved)) {
   test(`הפניה לעמוד הנושא: ${old}`, async ({ page }) => {
     await page.goto(old);
     await page.waitForURL((u) => u.pathname === target, { timeout: 10_000 });
-    // עמוד הנושא שאליו הופנינו באמת קיים ומציג משימות
     await expect(page.locator('h1.chapter-title')).toBeVisible();
     expect(await page.locator('a.rcard').count()).toBeGreaterThan(0);
   });
