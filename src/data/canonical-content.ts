@@ -1,5 +1,6 @@
 import { choveret, materialChapters, type ChoveretChapter, type ChoveretGrade, type ChoveretItem, type ItemKind } from './choveret';
 import { hafifaUnit, mishvaotUnit, toEmbed, type Unit, type UnitResource } from './units';
+import { withVerifiedEmbedSource } from './embed-sources';
 import { isPublishableMaterial } from './publishing';
 import { supplementalItemsForChapter } from './project-supplements';
 
@@ -36,11 +37,13 @@ const uniqueById = (items: readonly ChoveretItem[]): ChoveretItem[] => {
 /**
  * מקור התצוגה הקנוני לנושא. יחידות legacy ששייכות לנושא רגיל ומשאבי מוצר
  * שנוספו לאחר בניית קטלוג המקור מוזגים כאן, בלי לגעת בנתוני החילוץ עצמם.
+ * Evidence שנבדק בזמן ריצה מוחל רק בשכבה הקנונית, כדי לא להמציא embed
+ * ממבנה URL ולא לשנות את קטלוג המקור ההיסטורי.
  */
 export function canonicalChapterItems(chapter: ChoveretChapter): ChoveretItem[] {
   const legacy = legacyUnitItems[chapter.id as keyof typeof legacyUnitItems] ?? [];
   const supplemental = supplementalItemsForChapter(chapter.id);
-  return uniqueById([...chapter.items, ...legacy, ...supplemental]);
+  return uniqueById([...chapter.items, ...legacy, ...supplemental].map(withVerifiedEmbedSource));
 }
 
 export function canonicalChapter(chapter: ChoveretChapter): ChoveretChapter {
