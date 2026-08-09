@@ -7,6 +7,7 @@ import { planPrisaContent } from '../src/data/plan-prisa-content.generated';
 import { planPrisaDocumentFor, PLAN_PRISA_WEB_PDFS } from '../src/data/plan-prisa-web';
 
 // מטריצת קבלה מלאה: כל שמונת מסמכי התוכנית/פריסה הרשמיים נבדקים באותו חוזה.
+// הרצה סופית זו כוללת גם את חוזי ה-UX הקיימים של עמוד המשאב, ללא חריגת רוחב חדשה.
 const CASES = [
   { grade: 'z', id: 'tochnit-z', pdf: '/docs/plan-7-tashpaz.pdf' },
   { grade: 'z', id: 'prisa-z', pdf: '/docs/prisa-7-tashpaz.pdf' },
