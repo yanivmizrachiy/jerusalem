@@ -4,7 +4,7 @@ export interface CanonicalResource {
   title: string;
   /** הכתובת הקנונית של המשאב עצמו */
   url: string;
-  /** מקור הטמעה דרך הפרוקסי המחוזי — לאתרים ששולחים X-Frame-Options (9.4–9.5) */
+  /** מקור הטמעה מאומת; פרוקסי רק לאתרים שבאמת דורשים אותו. */
   embedUrl?: string;
   /** נתיב העמוד הקנוני באתר */
   path: string;
@@ -58,6 +58,7 @@ export const grade7Resources: CanonicalResource[] = [
     id: 'tzirim',
     title: 'מערכת צירים — רביע ראשון',
     url: 'https://yanivmizrachiy.github.io/coordinate-first-quadrant/',
+    embedUrl: 'https://yanivmizrachiy.github.io/coordinate-first-quadrant/',
     path: '/chativat-beynayim/maarechet-tzirim/',
     grade: 'כיתה ז׳',
     domain: 'מערכת צירים',
