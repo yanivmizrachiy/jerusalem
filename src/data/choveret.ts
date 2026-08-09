@@ -1194,6 +1194,8 @@ export const choveret: ChoveretGrade[] = [
         ),
         gov('tochnit-t', 'plan_9A.pdf', '/docs/plan-9a-tashpaz.pdf', 'תוכנית הוראה ט׳', 'התוכנית הרשמית לתשפ״ז — מותאמת לכיתה ט׳ לפני העדכון.'),
         gov('prisa-t', 'prisa_9A.pdf', '/docs/prisa-9a-tashpaz.pdf', 'פריסת הוראה ט׳', 'הפריסה הרשמית לתשפ״ז — פירוט הנושאים וחומרי הלמידה לאורך השנה.'),
+        gov('tochnit-t-b', 'plan_9B.pdf', '/docs/plan-9b-tashpaz.pdf', 'תוכנית הוראה ט׳ מצומצמת', 'התוכנית הרשמית לתשפ״ז — הרמה המצומצמת של כיתה ט׳.'),
+        gov('prisa-t-b', 'prisa_9B.pdf', '/docs/prisa-9b-tashpaz.pdf', 'פריסת הוראה ט׳ מצומצמת', 'הפריסה הרשמית לתשפ״ז — הרמה המצומצמת של כיתה ט׳.'),
         maf('maf-05-t', 'MAF-05', '', 'מבחן תנופה והערכה בחט״ב'),
         maf('maf-06-t', 'MAF-06', '', 'Moodle — שני מרחבים בכיתה ט׳'),
         ...sharedHozer,

@@ -119,6 +119,8 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'prisot-pdf-t': ['ministry-of-education'],
   'tochnit-t': ['ministry-of-education'],
   'prisa-t': ['ministry-of-education'],
+  'tochnit-t-b': ['ministry-of-education'],
+  'prisa-t-b': ['ministry-of-education'],
   'maf-05-t': ['ministry-of-education'],
   'maf-06-t': ['ministry-of-education'],
   'kdam-algebra': ['ministry-of-education'],
