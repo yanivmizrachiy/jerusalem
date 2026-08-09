@@ -16,9 +16,11 @@ import { canonicalGrade } from '../src/data/canonical-content';
 /**
  * משאב מסמך ציבורי ומיוחס, לבדיקות פריסת "מסמך" (הטמעת Google Doc).
  * הוא מחליף משאב שעבר ל-quarantine בהיעדר ראיית ייחוס — אותה משפחת
- * הטמעה בדיוק, כדי שהחוזה הנבדק לא ייחלש (24.1).
+ * הטמעה בדיוק, כדי שהחוזה הנבדק לא ייחלש (24.1). אסור להחליף כאן
+ * ב-PDF: בדפדפן הבדיקה אין מציג PDF מובנה, ומשאב PDF מציג כרטיס
+ * פתיחה במקום ההטמעה הנמדדת.
  */
-const PUBLIC_DOC_RESOURCE = '/chativat-beynayim/reader/t/ruach-tochnit/';
+const PUBLIC_DOC_RESOURCE = '/chativat-beynayim/reader/h/src-curriculum-71f88b7ed752/';
 
 /**
  * מספר המשאבים ה**ציבוריים** בנושא, לפי הקטלוג הקנוני — אותה נוסחה שקובעת

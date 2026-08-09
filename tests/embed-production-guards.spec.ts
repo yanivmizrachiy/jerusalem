@@ -47,8 +47,6 @@ for (const viewport of desktopViewports) {
     expect(frameBox.width, 'ההטמעה ממלאת את רוחב החצי הימני').toBeGreaterThanOrEqual(viewBox.width - 24);
     expect(await horizontalOverflow(page), 'אין גלילה אופקית בעמוד החיצוני').toBeLessThanOrEqual(1);
 
-    // הגלילה הפנימית חייבת להיות אפשרית מצדנו. אורך התוכן של האתר
-    // החיצוני אינו בשליטתנו ולכן אינו קריטריון קבלה יציב.
     const scrollable = await iframe.evaluate((el) => {
       const f = el as HTMLIFrameElement;
       return f.getAttribute('scrolling') !== 'no' && getComputedStyle(f).overflow !== 'hidden';
@@ -59,14 +57,9 @@ for (const viewport of desktopViewports) {
 
 test('מסמך מוטמע מקבל יחס עמוד מלא ולא viewer אופקי נמוך', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  // מסמך Google ציבורי ומיוחס (משרד החינוך). המשאב שנבדק כאן קודם נשמר במקור
-  // אך נמצא ב-quarantine עד שתימצא ראיית ייחוס (24.1).
-  //
-  // נמדד 09/08/2026: אסור להחליף כאן ב-PDF. בדפדפן הבדיקה אין מציג PDF
-  // מובנה (`navigator.pdfViewerEnabled === false`), ולכן משאב PDF מסתיר את
-  // ההטמעה ומציג במקומה את כרטיס הפתיחה — בדיוק כנדרש ב-8.8. יחס העמוד של
-  // מסמך מוטמע נבדק על משאב מאותה משפחת הטמעה בלבד.
-  await page.goto('/chativat-beynayim/reader/t/ruach-tochnit/');
+  // Google Doc ציבורי עם קרדיט מפורש לשגית רסולי. הוא מאותה משפחת embed
+  // שנבדקת כאן ולכן אינו מחליף מסמך ב-PDF או משנה את חוזה הפריסה.
+  await page.goto('/chativat-beynayim/reader/h/src-curriculum-71f88b7ed752/');
 
   const view = (await page.locator('.res-view').boundingBox())!;
   const iframe = page.locator('.res-frame iframe');
@@ -120,7 +113,6 @@ test('כל פעולות עמוד המשאב נמצאות רק בחצי השמא�
 
 test('בנייד ההטמעה ראשונה, גבוהה ונוחה, והפעולות אחריה', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  // מוודא שאנחנו באמת בפרופיל מכשיר ולא ב-viewport צר של דסקטופ
   const touch = await page.evaluate(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0);
   expect(touch, 'בדיקת נייד חייבת לרוץ בפרופיל מכשיר אמיתי').toBe(true);
   await page.goto('/chativat-beynayim/reader/z/misparim/');
@@ -134,17 +126,12 @@ test('בנייד ההטמעה ראשונה, גבוהה ונוחה, והפעול�
   expect(await horizontalOverflow(page), 'אין גלילה אופקית בנייד').toBeLessThanOrEqual(1);
 });
 
-/* ===== שומר האורבים במסלול reader אמיתי =====
-   הבדיקה רצה רק על משאבים ציבוריים בעלי ייחוס מאומת. משאב שנכנס ל-quarantine
-   אינו דוגמת UI תקפה עד לאימות הייחוס שלו. */
 const readerRoutes = [
   '/chativat-beynayim/reader/z/tochnit-z/',
   '/chativat-beynayim/reader/z/misparim/',
   '/chativat-beynayim/reader/h/kavit-flip/',
 ] as const;
 
-/* חוסם משאבים חיצוניים (Google Docs, אתרי ההמחשות). הם אינם נדרשים כדי לאמת
-   את לוח הפעולות, והם שהפכו את הבדיקה לאיטית ולתלוית-רשת. */
 const blockExternal = (p: import('@playwright/test').Page) =>
   p.route(
     (url) => url.hostname !== '127.0.0.1' && url.hostname !== 'localhost',
@@ -220,11 +207,8 @@ test('אורבים קיימים אך ורק במסלולי reader — לא בע�
   }
 });
 
-}); // describe: שומר לוח הפעולות
+});
 
-/* ===== smoke חי אחד בלבד מול הפרודקשן =====
-   בקשת HTML אחת, בלי דפדפן ובלי רינדור — מאמתת שמה שנבדק מקומית באמת מוגש
-   לגולשים. אין להריץ אותה בחזרות; היא רצה פעם אחת כחלק מהסוללה. */
 test('smoke חי: לוח הפעולות מוגש בפועל בפרודקשן (8.4)', async ({ request }) => {
   const res = await request.get(
     'https://jerusalem-virid.vercel.app/chativat-beynayim/reader/z/tochnit-z/'
