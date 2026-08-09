@@ -1,6 +1,6 @@
 export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
-  // מסמכי משרד החינוך שהמקור הקנוני שלהם הוא meyda.education.gov.il והם
-  // נוצרים דרך factory ה-gov הייעודי ב-choveret.ts.
+  // משרד החינוך — מסמכי תכנון, חוזר מפמ״ר וקישורי מרחב פדגוגי שמקורם
+  // הקנוני מאומת במבנה הנתונים עצמו (gov/maf/hozer factories), לא מזיהוי טקסט.
   'mivchanim-hanchayot': ['ministry-of-education'],
   'prisot-pdf': ['ministry-of-education'],
   'prisot-pdf-h': ['ministry-of-education'],
@@ -11,6 +11,27 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'prisa-h': ['ministry-of-education'],
   'tochnit-t': ['ministry-of-education'],
   'prisa-t': ['ministry-of-education'],
+  'tochnit-limudim-z': ['ministry-of-education'],
+  'tochnit-limudim-h': ['ministry-of-education'],
+  'tochnit-limudim-t': ['ministry-of-education'],
+  'amat-tashpaz': ['ministry-of-education'],
+  'hadracha-chatb': ['ministry-of-education'],
+  'maf-02': ['ministry-of-education'],
+  'maf-05-z': ['ministry-of-education'],
+  'maf-06-z': ['ministry-of-education'],
+  'maf-08-z': ['ministry-of-education'],
+  'maf-03': ['ministry-of-education'],
+  'maf-05-h': ['ministry-of-education'],
+  'maf-06-h': ['ministry-of-education'],
+  'maf-09-h': ['ministry-of-education'],
+  'maf-04': ['ministry-of-education'],
+  'maf-10': ['ministry-of-education'],
+  'maf-05-t': ['ministry-of-education'],
+  'maf-06-t': ['ministry-of-education'],
+  'kdam-algebra': ['ministry-of-education'],
+  'kdam-functions': ['ministry-of-education'],
+  'kdam-geometry': ['ministry-of-education'],
+  'graph-teacher': ['ministry-of-education'],
 
   'kavit-flip': ['ayelet-crispin'],
   'al-haretzef': ['michal-david'],
