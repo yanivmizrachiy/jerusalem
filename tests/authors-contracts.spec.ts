@@ -26,7 +26,7 @@ test('משרד החינוך הוא ייחוס טקסטואלי בלבד — בל
   expect(pageAuthors.some((author) => author.id === ministry!.id)).toBe(false);
 });
 
-test('כל מחבר אישי עם משאבים שפורסמו מקבל עמוד שמציג רק משאבים משויכים', async ({ page }) => {
+test('כל מחבר אישי עם משאבים שפורסמו מקבל עמוד בלי כפילות משאבים ועם כל שיוכי הנושא', async ({ page }) => {
   const publicIds = new Set(canonicalReaderItems.map(({ item }) => item.id));
 
   for (const author of pageAuthors) {
@@ -40,16 +40,30 @@ test('כל מחבר אישי עם משאבים שפורסמו מקבל עמוד 
     expect(response?.status(), `${author.name}: עמוד מחבר קיים`).toBe(200);
     await expect(page.locator('h1')).toHaveText(author.name);
 
-    const hrefs = await page
-      .locator('.resource-grid a')
-      .evaluateAll((links) => links.map((link) => (link as HTMLAnchorElement).getAttribute('href') ?? ''));
+    const cards = page.locator('.resource-grid > a');
+    const hrefs = await cards.evaluateAll((links) =>
+      links.map((link) => (link as HTMLAnchorElement).getAttribute('href') ?? '')
+    );
 
     expect(hrefs.length, `${author.name}: מוצג לפחות משאב אחד`).toBeGreaterThan(0);
+    expect(new Set(hrefs).size, `${author.name}: כל משאב קנוני מופיע פעם אחת בלבד`).toBe(hrefs.length);
+
     for (const resourceId of assignedIds) {
       expect(
         hrefs.some((href) => href.includes(`/${resourceId}/`)),
         `${author.name}: המשאב ${resourceId} מופיע בעמוד המחבר`
       ).toBe(true);
+    }
+
+    const topicCounts = await cards.evaluateAll((items) =>
+      items.map((item) => ({
+        expected: Number((item as HTMLElement).dataset.topicCount ?? '0'),
+        actual: item.querySelectorAll('.topic-tags > span').length,
+      }))
+    );
+    for (const { expected, actual } of topicCounts) {
+      expect(expected, `${author.name}: לכל משאב יש לפחות שיוך נושא אחד`).toBeGreaterThan(0);
+      expect(actual, `${author.name}: כל שיוכי הנושא נשמרים בלי לשכפל את המשאב`).toBe(expected);
     }
   }
 });
