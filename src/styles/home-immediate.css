@@ -1,0 +1,10 @@
+/* PR #100: the homepage is interactive from first paint.
+   This late-loaded compatibility layer neutralizes the legacy hero-done gate
+   without touching the newer global luxury/table work on main. */
+.site-header.is-transparent .nav-list,
+.rail {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transition-delay: 0s !important;
+}
