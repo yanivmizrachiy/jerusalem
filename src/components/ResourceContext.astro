@@ -1,13 +1,10 @@
 ---
 /**
- * משמר הקשר לעמוד משאב קנוני ומיישר metadata שנגזר מהפריט הקנוני.
- *
- * משאב יכול להיות מוצב בכמה נושאים, אבל יש לו URL קנוני יחיד. ההקשר
- * נשמר ב-sessionStorage רגע לפני הניווט, ובכניסה לעמוד מאומת שוב מול
- * הפרקים שבהם המשאב באמת מפורסם. document.referrer הוא fallback טבעי.
+ * שומר הקשר לעמוד משאב קנוני שמופיע ביותר מנושא אחד.
+ * ה-URL הקנוני נשאר יחיד; sessionStorage/referrer משמשים רק להחזרת
+ * המשתמש לנושא שממנו הגיע, מתוך allowlist שנגזר מהדאטה הציבורי.
  */
 import { chapterHref, type ChoveretGrade, type ChoveretItem } from '../data/choveret';
-import { resourceDisplayLabel } from '../data/resource-labels';
 
 interface Props {
   grade: ChoveretGrade;
@@ -15,7 +12,6 @@ interface Props {
 }
 
 const { grade, item } = Astro.props;
-const resourceLabel = resourceDisplayLabel(item);
 const contexts = grade.chapters
   .filter(
     (chapter) =>
@@ -31,7 +27,7 @@ const contexts = grade.chapters
   }));
 ---
 
-<span hidden data-resource-contexts={JSON.stringify(contexts)} data-resource-label={resourceLabel}></span>
+<span hidden data-resource-contexts={JSON.stringify(contexts)}></span>
 
 <script>
   interface ResourceContextEntry {
@@ -44,17 +40,6 @@ const contexts = grade.chapters
 
   const payload = document.querySelector<HTMLElement>('[data-resource-contexts]');
   if (payload) {
-    // ה-badge בעמוד המשאב הוא פדגוגי (משחק/מבחן/דף עבודה וכו׳), לא סוג
-    // אחסון טכני כמו PDF/Drive/מסמך.
-    const kind = document.querySelector<HTMLElement>('.res-kind');
-    if (kind && payload.dataset.resourceLabel) kind.textContent = payload.dataset.resourceLabel;
-
-    // ניווט בין משאבים אינו משתמש במונח הטכני "קובץ".
-    document.querySelectorAll<HTMLElement>('.res-pager .pager-tag').forEach((tag) => {
-      if (tag.textContent?.includes('הקובץ הקודם')) tag.textContent = 'המשאב הקודם →';
-      if (tag.textContent?.includes('הקובץ הבא')) tag.textContent = '← המשאב הבא';
-    });
-
     let contexts: ResourceContextEntry[] = [];
     try {
       contexts = JSON.parse(payload.dataset.resourceContexts ?? '[]') as ResourceContextEntry[];
@@ -77,8 +62,6 @@ const contexts = grade.chapters
       storedId = '';
     }
 
-    // referrer עדיף על state ישן; בכל מקרה ההקשר נבחר רק מתוך allowlist
-    // שנגזר מהדאטה של המשאב והשכבה הנוכחיים.
     const context =
       contexts.find((entry) => entry.href === referrerPath) ??
       contexts.find((entry) => entry.id === storedId);
@@ -87,7 +70,7 @@ const contexts = grade.chapters
       try {
         sessionStorage.setItem(storageKey, context.id);
       } catch {
-        // אין תלות חובה ב-storage; העמוד עדיין תקין עם ההקשר ברירת המחדל.
+        // העמוד נשאר תקין גם כאשר storage חסום.
       }
 
       const page = document.querySelector('.res-page');
