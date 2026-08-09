@@ -37,7 +37,13 @@ test('grade topic counters match canonical public content and never fall back to
       .filter(({ items }) => items.length > 0);
 
     await page.goto(`/chativat-beynayim/kita-${grade.slug}/chomarim/`);
-    await expect(page.locator('.topic-n')).not.toContainText('משימות');
+
+    const renderedLabels = await page.locator('.topic-n').allTextContents();
+    expect(renderedLabels, `${grade.slug}: topic count rows match canonical visible chapters`).toHaveLength(expected.length);
+    expect(
+      renderedLabels.filter((label) => label.includes('משימות')),
+      `${grade.slug}: no generic task wording survives in topic counters`
+    ).toEqual([]);
 
     for (const { id, label } of expected) {
       await expect(page.locator(`#${id} .topic-n`), `${grade.slug}/${id}: canonical semantic count`).toHaveText(label);
