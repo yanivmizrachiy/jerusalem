@@ -91,6 +91,12 @@ const MARKERS = [
   { path: '/chativat-beynayim/reader/z/moodle-guide/', needle: 'data-resource-brand="moodle"', what: 'לוגו המודל בעמוד המשאב (24.6)' },
   { path: '/chativat-beynayim/reader/z/moodle-guide/', needle: 'לוגו מודל מתמטיקה לחטיבת הביניים', what: 'הטקסט החלופי של לוגו המודל (24.6.5)' },
   { path: '/chativat-beynayim/reader/z/moodle-slides/', needle: 'צוות מודל — משרד החינוך', what: 'ייחוס צוות מודל — משרד החינוך (24.6.7)' },
+  // פריסות ספטמבר (הוראת יניב, 09/08/2026): מיפוי שכבה→כתובת קשיח, והייחוס
+  // "עידן אחוון" מוצג בעמוד המשאב. הכתובות המדויקות — ז׳→7th, ח׳→8th, ט׳→9th.
+  { path: '/chativat-beynayim/reader/z/prisa-september-z/', needle: 'idanahvan.my.canva.site/9-26-7th-grade', what: 'פריסת ספטמבר ז׳ — היעד המדויק' },
+  { path: '/chativat-beynayim/reader/h/prisa-september-h/', needle: 'idanahvan.my.canva.site/9-26-8th-grade', what: 'פריסת ספטמבר ח׳ — היעד המדויק' },
+  { path: '/chativat-beynayim/reader/t/prisa-september-t/', needle: 'idanahvan.my.canva.site/9-26-9th-grade', what: 'פריסת ספטמבר ט׳ — היעד המדויק' },
+  { path: '/chativat-beynayim/reader/z/prisa-september-z/', needle: 'עידן אחוון', what: 'ייחוס עידן אחוון בעמוד ספטמבר' },
 ];
 
 /** נכסים שחייבים להיות מוגשים בפועל (לא רק מוזכרים ב-markup). */

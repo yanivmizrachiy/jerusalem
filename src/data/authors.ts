@@ -277,6 +277,15 @@ export const authors: AuthorRecord[] = [
     kind: 'person',
     pageEligible: true,
   },
+  {
+    id: 'idan-ahvan',
+    slug: 'idan-ahvan',
+    name: 'עידן אחוון',
+    aliases: ['עידן אחוון'],
+    kind: 'person',
+    pageEligible: true,
+    role: 'מדריך בית ספרי בעיר ירושלים',
+  },
 ];
 
 const byId = new Map(authors.map((author) => [author.id, author]));

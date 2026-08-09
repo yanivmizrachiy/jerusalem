@@ -3,7 +3,9 @@ import Breadcrumbs from './Breadcrumbs.astro';
 import HamchashotEmbed from './HamchashotEmbed.astro';
 import GradeNav from './GradeNav.astro';
 import { canonicalGrade, canonicalPublishedGradeCount } from '../data/canonical-content';
+import { authorsForResource } from '../data/authors';
 import {
+  MONTHLY_DOC_LABEL,
   gradeLabel,
   gradeMainDocs,
   gradeMaterialsHref,
@@ -18,7 +20,9 @@ interface Props {
 
 const { grade: sourceGrade } = Astro.props;
 const grade = canonicalGrade(sourceGrade);
-const { plan, prisa } = gradeMainDocs(grade);
+const { plan, prisa, monthly } = gradeMainDocs(grade);
+// שם היוצר נשאב ממערכת הייחוס — אין קרדיט מוקשח ברכיב (24.1.4)
+const monthlyAuthor = monthly ? authorsForResource(monthly.item.id)[0]?.name : undefined;
 const letter = grade.letter;
 const movedChapterIds = materialChapters(grade).map((chapter) => chapter.id).join(',');
 const materialsCount = canonicalPublishedGradeCount(grade);
@@ -55,6 +59,14 @@ const materialsCount = canonicalPublishedGradeCount(grade);
           <a class="doc-btn" href={itemHref(grade.slug, prisa.item)} data-main-prisa>
             <span class="doc-name">פריסת ההוראה לכיתה {letter}</span>
             <span class="doc-sub">{prisa.item.title} · תשפ״ז</span>
+          </a>
+        )
+      }
+      {
+        monthly && (
+          <a class="doc-btn" href={itemHref(grade.slug, monthly.item)} data-main-monthly>
+            <span class="doc-name">{MONTHLY_DOC_LABEL}</span>
+            <span class="doc-sub">{monthlyAuthor ? `${monthly.item.title} · ${monthlyAuthor}` : monthly.item.title}</span>
           </a>
         )
       }
