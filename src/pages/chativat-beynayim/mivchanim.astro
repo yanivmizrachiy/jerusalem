@@ -19,7 +19,7 @@ const isTnufaSpec = (item: ChoveretItem) => isTnufa(item) && item.title.includes
   title="מאגר מבחנים לחטיבת הביניים — מחוז ירושלים"
   description="מאגר המבחנים של כיתות ז׳, ח׳ וט׳, עם מבחנים וחומרי הערכה מתוך קטלוג המשאבים הקנוני של האתר."
 >
-  <main class="container exams-page">
+  <div class="container exams-page">
     <Breadcrumbs
       items={[
         { label: 'ראשי', href: '/' },
@@ -107,7 +107,7 @@ const isTnufaSpec = (item: ChoveretItem) => isTnufa(item) && item.title.includes
         );
       })}
     </div>
-  </main>
+  </div>
 </Base>
 
 <style>
