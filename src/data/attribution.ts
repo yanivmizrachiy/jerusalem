@@ -61,8 +61,6 @@ export const ATTRIBUTION_PENDING: readonly string[] = [
   'hanukka-choveret', // משחקי חנוכה — חוברת
   'hanukka-z', // משחקי חנוכה לכיתה ז׳ — תיקייה
   'parasha', // מתמטיקה בפרשה שלי
-  'moodle-guide', // אתר המודל — מדריך למורה
-  'moodle-slides', // מצגות מהמודל לפי נושאים
   'sheelot-chashiva', // שאלות חשיבה מסדר גבוה
   'kavit-tavnit', // הוראת פונקציה קווית — תבנית
   'dema', // מבחני דמה למהלך השנה
@@ -103,7 +101,7 @@ export const ATTRIBUTION_PENDING: readonly string[] = [
 ];
 
 /** ראצ׳ט: הרשימה רשאית להצטמצם בלבד. כל גדילה היא רגרסיה של החוזה. */
-export const ATTRIBUTION_PENDING_CEILING = 68;
+export const ATTRIBUTION_PENDING_CEILING = 66;
 
 const pending = new Set(ATTRIBUTION_PENDING);
 

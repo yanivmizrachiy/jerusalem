@@ -25,7 +25,7 @@ test('Canva angle activity is preserved only under Grade 7 angles, but stays qua
   ).toBe(false);
 });
 
-test('ModEL teacher guide preserves external fallback and cleaned copy while remaining quarantined until creator verification', () => {
+test('ModEL teacher guide keeps its external fallback and cleaned copy, and is public now that the creator is verified', () => {
   const placements = placementById('moodle-guide');
   expect(placements.length).toBeGreaterThan(0);
 
@@ -34,8 +34,11 @@ test('ModEL teacher guide preserves external fallback and cleaned copy while rem
   expect(item.embed, 'Google Sites blocks framing; external open is intentional').toBeUndefined();
   expect(visibleResourceNote(item)).toBe('מדריך למורה באתר המודל למתמטיקה.');
   expect(visibleResourceNote(item)).not.toContain('רשמי');
+
+  // הייחוס אומת ישירות על ידי בעל הפרויקט (09/08/2026): צוות מודל — משרד
+  // החינוך. הפריט יצא מההסגר ולכן הוא פומבי; חוזה ההטמעה לא השתנה.
   expect(
     canonicalReaderItems.some(({ item: publicItem }) => publicItem.id === 'moodle-guide'),
-    'creator is not verified yet, so the item must not be public'
-  ).toBe(false);
+    'creator is verified, so the item is public'
+  ).toBe(true);
 });

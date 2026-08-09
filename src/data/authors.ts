@@ -51,6 +51,17 @@ export const authors: AuthorRecord[] = [
     kind: 'organization',
     pageEligible: false,
   },
+  {
+    // ייחוס שאומת ישירות על ידי בעל הפרויקט (הוראת יניב, 09/08/2026):
+    // המפרסם של אתר המודל ושל גיליון המצגות הוא צוות מודל במשרד החינוך.
+    // גוף מפרסם — ולכן ללא עמוד מחבר אישי (24.1.1).
+    id: 'model-team',
+    slug: 'tzevet-model',
+    name: 'צוות מודל — משרד החינוך',
+    aliases: ['צוות מודל — משרד החינוך', 'צוות מודל', 'צוות המודל'],
+    kind: 'organization',
+    pageEligible: false,
+  },
   // ---- גופים מפרסמים שזוהו בראיה מתועדת (ראו src/data/attribution.ts) ----
   {
     id: 'rama',

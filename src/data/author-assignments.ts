@@ -130,6 +130,10 @@ export const authorAssignments: Readonly<Record<string, readonly string[]>> = {
   'kdam-geometry': ['ministry-of-education'],
   'graph-teacher': ['ministry-of-education'],
   'mifrat-tnufa': ['ministry-of-education'],
+  // owner-verified: המפרסם אומת ישירות על ידי בעל הפרויקט (הוראת יניב, 09/08/2026).
+  // שיוך מפורש לפי מזהה בלבד — לא לפי כותרת, לא לפי substring ולא לפי דומיין.
+  'moodle-guide': ['model-team'],
+  'moodle-slides': ['model-team'],
   // publisher-domain:pop.education.gov.il
   'tochnit-limudim-z': ['ministry-of-education'],
   'merchav-chatb': ['ministry-of-education'],

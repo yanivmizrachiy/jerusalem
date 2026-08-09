@@ -33,8 +33,8 @@ const moodleBrand: ResourceBrand = {
   id: 'moodle',
   src: '/media/brands/moodle-logo.png',
   alt: 'לוגו מודל מתמטיקה לחטיבת הביניים',
-  width: 510,
-  height: 130,
+  width: 499,
+  height: 128,
 };
 
 /** מיפוי מפורש. הרחבה נעשית כאן בלבד, מזהה־מזהה. */

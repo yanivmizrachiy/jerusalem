@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { brandForResource, brandedResourceIds } from '../src/data/resource-branding';
 import { canonicalReaderItems } from '../src/data/canonical-content';
 import { isAttributionPending } from '../src/data/attribution';
+import { authorAssignments, authorById, authorsForResource } from '../src/data/authors';
 
 /**
  * מיתוג משאב (הוראת יניב, 09/08/2026): לוגו המודל מוצג אך ורק במשאבים
@@ -20,9 +21,11 @@ const readerHref = (grade: string, id: string) => `/chativat-beynayim/reader/${g
 
 /** כל משאב ציבורי פעם אחת, עם השכבה שבה הוא מוגש. */
 const publicResources = (() => {
-  const seen = new Map<string, { id: string; title: string; grade: string }>();
+  const seen = new Map<string, { id: string; title: string; grade: string; url?: string }>();
   for (const { grade, item } of canonicalReaderItems) {
-    if (!seen.has(item.id)) seen.set(item.id, { id: item.id, title: item.title, grade: grade.slug });
+    if (!seen.has(item.id)) {
+      seen.set(item.id, { id: item.id, title: item.title, grade: grade.slug, url: item.url });
+    }
   }
   return [...seen.values()];
 })();
@@ -86,16 +89,37 @@ test('אין היסק לפי כותרת: משאב ציבורי שכותרתו כ
   }
 });
 
-test('כל מזהה ממופה מטופל: ציבורי מציג לוגו, ובהסגר אין לו עמוד ציבורי', async ({ page }) => {
+test('משאבי המודל פומביים, מיוחסים לצוות מודל — משרד החינוך, ומחוץ להסגר', () => {
+  const publicIds = new Set(publicResources.map((resource) => resource.id));
+
+  for (const id of MOODLE_IDS) {
+    // A + B: שניהם פומביים
+    expect(publicIds.has(id), `${id} הוא משאב ציבורי`).toBe(true);
+    // D: ואינם בהסגר
+    expect(isAttributionPending(id), `${id} אינו ברשימת ההמתנה`).toBe(false);
+
+    // C: ייחוס ארגוני קנוני, שאומת ישירות על ידי בעל הפרויקט
+    expect(authorAssignments[id], `${id} משויך`).toEqual(['model-team']);
+    const creators = authorsForResource(id);
+    expect(creators.map((creator) => creator.name)).toEqual(['צוות מודל — משרד החינוך']);
+    expect(creators[0].kind).toBe('organization');
+  }
+
+  // H: ארגון אינו מקבל עמוד מחבר אישי
+  const org = authorById('model-team')!;
+  expect(org, 'הישות קיימת במקור האמת').toBeTruthy();
+  expect(org.kind).toBe('organization');
+  expect(org.pageEligible, 'גוף מפרסם אינו מקבל עמוד מחבר אישי').toBe(false);
+});
+
+test('E: הלוגו מוצג בשני משאבי המודל, ביחס נכון ובגודל לא דומיננטי', async ({ page }) => {
   const publicIds = new Set(publicResources.map((resource) => resource.id));
   const published = brandedResourceIds.filter((id) => publicIds.has(id));
-  const quarantined = brandedResourceIds.filter((id) => isAttributionPending(id));
 
-  // אין מזהה ממופה שנופל בין הכיסאות — כל אחד נבדק באחד משני המסלולים
-  expect(
-    [...published, ...quarantined].sort(),
-    'כל מזהה ממופה הוא או ציבורי או בהסגר — אין מזהה שלא נבדק'
-  ).toEqual([...brandedResourceIds].sort());
+  // החוזה אינו רשאי לעבור בריק: שני המזהים הממופים חייבים להיות פומביים
+  expect([...published].sort(), 'כל מזהה ממופה הוא פומבי ונבדק בפועל').toEqual(
+    [...brandedResourceIds].sort()
+  );
 
   for (const id of published) {
     const resource = publicResources.find((entry) => entry.id === id)!;
@@ -118,15 +142,52 @@ test('כל מזהה ממופה מטופל: ציבורי מציג לוגו, וב�
 
     const panel = (await page.locator('.res-panel').boundingBox())!;
     expect(box.width, `${id}: הלוגו אינו דומיננטי בלוח המידע`).toBeLessThan(panel.width * 0.5);
-  }
 
-  for (const id of quarantined) {
-    // בהסגר אין עמוד ציבורי — ולכן אין מה להציג. זו הסיבה שהענף למעלה
-    // אינו רץ עבורו, והיא נאכפת כאן במפורש במקום להישאר הנחה שקטה.
-    for (const grade of ['z', 'h', 't']) {
-      const status = (await page.request.get(readerHref(grade, id))).status();
-      expect(status, `${id} (${grade}): משאב בהסגר אינו מוגש כעמוד ציבורי`).not.toBe(200);
+    // J: היוצר מוצג פעם אחת בלבד, בלי תוויות metadata בטקסט הגלוי
+    const panelText = (await page.locator('.res-panel').innerText()).replace(/\s+/g, ' ');
+    const occurrences = panelText.split('צוות מודל — משרד החינוך').length - 1;
+    expect(occurrences, `${id}: שם היוצר מוצג פעם אחת בלבד`).toBe(1);
+    for (const label of ['מחבר:', 'קרדיט:', 'קרדיטים:']) {
+      expect(panelText, `${id}: אין תווית "${label}" בטקסט הגלוי`).not.toContain(label);
     }
+
+    // אין כפילות לוגו בעמוד
+    await expect(page.locator('[data-resource-brand]'), `${id}: לוגו אחד בלבד`).toHaveCount(1);
+  }
+});
+
+test('I: Google Sites נשאר פתיחה חיצונית ולא iframe שבור', async ({ page }) => {
+  // חוזה ההטמעה לא השתנה בעקבות המיתוג: אתר המודל מוגש מ-Google Sites
+  // ששולח X-Frame-Options: DENY, ולכן אין לו embed והמשאב נפתח במקור.
+  // הלוגו הוא מיתוג בלבד ואינו ראיה שניתן להטמיע את המקור (RULES 24.4).
+  const guide = publicResources.find((resource) => resource.id === 'moodle-guide')!;
+  await page.goto(readerHref(guide.grade, 'moodle-guide'));
+
+  await expect(page.locator('[data-resource-brand="moodle"]'), 'הלוגו כן מוצג').toHaveCount(1);
+  await expect(page.locator('.res-frame iframe'), 'אין iframe ל-Google Sites').toHaveCount(0);
+
+  const openInSource = page.locator('.orbs a[target="_blank"][href*="sites.google.com"]');
+  await expect(openInSource, 'פתיחה במקור אמיתית').toHaveCount(1);
+});
+
+test('G: דמיון בכתובת או בדומיין אינו מקנה מיתוג', async ({ page }) => {
+  // משאבי המודל מוגשים מ-sites.google.com ומ-docs.google.com. בקטלוג יש
+  // עשרות משאבים ציבוריים מאותם דומיינים בדיוק — הם חייבים להישאר בלי לוגו,
+  // כדי להוכיח שהמיתוג מגיע מהמיפוי הקנוני ולא מהכתובת.
+  const mapped = new Set(brandedResourceIds);
+  const sameDomain = publicResources.filter(
+    (resource) => !mapped.has(resource.id) && /(docs|sites)\.google\.com/.test(resource.url ?? '')
+  );
+
+  expect(sameDomain.length, 'קיימים משאבים ציבוריים מאותם דומיינים').toBeGreaterThan(0);
+
+  for (const resource of sameDomain.slice(0, 8)) {
+    expect(brandForResource(resource.id), `${resource.id} אינו ממופה`).toBeUndefined();
+    await page.goto(readerHref(resource.grade, resource.id));
+    await expect(
+      page.locator('[data-resource-brand]'),
+      `${resource.id}: אותו דומיין, בלי לוגו`
+    ).toHaveCount(0);
   }
 });
 
