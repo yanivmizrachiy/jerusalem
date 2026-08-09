@@ -10,6 +10,8 @@ interface Props {
   sourceUrl: string;
   sourceInternal?: boolean;
   fullscreen?: boolean;
+  fullscreenTarget?: string;
+  statusTarget?: string;
 }
 
 const {
@@ -23,12 +25,21 @@ const {
   sourceUrl,
   sourceInternal = false,
   fullscreen = false,
+  fullscreenTarget,
+  statusTarget,
 } = Astro.props;
 ---
 
-<div class="orbs" role="group" aria-label="פעולות">
+<div
+  class="orbs"
+  role="group"
+  aria-label="פעולות"
+  data-resource-actions
+  data-fs-target={fullscreenTarget}
+  data-status-target={statusTarget}
+>
   {downloadUrl && (
-    <a class="orb" style="--orb-c:#d4af5c; --orb-c2:var(--gold-deep); --orb-i:0ms" href={downloadUrl} target="_blank" rel="noopener" download>
+    <a class="orb" style="--orb-c:#d4af5c; --orb-c2:var(--gold-deep); --orb-i:0ms" href={downloadUrl} target="_blank" rel="noopener" download data-action="download">
       <span class="orb-glow" aria-hidden="true" />
       <span class="orb-face">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M4.5 19.5h15" /></svg>
@@ -37,7 +48,7 @@ const {
     </a>
   )}
 
-  <a class="orb" style="--orb-c:#2ee06f; --orb-c2:#1cb457; --orb-i:80ms" href={`https://wa.me/?text=${encodeURIComponent(whatsappText)}`} target="_blank" rel="noopener" aria-label={`שיתוף ${shareTitle} ב־WhatsApp`}>
+  <a class="orb" style="--orb-c:#2ee06f; --orb-c2:#1cb457; --orb-i:80ms" href={`https://wa.me/?text=${encodeURIComponent(whatsappText)}`} target="_blank" rel="noopener" aria-label={`שיתוף ${shareTitle} ב־WhatsApp`} data-action="whatsapp">
     <span class="orb-glow" aria-hidden="true" />
     <span class="orb-face">
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" /></svg>
@@ -45,7 +56,7 @@ const {
     <span class="orb-label">WhatsApp</span>
   </a>
 
-  <a class="orb" style="--orb-c:#ea4335; --orb-c2:#c5221f; --orb-i:160ms" href={`mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`} aria-label={`שליחת ${shareTitle} בדוא״ל`}>
+  <a class="orb" style="--orb-c:#ea4335; --orb-c2:#c5221f; --orb-i:160ms" href={`mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`} aria-label={`שליחת ${shareTitle} בדוא״ל`} data-action="email">
     <span class="orb-glow" aria-hidden="true" />
     <span class="orb-face is-light">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M1.636 20.5h3.819V11.73L0 7.64v11.223c0 .904.732 1.636 1.636 1.636Z" /><path fill="#34A853" d="M18.545 20.5h3.819c.904 0 1.636-.732 1.636-1.636V7.64l-5.455 4.09Z" /><path fill="#FBBC04" d="M18.545 5.457v6.273L24 7.64V6.275c0-2.023-2.309-3.178-3.927-1.964Z" /><path fill="#EA4335" d="M5.455 11.73V5.457L12 10.366l6.545-4.909v6.273L12 16.639Z" /><path fill="#C5221F" d="M0 6.275v1.365l5.455 4.09V5.457L4.073 4.42C2.309 3.098 0 4.252 0 6.275Z" /></svg>
@@ -53,29 +64,83 @@ const {
     <span class="orb-label">דוא״ל</span>
   </a>
 
-  <button class="orb" style="--orb-c:#8ab8d8; --orb-c2:#4b7fa3; --orb-i:240ms" type="button" data-copy={copyUrl}>
+  <button class="orb" style="--orb-c:#8ab8d8; --orb-c2:#4b7fa3; --orb-i:240ms" type="button" data-copy={copyUrl} data-action="copy">
     <span class="orb-glow" aria-hidden="true" />
     <span class="orb-face"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 1 0-5.66-5.66l-1 1" /><path d="M14 10a4 4 0 0 0-5.66 0l-3 3A4 4 0 1 0 11 18.66l1-1" /></svg></span>
     <span class="orb-label">העתקת קישור</span>
   </button>
 
-  <button class="orb" style="--orb-c:#c9a6f0; --orb-c2:#6f4f95; --orb-i:320ms" type="button" data-share={shareUrl} data-share-title={shareTitle} hidden>
+  <button class="orb" style="--orb-c:#c9a6f0; --orb-c2:#6f4f95; --orb-i:320ms" type="button" data-share={shareUrl} data-share-title={shareTitle} data-action="share" hidden>
     <span class="orb-glow" aria-hidden="true" />
     <span class="orb-face"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="2.6" /><circle cx="17" cy="6" r="2.6" /><circle cx="17" cy="18" r="2.6" /><path d="m8.4 10.8 6.2-3.4M8.4 13.2l6.2 3.4" /></svg></span>
     <span class="orb-label">שיתוף</span>
   </button>
 
-  <a class="orb" style="--orb-c:#d18a72; --orb-c2:#a44f38; --orb-i:400ms" href={sourceUrl} target={sourceInternal ? undefined : '_blank'} rel={sourceInternal ? undefined : 'noopener'}>
+  <a class="orb" style="--orb-c:#d18a72; --orb-c2:#a44f38; --orb-i:400ms" href={sourceUrl} target={sourceInternal ? undefined : '_blank'} rel={sourceInternal ? undefined : 'noopener'} data-action="source">
     <span class="orb-glow" aria-hidden="true" />
     <span class="orb-face"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6" /><path d="M20 4 11 13" /><path d="M18.5 14.5v4a1.5 1.5 0 0 1-1.5 1.5H5.5A1.5 1.5 0 0 1 4 18.5V7A1.5 1.5 0 0 1 5.5 5.5h4" /></svg></span>
     <span class="orb-label">פתיחה במקור</span>
   </a>
 
   {fullscreen && (
-    <button class="orb" style="--orb-c:#9bad78; --orb-c2:#5f6f3c; --orb-i:480ms" type="button" data-fs hidden>
+    <button class="orb" style="--orb-c:#9bad78; --orb-c2:#5f6f3c; --orb-i:480ms" type="button" data-fs data-action="fullscreen" hidden>
       <span class="orb-glow" aria-hidden="true" />
       <span class="orb-face"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5" /></svg></span>
       <span class="orb-label">מסך מלא</span>
     </button>
   )}
 </div>
+
+<script>
+  const actionBoards = document.querySelectorAll<HTMLElement>('[data-resource-actions]');
+
+  actionBoards.forEach((board) => {
+    const statusSelector = board.dataset.statusTarget;
+    const status = statusSelector ? document.querySelector<HTMLElement>(statusSelector) : null;
+    const say = (text: string) => {
+      if (!status) return;
+      status.textContent = text;
+      window.setTimeout(() => {
+        if (status.textContent === text) status.textContent = '';
+      }, 3200);
+    };
+
+    const copy = board.querySelector<HTMLButtonElement>('[data-action="copy"]');
+    copy?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(copy.dataset.copy ?? '');
+        say('הקישור הועתק');
+      } catch {
+        say('ההעתקה נחסמה בדפדפן');
+      }
+    });
+
+    const share = board.querySelector<HTMLButtonElement>('[data-action="share"]');
+    if (share && typeof navigator.share === 'function') {
+      share.hidden = false;
+      share.addEventListener('click', async () => {
+        try {
+          await navigator.share({ title: share.dataset.shareTitle, url: share.dataset.share });
+          say('הועבר למנגנון השיתוף');
+        } catch (error) {
+          if (!(error instanceof DOMException && error.name === 'AbortError')) say('השיתוף לא הושלם');
+        }
+      });
+    }
+
+    const fs = board.querySelector<HTMLButtonElement>('[data-action="fullscreen"]');
+    const fsSelector = board.dataset.fsTarget;
+    const fsTarget = fsSelector ? document.querySelector<HTMLElement>(fsSelector) : null;
+    if (fs && fsTarget && typeof fsTarget.requestFullscreen === 'function') {
+      fs.hidden = false;
+      fs.addEventListener('click', async () => {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await fsTarget.requestFullscreen();
+        } catch {
+          say('המסך המלא נחסם בדפדפן');
+        }
+      });
+    }
+  });
+</script>
