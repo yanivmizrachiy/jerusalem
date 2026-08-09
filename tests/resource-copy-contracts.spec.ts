@@ -32,6 +32,19 @@ test('שם יוצר קנוני אינו משוכפל בשורת המקור', () 
   }
 });
 
+test('שם מחבר מוסר גם מתוך מקטע מקור משולב בלי למחוק את שם המיזם', () => {
+  const id = 'src-game-z-9345687178d9';
+  const item = byId.get(id);
+  expect(item).toBeTruthy();
+
+  const creators = authorsForResource(id);
+  const aliases = creators.flatMap((creator) => [creator.name, ...creator.aliases]);
+  const source = visibleResourceSource(item!, aliases);
+
+  expect(source).toContain('למידה זה שם המשחק');
+  expect(source).not.toContain('בתיה מירזאיב');
+});
+
 test('עמוד משאב מציג ייחוס יוצר פעם אחת בתוך לוח המידע, בלי מחבר/קרדיט', async ({ page }) => {
   await page.goto('/chativat-beynayim/reader/z/src-game-z-2240924d847e/');
   const attribution = page.locator('.res-panel .author-attribution');
