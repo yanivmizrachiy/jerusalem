@@ -263,6 +263,42 @@ test('שער חטיבת הביניים בנייד: השלישים נערמים �
   await noOverflow(page, 'שער 390');
 });
 
+test('שער חט״ב: ההמחשות במסך הראשון לצד טבלת הקישורים (הוראת יניב, 10/08)', async ({ page }) => {
+  for (const vp of [
+    { width: 1440, height: 900 },
+    { width: 1920, height: 1080 },
+  ]) {
+    await page.setViewportSize(vp);
+    await page.goto('/chativat-beynayim/');
+
+    const frame = (await page.locator('.mam-frame').boundingBox())!;
+    const iframe = (await page.locator('.mam-frame iframe').boundingBox())!;
+    // לא קורסת לגובה ברירת המחדל של iframe, וה-iframe ממלא את המסגרת (8.26)
+    expect(frame.height, `${vp.width}: הטמעה שימושית ולא קרוסה`).toBeGreaterThanOrEqual(340);
+    expect(iframe.height, `${vp.width}: ה-iframe ממלא את המסגרת`).toBeGreaterThanOrEqual(frame.height - 30);
+
+    // ההטמעה כולה — כולל שורת ההעתקה שמתחתיה — בתוך המסך הראשון, בלי גלילה
+    expect(frame.y, `${vp.width}: ההטמעה מתחת לראש העמוד`).toBeGreaterThan(120);
+    expect(frame.y + frame.height, `${vp.width}: תחתית ההטמעה בתוך המסך הראשון`).toBeLessThanOrEqual(vp.height + 1);
+    const copy = (await page.locator('#mam-copy').boundingBox())!;
+    expect(copy.y + copy.height, `${vp.width}: כפתור ההעתקה במסך הראשון`).toBeLessThanOrEqual(vp.height + 1);
+
+    // הטבלה לצד ההטמעה — הטבלה מימין (RTL), ההטמעה משמאל, בלי חפיפה
+    const table = (await page.locator('.quick-links .table-shell').boundingBox())!;
+    expect(table.y, `${vp.width}: הטבלה מתחילה במסך הראשון`).toBeLessThan(vp.height * 0.62);
+    expect(table.x, `${vp.width}: הטבלה מימין להטמעה`).toBeGreaterThanOrEqual(frame.x + frame.width - 1);
+  }
+
+  // ברוחב צר הכול נערם: הכותרת, הטבלה ואז ההטמעה — בלי גלילה אופקית
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/chativat-beynayim/');
+  const stackedTable = (await page.locator('.quick-links .table-shell').boundingBox())!;
+  const stackedFrame = (await page.locator('.mam-frame').boundingBox())!;
+  expect(stackedFrame.y, 'ההטמעה נערמת אחרי הטבלה').toBeGreaterThan(stackedTable.y + 100);
+  expect(stackedFrame.height, 'גם בערימה ההטמעה שימושית').toBeGreaterThanOrEqual(340);
+  await noOverflow(page, 'שער-המחשות 390');
+});
+
 test('תצוגת החומרים: רשימת נושאים בלבד, וכל נושא נפתח לרשימת משימות (הוראת יניב, 06/08)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/chativat-beynayim/kita-z/chomarim/');
@@ -1236,9 +1272,10 @@ test('עמוד מסמך שלם בהטמעה, וכל הפעולות רק בצד �
 });
 
 test('הטמעות אתר שלם גדולות ומרווחות — לא קורסות לגובה ברירת מחדל (9.1)', async ({ page }) => {
+  // ההמחשות שבשער עברו למסך הראשון בהטמעה קומפקטית (הוראת יניב, 10/08/2026);
+  // ההגנה עליהן — כולל "לא קורסת" — עברה לחוזה המסך הראשון שבבדיקת השער.
   await page.setViewportSize({ width: 1440, height: 900 });
   for (const [route, sel] of [
-    ['/chativat-beynayim/', '.mam-frame'],
     ['/chativat-beynayim/reader/z/misparim/', '.res-frame'],
   ] as const) {
     await page.goto(route);
