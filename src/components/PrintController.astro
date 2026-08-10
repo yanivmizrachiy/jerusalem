@@ -51,6 +51,7 @@
         else dialog.setAttribute('open', '');
       });
       board.append(action);
+      board.classList.add('has-print-action');
     });
 
     dialog.querySelectorAll<HTMLButtonElement>('[data-print-mode-choice]').forEach((choice) => {
@@ -91,14 +92,19 @@
     font: inherit;
   }
 
+  /* The original desktop panel budget fits seven 4.3rem cells. Print adds an
+     eighth action. Keep the 58px touch face unchanged and reduce only the
+     surrounding cell/gap budget so the eighth control does not wrap. */
+  @media (min-width: 1100px) {
+    html .orbs.has-print-action { gap: 0.35rem; }
+    html .orbs.has-print-action .orb { inline-size: 3.85rem; }
+  }
+
   @page { size: A4; margin: 14mm 12mm; }
 
   @media print {
     [data-print-dialog], [data-action="print"] { display: none !important; }
 
-    /* Iframes are not a truthful printable representation. Remove the whole
-       navy embed shell, collapse the split layout, and keep only the source
-       fallback so the printed page is useful rather than an empty dark box. */
     html .embed-frame,
     html .res-view { display: none !important; }
     html .res-split { display: block !important; }
@@ -109,8 +115,6 @@
       overflow: visible !important;
     }
 
-    /* global.css hides .orbs in print. Override that only to preserve the
-       truthful "open at source" fallback required when the embed is omitted. */
     html .orbs { display: flex !important; }
     html .orbs > *:not([data-action="source"]) { display: none !important; }
     html .orbs [data-action="source"] {
