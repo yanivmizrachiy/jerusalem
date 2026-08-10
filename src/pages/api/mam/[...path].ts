@@ -7,6 +7,7 @@
 import type { APIRoute } from 'astro';
 import { injectGuard, injectGoldScrollbar } from '../../../lib/proxyGuard';
 import { ProxyRequestError, copyResponseHeaders, isBodyless, upstreamInit } from '../../../lib/proxyHttp';
+import { applyDocumentSecurityHeaders, proxyErrorResponse } from '../../../lib/proxyResponse';
 
 export const prerender = false;
 
@@ -31,19 +32,15 @@ export const ALL: APIRoute = async ({ params, request }) => {
   try {
     upstream = await fetch(target, init);
   } catch {
-    return new Response('המקור אינו זמין כרגע — נסו שוב בעוד רגע.', {
-      status: 502,
-      headers: { 'content-type': 'text/plain; charset=utf-8' },
-    });
+    // עמוד שגיאה מעוצב במקום טקסט חשוף בתוך המסגרת (RULES 8.8)
+    return proxyErrorResponse('המקור אינו זמין כרגע — נסו שוב בעוד רגע.', 502, target);
   }
 
   // ה-allowlist חל גם על סוף שרשרת ההפניות ובודק origin אמיתי,
   // לא prefix טקסטואלי של הכתובת.
   if (upstream.url && new URL(upstream.url).origin !== ALLOWED_ORIGIN) {
-    return new Response('היעד הסופי אינו ברשימת ההיתר.', {
-      status: 502,
-      headers: { 'content-type': 'text/plain; charset=utf-8' },
-    });
+    // יעד שנדחה אינו מקבל קישור פתיחה — רק את עובדת הדחייה
+    return proxyErrorResponse('היעד הסופי אינו ברשימת ההיתר.', 502);
   }
 
   const headers = new Headers();
@@ -66,6 +63,8 @@ export const ALL: APIRoute = async ({ params, request }) => {
     html = injectGuard(html, '/api/mam');
     // גלילת זהב רחבה גם בתוך הסביבה המוטמעת (5.23) — אותו פס בכל ההטמעות
     html = injectGoldScrollbar(html);
+    // מסמך פרוקסי ממוסגר רק מהאתר שלנו (proxyResponse.ts)
+    applyDocumentSecurityHeaders(headers);
     return new Response(html, { status: upstream.status, headers });
   }
 
