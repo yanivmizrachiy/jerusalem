@@ -24,3 +24,21 @@ test('WebSite JSON-LD derives its site URL from the rendered canonical origin', 
   expect(typeof data.description).toBe('string');
   expect((data.description as string).trim().length).toBeGreaterThan(20);
 });
+
+test('internal routes do not repeat the WebSite entity', async ({ page }) => {
+  // ‏WebSite היא ישות שורש של האתר — עמוד פנימי מייצג אסור שיפלוט אותה שוב
+  await page.goto('/chativat-beynayim/');
+
+  const raws = await page
+    .locator('script[type="application/ld+json"]')
+    .evaluateAll((nodes) => nodes.map((n) => n.textContent ?? ''));
+  const websiteNodes = raws.filter((raw) => {
+    try {
+      const parsed = JSON.parse(raw) as { '@type'?: unknown };
+      return parsed['@type'] === 'WebSite';
+    } catch {
+      return false;
+    }
+  });
+  expect(websiteNodes).toEqual([]);
+});

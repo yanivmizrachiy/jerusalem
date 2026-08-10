@@ -23,16 +23,19 @@ interface Props {
 const { title, description, transparentHeader = false } = Astro.props;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 const ogImage = Astro.site ? new URL('/logo.png', Astro.site).href : '/logo.png';
-const structuredData = Astro.site
-  ? {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: 'מתמטיקה מחוז ירושלים',
-      url: new URL('/', Astro.site).href,
-      inLanguage: 'he-IL',
-      description,
-    }
-  : undefined;
+// ישות WebSite מתארת את האתר, לא עמוד — נפלטת פעם אחת, בדף הבית בלבד;
+// פליטה מכל עמוד משכפלת את אותה ישות שורש על פני כל האתר
+const structuredData =
+  Astro.site && Astro.url.pathname === '/'
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'מתמטיקה מחוז ירושלים',
+        url: new URL('/', Astro.site).href,
+        inLanguage: 'he-IL',
+        description,
+      }
+    : undefined;
 ---
 
 <!doctype html>
