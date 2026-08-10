@@ -1,6 +1,6 @@
 ---
 import type { PlanPrisaDocument } from '../data/plan-prisa-web';
-import { prisaLinksFor } from '../data/prisa-links';
+import { prisaLinksAt } from '../data/prisa-links';
 
 interface Props {
   document: PlanPrisaDocument;
@@ -12,8 +12,6 @@ interface Props {
 type ReaderRow = { readonly text: string; readonly cells: readonly string[] };
 
 const { document, accent, sourceUrl } = Astro.props;
-const sourceLinks = prisaLinksFor(document.id);
-const sourceLinkOccurrences = sourceLinks.reduce((sum, link) => sum + link.occurrences, 0);
 const sourceLabelFor = (href: string) => {
   const host = new URL(href).hostname.replace(/^www\./, '');
   if (host === 'docs.google.com') return 'מסמך Google';
@@ -71,35 +69,6 @@ const preparedPages = document.pages.map((page) => ({
     </label>
   </header>
 
-  {sourceLinks.length > 0 && (
-    <section class="ppw-links" aria-labelledby={`${rootId}-links-title`} data-prisa-links>
-      <header class="ppw-links-head">
-        <div>
-          <p class="ppw-kicker">כל הקישורים נשמרו מהמסמך הרשמי</p>
-          <h3 id={`${rootId}-links-title`}>קישורים פעילים מתוך הפריסה</h3>
-        </div>
-        <p>{sourceLinkOccurrences} מופעי קישור · {sourceLinks.length} כתובות ייחודיות</p>
-      </header>
-      <ul>
-        {sourceLinks.map((link, index) => (
-          <li>
-            <a
-              class="ppw-doc-link"
-              href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`פתיחת ${sourceLabelFor(link.href)}, קישור ${index + 1} מתוך ${sourceLinks.length}`}
-            >
-              <span class="ppw-link-name">{sourceLabelFor(link.href)}</span>
-              <span class="ppw-link-url" dir="ltr">{link.href}</span>
-              {link.occurrences > 1 && <span class="ppw-link-count">מופיע {link.occurrences} פעמים</span>}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )}
-
   <nav class="ppw-pages" aria-label="מעבר בין עמודי המסמך">
     {preparedPages.map((page) => (
       <a href={`#${rootId}-page-${page.page}`}>עמוד {page.page}</a>
@@ -116,7 +85,7 @@ const preparedPages = document.pages.map((page) => ({
           <a href={`#${rootId}`} aria-label={`חזרה לראש תצוגת ${document.label}`}>לתפריט המסמך</a>
         </header>
         <div class="ppw-rows">
-          {page.rows.map((row) => (
+          {page.rows.map((row, rowIndex) => (
             <div
               class:list={['ppw-row', row.rowClass]}
               style={`--pp-cols:${row.columns}`}
@@ -124,9 +93,53 @@ const preparedPages = document.pages.map((page) => ({
               data-search={row.search}
             >
               {row.cells.length > 1 ? (
-                row.cells.map((cell) => <span class="ppw-cell">{cell}</span>)
+                row.cells.map((cell, cellIndex) => (
+                  <span class="ppw-cell">
+                    <span>{cell}</span>
+                    {prisaLinksAt(document.id, page.page, rowIndex, cellIndex).length > 0 && (
+                      <span class="ppw-cell-links" data-prisa-cell-links>
+                        {prisaLinksAt(document.id, page.page, rowIndex, cellIndex).map((link, linkIndex) => (
+                          <a
+                            class="ppw-cell-link"
+                            data-prisa-cell-link
+                            data-prisa-page={page.page}
+                            data-prisa-row={rowIndex}
+                            data-prisa-cell={cellIndex}
+                            href={link.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`פתיחת ${sourceLabelFor(link.href)}, קישור ${linkIndex + 1} בתא`}
+                          >
+                            {sourceLabelFor(link.href)} ↗
+                          </a>
+                        ))}
+                      </span>
+                    )}
+                  </span>
+                ))
               ) : (
-                <p>{row.text}</p>
+                <p>
+                  <span>{row.text}</span>
+                  {prisaLinksAt(document.id, page.page, rowIndex, 0).length > 0 && (
+                    <span class="ppw-cell-links" data-prisa-cell-links>
+                      {prisaLinksAt(document.id, page.page, rowIndex, 0).map((link, linkIndex) => (
+                        <a
+                          class="ppw-cell-link"
+                          data-prisa-cell-link
+                          data-prisa-page={page.page}
+                          data-prisa-row={rowIndex}
+                          data-prisa-cell="0"
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`פתיחת ${sourceLabelFor(link.href)}, קישור ${linkIndex + 1} בשורה`}
+                        >
+                          {sourceLabelFor(link.href)} ↗
+                        </a>
+                      ))}
+                    </span>
+                  )}
+                </p>
               )}
             </div>
           ))}
@@ -234,75 +247,6 @@ const preparedPages = document.pages.map((page) => ({
   }
   .ppw-search input:focus-visible { border-color: var(--pp-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pp-accent) 18%, transparent); }
 
-  .ppw-links {
-    margin-block: 1rem 1.15rem;
-    padding: clamp(0.85rem, 2vw, 1.25rem);
-    border: 1px solid color-mix(in srgb, var(--pp-accent) 28%, #dfe5ee);
-    border-radius: 20px;
-    background: color-mix(in srgb, var(--pp-accent) 5%, #fff);
-  }
-  .ppw-links-head {
-    display: flex;
-    align-items: end;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-block-end: 0.8rem;
-  }
-  .ppw-links-head h3 { margin: 0; color: var(--navy, #0e2140); font-size: 1.08rem; }
-  .ppw-links-head > p { margin: 0; color: var(--ink-soft, #596274); font-size: 0.78rem; font-weight: 750; }
-  .ppw-links ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.6rem;
-  }
-  .ppw-doc-link {
-    min-block-size: 52px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0.18rem 0.65rem;
-    padding: 0.65rem 0.78rem;
-    border: 1px solid color-mix(in srgb, var(--pp-accent) 25%, #d9dee7);
-    border-radius: 14px;
-    background: #fff;
-    color: color-mix(in srgb, var(--pp-accent) 72%, #142039);
-    text-decoration: underline;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 3px;
-    font-weight: 800;
-    box-shadow: 0 7px 18px rgb(20 29 45 / 0.05);
-    overflow: hidden;
-  }
-  .ppw-doc-link:hover { border-color: var(--pp-accent); box-shadow: 0 10px 22px rgb(20 29 45 / 0.1); }
-  .ppw-doc-link:focus-visible { outline: 3px solid var(--pp-accent); outline-offset: 2px; }
-  .ppw-link-name { min-inline-size: 0; }
-  .ppw-link-url {
-    grid-column: 1 / -1;
-    min-inline-size: 0;
-    direction: ltr;
-    text-align: left;
-    color: var(--ink-soft, #596274);
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-    font-size: 0.69rem;
-    font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .ppw-link-count {
-    grid-column: 2;
-    grid-row: 1;
-    border-radius: 999px;
-    padding: 0.14rem 0.48rem;
-    background: color-mix(in srgb, var(--pp-accent) 12%, #fff);
-    color: var(--ink-soft, #596274);
-    font-size: 0.65rem;
-    text-decoration: none;
-    white-space: nowrap;
-  }
 
   .ppw-pages {
     display: flex;
@@ -396,12 +340,47 @@ const preparedPages = document.pages.map((page) => ({
   }
   .ppw-cell:first-child { border-inline-end: 0; }
 
+
+  .ppw-cell-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.38rem;
+    margin-block-start: 0.5rem;
+  }
+
+  .ppw-cell-link {
+    display: inline-flex;
+    align-items: center;
+    max-inline-size: 100%;
+    min-block-size: 32px;
+    padding: 0.28rem 0.58rem;
+    border: 1px solid color-mix(in srgb, var(--pp-accent) 28%, #d9dee7);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--pp-accent) 6%, #fff);
+    color: color-mix(in srgb, var(--pp-accent) 76%, #142039);
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1.25;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+
+  .ppw-cell-link:hover {
+    border-color: var(--pp-accent);
+    background: color-mix(in srgb, var(--pp-accent) 11%, #fff);
+  }
+
+  .ppw-cell-link:focus-visible {
+    outline: 3px solid var(--pp-accent);
+    outline-offset: 2px;
+  }
+
   .ppw-noscript { padding: 0.8rem 1rem; border-radius: 12px; background: #fff7df; color: #59430f; }
 
   @media (max-width: 760px) {
     .ppw-head { grid-template-columns: 1fr; align-items: stretch; }
-    .ppw-links-head { align-items: start; flex-direction: column; }
-    .ppw-links ul { grid-template-columns: 1fr; }
     .ppw-row.is-grid { grid-template-columns: 1fr; }
     .ppw-cell { border-inline-end: 0; border-block-start: 1px solid #edf0f4; }
     .ppw-cell:first-child { border-block-start: 0; }

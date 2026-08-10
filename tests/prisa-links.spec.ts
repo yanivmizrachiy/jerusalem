@@ -1,7 +1,9 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
+import { prisaLinkCellMap } from '../src/data/prisa-link-cells.generated';
 import { prisaLinksContent } from '../src/data/prisa-links.generated';
+import { planPrisaContent } from '../src/data/plan-prisa-content.generated';
 
 const CASES = [
   { id: 'prisa-7', route: '/chativat-beynayim/reader/z/prisa-z/' },
@@ -35,6 +37,19 @@ const sourceUris = (pdf: string) => {
 test('כל 186 אנוטציות הקישור מארבע הפריסות נשמרו ללא יעד שהומצא', () => {
   expect(prisaLinksContent.totalOccurrences).toBe(186);
   expect(prisaLinksContent.uniqueAcrossDocuments).toBe(95);
+  expect(prisaLinkCellMap).toHaveLength(186);
+
+  for (const link of prisaLinkCellMap) {
+    const document = planPrisaContent.documents[link.document];
+    const page = document.pages.find((candidate) => candidate.page === link.page);
+    expect(page, `${link.document}: page ${link.page}`).toBeDefined();
+    const row = page?.rows[link.rowIndex];
+    expect(row, `${link.document}: row ${link.rowIndex}`).toBeDefined();
+    expect(
+      row?.cells[link.cellIndex],
+      `${link.document}: cell ${link.cellIndex}`,
+    ).toBeDefined();
+  }
 
   for (const entry of CASES) {
     const document = prisaLinksContent.documents[entry.id];
@@ -49,24 +64,65 @@ test('כל 186 אנוטציות הקישור מארבע הפריסות נשמר�
   }
 });
 
-test('ארבעת דפי הפריסה מציגים את כל הקישורים כעוגנים מודגשים וללא iframe', async ({ page }) => {
+test('כל 186 מופעי הקישור מוצגים בתוך התא המדויק שלהם וללא iframe', async ({ page }) => {
   for (const entry of CASES) {
     const document = prisaLinksContent.documents[entry.id];
+    const expected = prisaLinkCellMap
+      .filter((link) => link.document === entry.id)
+      .map((link) => ({
+        href: link.href,
+        page: link.page,
+        rowIndex: link.rowIndex,
+        cellIndex: link.cellIndex,
+      }));
+
+    expect(expected).toHaveLength(document.occurrenceCount);
+
+    const source = sourceUris(document.pdf);
+    const sourceCounts = new Map<string, number>();
+    const mappedCounts = new Map<string, number>();
+
+    for (const href of source) {
+      sourceCounts.set(href, (sourceCounts.get(href) ?? 0) + 1);
+    }
+
+    for (const link of expected) {
+      mappedCounts.set(link.href, (mappedCounts.get(link.href) ?? 0) + 1);
+    }
+
+    expect([...mappedCounts.entries()].sort()).toEqual(
+      [...sourceCounts.entries()].sort(),
+    );
+
     await page.goto(entry.route);
-    const links = page.locator('[data-prisa-links] a.ppw-doc-link');
-    await expect(links).toHaveCount(document.uniqueCount);
+
+    const links = page.locator('a[data-prisa-cell-link]');
+    await expect(links).toHaveCount(document.occurrenceCount);
+    await expect(page.locator('[data-prisa-links]')).toHaveCount(0);
     await expect(page.locator('.res-view iframe')).toHaveCount(0);
 
     const rendered = await links.evaluateAll((nodes) =>
       nodes.map((node) => ({
-        href: (node as HTMLAnchorElement).href,
+        href: node.getAttribute('href'),
+        page: Number(node.getAttribute('data-prisa-page')),
+        rowIndex: Number(node.getAttribute('data-prisa-row')),
+        cellIndex: Number(node.getAttribute('data-prisa-cell')),
         target: (node as HTMLAnchorElement).target,
         rel: (node as HTMLAnchorElement).rel,
         decoration: getComputedStyle(node).textDecorationLine,
         weight: Number.parseInt(getComputedStyle(node).fontWeight, 10),
       }))
     );
-    expect(rendered.map((link) => link.href)).toEqual(document.links.map((link) => link.href));
+
+    expect(
+      rendered.map(({ href, page, rowIndex, cellIndex }) => ({
+        href,
+        page,
+        rowIndex,
+        cellIndex,
+      })),
+    ).toEqual(expected);
+
     for (const link of rendered) {
       expect(link.target).toBe('_blank');
       expect(link.rel).toContain('noopener');
