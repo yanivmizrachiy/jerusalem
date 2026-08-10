@@ -19,6 +19,10 @@
  *   מגינה באמת על זיכרון הפונקציה ולא נבדקת רק אחרי שכל הגוף כבר נטען.
  * - **תוכן פרוקסי אינו תוכן קנוני של ירושלים**: כל תגובה מוצלחת שמועברת דרך
  *   השכבה המשותפת מקבלת `X-Robots-Tag` קשיח, בנוסף לחסימת `/api/` ב-robots.txt.
+ * - **הרשאות דפדפן רגישות סגורות כבר בכותרת**: תכונות שאינן נדרשות
+ *   להמחשות מתמטיות (מצלמה, מיקרופון, מיקום, חיישנים והתקני חומרה) חסומות
+ *   ב-`Permissions-Policy`. במכוון לא נחסמים scripts, fullscreen או clipboard,
+ *   כדי לא לשנות את חוזה ההטמעה והאינטראקציה הקיים.
  */
 
 /** הפעלים היחידים שהפרוקסי מעביר. כל השאר → 405. */
@@ -32,6 +36,22 @@ const MAX_BODY_BYTES = 1024 * 1024;
 
 /** מדיניות אינדוקס משותפת לכל תוכן שמוגש דרך הפרוקסים. */
 export const PROXY_ROBOTS_POLICY = 'noindex, nofollow, noarchive, nosnippet';
+
+/**
+ * Defense-in-depth למסמכים שמוגשים דרך פרוקסי צד-שלישי. הרשימה מצומצמת
+ * בכוונה ליכולות רגישות שאינן חלק מאפליקציות המתמטיקה; אין כאן חסימה של
+ * fullscreen או clipboard, שהממשק שלנו מאפשר במפורש.
+ */
+export const PROXY_PERMISSIONS_POLICY = [
+  'accelerometer=()',
+  'camera=()',
+  'geolocation=()',
+  'gyroscope=()',
+  'magnetometer=()',
+  'microphone=()',
+  'payment=()',
+  'usb=()',
+].join(', ');
 
 /**
  * כותרות בקשה שמועברות למקור. ‏range והמאמתים המותנים הם מה שהופך
@@ -170,7 +190,8 @@ export async function upstreamInit(request: Request, timeoutMs = 12_000): Promis
 
 /**
  * מעתיק לתגובה שלנו את כותרות הסמנטיקה של המקור (בלי set-cookie ובלי content-length)
- * ומקבע שהמשאב הפרוקסי אינו מועמד לאינדוקס כעמוד ירושלים.
+ * ומקבע שהמשאב הפרוקסי אינו מועמד לאינדוקס כעמוד ירושלים ושאינו מקבל
+ * הרשאות מכשיר רגישות שאינן נדרשות להמחשות.
  */
 export function copyResponseHeaders(upstream: Response, headers: Headers): Headers {
   for (const name of FORWARD_RESPONSE_HEADERS) {
@@ -178,6 +199,7 @@ export function copyResponseHeaders(upstream: Response, headers: Headers): Heade
     if (value) headers.set(name, value);
   }
   headers.set('x-robots-tag', PROXY_ROBOTS_POLICY);
+  headers.set('permissions-policy', PROXY_PERMISSIONS_POLICY);
   return headers;
 }
 
