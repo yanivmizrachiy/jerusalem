@@ -30,6 +30,18 @@ test.describe('תיקוני ניווט בעמודי השכבות', () => {
     const current = new URL(page.url());
     expect(current.pathname).toBe('/chativat-beynayim/kita-z/');
     expect(current.hash).toBe('#tichnun');
+
+    // ה-fragment חייב יעד DOM אמיתי — לא רק hash שנשאר ב-URL (Issue #68, P1 false-green):
+    // העוגן legacy יושב בתוך המקטע הקנוני "מה אנחנו מלמדים?" ולכן הדפדפן גולל אליו בפועל.
+    const legacyAnchor = page.locator('#ma-melamdim #tichnun');
+    await expect(legacyAnchor).toHaveCount(1);
+    await expect(page.locator('#ma-melamdim')).toBeVisible();
+
+    // אותו חוזה בכיתה ח׳ — פרק tichnun המנהלי מוגדר גם עבורה ב-choveret.ts
+    await page.goto('/chativat-beynayim/kita-h/#tichnun', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(250);
+    expect(new URL(page.url()).pathname).toBe('/chativat-beynayim/kita-h/');
+    await expect(page.locator('#ma-melamdim #tichnun')).toHaveCount(1);
   });
 
   test('פירורי הלחם בעמוד משאב אינם מכפילים את אותו מסלול (5.13)', async ({ page }) => {

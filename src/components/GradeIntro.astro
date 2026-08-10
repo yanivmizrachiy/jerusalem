@@ -43,6 +43,8 @@ const materialsCount = canonicalPublishedGradeCount(grade);
   </header>
 
   <section class="band band-teach" id="ma-melamdim" data-reveal aria-labelledby="ma-melamdim-title">
+    <!-- עוגן legacy: קישורי ‎#tichnun ששותפו בעבר חייבים יעד DOM אמיתי (Issue #68) -->
+    <span id="tichnun" class="legacy-anchor" aria-hidden="true"></span>
     <h2 class="band-title" id="ma-melamdim-title">מה אנחנו מלמדים?</h2>
 
     <div class="doc-row">
@@ -123,6 +125,8 @@ const materialsCount = canonicalPublishedGradeCount(grade);
 <style>
   .grade-intro { padding-block: 1.2rem 2.6rem; }
   .intro-head { max-width: 820px; margin-block: 0.8rem 1.4rem; }
+  /* עוגן חסר-נפח; היסט הגלילה מגיע מכלל ה-[id] הגלובלי */
+  .legacy-anchor { display: block; block-size: 0; }
 
   .grade-title {
     margin: 0;
