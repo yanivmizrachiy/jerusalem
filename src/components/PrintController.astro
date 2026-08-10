@@ -1,0 +1,112 @@
+---
+// RULES 8.13: printing is never immediate. The user explicitly chooses
+// color or grayscale first. Rendered once by Base; activates only on pages
+// that expose the canonical [data-resource-actions] board.
+---
+
+<template data-print-action-template>
+  <button
+    class="orb"
+    style="--orb-c:#5f7fa8; --orb-c2:#334d6d; --orb-i:560ms"
+    type="button"
+    data-action="print"
+    aria-label="הדפסת המשאב"
+    aria-haspopup="dialog"
+  >
+    <span class="orb-glow" aria-hidden="true"></span>
+    <span class="orb-face">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M7 8V4h10v4" />
+        <rect x="5" y="14" width="14" height="6" rx="1" />
+        <path d="M5 16H3V9.5A1.5 1.5 0 0 1 4.5 8h15A1.5 1.5 0 0 1 21 9.5V16h-2" />
+        <path d="M17 11h.01" />
+      </svg>
+    </span>
+    <span class="orb-label">הדפסה</span>
+  </button>
+</template>
+
+<dialog class="print-choice" data-print-dialog aria-label="אפשרויות הדפסה">
+  <form method="dialog" class="print-choice-card">
+    <h2>איך להדפיס?</h2>
+    <p>בחרו את גרסת ההדפסה המתאימה לנייר.</p>
+    <div class="print-choice-actions">
+      <button type="button" class="btn" data-print-mode-choice="color">הדפסה בצבע</button>
+      <button type="button" class="btn" data-print-mode-choice="bw">הדפסה בשחור־לבן</button>
+      <button type="submit" class="print-choice-cancel">ביטול</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-print-dialog]');
+  const template = document.querySelector<HTMLTemplateElement>('[data-print-action-template]');
+
+  if (dialog && template) {
+    document.querySelectorAll<HTMLElement>('[data-resource-actions]').forEach((board) => {
+      if (board.querySelector('[data-action="print"]')) return;
+      const action = template.content.firstElementChild?.cloneNode(true);
+      if (!(action instanceof HTMLElement)) return;
+      action.addEventListener('click', () => {
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', '');
+      });
+      board.append(action);
+    });
+
+    dialog.querySelectorAll<HTMLButtonElement>('[data-print-mode-choice]').forEach((choice) => {
+      choice.addEventListener('click', () => {
+        const mode = choice.dataset.printModeChoice;
+        if (mode !== 'color' && mode !== 'bw') return;
+        document.documentElement.dataset.printMode = mode;
+        dialog.close();
+        const clear = () => delete document.documentElement.dataset.printMode;
+        window.addEventListener('afterprint', clear, { once: true });
+        requestAnimationFrame(() => window.print());
+      });
+    });
+  }
+</script>
+
+<style is:global>
+  .print-choice {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 0;
+    color: var(--ink);
+    background: #fff;
+    box-shadow: 0 24px 70px rgb(31 41 61 / 0.28);
+    max-inline-size: min(92vw, 30rem);
+  }
+  .print-choice::backdrop { background: rgb(16 29 47 / 0.45); backdrop-filter: blur(3px); }
+  .print-choice-card { padding: 1.5rem; display: grid; gap: 0.85rem; }
+  .print-choice-card h2 { margin: 0; font-size: 1.35rem; }
+  .print-choice-card p { margin: 0; color: var(--ink-soft); }
+  .print-choice-actions { display: grid; gap: 0.65rem; margin-block-start: 0.35rem; }
+  .print-choice-cancel {
+    border: 0;
+    background: transparent;
+    color: var(--ink-soft);
+    min-block-size: 44px;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  @media print {
+    [data-print-dialog], [data-action="print"] { display: none !important; }
+    html[data-print-mode="color"] body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    html[data-print-mode="bw"] body {
+      filter: grayscale(1) contrast(1.08);
+      -webkit-print-color-adjust: economy;
+      print-color-adjust: economy;
+    }
+    html[data-print-mode="bw"] *,
+    html[data-print-mode="bw"] *::before,
+    html[data-print-mode="bw"] *::after {
+      text-shadow: none !important;
+    }
+  }
+</style>
