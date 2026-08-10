@@ -7,6 +7,7 @@
 import type { APIRoute } from 'astro';
 import { injectGuard, injectGoldScrollbar } from '../../../lib/proxyGuard';
 import { ProxyRequestError, copyResponseHeaders, isBodyless, upstreamInit } from '../../../lib/proxyHttp';
+import { applyDocumentSecurityHeaders, proxyErrorResponse } from '../../../lib/proxyResponse';
 
 export const prerender = false;
 
@@ -50,19 +51,16 @@ export const ALL: APIRoute = async ({ params, request }) => {
   try {
     upstream = await fetch(`${origin}${path}${search}`, init);
   } catch {
-    return new Response('המקור אינו זמין כרגע — נסו שוב בעוד רגע.', {
-      status: 502,
-      headers: { 'content-type': 'text/plain; charset=utf-8' },
-    });
+    // עמוד שגיאה מעוצב במקום טקסט חשוף בתוך המסגרת (RULES 8.8); המקור
+    // שנפל הוא יעד אמיתי ולכן מוצע לפתיחה ישירה
+    return proxyErrorResponse('המקור אינו זמין כרגע — נסו שוב בעוד רגע.', 502, `${origin}${path}${search}`);
   }
 
   // ה-allowlist חייב לחול גם על סוף שרשרת ההפניות. בודקים origin אמיתי,
   // לא startsWith: דומיין עוין ששם המארח שלו מתחיל בשם המותר אינו מורשה.
   if (upstream.url && new URL(upstream.url).origin !== allowedOrigin) {
-    return new Response('היעד הסופי אינו ברשימת ההיתר.', {
-      status: 502,
-      headers: { 'content-type': 'text/plain; charset=utf-8' },
-    });
+    // יעד שנדחה אינו מקבל קישור פתיחה — רק את עובדת הדחייה
+    return proxyErrorResponse('היעד הסופי אינו ברשימת ההיתר.', 502);
   }
 
   const headers = new Headers();
@@ -70,8 +68,14 @@ export const ALL: APIRoute = async ({ params, request }) => {
   headers.set('content-type', ct);
   copyResponseHeaders(upstream, headers);
 
-  // HEAD/204/304 נושאים כותרות בלבד — גוף כאן הוא תגובה פגומה
+  // HEAD/204/304 נושאים כותרות בלבד — גוף כאן הוא תגובה פגומה.
+  // מדיניות המסמך חלה גם כאן: ‏304 מעדכן את הכותרות השמורות במטמון
+  // (RFC 9111), ו-HEAD משקף את כותרות ה-GET — בלי זה revalidation של
+  // מסמך חוזר בלי frame-ancestors (304 לרוב מגיע בלי content-type, ולכן
+  // אין להתנות ב-ct). על נכסים הכותרות אינן פעילות — ההחלה בטוחה;
+  // מסלול ה-passthrough עם גוף אינו משתנה.
   if (isBodyless(request.method, upstream.status)) {
+    applyDocumentSecurityHeaders(headers);
     return new Response(null, { status: upstream.status, headers });
   }
 
@@ -91,6 +95,8 @@ export const ALL: APIRoute = async ({ params, request }) => {
     // משמר זמן-הריצה — חייב לרוץ לפני כל סקריפט של האפליקציה (proxyGuard.ts)
     html = injectGuard(html, base.slice(0, -1));
     html = injectGoldScrollbar(html);
+    // מסמך פרוקסי ממוסגר רק מהאתר שלנו (proxyResponse.ts)
+    applyDocumentSecurityHeaders(headers);
     return new Response(html, { status: upstream.status, headers });
   }
 
