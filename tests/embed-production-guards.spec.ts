@@ -144,7 +144,9 @@ const blockExternal = (p: import('@playwright/test').Page) =>
   );
 
 test.describe('שומר לוח הפעולות', () => {
-  test.use({ reducedMotion: 'reduce' });
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+  });
 
 for (const size of [
   { label: 'מחשב', width: 1440, height: 900 },
