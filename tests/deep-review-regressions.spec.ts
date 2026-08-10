@@ -1,8 +1,14 @@
+import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import { canonicalGrades } from '../src/data/canonical-content';
 import { publishableItems } from '../src/data/publishing';
 import { gradeMaterialsHref, itemHref } from '../src/data/choveret';
-import { ProxyRequestError, upstreamInit } from '../src/lib/proxyHttp';
+import {
+  PROXY_ROBOTS_POLICY,
+  ProxyRequestError,
+  copyResponseHeaders,
+  upstreamInit,
+} from '../src/lib/proxyHttp';
 
 const MAX_BODY_BYTES = 1024 * 1024;
 
@@ -15,6 +21,23 @@ const expectProxyStatus = async (promise: Promise<unknown>, status: number) => {
     expect((error as ProxyRequestError).response.status).toBe(status);
   }
 };
+
+test('proxy responses expose noindex headers and robots.txt does not block crawlers from seeing them', async () => {
+  const upstream = new Response('ok', {
+    status: 200,
+    headers: { etag: '"proxy-fixture"', 'cache-control': 'public, max-age=60' },
+  });
+  const headers = copyResponseHeaders(upstream, new Headers({ 'content-type': 'text/html' }));
+
+  expect(headers.get('x-robots-tag')).toBe(PROXY_ROBOTS_POLICY);
+  expect(headers.get('etag')).toBe('"proxy-fixture"');
+
+  // A robots.txt Disallow would prevent compliant crawlers from fetching the
+  // proxy response and therefore from observing the response-level noindex.
+  const robots = await readFile(new URL('../public/robots.txt', import.meta.url), 'utf8');
+  expect(robots).not.toMatch(/^Disallow: \/api\/$/m);
+  expect(robots).toMatch(/^Allow: \/$/m);
+});
 
 test('proxy rejects declared oversized POST before buffering the body', async () => {
   const request = new Request('https://proxy.test/', {

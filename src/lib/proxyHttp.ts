@@ -17,6 +17,9 @@
  * - **גוף חסום בגודל בזמן הקריאה**: ‏Content-Length גדול נדחה לפני buffering;
  *   כשאין length אמין, ה-stream נקרא בהדרגה ונקטע מיד אחרי 1MiB. כך התקרה
  *   מגינה באמת על זיכרון הפונקציה ולא נבדקת רק אחרי שכל הגוף כבר נטען.
+ * - **תוכן פרוקסי אינו תוכן קנוני של ירושלים**: כל תגובה מוצלחת שמועברת דרך
+ *   השכבה המשותפת מקבלת `X-Robots-Tag` קשיח; robots.txt מאפשר לסורקים להגיע
+ *   לתגובה כדי שיוכלו לציית ל-noindex ברמת התגובה.
  */
 
 /** הפעלים היחידים שהפרוקסי מעביר. כל השאר → 405. */
@@ -27,6 +30,9 @@ const BODYLESS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 /** תקרת גוף בקשה — 1MiB. הפרוקסי מגיש אתרים סטטיים; גוף גדול מזה אינו לגיטימי. */
 const MAX_BODY_BYTES = 1024 * 1024;
+
+/** מדיניות אינדוקס משותפת לכל תוכן שמוגש דרך הפרוקסים. */
+export const PROXY_ROBOTS_POLICY = 'noindex, nofollow, noarchive, nosnippet';
 
 /**
  * כותרות בקשה שמועברות למקור. ‏range והמאמתים המותנים הם מה שהופך
@@ -163,12 +169,16 @@ export async function upstreamInit(request: Request, timeoutMs = 12_000): Promis
   return init;
 }
 
-/** מעתיק לתגובה שלנו את כותרות הסמנטיקה של המקור (בלי set-cookie ובלי content-length). */
+/**
+ * מעתיק לתגובה שלנו את כותרות הסמנטיקה של המקור (בלי set-cookie ובלי content-length)
+ * ומקבע שהמשאב הפרוקסי אינו מועמד לאינדוקס כעמוד ירושלים.
+ */
 export function copyResponseHeaders(upstream: Response, headers: Headers): Headers {
   for (const name of FORWARD_RESPONSE_HEADERS) {
     const value = upstream.headers.get(name);
     if (value) headers.set(name, value);
   }
+  headers.set('x-robots-tag', PROXY_ROBOTS_POLICY);
   return headers;
 }
 
