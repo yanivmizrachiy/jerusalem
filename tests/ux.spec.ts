@@ -727,23 +727,9 @@ test('עמוד משאב מחוץ לסדר הקריאה: חזרה לאזור "מ�
   await expect(page.locator('.res-back')).toHaveAttribute('href', '/chativat-beynayim/kita-z/#ma-melamdim');
 });
 
-test('עמוד משאב במסך רחב: פס גלילה אחד — העמוד עצמו אינו נגלל (הוראת יניב, 06/08)', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  for (const route of [
-    '/chativat-beynayim/reader/z/misparim/', // אלגברה — סביבה אינטראקטיבית מוטמעת
-    PUBLIC_DOC_RESOURCE, // מסמך
-    '/chativat-beynayim/reader/z/maf-02/', // טווח מהחוזר
-  ]) {
-    await page.goto(route);
-    const scroll = await page.evaluate(
-      () => document.documentElement.scrollHeight - document.documentElement.clientHeight
-    );
-    expect(scroll, `${route}: העמוד גולל אנכית כדי להציג עמוד שלם`).toBeGreaterThanOrEqual(0);
-    // ההטמעה עדיין גדולה ושימושית, לא נמחצה כדי להיכנס
-    const view = (await page.locator('.res-view').boundingBox())!;
-    expect(view.height, `${route}: צד המשאב נשאר גבוה`).toBeGreaterThan(420);
-  }
-});
+// חוזה הגלילה של עמוד המשאב הרחב חי ב-tests/reader-single-scroll-contract.spec.ts:
+// אותם שלושה מסלולים, עם הוכחת התנהגות אמיתית (הגלילה פועלת, אין פס גלילה
+// פנימי בלוח, וההטמעה נשארת מעל 420px) במקום קביעת scrollHeight ≥ 0 שתמיד עברה.
 
 test('עמוד משאב בנייד: ההטמעה לפני ההסבר (8.6)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
