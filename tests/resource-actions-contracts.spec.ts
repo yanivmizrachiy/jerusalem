@@ -55,6 +55,11 @@ test('plan/prisa native HTML resources do not own a generic action board either'
   expect(ppw).not.toContain('<ResourceActions');
   expect(ppw).not.toContain('data-resource-actions');
   expect(ppw).not.toContain('class="orbs"');
+  // הקישור הרשמי של משרד החינוך נשמר כקישור פשוט לצד הורדת העותק המאומת
+  expect(ppw).toMatch(/href=\{sourceUrl\}[^>]*target="_blank"/);
+  expect(ppw).toMatch(/href=\{document\.pdf\}\s+download/);
+  const split = await source('src/components/ResourceSplit.astro');
+  expect(split).toMatch(/<PlanPrisaWeb[^>]*sourceUrl=\{item\.url\}/s);
 });
 
 test('iframe success is driven by a real load event, never a timeout false-green', async () => {
@@ -101,6 +106,13 @@ test('plan/prisa native HTML resource page renders with no action board', async 
   await expect(page.locator('[data-resource-actions]')).toHaveCount(0);
   // the native web-document reader itself still renders in its place
   await expect(page.locator('[data-plan-prisa-web]')).toHaveCount(1);
+  // המקור הרשמי של משרד החינוך וההורדה המקומית — שניהם חיים בלי הלוח הגנרי
+  const official = page.locator(
+    '[data-plan-prisa-web] a[href="https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/plan_7.pdf"]',
+  );
+  await expect(official).toHaveCount(1);
+  await expect(official).toHaveAttribute('target', '_blank');
+  await expect(page.locator('[data-plan-prisa-web] a[href="/docs/plan-7-tashpaz.pdf"][download]')).toHaveCount(1);
 });
 
 test('Mafmar section embedded in a resource page has no action board, keeps page navigation', async ({ page }) => {

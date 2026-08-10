@@ -4,11 +4,13 @@ import type { PlanPrisaDocument } from '../data/plan-prisa-web';
 interface Props {
   document: PlanPrisaDocument;
   accent: string;
+  /** הקישור הרשמי של משרד החינוך — נשאר גלוי גם כשהלוח הגנרי מוסתר */
+  sourceUrl: string;
 }
 
 type ReaderRow = { readonly text: string; readonly cells: readonly string[] };
 
-const { document, accent } = Astro.props;
+const { document, accent, sourceUrl } = Astro.props;
 const monthPattern = /(ספטמבר|אוקטובר|נובמבר|דצמבר|ינואר|פברואר|מרץ|אפריל|מאי|יוני|יולי|אוגוסט)/;
 const totalPattern = /(סה"כ|סה״כ|שעות|תחום אלגברי|תחום גאומטרי|תחום מספרי|אי ודאות)/;
 const rootId = `plan-prisa-${document.id}`;
@@ -44,7 +46,9 @@ const preparedPages = document.pages.map((page) => ({
       <h2>{document.label}</h2>
       <p class="ppw-meta">
         {document.pageCount} עמודים · כל המלל חולץ מהמסמך הרשמי תשפ״ז ·
-        <a class="ppw-source" href={document.pdf} download>PDF מקורי ↓</a>
+        <a class="ppw-source" href={sourceUrl} target="_blank" rel="noopener">מקור משרד החינוך ↗</a>
+        ·
+        <a class="ppw-source" href={document.pdf} download>PDF להורדה ↓</a>
       </p>
     </div>
     <label class="ppw-search">
