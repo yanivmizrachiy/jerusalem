@@ -3,7 +3,13 @@ import { expect, test } from '@playwright/test';
 
 const source = (path: string) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test.skip(({ isMobile }) => isMobile === true, 'action-board ownership contracts are device-independent');
+test.beforeEach(({ isMobile }, testInfo) => {
+  const mobileOnly = testInfo.title.includes('בנייד');
+  test.skip(
+    mobileOnly !== (isMobile === true),
+    mobileOnly ? 'רץ בפרויקט המובייל האמיתי בלבד' : 'חוזי action-board רצים בדסקטופ בלבד',
+  );
+});
 
 /**
  * Newest explicit requirement (הוראת יניב, 10/08/2026) supersedes the previous
@@ -95,12 +101,13 @@ test('ordinary resource page renders the shared action board', async ({ page }) 
   await expect(orbs.locator('[data-action="source"]')).toHaveCount(1);
 });
 
-test('plan/prisa native HTML resource page renders with no action board', async ({ page }) => {
+test('plan/prisa native HTML resource page renders with no action board and keeps both source links', async ({ page }) => {
   await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
   await expect(page.locator('.orbs')).toHaveCount(0);
   await expect(page.locator('[data-resource-actions]')).toHaveCount(0);
-  // the native web-document reader itself still renders in its place
   await expect(page.locator('[data-plan-prisa-web]')).toHaveCount(1);
+  await expect(page.locator('.res-official-source')).toHaveAttribute('href', /meyda\.education\.gov\.il/);
+  await expect(page.locator('.res-local-download')).toHaveAttribute('href', '/docs/plan-7-tashpaz.pdf');
 });
 
 test('Mafmar section embedded in a resource page has no action board, keeps page navigation', async ({ page }) => {
@@ -121,4 +128,13 @@ test('Mafmar full page has no action board, keeps part jumps, section jumps and 
   await expect(page.locator('.part-btn')).toHaveCount(4);
   await expect(page.locator('#pg-prev')).toHaveCount(1);
   await expect(page.locator('#pg-next')).toHaveCount(1);
+});
+
+test('בנייד חוזר מפמ״ר בהודעות שומר יחס A4 אמיתי', async ({ page }) => {
+  await page.goto('/hodaot/');
+  const ratio = await page.locator('.pdf-shell').evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return rect.width / rect.height;
+  });
+  expect(ratio).toBeCloseTo(595.32 / 841.92, 2);
 });
