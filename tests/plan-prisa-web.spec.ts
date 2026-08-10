@@ -42,7 +42,12 @@ test('שמונה מסמכי plan/prisa מחוברים ל-HTML מלא וה-PDF נ
     expect(document?.textLength).toBeGreaterThan(250);
     expect(document?.pages.length).toBe(document?.pageCount);
 
-    const allRows = document?.pages.flatMap((page) => page.rows) ?? [];
+    const allRows: Array<{ readonly text: string }> = [];
+    if (document) {
+      for (const page of document.pages) {
+        for (const row of page.rows) allRows.push(row);
+      }
+    }
     expect(allRows.length, `${entry.id}: חולצו שורות תוכן`).toBeGreaterThan(10);
     expect(allRows.every((row) => row.text.trim().length > 0)).toBe(true);
     expect(allRows.some((row) => /[א-ת]/.test(row.text)), `${entry.id}: קיים מלל עברי`).toBe(true);
