@@ -557,8 +557,8 @@ test('יחידות המשוואות והחפיפה נשמרו בתוך הנוש�
     //    ב-scripts/verify-deploy.mjs; מקומית נאכף מה שכן ניתן להוכיח —
     //    שאין יותר עמוד ביניים עם meta-refresh בכתובת הישנה.
     expect(LEGACY_REDIRECTS[legacy], `${legacy} רשום במקור התאימות`).toBe(topic);
-    const stale = await page.request.fetch(legacy, { redirect: 'manual' });
-    expect(stale.status(), `${legacy} אינו עוד עמוד 200`).toBe(404);
+    const stale = await page.request.fetch(legacy, { maxRedirects: 0 });
+    expect(stale.status(), `${legacy} הוא HTTP redirect אמיתי`).toBe(301);
 
     // 3. הנושא הקנוני חי — בלי נגן יחידה
     await page.goto(topic);

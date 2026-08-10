@@ -58,8 +58,8 @@ test('upper-secondary inner routes consolidate to the placeholder', async ({ pag
   for (const legacy of UPPER_SECONDARY_LEGACY) {
     expect(LEGACY_REDIRECTS[legacy], `${legacy} רשום במקור התאימות`).toBe('/chativa-elyona/');
 
-    const res = await page.request.fetch(legacy, { redirect: 'manual' });
-    expect(res.status(), `${legacy} אינו עוד עמוד ציבורי`).toBe(404);
+    const res = await page.request.fetch(legacy, { maxRedirects: 0 });
+    expect(res.status(), `${legacy} הוא HTTP redirect אמיתי`).toBe(301);
   }
 });
 

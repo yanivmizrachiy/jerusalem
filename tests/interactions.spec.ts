@@ -68,7 +68,7 @@ test('חפיפת משולשים: כתובת legacy מגיעה לנושא הקנ�
   expect(LEGACY_REDIRECTS['/chativat-beynayim/hafifat-meshulashim/']).toBe(
     '/chativat-beynayim/nose/h/h-congruent/'
   );
-  expect((await page.request.fetch('/chativat-beynayim/hafifat-meshulashim/', { redirect: 'manual' })).status()).toBe(404);
+  expect((await page.request.fetch('/chativat-beynayim/hafifat-meshulashim/', { maxRedirects: 0 })).status()).toBe(301);
 
   await page.goto('/chativat-beynayim/nose/h/h-congruent/');
   await expect(page.locator('h1.chapter-title')).toContainText('חפיפת משולשים');
@@ -100,7 +100,7 @@ test('כרטיסי צוות: קישורי WhatsApp ודוא״ל תקינים ו�
 
 test('משוואות: כתובת legacy מגיעה לנושא הקנוני וכל חומרי היחידה נשמרים', async ({ page }) => {
   expect(LEGACY_REDIRECTS['/chativat-beynayim/mishvaot/']).toBe('/chativat-beynayim/nose/z/z-equations/');
-  expect((await page.request.fetch('/chativat-beynayim/mishvaot/', { redirect: 'manual' })).status()).toBe(404);
+  expect((await page.request.fetch('/chativat-beynayim/mishvaot/', { maxRedirects: 0 })).status()).toBe(301);
 
   await page.goto('/chativat-beynayim/nose/z/z-equations/');
   await expect(page.locator('h1.chapter-title')).toContainText('משוואות');
