@@ -8,7 +8,7 @@ const ROUTES = [
 
 test.skip(({ isMobile }) => isMobile === true, 'wide-reader single-scroll contract is desktop-specific');
 
-test('wide reader has one document scrollbar, no nested panel scrollbar, and no horizontal overflow', async ({ page }) => {
+test('wide reader has one working document scrollbar, no nested panel scrollbar, and no horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
 
   for (const route of ROUTES) {
@@ -18,12 +18,29 @@ test('wide reader has one document scrollbar, no nested panel scrollbar, and no 
 
     const proof = await page.evaluate(() => {
       const root = document.documentElement;
+      const body = document.body;
       const panel = document.querySelector<HTMLElement>('.res-panel')!;
       const view = document.querySelector<HTMLElement>('.res-view')!;
       const panelStyle = getComputedStyle(panel);
+      const rootOverflowY = getComputedStyle(root).overflowY;
+      const bodyOverflowY = getComputedStyle(body).overflowY;
+      const maxScroll = root.scrollHeight - root.clientHeight;
+
+      // Prove the document scroll path is operational, not merely geometrically
+      // overflowing. Force instant scrolling only for this measurement and restore it.
+      const previousScrollBehavior = root.style.scrollBehavior;
+      root.style.scrollBehavior = 'auto';
+      window.scrollTo(0, Math.min(200, Math.max(0, maxScroll)));
+      const actualScrollY = window.scrollY;
+      window.scrollTo(0, 0);
+      root.style.scrollBehavior = previousScrollBehavior;
+
       return {
-        documentVerticalOverflow: root.scrollHeight - root.clientHeight,
+        documentVerticalOverflow: maxScroll,
         documentHorizontalOverflow: root.scrollWidth - root.clientWidth,
+        rootOverflowY,
+        bodyOverflowY,
+        actualScrollY,
         panelVerticalOverflow: panel.scrollHeight - panel.clientHeight,
         panelOverflowY: panelStyle.overflowY,
         viewHeight: view.getBoundingClientRect().height,
@@ -34,6 +51,18 @@ test('wide reader has one document scrollbar, no nested panel scrollbar, and no 
       proof.documentVerticalOverflow,
       `${route}: the browser document itself must provide the single vertical scroll path`,
     ).toBeGreaterThan(40);
+    expect(
+      ['hidden', 'clip'].includes(proof.rootOverflowY),
+      `${route}: the root element must not lock document scrolling`,
+    ).toBe(false);
+    expect(
+      ['hidden', 'clip'].includes(proof.bodyOverflowY),
+      `${route}: body must not leak a scroll lock`,
+    ).toBe(false);
+    expect(
+      proof.actualScrollY,
+      `${route}: window.scrollY must actually change when the document is scrolled`,
+    ).toBeGreaterThan(20);
     expect(
       ['auto', 'scroll'].includes(proof.panelOverflowY),
       `${route}: the information panel must not create a second scrollbar`,
