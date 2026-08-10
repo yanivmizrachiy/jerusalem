@@ -158,14 +158,15 @@ test('תוכנית הוראה ח׳ נפתחת בעמוד המשאב עם הקו�
   await page.goto('/chativat-beynayim/reader/h/tochnit-h/');
   await expect(page.locator('.res-panel .res-title')).toHaveText('תוכנית הוראה ח׳');
 
-  // הפעולות נבדקות לפי היעד האמיתי (8.4): הורדה מהעותק המאומת, מקור רשמי.
-  await expect(page.locator('.orbs a[download], .orbs a[href="/docs/plan-8-tashpaz.pdf"]').first())
-    .toHaveAttribute('href', '/docs/plan-8-tashpaz.pdf');
-  const sourceHref = await page
-    .locator('.orbs a[target="_blank"]')
-    .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
-  expect(
-    sourceHref.some((href) => href.endsWith('/tashpaz/plan_8.pdf')),
-    'פתיחה במקור מובילה לקובץ הרשמי של תשפ״ז'
-  ).toBe(true);
+  // תוכנית/פריסה היא מסמך אינטרנט טבעי (PlanPrisaWeb) בלי לוח פעולות גנרי
+  // (הוראת יניב, 10/08/2026, RULES 9.3.11, 3.32.1) — המקור הרשמי של משרד
+  // החינוך והעותק המאומת להורדה נשארים כשני קישורים פשוטים על גבי ה-HTML.
+  await expect(page.locator('.orbs')).toHaveCount(0);
+  const download = page.locator('.ppw-source[download]');
+  await expect(download).toHaveAttribute('href', '/docs/plan-8-tashpaz.pdf');
+  const official = page.locator('.ppw-source[target="_blank"]');
+  await expect(official).toHaveAttribute(
+    'href',
+    'https://meyda.education.gov.il/files/Pop/0files/matmatika/Chativat-Beynayim/tashpaz/plan_8.pdf',
+  );
 });
