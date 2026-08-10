@@ -145,16 +145,8 @@ test('needsReview אינו מקבל route reader פומבי', async ({ request }
 });
 
 test('כל המונים הציבוריים נגזרים מהקטלוג הקנוני שפורסם', async ({ page }) => {
-  await page.goto('/chativat-beynayim/');
-  for (const sourceGrade of choveret) {
-    const grade = canonicalGrade(sourceGrade);
-    const expected = canonicalPublishedGradeCount(grade);
-    await expect(
-      page.locator(`a.third[href="${gradeHref(grade.slug)}"] .third-count`),
-      `שער חטיבת הביניים — ${grade.slug}`
-    ).toContainText(`${expected} קבצים, קישורים ופעילויות`);
-  }
-
+  // כפתורי שער חט״ב אינם נושאים עוד מונים (3.26–3.27, 10/08/2026) —
+  // המונה הציבורי של כל שכבה חי בעמוד המבוא שלה בלבד.
   for (const sourceGrade of choveret) {
     const grade = canonicalGrade(sourceGrade);
     const expected = canonicalPublishedGradeCount(grade);
