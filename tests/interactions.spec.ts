@@ -40,25 +40,41 @@ test('הספירה לאחור אמיתית ומדויקת (7.20)', async ({ page
   await expect(page.locator('[data-countdown]')).toHaveText(expected, { timeout: 10_000 });
 });
 
-test('חוזר מפמ״ר: קפיצת MAF מעדכנת hash, סטטוס ו-iframe (9.3.11–9.3.12)', async ({ page }) => {
+test('חוזר מפמ״ר: קפיצת MAF מובילה לעוגן HTML אמיתי', async ({ page }) => {
   await page.goto('/hozer-mafmar/');
-  await page.locator('#MAF-13 [data-goto]').click();
+
+  const jump = page.locator('.sections-block a[href="#MAF-13"]').first();
+  await expect(jump).toHaveCount(1);
+
+  await jump.click();
   await expect(page).toHaveURL(/#MAF-13$/);
-  await expect(page.locator('#viewer-status')).toContainText('עמודים 11–12');
-  const src = await page.locator('#mafmar-frame').getAttribute('src');
-  expect(src).toContain('#page=11');
+
+  const anchor = page.locator('#MAF-13');
+  await expect(anchor).toHaveCount(1);
+
+  const belongsToPage = await anchor.evaluate(
+    (el) => Boolean(el.closest('[data-mafmar-page]'))
+  );
+  expect(belongsToPage).toBe(true);
+
+  await expect(
+    page.locator(
+      'iframe[src*="hozer-mafmar"], embed[src*="hozer-mafmar"], object[data*="hozer-mafmar"]'
+    )
+  ).toHaveCount(0);
 });
 
-test('MafmarRange: דפדוף כלוא לטווח המאומת', async ({ page }) => {
+test('MafmarRange: טווח מקומי נשאר כלוא למקטע ללא PDF viewer', async ({ page }) => {
   await page.goto('/chativat-beynayim/reader/t/maf-04/');
+
   const range = page.locator('#maf-04');
-  await range.scrollIntoViewIfNeeded();
-  const next = range.locator('[data-next]');
-  const prev = range.locator('[data-prev]');
-  await expect(prev).toBeDisabled();
-  await next.click();
-  await expect(range.locator('[data-ind]')).toHaveText(/עמוד 2 מתוך 2/);
-  await expect(next).toBeDisabled();
+  await expect(range).toHaveCount(1);
+  await expect(range.locator('[data-mafmar-web]')).toHaveCount(1);
+
+  const pages = await range.locator('[data-mafmar-page]').count();
+  expect(pages).toBeGreaterThan(0);
+
+  await expect(range.locator('iframe, embed, object')).toHaveCount(0);
 });
 
 test('חפיפת משולשים: כתובת legacy מגיעה לנושא הקנוני בלי עמוד ייעודי', async ({ page }) => {

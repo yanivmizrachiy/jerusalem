@@ -1,25 +1,25 @@
 ---
-/**
- * חוזר מפמ״ר תשפ״ז: ההטמעה המלאה היחידה של החוזר.
- * הפריסה משתמשת באותו חוזה עמוד משאב: צופה מימין ולוח מידע משמאל,
- * ובנייד הצופה קודם. אין לוח פעולות גנרי (ResourceActions) כאן —
- * הניווט הוא דפדוף עמודים, קפיצה לחלקים ולמקטעים (הוראת יניב, 10/08/2026).
- */
 import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import ArtBanner from '../components/ArtBanner.astro';
+import MafmarWeb from '../components/MafmarWeb.astro';
+
 import {
+  MAFMAR_LOCAL,
+  MAFMAR_URL,
   MAFMAR_TOTAL_PAGES,
   mafmarParts,
   mafmarSections,
   mafmarObsoletes,
-  MAFMAR_LOCAL,
-  MAFMAR_VIEW,
-  MAFMAR_PAGE_W,
-  MAFMAR_PAGE_H,
 } from '../data/mafmar';
 
-const partAccents = ['var(--olive)', 'var(--terracotta)', 'var(--sky)', 'var(--lilac)'];
+const partAccents = [
+  'var(--olive)',
+  'var(--terracotta)',
+  'var(--sky)',
+  'var(--lilac)',
+];
+
 const audiences = [
   { key: 'חט״ב', label: 'חטיבת ביניים', accent: 'var(--olive)' },
   { key: 'מעבר', label: 'המעבר לחטיבה העליונה', accent: 'var(--terracotta)' },
@@ -30,7 +30,7 @@ const audiences = [
 
 <Base
   title="חוזר מפמ״ר תשפ״ז — מחוז ירושלים"
-  description="חוזר המפמ״ר לשנת תשפ״ז — צפייה בעמוד מלא בחצי המסך ומידע בחציו השני, עם ניווט לארבעת החלקים ולכל אחד מ־23 המקטעים לפי טווח העמודים שלו."
+  description="חוזר המפמ״ר לשנת תשפ״ז כתוכן אינטרנט מלא, נגיש ולחיץ, עם 18 עמודים וניווט ל־23 המקטעים."
 >
   <div class="page">
     <Breadcrumbs
@@ -41,107 +41,70 @@ const audiences = [
       ]}
     />
 
-    <div class="res-split" data-reveal>
-      <aside class="res-panel">
-        <p class="res-eyebrow">מידע ומדיניות · תשפ״ז</p>
-        <h1 class="res-title">חוזר מפמ״ר</h1>
-        <p class="res-lede">
-          חוזר הפיקוח על הוראת המתמטיקה לשנת הלימודים תשפ״ז — {MAFMAR_TOTAL_PAGES}
-          עמודים בארבעה חלקים. דפדפו בחוזר שלצד, או קפצו לחלק ולמקטע מהמדריך שמתחת.
-        </p>
+    <header class="hero card-accent" style="--card-accent:var(--gold)" data-reveal>
+      <p class="eyebrow">מידע ומדיניות · תשפ״ז</p>
+      <h1>חוזר מפמ״ר</h1>
+      <p>
+        חוזר הפיקוח על הוראת המתמטיקה לשנת הלימודים תשפ״ז מוצג כאן
+        כתוכן אינטרנט מקומי מלא — {MAFMAR_TOTAL_PAGES} עמודים,
+        עם הקישורים המקוריים במקומם.
+      </p>
 
-        <p class="res-status" id="viewer-status" role="status" aria-live="polite">
-          מציג את החוזר המלא — {MAFMAR_TOTAL_PAGES} עמודים
-        </p>
-      </aside>
-
-      <div class="res-view">
-        <section class="viewer">
-          <div class="viewer-stage">
-            <div
-              class="viewer-shell embed-frame"
-              id="viewer-shell"
-              aria-busy="true"
-              style={`--pw:${MAFMAR_PAGE_W}; --ph:${MAFMAR_PAGE_H}`}
-            >
-              <iframe
-                id="mafmar-frame"
-                src={`${MAFMAR_LOCAL}#page=1&${MAFMAR_VIEW}`}
-                title="חוזר מפמ״ר תשפ״ז — המסמך המלא"
-                loading="lazy"
-              ></iframe>
-              <div class="viewer-skel" id="viewer-skel" aria-hidden="true">
-                <span class="viewer-skel-spin"></span>
-                <span class="viewer-skel-txt">טוען את החוזר…</span>
-              </div>
-            </div>
-            <div class="viewer-open-card embed-frame" id="viewer-open-card" hidden>
-              <p>בדפדפן הזה קובצי PDF נפתחים לצפייה במסך נפרד:</p>
-              <a class="btn btn-primary" id="open-card-link" href={MAFMAR_LOCAL} target="_blank" rel="noopener">
-                פתיחת החוזר ↗
-              </a>
-            </div>
-          </div>
-          <div class="viewer-pager" role="group" aria-label="דפדוף בחוזר">
-            <button class="btn vpg-prev" id="pg-prev" type="button">→ עמוד קודם</button>
-            <span class="vpg-counter" id="pg-counter" aria-live="polite">עמוד 1 מתוך {MAFMAR_TOTAL_PAGES}</span>
-            <button class="btn vpg-next" id="pg-next" type="button">עמוד הבא ←</button>
-          </div>
-        </section>
+      <div class="source-actions">
+        <a class="btn btn-primary" href={MAFMAR_URL} target="_blank" rel="noopener noreferrer">
+          מקור משרד החינוך ↗
+        </a>
+        <a class="btn btn-ghost" href={MAFMAR_LOCAL} download>
+          PDF להורדה ↓
+        </a>
       </div>
-    </div>
-
-    <header class="directory-head" data-reveal>
-      <h2>ניווט בחוזר</h2>
-      <p class="directory-note">קפצו לחלק או למקטע — ההטמעה שלמעלה תיפתח בעמוד המתאים.</p>
     </header>
 
     <nav class="part-jumps" aria-label="קפיצה לחלקי החוזר" data-reveal>
       {
-        mafmarParts.map((p, i) => (
-          <button
+        mafmarParts.map((part, index) => (
+          <a
             class="part-btn"
-            id={p.id}
-            style={`--part-accent:${partAccents[i]}`}
-            type="button"
-            data-goto={p.startPage}
-            data-frag={p.id}
-            data-label={`${p.title} — מעמוד ${p.startPage}`}
+            href={`#${part.id}`}
+            style={`--part-accent:${partAccents[index]}`}
           >
-            <span class="part-num">{i + 1}</span>
-            <span class="part-title">{p.title}</span>
-            <span class="part-page">מעמוד {p.startPage}</span>
-          </button>
+            <span class="part-num">{index + 1}</span>
+            <span>
+              <strong>{part.title}</strong>
+              <small>מעמוד {part.startPage}</small>
+            </span>
+          </a>
         ))
       }
     </nav>
 
+    <MafmarWeb canonical />
+
+    <header class="directory-head" data-reveal>
+      <h2>ניווט לפי נושאים</h2>
+      <p>כל 23 המקטעים מובילים לעוגן HTML אמיתי בתוך החוזר.</p>
+    </header>
+
     <section class="sections-block" aria-label="מקטעי החוזר לפי קהל">
       {
-        audiences.map((a) => (
+        audiences.map((audience) => (
           <div class="aud-group" data-reveal>
-            <h3 class="aud-title" style={`--aud-accent:${a.accent}`}>{a.label}</h3>
-            <ul class="maf-list">
+            <h3 style={`--aud-accent:${audience.accent}`}>{audience.label}</h3>
+            <ul>
               {mafmarSections
-                .filter((s) => s.audience === a.key)
-                .map((s) => (
-                  <li class="maf-item" id={s.id} style={`--aud-accent:${a.accent}`}>
-                    <button
-                      class="maf-btn"
-                      type="button"
-                      data-goto={s.startPage}
-                      data-frag={s.id}
-                      data-label={`${s.title} — עמודים ${s.startPage}–${s.endPage} מתוך חוזר מפמ״ר תשפ״ז`}
-                    >
-                      <span class="maf-id">{s.id}</span>
-                      <span class="maf-text">
-                        <span class="maf-title">{s.title}</span>
-                        <span class="maf-meta">
-                          עמודים {s.startPage}–{s.endPage} · מתוך חוזר מפמ״ר תשפ״ז
-                        </span>
-                        {s.note && <span class="maf-note">{s.note}</span>}
+                .filter((section) => section.audience === audience.key)
+                .map((section) => (
+                  <li>
+                    <a href={`#${section.id}`}>
+                      <span class="maf-id">{section.id}</span>
+                      <span>
+                        <strong>{section.title}</strong>
+                        <small>
+                          עמודים {section.startPage}–{section.endPage}
+                        </small>
+                        {section.note && <em>{section.note}</em>}
                       </span>
-                    </button>
+                    </a>
                   </li>
                 ))}
             </ul>
@@ -154,11 +117,11 @@ const audiences = [
       <h2>מה התבטל מהשנה שעברה</h2>
       <ul>
         {
-          mafmarObsoletes.map((o) => (
+          mafmarObsoletes.map((item) => (
             <li>
-              <button class="obs-btn" type="button" data-goto={o.page} data-frag="" data-label={`${o.fact} — עמוד ${o.page}`}>
-                {o.fact} <span class="obs-page">(עמ׳ {o.page})</span>
-              </button>
+              <a href={`#mafmar-page-${item.page}`}>
+                {item.fact} <span>(עמ׳ {item.page})</span>
+              </a>
             </li>
           ))
         }
@@ -185,422 +148,170 @@ const audiences = [
     padding-block: 1.2rem clamp(2.6rem, 5vw, 4rem);
   }
 
-  .res-split {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--embed-column-gap);
-    margin-block-start: clamp(1.4rem, 3vw, 2.4rem);
-    align-items: start;
-  }
-
-  .res-view { order: 1; min-inline-size: 0; }
-  .res-panel { order: 2; align-self: start; }
-
-  .res-panel {
-    padding: var(--embed-panel-padding);
-    border-radius: var(--embed-radius);
+  .hero {
+    margin-block: 1.2rem 1rem;
+    padding: clamp(1.1rem, 2.5vw, 1.8rem);
     border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
     background: #fff;
     box-shadow: var(--shadow-soft);
-    border-inline-start: 5px solid var(--gold);
   }
 
-  .res-eyebrow {
-    margin: 0 0 0.5rem;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--gold-deep);
-  }
-
-  .res-title {
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: clamp(1.6rem, 3vw, 2.3rem);
-    line-height: 1.12;
+  .hero h1 {
+    margin: 0.2rem 0 0;
     color: var(--navy);
-  }
-
-  .res-lede { margin: 1rem 0 0; color: var(--ink-soft); line-height: 1.75; }
-
-  .res-status {
-    margin: 0.9rem 0 0;
-    min-block-size: 1.2rem;
-    font-size: 0.9rem;
-    color: var(--gold-deep);
-    font-weight: 600;
-  }
-
-  .viewer { display: block; }
-
-  .viewer-stage {
-    position: relative;
-    scroll-margin-block-start: calc(var(--header-real-h, var(--header-h)) + 1.2rem);
-  }
-
-  .viewer-shell {
-    inline-size: 100%;
-    aspect-ratio: var(--pw) / var(--ph);
-    block-size: auto;
-    min-block-size: 0;
-    margin-inline: auto;
-  }
-
-  .viewer-shell iframe {
-    display: block;
-    border-radius: var(--embed-inner-radius);
-    background: #fff;
-    opacity: 0;
-    transition: opacity 460ms var(--ease);
-  }
-
-  .viewer-shell.is-loaded iframe { opacity: 1; }
-
-  .viewer-shell:fullscreen {
-    inline-size: 100%;
-    block-size: 100%;
-    aspect-ratio: auto;
-    border-radius: 0;
-    padding: 0;
-  }
-
-  .viewer-shell:fullscreen iframe { border-radius: 0; }
-
-  .viewer-skel {
-    position: absolute;
-    inset: var(--embed-pad);
-    border-radius: var(--embed-inner-radius);
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.85rem;
-    overflow: hidden;
-    background: linear-gradient(180deg, #fffdf9 0%, #fbf6ec 100%);
-    opacity: 1;
-    transition: opacity 420ms var(--ease);
-  }
-
-  .viewer-skel::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(110deg, transparent 30%, rgb(212 175 92 / 0.16) 48%, rgb(255 255 255 / 0.55) 50%, rgb(212 175 92 / 0.16) 52%, transparent 70%);
-    background-size: 220% 100%;
-    animation: viewer-shimmer 1.5s ease-in-out infinite;
-  }
-
-  .viewer-shell.is-loaded .viewer-skel { opacity: 0; }
-
-  .viewer-skel-spin {
-    position: relative;
-    z-index: 1;
-    inline-size: 44px;
-    block-size: 44px;
-    border-radius: 50%;
-    border: 3px solid rgb(212 175 92 / 0.26);
-    border-block-start-color: var(--gold-deep);
-    animation: viewer-spin 0.9s linear infinite;
-  }
-
-  .viewer-skel-txt {
-    position: relative;
-    z-index: 1;
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 0.92rem;
-    color: var(--gold-deep);
+    font-size: clamp(2rem, 5vw, 3.7rem);
   }
 
-  @keyframes viewer-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
-  @keyframes viewer-spin { to { transform: rotate(360deg); } }
-
-  @media (prefers-reduced-motion: reduce) {
-    .viewer-shell iframe { opacity: 1; transition: none; }
-    .viewer-skel { transition: none; }
-    .viewer-skel::before { animation: none; background: none; }
-    .viewer-skel-spin { animation: none; }
+  .hero > p:not(.eyebrow) {
+    max-inline-size: 850px;
+    color: var(--ink-soft);
+    line-height: 1.75;
   }
 
-  .viewer-open-card {
+  .source-actions,
+  .back-nav {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    inline-size: 100%;
-    min-block-size: min(70svh, 640px);
-    padding: clamp(1.4rem, 4vw, 2.4rem);
-    text-align: center;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-block-start: 1rem;
   }
-
-  .viewer-open-card p { margin: 0; color: var(--ink-soft); }
-
-  .viewer-pager {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.8rem;
-    padding-block-start: 0.9rem;
-  }
-
-  .viewer-pager button {
-    flex: 1;
-    max-inline-size: 220px;
-    min-block-size: 50px;
-    border: 0;
-    color: #fff;
-    font-weight: 700;
-    font-size: 1rem;
-  }
-
-  .vpg-prev {
-    background: linear-gradient(180deg, #8e2740 0%, #7a1f33 100%);
-    box-shadow: 0 8px 20px -10px rgb(122 31 51 / 0.7);
-  }
-
-  .vpg-next {
-    background: linear-gradient(180deg, #0f6b3a 0%, #0b5d31 100%);
-    box-shadow: 0 8px 20px -10px rgb(11 93 49 / 0.7);
-  }
-
-  .vpg-counter { font-weight: 800; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-
-  .directory-head {
-    margin-block-start: clamp(2.6rem, 6vw, 4rem);
-    padding-block-start: clamp(1.6rem, 3vw, 2.4rem);
-    border-block-start: 1px solid var(--line);
-  }
-
-  .directory-head h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 1.8rem); color: var(--navy); }
-  .directory-note { margin: 0.5rem 0 0; color: var(--ink-soft); }
 
   .part-jumps {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
-    gap: 0.9rem;
-    margin-block-start: clamp(1.2rem, 2.6vw, 1.8rem);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-block: 1rem 1.2rem;
   }
 
   .part-btn {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.2rem;
-    padding: 1rem 1.1rem;
-    background: #fff;
-    border: 1px solid var(--line);
-    border-block-start: 4px solid var(--part-accent);
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-family: var(--font-body);
-    text-align: start;
-    transition: transform 300ms var(--ease), box-shadow 300ms var(--ease);
+    align-items: center;
+    gap: 0.65rem;
+    min-block-size: 76px;
+    padding: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--part-accent) 35%, var(--line));
+    border-radius: 15px;
+    color: var(--navy);
+    background: color-mix(in srgb, var(--part-accent) 8%, #fff);
+    text-decoration: none;
   }
-
-  .part-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
 
   .part-num {
-    font-family: var(--font-display);
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: color-mix(in srgb, var(--part-accent) 62%, #101a2e);
+    display: grid;
+    place-items: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    color: #fff;
+    background: var(--part-accent);
+    font-weight: 900;
   }
 
-  .part-title { font-weight: 700; font-size: 1.05rem; color: var(--ink); }
-  .part-page { font-size: 0.85rem; color: var(--ink-faint); }
-
-  .part-btn.is-active {
-    border-color: var(--part-accent);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--part-accent) 35%, transparent);
+  .part-btn strong,
+  .part-btn small {
+    display: block;
   }
 
-  .sections-block { margin-block-start: clamp(2rem, 4vw, 2.8rem); }
-  .aud-group { margin-block-end: 2rem; }
-  .aud-title {
-    font-size: 1.2rem;
-    margin-block-end: 0.9rem;
-    padding-inline-start: 0.8rem;
-    border-inline-start: 4px solid var(--aud-accent);
+  .part-btn small {
+    margin-block-start: 0.15rem;
+    color: var(--ink-soft);
   }
 
-  .maf-list {
-    list-style: none;
+  .directory-head {
+    margin-block: 2rem 0.8rem;
+  }
+
+  .directory-head p {
+    color: var(--ink-soft);
+  }
+
+  .sections-block {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .aud-group {
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+  }
+
+  .aud-group h3 {
+    margin: 0 0 0.65rem;
+    padding-inline-start: 0.6rem;
+    border-inline-start: 5px solid var(--aud-accent);
+    color: var(--navy);
+  }
+
+  .aud-group ul,
+  .obsolete ul {
+    display: grid;
+    gap: 0.48rem;
     margin: 0;
     padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
-    gap: 0.8rem;
+    list-style: none;
   }
 
-  .maf-btn {
+  .aud-group a {
     display: flex;
-    gap: 0.8rem;
-    inline-size: 100%;
-    padding: 0.95rem 1rem;
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-family: var(--font-body);
-    text-align: start;
-    transition: transform 300ms var(--ease), box-shadow 300ms var(--ease), border-color 300ms var(--ease);
-  }
-
-  .maf-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-soft);
-    border-color: color-mix(in srgb, var(--line) 30%, var(--aud-accent) 70%);
-  }
-
-  .maf-item.is-active .maf-btn {
-    border-color: var(--aud-accent);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--aud-accent) 35%, transparent);
+    gap: 0.65rem;
+    padding: 0.65rem;
+    border-radius: 12px;
+    color: var(--ink);
+    background: var(--paper-soft);
+    text-decoration: none;
   }
 
   .maf-id {
-    flex: none;
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    color: color-mix(in srgb, var(--aud-accent) 62%, #101a2e);
-    padding-block-start: 0.2rem;
+    flex: 0 0 auto;
+    color: var(--gold-deep);
+    font-size: 0.78rem;
+    font-weight: 900;
   }
 
-  .maf-text { display: flex; flex-direction: column; gap: 0.25rem; }
-  .maf-title { font-weight: 700; color: var(--ink); line-height: 1.4; }
-  .maf-meta { font-size: 0.82rem; color: var(--ink-faint); }
-  .maf-note { font-size: 0.84rem; color: var(--ink-soft); }
+  .aud-group strong,
+  .aud-group small,
+  .aud-group em {
+    display: block;
+  }
+
+  .aud-group small,
+  .aud-group em {
+    margin-block-start: 0.18rem;
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+  }
 
   .obsolete {
-    margin-block-start: clamp(2.4rem, 5vw, 3.4rem);
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    padding: clamp(1.4rem, 3vw, 2rem);
+    margin-block-start: 1rem;
+    padding: 1rem;
+    border-radius: 18px;
   }
 
-  .obsolete h2 { font-size: 1.3rem; margin-block-end: 1rem; }
-  .obsolete ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.55rem; }
-
-  .obs-btn {
-    background: none;
-    border: 0;
-    padding: 0.35rem 0;
-    font: inherit;
-    color: var(--ink-soft);
-    cursor: pointer;
-    text-align: start;
-    border-block-end: 1px dashed transparent;
+  .obsolete a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
   }
 
-  .obs-btn:hover { color: var(--terracotta); }
-  .obs-page { color: var(--ink-faint); font-size: 0.85rem; }
-
-  .back-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    margin-block: 2.4rem clamp(2rem, 4vw, 3rem);
+  @media (max-width: 900px) {
+    .part-jumps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
-  @media (max-width: 1099px) {
-    .res-split { grid-template-columns: 1fr; gap: clamp(1.4rem, 4vw, 2.2rem); }
-    .viewer-pager { justify-content: center; }
+  @media (max-width: 520px) {
+    .part-jumps {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* MAFMAR-AA-PART-NUM */
+  .part-num {
+    color: #111827;
   }
 </style>
-
-<script>
-  import { MAFMAR_LOCAL, MAFMAR_VIEW, MAFMAR_TOTAL_PAGES } from '../data/mafmar';
-
-  const frame = document.getElementById('mafmar-frame') as HTMLIFrameElement;
-  const status = document.getElementById('viewer-status')!;
-  const shell = document.getElementById('viewer-shell')!;
-  const skel = document.getElementById('viewer-skel')!;
-  const openCard = document.getElementById('viewer-open-card') as HTMLElement;
-  const openLink = document.getElementById('open-card-link') as HTMLAnchorElement;
-
-  const pageSrc = (page: number) => `${MAFMAR_LOCAL}#page=${page}&${MAFMAR_VIEW}`;
-
-  const aimOpenCard = (page: number) => {
-    openLink.href = `${MAFMAR_LOCAL}#page=${page}`;
-    openLink.textContent = page > 1 ? `פתיחת החוזר בעמוד ${page} ↗` : 'פתיחת החוזר ↗';
-  };
-
-  const stage = document.querySelector<HTMLElement>('.viewer-stage')!;
-  const pager = document.querySelector<HTMLElement>('.viewer-pager')!;
-  const hasPdfViewer = !('pdfViewerEnabled' in navigator) || navigator.pdfViewerEnabled === true;
-  if (!hasPdfViewer) {
-    shell.hidden = true;
-    shell.setAttribute('aria-busy', 'false');
-    pager.hidden = true;
-    openCard.hidden = false;
-    skel.remove();
-    status.textContent = `החוזר נפתח לצפייה במסך נפרד — ${MAFMAR_TOTAL_PAGES} עמודים`;
-  }
-
-  // הצלחת טעינה נקבעת רק אחרי load אמיתי. אין timeout שמייצר false green.
-  frame.addEventListener('load', () => {
-    shell.classList.add('is-loaded');
-    shell.setAttribute('aria-busy', 'false');
-  });
-
-  let curPage = 1;
-  const TOTAL = MAFMAR_TOTAL_PAGES;
-  const pgPrev = document.getElementById('pg-prev') as HTMLButtonElement;
-  const pgNext = document.getElementById('pg-next') as HTMLButtonElement;
-  const pgCounter = document.getElementById('pg-counter')!;
-
-  const paintPager = () => {
-    pgCounter.textContent = `עמוד ${curPage} מתוך ${TOTAL}`;
-    pgPrev.disabled = curPage <= 1;
-    pgNext.disabled = curPage >= TOTAL;
-  };
-
-  const goto = (page: number, frag: string, label: string) => {
-    curPage = page;
-    paintPager();
-    frame.src = pageSrc(page);
-    aimOpenCard(page);
-    status.textContent = hasPdfViewer ? `מציג: ${label}` : `נבחר: ${label}`;
-    document
-      .querySelectorAll('.maf-item.is-active, .part-btn.is-active')
-      .forEach((el) => el.classList.remove('is-active'));
-    if (frag) {
-      history.replaceState(null, '', `#${frag}`);
-      document.getElementById(frag)?.classList.add('is-active');
-    } else {
-      history.replaceState(null, '', location.pathname);
-    }
-    stage.scrollIntoView({ block: 'start' });
-  };
-
-  document.querySelectorAll<HTMLButtonElement>('[data-goto]').forEach((btn) => {
-    btn.addEventListener('click', () =>
-      goto(Number(btn.dataset.goto), btn.dataset.frag ?? '', btn.dataset.label ?? '')
-    );
-  });
-
-  const flipTo = (n: number) => {
-    if (n < 1 || n > TOTAL) return;
-    curPage = n;
-    frame.src = pageSrc(n);
-    aimOpenCard(n);
-    paintPager();
-  };
-  pgPrev.addEventListener('click', () => flipTo(curPage - 1));
-  pgNext.addEventListener('click', () => flipTo(curPage + 1));
-  paintPager();
-
-  const frag = decodeURIComponent(location.hash.slice(1));
-  if (frag) {
-    const esc = CSS.escape(frag);
-    const target = document.querySelector<HTMLButtonElement>(
-      `#${esc}[data-goto], #${esc} [data-goto]`
-    );
-    if (target) {
-      goto(Number(target.dataset.goto), frag, target.dataset.label ?? '');
-      document.getElementById(frag)?.scrollIntoView({ behavior: 'auto', block: 'center' });
-    }
-  }
-</script>

@@ -1320,7 +1320,6 @@ test('כל ההטמעות חולקות את אותה מסגרת (.embed-frame) �
     ['/chativat-beynayim/reader/z/amat-tashpaz/', '.res-frame'],
     ['/chativat-beynayim/', '.mam-frame'],
     ['/chativat-beynayim/reader/z/misparim/', '.res-frame'],
-    ['/hozer-mafmar/', '.viewer-shell'],
   ] as const) {
     await page.goto(route);
     const el = page.locator(sel).first();
@@ -1387,202 +1386,78 @@ test('בנייד: ההטמעה ראשונה, בלי גלילה אופקית וב
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-/* ===== חוזר מפמ״ר: מסך מחולק (החוזר מימין, פעולות משמאל), מדריך ניווט
-   מתחת, התמונה אחרונה (הוראת יניב, 06/08/2026) ===== */
+/* ===== חוזר מפמ״ר: מסמך HTML מקומי מלא — RULES 9.3.26 ===== */
 
-test('חוזר מפמ״ר: החוזר עצמו למעלה — לפני כפתורי הקפיצה, המקטעים והתמונה', async ({ page }) => {
-  await page.addInitScript(() =>
-    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
-  );
+test('חוזר מפמ״ר: ארבעת החלקים לפני המסמך, והמקטעים אחריו', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/hozer-mafmar/');
 
-  const y = async (sel: string) => (await page.locator(sel).first().boundingBox())!.y;
-  const viewer = await y('.viewer');
-  const jumps = await y('.part-jumps');
+  const y = async (selector: string) =>
+    (await page.locator(selector).first().boundingBox())!.y;
+
+  const parts = await y('.part-jumps');
+  const web = await y('[data-mafmar-web]');
   const sections = await y('.sections-block');
   const banner = await y('.art-banner');
 
-  expect(viewer, 'החוזר מוצג לפני כפתורי הקפיצה').toBeLessThan(jumps);
-  expect(jumps, 'כפתורי הקפיצה לפני אינדקס המקטעים').toBeLessThan(sections);
-  expect(banner, 'התמונה הכי למטה — אחרי כל שאר התוכן').toBeGreaterThan(sections);
+  expect(parts).toBeLessThan(web);
+  expect(web).toBeLessThan(sections);
+  expect(banner).toBeGreaterThan(sections);
+
   const last = await page.evaluate(() => {
-    const kids = [...document.querySelectorAll('.page > *')];
-    return kids[kids.length - 1]?.className ?? '';
+    const children = [...document.querySelectorAll('.page > *')];
+    return children.at(-1)?.className ?? '';
   });
-  expect(last, 'התמונה היא הרכיב האחרון בעמוד').toContain('art-banner');
+
+  expect(last).toContain('art-banner');
 });
 
-test('חוזר מפמ״ר: מסך מחולק 50/50 — החוזר מימין, לוח הפעולות משמאל, עמוד שלם ביחס A4 (8.2)', async ({ page }) => {
-  // ה-Chromium של הבדיקות מדווח pdfViewerEnabled=false; כאן נמדד מסלול
-  // הדפדפן האמיתי עם מציג PDF, שבו ההטמעה חיה.
-  await page.addInitScript(() =>
-    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
-  );
-  for (const size of [
-    { width: 1440, height: 900 },
-    { width: 1920, height: 1080 },
-  ]) {
-    await page.setViewportSize(size);
-    await page.goto('/hozer-mafmar/');
-    await expect(page.locator('#viewer-open-card')).toBeHidden();
-    await expect(page.locator('#viewer-shell')).toBeVisible();
-    // הפריסה מתייצבת לפני המדידה: גופנים + שני frames של rAF (יחס ה-A4
-    // נגזר מהרוחב, ופס גלילה אנכי עלול לצוץ אחרי הפריסה הראשונה)
-    await page.evaluate(
-      () =>
-        document.fonts.ready.then(
-          () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
-        )
-    );
-
-    // מדידה אטומית אחת (הוראת יניב, 06/08/2026). `.res-split` בעמוד הזה נושא
-    // `data-reveal`, שמנפיש על ההורה של שני החצאים `translateY(26px) → 0` למשך
-    // 700ms. ארבע קריאות `boundingBox()` נפרדות הן ארבע פניות פרוטוקול, ותחת
-    // `--workers=4` ההורה זז ביניהן — כך נולד הפרש מדומה של עד ~8px בין
-    // `view.y` ל-`panel.y` בלי שום תזוזה אמיתית בפריסה (נמדד: ההורה ב-
-    // `matrix(1,0,0,1,0,6.60–8.17)` ברגע המדידה; הכשלים היו 3.005 / 4.515 / 7.343).
-    // קריאה אחת מודדת את ארבעתן באותו frame, ולכן תזוזת ההורה משותפת ומתבטלת.
-    // הסובלנות נשארה `<= 3` — החוזה לא הוחלש, רק הוסר ארטיפקט הדגימה.
-    // אין להמתין ל-`document.getAnimations()` כאן: באתר יש אנימציות אינסופיות
-    // (`logo-spin`, פס התקדמות הגלילה, טבעת/הילת האורבים) וההמתנה לא תסתיים.
-    const { view, panel, shell, frame } = await page.evaluate(() => {
-      const rect = (sel: string) => {
-        const { x, y, width, height } = document.querySelector(sel)!.getBoundingClientRect();
-        return { x, y, width, height };
-      };
-      return {
-        view: rect('.res-view'),
-        panel: rect('.res-panel'),
-        shell: rect('#viewer-shell'),
-        frame: rect('#mafmar-frame'),
-      };
-    });
-
-    // חצי-חצי מדויק: שתי העמודות שוות ברוחב ומתחילות באותו קו עליון
-    expect(Math.abs(view.width - panel.width), `${size.width}: שני הצדדים שווים ברוחב`).toBeLessThanOrEqual(3);
-    expect(Math.abs(view.y - panel.y), `${size.width}: שני הצדדים באותו קו עליון`).toBeLessThanOrEqual(3);
-    // ב-RTL ההטמעה בצד ימין (x גדול יותר) והפעולות משמאל
-    expect(view.x, `${size.width}: ההטמעה בצד ימין`).toBeGreaterThan(panel.x);
-
-    // עמוד שלם ביחס A4 אמיתי של המסמך (595.32×841.92) — לא חלק ממנו
-    const ratio = shell.height / shell.width;
-    expect(ratio, `${size.width}: מסגרת הצפייה ביחס העמוד`).toBeGreaterThan(1.36);
-    expect(ratio, `${size.width}: מסגרת הצפייה ביחס העמוד`).toBeLessThan(1.47);
-    expect(shell.height, `${size.width}: העמוד גדול ושימושי`).toBeGreaterThan(520);
-
-    // ההטמעה ממלאת את המסגרת — בלי מסגרת בתוך מסגרת
-    expect(shell.width - frame.width, `${size.width}: ה-iframe ממלא את המסגרת`).toBeLessThanOrEqual(20);
-    expect(shell.height - frame.height, `${size.width}: ה-iframe ממלא את המסגרת`).toBeLessThanOrEqual(20);
-  }
-});
-
-test('חוזר מפמ״ר: בלי מציג PDF — כרטיס פתיחה אמיתי, בלי מסגרת ריקה ובלי דפדוף מדומה (8.8)', async ({ page }) => {
-  await page.addInitScript(() =>
-    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => false, configurable: true })
-  );
-  await page.setViewportSize({ width: 1440, height: 900 });
+test('חוזר מפמ״ר: 18 עמודים ו-58 קישורים ללא PDF viewer', async ({ page }) => {
   await page.goto('/hozer-mafmar/');
-  await expect(page.locator('#viewer-shell'), 'בלי מסגרת ריקה').toBeHidden();
-  await expect(page.locator('.viewer-pager'), 'בלי דפדוף שאין לו מה לדפדף').toBeHidden();
-  const card = page.locator('#viewer-open-card');
-  await expect(card).toBeVisible();
-  expect((await card.boundingBox())!.height, 'הכרטיס נוכח ואינו פס דק').toBeGreaterThan(300);
-  // קפיצה למקטע מכוונת את הכרטיס לעמוד הנכון
-  await page.locator('#MAF-13 [data-goto]').click();
-  await expect(page.locator('#open-card-link')).toHaveAttribute('href', /#page=11$/);
+
+  await expect(page.locator('[data-mafmar-web]')).toHaveCount(1);
+  await expect(page.locator('[data-mafmar-page]')).toHaveCount(18);
+  await expect(page.locator('[data-mafmar-link]')).toHaveCount(58);
+
+  await expect(
+    page.locator(
+      'iframe[src*="hozer-mafmar"], embed[src*="hozer-mafmar"], object[data*="hozer-mafmar"]'
+    )
+  ).toHaveCount(0);
 });
 
-test('חוזר מפמ״ר: דפדוף אמיתי עמוד-עמוד, בלי סרגל ה-PDF של הדפדפן (8.26)', async ({ page }) => {
-  await page.addInitScript(() =>
-    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
-  );
+test('חוזר מפמ״ר: ארבעה חלקים ו-23 מקטעים הם deep links אמיתיים', async ({ page }) => {
   await page.goto('/hozer-mafmar/');
-  const frame = page.locator('#mafmar-frame');
-  const prev = page.locator('#pg-prev');
-  const next = page.locator('#pg-next');
 
-  await expect(prev, 'בעמוד הראשון אין "קודם"').toBeDisabled();
-  await expect(page.locator('#pg-counter')).toHaveText(/עמוד 1 מתוך 18/);
-  await next.click();
-  await expect(frame).toHaveAttribute('src', /#page=2&/);
-  await expect(page.locator('#pg-counter')).toHaveText(/עמוד 2 מתוך 18/);
-  await expect(prev).toBeEnabled();
-  await expect(frame, 'בלי סרגל PDF שחור ובלי חלונית ניווט').toHaveAttribute(
-    'src',
-    /toolbar=0&navpanes=0/
-  );
-});
+  await expect(page.locator('[data-mafmar-part-anchor]')).toHaveCount(4);
+  await expect(page.locator('[data-mafmar-section-anchor]')).toHaveCount(23);
 
-test('חוזר מפמ״ר: אין כיתובי דמו בטקסט הגלוי (8.25, 8.26)', async ({ page }) => {
-  await page.addInitScript(() =>
-    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
-  );
-  await page.goto('/hozer-mafmar/');
-  const text = (await page.locator('main').innerText()).replace(/\s+/g, ' ');
-  // בדיוק המילים ש-8.25 אוסר בטקסט גלוי, ועוד שרידי הניסוח שנמחק
-  for (const banned of [
-    'מאומת', 'מאומתים', 'אומתו', 'בדוקים', 'רשמיים', 'נכרה ואומת',
-    'מחליף:', 'עותק מאומת', 'מקור האמת', 'Lorem', 'TODO', 'משאבים',
-  ]) {
-    expect(text, `כיתוב דמו על המסך: ${banned}`).not.toContain(banned);
-  }
-  // שלד הטעינה וכרטיס הפתיחה לא גונבים חצי עמוד כשיש מציג PDF
-  const leaked = await page.evaluate(
-    () =>
-      [...document.querySelectorAll('#viewer-open-card[hidden]')].filter(
-        (el) => getComputedStyle(el).display !== 'none'
-      ).length
-  );
-  expect(leaked, 'כרטיס הפתיחה מוסתר באמת כשיש מציג PDF').toBe(0);
-});
+  const links = page.locator('.part-btn[href^="#part-"]');
+  await expect(links).toHaveCount(4);
 
-test('חוזר מפמ״ר: קפיצה למקטע לא נבלעת מתחת לכותרת הדביקה (5.17)', async ({ page }) => {
-  await page.addInitScript(() =>
-    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
-  );
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/hozer-mafmar/');
-  await page.locator('#MAF-13 [data-goto]').click();
+  const maf = page.locator('.sections-block a[href="#MAF-13"]').first();
+  await expect(maf).toHaveCount(1);
+
+  await maf.click();
   await expect(page).toHaveURL(/#MAF-13$/);
-  const geo = await page.evaluate(() => ({
-    header: document.querySelector('header')!.getBoundingClientRect().bottom,
-    stage: document.querySelector('.viewer-stage')!.getBoundingClientRect().top,
+  await expect(page.locator('#MAF-13')).toHaveCount(1);
+});
+
+test('חוזר מפמ״ר: בנייד אין גלילה אופקית', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/hozer-mafmar/');
+
+  const overflow = await page.evaluate(() => ({
+    html:
+      document.documentElement.scrollWidth -
+      document.documentElement.clientWidth,
+    body:
+      document.body.scrollWidth -
+      document.body.clientWidth,
   }));
-  expect(geo.stage, 'ראש ההטמעה נשאר מתחת לכותרת הדביקה').toBeGreaterThanOrEqual(geo.header - 1);
-});
 
-test('חוזר מפמ״ר: כפתורי החלקים נושאים עוגן אמיתי וקישור משותף משחזר אותם (9.3.12)', async ({ page }) => {
-  await page.addInitScript(() =>
-    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true })
-  );
-  await page.goto('/hozer-mafmar/');
-  const parts = page.locator('.part-btn');
-  await expect(parts).toHaveCount(4);
-  for (let i = 0; i < 4; i++) {
-    await expect(parts.nth(i), 'לכל חלק יש id — אחרת ה-hash מצביע לשומקום').toHaveAttribute('id', `part-${i + 1}`);
-  }
-  await parts.nth(1).click();
-  await expect(page).toHaveURL(/#part-2$/);
-  await expect(page.locator('#part-2'), 'החלק הנבחר מודגש').toHaveClass(/is-active/);
-  // הקישור ששותף באמת פותח את החלק מחדש
-  await page.goto('/hozer-mafmar/#part-2');
-  await expect(page.locator('#part-2')).toHaveClass(/is-active/);
-  await expect(page.locator('#mafmar-frame')).toHaveAttribute('src', /#page=10&/);
-});
-
-test('חוזר מפמ״ר: hidden באמת מסתיר — אין כפתור "מסך מלא" מת (5.13, 8.26)', async ({ page }) => {
-  await page.addInitScript(() => {
-    Object.defineProperty(navigator, 'pdfViewerEnabled', { get: () => true, configurable: true });
-    Object.defineProperty(document, 'fullscreenEnabled', { get: () => false, configurable: true });
-  });
-  await page.goto('/hozer-mafmar/');
-  await expect(page.locator('#fullscreen-btn'), 'בלי תמיכה במסך מלא — הכפתור לא מוצג').toBeHidden();
-  // הכלל הגלובלי, לא תיקון מקומי: כל [hidden] בעמוד באמת נעלם
-  const leaked = await page.evaluate(
-    () => [...document.querySelectorAll('[hidden]')].filter((el) => getComputedStyle(el).display !== 'none').length
-  );
-  expect(leaked, 'שום אלמנט עם hidden אינו נשאר על המסך').toBe(0);
+  expect(overflow.html).toBeLessThanOrEqual(1);
+  expect(overflow.body).toBeLessThanOrEqual(1);
 });
 
 test('חוזר מפמ״ר: ניגודיות AA בכיתובים הקטנים והצבעוניים (4.7, 21.18)', async ({ page }) => {

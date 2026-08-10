@@ -4,7 +4,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 import ArtBanner from '../components/ArtBanner.astro';
 import MafmarPresentation from '../components/MafmarPresentation.astro';
 import MafmarPresentationEnhancer from '../components/MafmarPresentationEnhancer.astro';
-import { MAFMAR_LOCAL, MAFMAR_VIEW, MAFMAR_PAGE_W, MAFMAR_PAGE_H } from '../data/mafmar';
+import MafmarWeb from '../components/MafmarWeb.astro';
 import { feedDated, feedStanding } from '../data/hodaot';
 ---
 
@@ -41,17 +41,18 @@ import { feedDated, feedStanding } from '../data/hodaot';
         <article class="embed-card circular-card">
           <div class="embed-card-head">
             <div>
-              <span class="embed-tag">המסמך המלא</span>
+              <span class="embed-tag">תצוגת אינטרנט</span>
               <h3>חוזר מפמ״ר תשפ״ז</h3>
             </div>
             <a href="/hozer-mafmar/">לצפייה מלאה ←</a>
           </div>
-          <div class="pdf-shell embed-frame" style={`--pw:${MAFMAR_PAGE_W}; --ph:${MAFMAR_PAGE_H}`}>
-            <iframe
-              src={`${MAFMAR_LOCAL}#page=1&${MAFMAR_VIEW}`}
-              title="חוזר מפמ״ר תשפ״ז — המסמך המלא"
-              loading="lazy"
-            ></iframe>
+          <div class="mafmar-web-preview">
+            <MafmarWeb
+              startPage={1}
+              endPage={1}
+              compact
+              showSearch={false}
+            />
           </div>
         </article>
 
@@ -201,15 +202,6 @@ import { feedDated, feedStanding } from '../data/hodaot';
     font-weight: 800;
   }
 
-  .pdf-shell {
-    /* הגובה נגזר מיחס ה-A4 בלבד — אין להוסיף min-height שמעוות את היחס במסכים צרים */
-    aspect-ratio: var(--pw) / var(--ph);
-    block-size: auto;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  .pdf-shell iframe { background: #fff; }
 
   .feed-block { margin-block-end: clamp(2.4rem, 5vw, 3.6rem); }
   .feed-block h2 { margin-block-end: 0.6rem; }

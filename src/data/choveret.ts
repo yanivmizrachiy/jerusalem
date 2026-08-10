@@ -215,7 +215,6 @@ const maf = (id: string, sectionId: string, note: string, title?: string): Chove
     title: title ?? s.title,
     note,
     url: MAFMAR_URL,
-    embed: `${MAFMAR_LOCAL}#page=${s.startPage}&toolbar=0&navpanes=0&view=FitH`,
     download: MAFMAR_LOCAL,
     kind: 'maf',
     maf: sectionId,

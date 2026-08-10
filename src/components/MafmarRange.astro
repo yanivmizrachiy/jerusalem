@@ -1,275 +1,100 @@
 ---
-/**
- * הטמעת טווח ממוקד מתוך חוזר מפמ״ר תשפ״ז (RULES 3.17, 9.3.11):
- * כותרת + הסימון "מתוך חוזר מפמ״ר תשפ״ז" + הטווח המאומת, וניווט
- * עמוד קודם/הבא הכלוא לטווח עם מחוון "עמוד X מתוך Y בטווח זה".
- * אין לוח פעולות גנרי (הוראת יניב, 10/08/2026, RULES 9.3.11) — לא
- * כאן ולא בעמוד החוזר המלא; הכתובת עצמה משותפת בהעתקת שורת הכתובת.
- */
-import { MAFMAR_LOCAL, mafmarSections } from '../data/mafmar';
+import MafmarWeb from './MafmarWeb.astro';
+import { mafmarSections } from '../data/mafmar';
 
 interface Props {
-  /** מזהה מתוך ה־manifest המאומת, למשל "MAF-02" */
   sectionId: string;
   accent?: string;
-  /** בתוך החוברת: ממלא את דף ההטמעה — בלי כרטיס מקונן ובלי גובה קבוע (RULES 3.29) */
   fill?: boolean;
 }
 
-const { sectionId, accent = 'var(--gold)', fill = false } = Astro.props;
-const s = mafmarSections.find((x) => x.id === sectionId);
-if (!s) throw new Error(`MafmarRange: מזהה לא קיים ב-manifest — ${sectionId}`);
-const anchorId = s.id.toLowerCase();
+const {
+  sectionId,
+  accent = 'var(--gold)',
+  fill = false,
+} = Astro.props;
+
+const section = mafmarSections.find((item) => item.id === sectionId);
+
+if (!section) {
+  throw new Error(`MafmarRange: unknown manifest id — ${sectionId}`);
+}
 ---
 
 <section
-  class:list={['mrange', 'card-accent', { 'is-fill': fill }]}
+  class:list={['mrange', 'card-accent', fill && 'is-fill']}
   style={`--card-accent:${accent}`}
-  id={anchorId}
+  id={section.id.toLowerCase()}
   data-mafrange
-  data-start={s.startPage}
-  data-end={s.endPage}
-  data-title={s.title}
+  data-start={section.startPage}
+  data-end={section.endPage}
+  data-title={section.title}
 >
   <header class="mrange-head">
-    <p class="mrange-badge">מתוך חוזר מפמ״ר תשפ״ז · עמודים {s.startPage}–{s.endPage}</p>
-    <h3 class="mrange-title">{s.title}</h3>
-    {s.note && <p class="mrange-note">{s.note}</p>}
+    <p class="mrange-badge">
+      מתוך חוזר מפמ״ר תשפ״ז · עמודים {section.startPage}–{section.endPage}
+    </p>
+    <h3 class="mrange-title">{section.title}</h3>
+    {section.note && <p class="mrange-note">{section.note}</p>}
   </header>
 
-  <div class="mrange-shell embed-frame" data-shell>
-    <iframe
-      src={`${MAFMAR_LOCAL}#page=${s.startPage}&toolbar=0&navpanes=0&view=FitH`}
-      title={`${s.title} — מתוך חוזר מפמ״ר תשפ״ז`}
-      loading="lazy"
-    ></iframe>
-    <div class="mrange-fallback" data-fallback hidden>
-      <p>בדפדפן הזה קובצי PDF נפתחים לצפייה מלאה במסך נפרד:</p>
-      <a class="btn btn-primary" data-fb-open href={`${MAFMAR_LOCAL}#page=${s.startPage}`} target="_blank" rel="noopener">
-        פתיחת הטווח (מעמוד {s.startPage}) ↗
-      </a>
-    </div>
-  </div>
-
-  <div class="mrange-pager" role="group" aria-label={`ניווט עמודים בתוך ${s.title}`}>
-    <button class="btn btn-ghost" type="button" data-prev>→ עמוד קודם</button>
-    <span class="mrange-ind" data-ind aria-live="polite">
-      עמוד 1 מתוך {s.endPage - s.startPage + 1} בטווח זה
-    </span>
-    <button class="btn btn-ghost" type="button" data-next>עמוד הבא ←</button>
-  </div>
+  <MafmarWeb
+    startPage={section.startPage}
+    endPage={section.endPage}
+    compact={fill}
+    showSearch={false}
+  />
 </section>
 
 <style>
   .mrange {
-    background: #fff;
+    overflow: hidden;
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
+    background: #fff;
     box-shadow: var(--shadow-soft);
-    overflow: hidden;
   }
 
-  .mrange-head { padding: 1.3rem 1.4rem 1rem; }
+  .mrange-head {
+    padding: 1.15rem 1.25rem 0.75rem;
+  }
 
   .mrange-badge {
-    margin: 0 0 0.45rem;
+    margin: 0 0 0.35rem;
+    color: var(--gold-deep);
     font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    color: var(--gold-deep);
+    font-weight: 800;
   }
 
-  .mrange-title { margin: 0 0 0.5rem; font-size: 1.25rem; }
-
-  .mrange-note { margin: 0 0 0.4rem; color: var(--ink-soft); font-size: 0.92rem; }
-
-  /* המסגרת (נייבי + חוט זהב), הרקע, הרדיוס והספקולר מגיעים מ-.embed-frame
-     ב-global.css (8.26) — כאן רק הגובה וההתנהגות הייחודיים למקטע החוזר. */
-  .mrange-shell {
-    block-size: clamp(360px, 60dvh, 680px);
+  .mrange-title {
+    margin: 0;
+    color: var(--navy);
+    font-size: 1.25rem;
   }
 
-  /* המידות, הגבול, הרדיוס והרקע מגיעים מ-.embed-frame > iframe; כאן רק
-     החשיפה ההדרגתית כשה-PDF חי — במקום הבזק לבן (RULES 8.9) */
-  .mrange-shell iframe {
-    opacity: 0;
-    transition: opacity 480ms var(--ease);
+  .mrange-note {
+    margin: 0.45rem 0 0;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
   }
 
-  .mrange-shell.is-loaded iframe { opacity: 1; }
-
-  /* display:block היה גובר על hidden — הכלל הזה סוגר את הפרצה */
-  .mrange-shell iframe[hidden] { display: none; }
-
-  /* בלי מציג PDF — ה-shell מתכווץ לגובה התוכן, בלי שכבה סמויה */
-  .mrange-shell.no-viewer { block-size: auto; }
-
-  /* שלד טעינה יוקרתי — זהה לחוברת; תמיד pointer-events:none (3.29) */
-  .mrange-skel {
-    position: absolute;
-    inset: var(--embed-pad);
-    border-radius: var(--embed-inner-radius);
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.85rem;
-    overflow: hidden;
-    background: linear-gradient(180deg, #fffdf9 0%, #fbf6ec 100%);
-    opacity: 1;
-    transition: opacity 420ms var(--ease);
+  .mrange :global(.mafweb) {
+    padding: 0 1rem 1rem;
   }
 
-  .mrange-skel::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(110deg, transparent 30%, rgb(212 175 92 / 0.16) 48%, rgb(255 255 255 / 0.55) 50%, rgb(212 175 92 / 0.16) 52%, transparent 70%);
-    background-size: 220% 100%;
-    animation: mrange-shimmer 1.5s ease-in-out infinite;
-  }
-
-  .mrange-shell.is-loaded .mrange-skel { opacity: 0; }
-
-  .mrange-skel-spin {
-    position: relative;
-    z-index: 1;
-    inline-size: 44px;
-    block-size: 44px;
-    border-radius: 50%;
-    border: 3px solid rgb(212 175 92 / 0.26);
-    border-block-start-color: var(--gold-deep);
-    animation: mrange-spin 0.9s linear infinite;
-  }
-
-  .mrange-skel-txt {
-    position: relative;
-    z-index: 1;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 0.92rem;
-    letter-spacing: 0.02em;
-    color: var(--gold-deep);
-  }
-
-  @keyframes mrange-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
-  @keyframes mrange-spin { to { transform: rotate(360deg); } }
-
-  @media (prefers-reduced-motion: reduce) {
-    .mrange-shell iframe { opacity: 1; transition: none; }
-    .mrange-skel { transition: none; }
-    .mrange-skel::before { animation: none; background: none; }
-    .mrange-skel-spin { animation: none; border-block-start-color: rgb(212 175 92 / 0.26); }
-  }
-
-  /* ===== מצב fill: בתוך החוברת דף ההטמעה ממלא את כל גובה הדף =====
-     בלי כרטיס לבן מקונן ובלי גובה קבוע — ה-PDF מקבל את מרב השטח (3.29) */
   .mrange.is-fill {
-    display: flex;
-    flex-direction: column;
     block-size: 100%;
-    background: transparent;
+    overflow: auto;
     border: 0;
+    background: transparent;
     box-shadow: none;
-    overflow: visible;
   }
 
-  .mrange.is-fill .mrange-head { padding: 0 0 0.5rem; }
-  .mrange.is-fill .mrange-shell { flex: 1; block-size: auto; min-block-size: 320px; }
-  .mrange.is-fill .mrange-pager { padding: 0.5rem 0 0.5rem; }
-
-  /* דפדפן בלי מציג PDF מובנה (navigator.pdfViewerEnabled=false) — חלופה אמיתית */
-  .mrange-fallback {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.9rem;
-    text-align: center;
-    padding: 1.4rem;
+  .mrange.is-fill .mrange-head {
+    padding: 0 0 0.55rem;
   }
 
-  /* `hidden` מנצח את ה-display של המחלקה (הוראת יניב, 05/08/2026) — אחרת
-     כרטיס הפתיחה מוצג מתחת להטמעה החיה וגונב חצי עמוד */
-  .mrange-fallback[hidden] { display: none !important; }
-
-  /* טקסט בהיר על מזרן ההטמעה הנייבי (8.26) — ניגודיות גבוהה כמו פס התחתית */
-  .mrange-fallback p { margin: 0; font-weight: 600; color: #eef1f7; }
-
-  .mrange-pager {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    padding: 0.9rem 1.4rem 0;
-  }
-
-  .mrange-ind { font-weight: 700; font-size: 0.92rem; color: var(--ink-soft); }
-
-  @media (max-width: 640px) {
-    .mrange-pager { justify-content: center; }
+  .mrange.is-fill :global(.mafweb) {
+    padding: 0;
   }
 </style>
-
-<script>
-  import { MAFMAR_LOCAL as LOCAL } from '../data/mafmar';
-
-  document.querySelectorAll<HTMLElement>('[data-mafrange]').forEach((root) => {
-    const start = Number(root.dataset.start);
-    const end = Number(root.dataset.end);
-    const frame = root.querySelector('iframe')!;
-    const ind = root.querySelector<HTMLElement>('[data-ind]')!;
-    const prev = root.querySelector<HTMLButtonElement>('[data-prev]')!;
-    const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
-
-    let page = start;
-
-    // דפדפן ללא מציג PDF מובנה (בעיקר אנדרואיד) — חלופה גלויה במקום לוח ריק
-    const fallback = root.querySelector<HTMLElement>('[data-fallback]')!;
-    const fbOpen = root.querySelector<HTMLAnchorElement>('[data-fb-open]')!;
-    const noViewer = 'pdfViewerEnabled' in navigator && !navigator.pdfViewerEnabled;
-    const shell = frame.closest<HTMLElement>('[data-shell]');
-    if (noViewer) {
-      frame.hidden = true;
-      fallback.hidden = false;
-      shell?.classList.add('no-viewer');
-    } else if (shell) {
-      // שלד טעינה + חשיפה בעדינות של ה-PDF (כמו החוברת; RULES 8.9)
-      const skel = document.createElement('div');
-      skel.className = 'mrange-skel';
-      skel.setAttribute('aria-hidden', 'true');
-      const spin = document.createElement('span');
-      spin.className = 'mrange-skel-spin';
-      const txt = document.createElement('span');
-      txt.className = 'mrange-skel-txt';
-      txt.textContent = 'טוען תצוגה חיה…';
-      skel.append(spin, txt);
-      shell.appendChild(skel);
-      shell.setAttribute('aria-busy', 'true');
-      let revealed = false;
-      const reveal = () => {
-        if (revealed) return;
-        revealed = true;
-        shell.classList.add('is-loaded');
-        shell.setAttribute('aria-busy', 'false');
-      };
-      frame.addEventListener('load', reveal, { once: true });
-      window.setTimeout(reveal, 8000);
-    }
-
-    const render = (reload: boolean) => {
-      if (reload) frame.src = `${LOCAL}#page=${page}&toolbar=0&navpanes=0&view=FitH`;
-      fbOpen.href = `${LOCAL}#page=${page}`;
-      ind.textContent = `עמוד ${page - start + 1} מתוך ${end - start + 1} בטווח זה`;
-      prev.disabled = page <= start;
-      next.disabled = page >= end;
-    };
-
-    prev.addEventListener('click', () => { if (page > start) { page -= 1; render(true); } });
-    next.addEventListener('click', () => { if (page < end) { page += 1; render(true); } });
-
-    render(false);
-  });
-</script>
