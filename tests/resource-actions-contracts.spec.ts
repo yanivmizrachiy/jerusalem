@@ -3,11 +3,6 @@ import { expect, test } from '@playwright/test';
 
 const source = (path: string) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test.skip(
-  ({ isMobile }, testInfo) => isMobile === true && !testInfo.title.includes('בנייד'),
-  'action-board ownership contracts are device-independent',
-);
-
 /**
  * Newest explicit requirement (הוראת יניב, 10/08/2026) supersedes the previous
  * contract: Mafmar and plan/prisa native-HTML resources no longer show the
@@ -143,6 +138,7 @@ test('Mafmar full page has no action board, keeps part jumps, section jumps and 
 });
 
 test('בנייד: חוזר מפמ״ר שומר A4 וקפיצת תוכן נוחתת מתחת לכותרת האמיתית', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'החוזה רץ רק בפרויקט Pixel 7 האמיתי');
   expect(isMobile, 'החוזה חייב לרוץ בפרויקט Pixel 7 האמיתי').toBe(true);
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'pdfViewerEnabled', { configurable: true, value: true });
