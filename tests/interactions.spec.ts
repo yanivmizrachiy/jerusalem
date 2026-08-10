@@ -62,9 +62,9 @@ test('MafmarRange: דפדוף כלוא לטווח המאומת', async ({ page }
 });
 
 test('חפיפת משולשים: כתובת legacy מגיעה לנושא הקנוני בלי עמוד ייעודי', async ({ page }) => {
-  // הכתובת הישנה היא היום הפניית HTTP אמיתית ולא עמוד עם meta-refresh, ולכן
-  // מקומית נאכף שאין בה עוד עמוד; ההפניה עצמה מאומתת מול הפרודקשן
-  // ב-scripts/verify-deploy.mjs, שנגזר מאותו מקור תאימות.
+  // הכתובת הישנה היא היום הפניית HTTP אמיתית ולא עמוד meta-refresh.
+  // ה-harness המקומי טוען את redirect config שנגזר מה-build, ולכן גם כאן
+  // נבדקים 301 אמיתי והיעד הקנוני בלי להסתמך על הפרודקשן.
   expect(LEGACY_REDIRECTS['/chativat-beynayim/hafifat-meshulashim/']).toBe(
     '/chativat-beynayim/nose/h/h-congruent/'
   );
