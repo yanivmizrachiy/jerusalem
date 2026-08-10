@@ -22,6 +22,7 @@ interface Props {
 
 const { title, description, transparentHeader = false } = Astro.props;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const ogImage = Astro.site ? new URL('/logo.png', Astro.site).href : '/logo.png';
 ---
 
 <!doctype html>
@@ -39,7 +40,10 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     {canonical && <meta property="og:url" content={canonical} />}
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="theme-color" content="#fbf9f5" />
-    <meta property="og:image" content="/logo.png" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content="מתמטיקה מחוז ירושלים — משרד החינוך" />
+    <meta property="og:image:width" content="440" />
+    <meta property="og:image:height" content="440" />
     {/* חותם הבנייה — מאפשר לאמת שהפרודקשן מגיש בדיוק את הקומיט שנמזג (scripts/verify-deploy.mjs) */}
     <meta name="build-commit" content={(process.env.VERCEL_GIT_COMMIT_SHA ?? 'dev').slice(0, 7)} />
     <link rel="preload" as="font" type="font/woff2" href={heeboHebrewUrl} crossorigin />
