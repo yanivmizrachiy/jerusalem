@@ -13,7 +13,7 @@ test.describe('חוזר מפמ״ר במצגת והודעות שוטפות', () =
     await page.goto('/hodaot/');
     await expect(page.getByRole('heading', { name: 'הודעות שוטפות', level: 1 })).toBeVisible();
     await expect(page.getByRole('link', { name: /^חוזר המפמ״ר ←$/ })).toHaveAttribute('href', '/hozer-mafmar/');
-    await expect(page.getByRole('link', { name: /^חוזר המפמ״ר במצגת ←$/ })).toHaveAttribute('href', '/hozer-mafmar-presentation/');
+    await expect(page.getByRole('link', { name: /^דבר המפמ״ר במצגת ←$/ })).toHaveAttribute('href', '/hozer-mafmar-presentation/');
     await expect(page.locator('iframe[title="חוזר מפמ״ר תשפ״ז — המסמך המלא"]')).toBeVisible();
     await expect(page.locator('[data-mafmar-deck]')).toBeVisible();
 
