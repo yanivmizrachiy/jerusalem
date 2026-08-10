@@ -22,6 +22,9 @@ test('site-wide middle-school count is deduplicated and derived', () => {
 test('the home rail shows the canonical count alongside the real running notices (7.20)', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.rail-live-count')).toContainText(middleSchoolResourceCountText);
+  // הכיתוב "מתעדכן אוטומטית" נמחק כמילת-תהליך אסורה (RULES 8.25) — אסור שיחזור.
+  await expect(page.locator('.count-kicker')).toHaveCount(0);
+  await expect(page.locator('.rail-live-count')).not.toContainText('מתעדכן');
   // הריצה הרציפה מלמטה למעלה חזרה בהוראת יניב (10/08/2026): מסילה אחת + עותק
   // כפול נסתר ללולאה חלקה. התוכן נגזר מ-hodaot.ts הקנוני — אין רשימת דמו.
   await expect(page.locator('.rail-track')).toHaveCount(1);
