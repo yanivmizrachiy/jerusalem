@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { canonicalReaderItems } from '../src/data/canonical-content';
 
 test.beforeEach(({ isMobile }) => {
   test.skip(isMobile === true, 'חוזה ההדפסה device-independent ונבדק בפרויקט הדסקטופ');
@@ -61,4 +62,29 @@ test('בהדפסה ההטמעה יורדת, המקור נשאר ולוח המי�
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test('גם כשכל שמונה הפעולות זמינות הן נשארות בשורת דסקטופ אחת', async ({ page }) => {
+  const entry = canonicalReaderItems.find(({ item }) => Boolean(item.download && item.embed) && item.kind !== 'maf');
+  expect(entry, 'בקטלוג חייב להישאר משאב מוטמע עם קובץ הורדה').toBeTruthy();
+
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: async () => undefined,
+    });
+    Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', {
+      configurable: true,
+      value: async () => undefined,
+    });
+  });
+
+  await page.goto(`/chativat-beynayim/reader/${entry!.grade.slug}/${entry!.item.id}/`);
+  const visibleActions = page.locator('[data-resource-actions] .orb:visible');
+  await expect(visibleActions).toHaveCount(8);
+
+  const tops = await visibleActions.evaluateAll((nodes) =>
+    nodes.map((node) => Math.round(node.getBoundingClientRect().top)),
+  );
+  expect(Math.max(...tops) - Math.min(...tops), 'אין שבירה לשורה שנייה').toBeLessThanOrEqual(2);
 });
