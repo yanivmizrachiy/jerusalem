@@ -1831,10 +1831,11 @@ export const sourceMaterialResources: SourceMaterialResource[] = [
       "Source topic: פונקציה קווית.",
       "Source subtopic: ייצוג אלגברי של ישר."
     ],
-    "needsReview": false,
+    "needsReview": true,
     "excludedFromTeachingMaterials": false,
     "embed": "https://drive.google.com/file/d/1ZZ0ImWSvVnrRza06t-K5PLDWgreua2Uq/preview",
-    "download": "https://drive.google.com/uc?export=download&id=1ZZ0ImWSvVnrRza06t-K5PLDWgreua2Uq"
+    "download": "https://drive.google.com/uc?export=download&id=1ZZ0ImWSvVnrRza06t-K5PLDWgreua2Uq",
+    "reviewReason": "Drive file returns 401 (private/restricted) on view, preview and download — verified 2026-08-10 by the external catalog health run and an independent local fetch. Publishing would send teachers to a Google access wall (RULES 1.12, 16.3 'private'). Restore once the owner reshares the file publicly."
   },
   {
     "id": "src-game-h-a6b435cade25",
