@@ -35,7 +35,7 @@ jobs:
         if: always()
         run: npm audit --omit=dev --audit-level=high || true
       - run: npx playwright install --with-deps chromium
-      # מקור אמת יחיד: repo-health → dead-code hygiene → ModEL rebuild → check → build → Playwright, retries=0.
+      # מקור אמת יחיד: repo-health → dead-code hygiene → Moodle logo rebuild → check → typecheck:tests → build → Playwright, retries=0.
       - run: npm run quality
       - name: Upload traces on failure
         if: failure()

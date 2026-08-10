@@ -88,7 +88,7 @@
 
 ## 8. איכות, CI ופרודקשן
 
-- `npm run quality` הוא שער הקוד הקנוני: repo-health → strict Playwright TypeScript gate → Astro check → build → Playwright Chromium/Pixel 7, `retries=0`.
+- `npm run quality` הוא שער הקוד הקנוני: repo-health → hygiene-dead-code → אימות בניית לוגו Moodle → Astro check → strict Playwright TypeScript gate (`typecheck:tests`) → build → Playwright Chromium/Pixel 7, `retries=0`.
 - CI מוסיף parallel critical-smoke ב־Firefox וב־WebKit.
 - Critical production dependency audit חוסם; High מדווח ואינו חוסם.
 - אחרי push ל־`main`, `verify-production` מאמת שהפרודקשן מגיש את אותו SHA ואת חוזי הליבה.

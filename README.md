@@ -25,7 +25,7 @@
 | `npm run check` | ‏typecheck של כל קבצי ה־Astro |
 | `npm test` | סוללת הקבלה המלאה מול build קיים, ללא retries |
 | `npm run audit:repo` | סריקת זבל מנוהל, סודות, סמני conflict והתנגשויות נתיבים |
-| `npm run quality` | שער סיום יחיד: repo-health → check → build → Playwright `retries=0`, עם פורט פנוי אוטומטי |
+| `npm run quality` | שער סיום יחיד: repo-health → hygiene-dead-code → אימות לוגו Moodle → check → typecheck:tests → build → Playwright `retries=0`, עם פורט פנוי אוטומטי |
 | `npm run verify:deploy` | אימות פרודקשן: commit, מסלולים קנוניים, redirects וסמנים חיים |
 
 ## מבנה
@@ -36,7 +36,7 @@ docs/         מסמכי הקשר תפעוליים שאינם חלק ממסלו�
 src/
   pages/       כל המסלולים — עמוד הבית, חטיבות, חוזר מפמ״ר, לוח, reader/[grade]/[item]
   pages/api/   פרוקסי em/ ו-mam/ להטמעת האתרים הקנוניים (allowlist קשיח בלבד)
-  components/  GradeIndex, ResourceSplit, SplashIntro, SiteHeader/Footer, HeroVideo, DateBar ועוד
+  components/  GradeIndex, ResourceSplit, SiteHeader/Footer, HeroVideo, DateBar ועוד
                (Booklet.astro שמור ואינו מיובא בשום עמוד — RULES 4.14; אין למחוק)
   data/        התוכן כ-TypeScript מוקלד: משאבים, צוות, שכבות חט״ב, יחידות, הודעות,
                ייחוס יוצרים (authors, author-assignments, attribution — RULES 24)
@@ -65,7 +65,8 @@ RECOVERY/      מסמכי ביקורת ושחזור
 1. **RULES.md היא המקור המחייב** — כל שינוי חייב לכבד את הסעיפים הממוספרים,
    וסטייה מתועדת שם לפני המיזוג.
 2. **אפס רגרסיות** — `npm run quality` הוא חוזה הסיום המקומי וה־CI: repo-health,
-   typecheck, build וסוללת Playwright מלאה עם `retries=0`. הוא חייב להיות ירוק לפני כל מיזוג ל־main.
+   hygiene-dead-code, אימות לוגו Moodle, ‏Astro check, ‏typecheck:tests, ‏build
+   וסוללת Playwright מלאה עם `retries=0`. הוא חייב להיות ירוק לפני כל מיזוג ל־main.
 3. **התוכן חי ב־`src/data/`** — עדכוני משאבים, צוות והודעות נעשים שם, לא ב־HTML.
 4. **מסמכי ההקשר כפופים למקורות האמת** — `CLAUDE.md` ו־`docs/PROJECT_CONTEXT.md`
    מסייעים להתמצאות, אך אינם רשאים לסתור את `RULES.md`, את הקוד הפעיל או את הבדיקות.
