@@ -1,0 +1,104 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { choveret, gradeLabel, itemHref } from '../../data/choveret';
+
+const wanted = ['prisa-z', 'prisa-h', 'prisa-t', 'prisa-t-b'] as const;
+const found = choveret.flatMap((grade) =>
+  grade.chapters.flatMap((chapter) =>
+    chapter.items
+      .filter((item) => wanted.includes(item.id as (typeof wanted)[number]))
+      .map((item) => ({
+        id: item.id,
+        title: item.title,
+        grade: gradeLabel(grade),
+        href: itemHref(grade.slug, item),
+        color: chapter.color,
+      }))
+  )
+);
+const prisot = wanted.map((id) => found.find((entry) => entry.id === id));
+if (prisot.some((entry) => !entry)) {
+  throw new Error('ארבע הפריסות הקנוניות חייבות להופיע בקטלוג');
+}
+---
+
+<Base
+  title="פריסות הוראה — חטיבת הביניים | מחוז ירושלים"
+  description="כל פריסות ההוראה לכיתות ז׳, ח׳ וט׳ כתצוגות אינטרנט נגישות עם הקישורים הפעילים מהמסמכים הרשמיים."
+>
+  <main class="container prisot-page" data-prisa-index>
+    <Breadcrumbs
+      items={[
+        { label: 'ראשי', href: '/' },
+        { label: 'חטיבת ביניים', href: '/chativat-beynayim/' },
+        { label: 'פריסות הוראה' },
+      ]}
+    />
+
+    <header class="prisot-head">
+      <p class="eyebrow">חטיבת הביניים · תשפ״ז</p>
+      <h1>כל פריסות ההוראה</h1>
+      <p>
+        ארבע הפריסות הרשמיות הוסבו לדפי אינטרנט מלאים. בכל פריסה נשמרו גם
+        הקישורים הפעילים מתוך מסמך המקור; ה־PDF זמין להורדה בלבד.
+      </p>
+    </header>
+
+    <nav class="prisot-grid" aria-label="בחירת פריסת הוראה">
+      {prisot.map((entry, index) => entry && (
+        <a
+          class:list={['prisa-card', `is-${index + 1}`]}
+          href={entry.href}
+          style={`--prisa-accent:${entry.color}`}
+        >
+          <span class="prisa-grade">{entry.grade}</span>
+          <strong>{entry.title}</strong>
+          <span>פתיחת תצוגת האינטרנט</span>
+        </a>
+      ))}
+    </nav>
+  </main>
+</Base>
+
+<style>
+  .prisot-page { padding-block: 1.4rem clamp(3rem, 7vw, 5rem); }
+  .prisot-head { max-width: 820px; margin-block: clamp(1.4rem, 4vw, 2.8rem); }
+  .prisot-head h1 { margin-block: 0.25rem 0.7rem; }
+  .prisot-head > p:last-child { color: var(--ink-soft); line-height: 1.75; }
+  .prisot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.85rem, 2vw, 1.3rem);
+  }
+  .prisa-card {
+    min-block-size: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: clamp(1.1rem, 3vw, 1.8rem);
+    border: 1px solid color-mix(in srgb, var(--prisa-accent) 44%, #dfe4ec);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--prisa-accent) 20%, transparent), transparent 36%),
+      linear-gradient(145deg, #fff, color-mix(in srgb, var(--prisa-accent) 6%, #fff));
+    color: var(--navy);
+    text-decoration: none;
+    box-shadow: 0 16px 36px rgb(20 29 45 / 0.08);
+    transition: transform 220ms var(--ease), box-shadow 220ms var(--ease);
+  }
+  .prisa-card:hover { transform: translateY(-3px); box-shadow: 0 22px 44px rgb(20 29 45 / 0.13); }
+  .prisa-card:focus-visible { outline: 3px solid var(--prisa-accent); outline-offset: 3px; }
+  .prisa-grade { color: color-mix(in srgb, var(--prisa-accent) 72%, var(--navy)); font-size: 0.8rem; font-weight: 850; }
+  .prisa-card strong { font-family: var(--font-display); font-size: clamp(1.25rem, 2.5vw, 1.8rem); }
+  .prisa-card > span:last-child { color: var(--ink-soft); font-size: 0.88rem; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+  @media (max-width: 680px) {
+    .prisot-grid { grid-template-columns: 1fr; }
+    .prisa-card { min-block-size: 118px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .prisa-card { transition: none; }
+    .prisa-card:hover { transform: none; }
+  }
+</style>
