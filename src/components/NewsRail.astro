@@ -120,7 +120,9 @@ const railNotices = [...[...feedDated].sort(byDateDesc), ...feedStanding].slice(
     background: color-mix(in srgb, var(--accent, var(--gold)) 7%, #fff);
     text-decoration: none;
   }
-  .news-cat { color: color-mix(in srgb, var(--accent, var(--gold)) 72%, var(--ink)); font-size: 0.72rem; font-weight: 850; }
+  /* חלק הצבע מוגבל ל-52%: מעבר לכך הטקסט הקטן נופל מתחת ל-AA ‏(4.5:1) על רקע
+     הכרטיס המולבן — הגרוע מכל צבעי הפלטה הוא --whatsapp (‏4.74 ב-52%). */
+  .news-cat { color: color-mix(in srgb, var(--accent, var(--gold)) 52%, var(--ink)); font-size: 0.72rem; font-weight: 850; }
   .news-title { color: var(--navy); font-weight: 800; font-size: 0.92rem; line-height: 1.4; }
   .news-link:hover .news-title { text-decoration: underline; text-underline-offset: 0.18em; }
   .news-link:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
