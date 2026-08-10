@@ -145,7 +145,7 @@ const showActions = item.kind !== 'maf' && !planPrisaDoc;
         item.kind === 'maf' && item.maf ? (
           <MafmarRange sectionId={item.maf} accent={chapter.color} fill />
         ) : planPrisaDoc ? (
-          <PlanPrisaWeb document={planPrisaDoc} accent={chapter.color} />
+          <PlanPrisaWeb document={planPrisaDoc} accent={chapter.color} sourceUrl={item.url} />
         ) : item.embed ? (
           <>
             <div class="res-frame embed-frame" data-frame aria-busy="true">
