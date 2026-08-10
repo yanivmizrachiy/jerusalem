@@ -13,7 +13,7 @@ const tracked = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' })
   .sort((a, b) => a.localeCompare(b, 'en'));
 
 const forbiddenPathPatterns = [
-  /(^|\/)(node_modules|dist|\.astro|\.vercel|coverage|test-results|playwright-report|blob-report)(\/|$)/i,
+  /(^|\/)(node_modules|dist|\.astro|\.vercel|coverage|test-results|playwright-report|blob-report|artifacts)(\/|$)/i,
   /(^|\/)(\.DS_Store|Thumbs\.db|Desktop\.ini)$/i,
   /\.(bak|old|orig|tmp|temp|swp|swo|log)$/i,
   /(^|\/)npm-debug\.log/i,

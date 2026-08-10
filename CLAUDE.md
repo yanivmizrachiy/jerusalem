@@ -36,7 +36,7 @@ npm ci
 npm run quality
 ```
 
-`npm run quality` הוא מקור האמת היחיד: repo-health → Astro check → build → Playwright עם `retries=0`, כולל דסקטופ ו־Pixel 7 לפי חלוקת הפרויקטים.
+`npm run quality` הוא מקור האמת היחיד: repo-health → hygiene-dead-code → אימות בניית לוגו Moodle → Astro check → typecheck לבדיקות (`typecheck:tests`) → build → Playwright עם `retries=0`, כולל דסקטופ ו־Pixel 7 לפי חלוקת הפרויקטים.
 
 בנוסף:
 
