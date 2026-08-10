@@ -91,10 +91,45 @@
     font: inherit;
   }
 
-  @page { size: A4; margin: 14mm; }
+  @page { size: A4; margin: 14mm 12mm; }
 
   @media print {
     [data-print-dialog], [data-action="print"] { display: none !important; }
+
+    /* Iframes are not a truthful printable representation. Remove the whole
+       navy embed shell, collapse the split layout, and keep only the source
+       fallback so the printed page is useful rather than an empty dark box. */
+    html .embed-frame,
+    html .res-view { display: none !important; }
+    html .res-split { display: block !important; }
+    html .res-panel {
+      inline-size: 100% !important;
+      max-inline-size: none !important;
+      block-size: auto !important;
+      overflow: visible !important;
+    }
+
+    /* global.css hides .orbs in print. Override that only to preserve the
+       truthful "open at source" fallback required when the embed is omitted. */
+    html .orbs { display: flex !important; }
+    html .orbs > *:not([data-action="source"]) { display: none !important; }
+    html .orbs [data-action="source"] {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 0.35em;
+      color: #000 !important;
+    }
+    html .orbs [data-action="source"] .orb-glow,
+    html .orbs [data-action="source"] .orb-face { display: none !important; }
+    html .orbs [data-action="source"] .orb-label {
+      display: inline !important;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    .card, h1, h2, h3, figure, img, svg { break-inside: avoid; }
+    img, svg { max-inline-size: 100% !important; }
+
     html[data-print-mode="color"] body {
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
