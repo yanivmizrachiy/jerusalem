@@ -23,6 +23,16 @@ interface Props {
 const { title, description, transparentHeader = false } = Astro.props;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 const ogImage = Astro.site ? new URL('/logo.png', Astro.site).href : '/logo.png';
+const structuredData = canonical
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'מתמטיקה מחוז ירושלים',
+      url: new URL('/', Astro.site!).href,
+      inLanguage: 'he-IL',
+      description,
+    }
+  : undefined;
 ---
 
 <!doctype html>
@@ -38,6 +48,7 @@ const ogImage = Astro.site ? new URL('/logo.png', Astro.site).href : '/logo.png'
     <meta property="og:locale" content="he_IL" />
     {canonical && <link rel="canonical" href={canonical} />}
     {canonical && <meta property="og:url" content={canonical} />}
+    {structuredData && <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />}
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="theme-color" content="#fbf9f5" />
     <meta property="og:image" content={ogImage} />
