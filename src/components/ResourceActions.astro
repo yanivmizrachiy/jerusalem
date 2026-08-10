@@ -33,7 +33,7 @@ const {
 // External download endpoints may still return Content-Disposition, but the
 // browser is allowed to ignore our attribute. Keep the UI truthful: local
 // files promise a download; external files promise only that the file opens.
-const localDownload = Boolean(downloadUrl?.startsWith('/'));
+const localDownload = Boolean(downloadUrl?.startsWith('/') && !downloadUrl.startsWith('//'));
 const downloadLabel = localDownload ? 'הורדה' : 'פתיחת קובץ';
 ---
 
