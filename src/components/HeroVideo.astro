@@ -8,28 +8,11 @@
  */
 import { team } from '../data/team';
 
+// בלי תת-כותרות על הכפתורים — כותרת ואייקון בלבד (הוראת יניב, 10/08/2026; 8.25)
 const leads = [
-  {
-    href: '/chativat-beynayim/',
-    label: 'חטיבת ביניים',
-    sub: 'מתמטיקה לכיתות ז׳–ט׳',
-    tone: 'lead--mid',
-    icon: 'book',
-  },
-  {
-    href: '/chativa-elyona/',
-    label: 'חטיבה עליונה',
-    sub: 'מתמטיקה לכיתות י׳–י״ב',
-    tone: 'lead--high',
-    icon: 'cap',
-  },
-  {
-    href: '/hodaot/',
-    label: 'הודעות שוטפות',
-    sub: 'עדכוני המחוז וההדרכה',
-    tone: 'lead--news',
-    icon: 'bell',
-  },
+  { href: '/chativat-beynayim/', label: 'חטיבת ביניים', tone: 'lead--mid', icon: 'book' },
+  { href: '/chativa-elyona/', label: 'חטיבה עליונה', tone: 'lead--high', icon: 'cap' },
+  { href: '/hodaot/', label: 'הודעות שוטפות', tone: 'lead--news', icon: 'bell' },
 ] as const;
 ---
 
@@ -121,7 +104,6 @@ const leads = [
               </span>
               <span class="lead-copy">
                 <strong>{l.label}</strong>
-                <small>{l.sub}</small>
               </span>
               <svg class="lead-arrow" viewBox="0 0 26 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
                 <path d="M25 6H2M7.5 1.5 2 6l5.5 4.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -259,9 +241,8 @@ const leads = [
   }
 
   .lead-icon svg { inline-size: 58%; block-size: 58%; }
-  .lead-copy { display: flex; min-inline-size: 0; flex-direction: column; gap: 0.1rem; }
+  .lead-copy { display: flex; min-inline-size: 0; flex-direction: column; }
   .lead-copy strong { font-size: clamp(1.02rem, 1.8vw, 1.2rem); font-weight: 800; line-height: 1.15; }
-  .lead-copy small { color: var(--ink-soft); font-size: clamp(0.74rem, 1.3vw, 0.84rem); }
 
   .lead-arrow {
     inline-size: 24px;
@@ -285,9 +266,10 @@ const leads = [
     border-radius: var(--radius-lg);
     background: linear-gradient(165deg, #1b2434, var(--navy) 55%, #101725);
     box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--gold) 62%, transparent),
       inset 0 0 0 1px rgb(255 255 255 / 0.08),
-      0 26px 60px -30px rgb(9 10 15 / 0.7);
+      0 28px 64px -30px rgb(9 10 15 / 0.72),
+      0 0 52px -14px rgb(201 155 63 / 0.34);
   }
 
   .hero-clip video {
@@ -296,16 +278,9 @@ const leads = [
     block-size: 100%;
     object-fit: cover;
     border-radius: calc(var(--radius-lg) - 6px);
+    outline: 1px solid rgb(212 175 92 / 0.38);
+    outline-offset: -1px;
     background: #10141d url('/media/hero-poster-880.avif') center / cover no-repeat;
-  }
-
-  @media (min-width: 1440px) {
-    .hero-clip {
-      position: absolute;
-      inset-block-end: clamp(1.2rem, 3vh, 2.4rem);
-      inset-inline-start: clamp(1.2rem, 2.2vw, 2.6rem);
-      inline-size: clamp(150px, 13vw, 205px);
-    }
   }
 
   .hero-team {
@@ -420,8 +395,20 @@ const leads = [
     }
     .lead-icon { inline-size: 30px; block-size: 30px; }
     .lead-copy strong { font-size: clamp(0.72rem, 3vw, 0.86rem); line-height: 1.1; }
-    .lead-copy small,
     .lead-arrow { display: none; }
+  }
+
+  /* מסך רחב: הלוח תלוי בצד כיצירה ממוסגרת בגלריה — ממורכז אנכית מול התוכן,
+     נראה תמיד במלואו (הוראת יניב, 10/08/2026 — מתקן את עיגון-הפינה שנחתך
+     בתחתית החלון כשהמסך הראשוני גבוה מהחלון) */
+  @media (min-width: 1440px) {
+    .hero-clip {
+      position: absolute;
+      inset-block-start: 50%;
+      transform: translateY(-50%);
+      inset-inline-start: clamp(1.3rem, 2.4vw, 3rem);
+      inline-size: clamp(160px, 12.5vw, 248px);
+    }
   }
 </style>
 

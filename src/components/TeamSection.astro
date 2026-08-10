@@ -131,6 +131,9 @@ const waPath =
       grid.querySelectorAll<HTMLElement>('.team-card').forEach((c) => {
         c.hidden = !!solo && c !== solo;
       });
+      // "דף" כרטיס-יחיד: הכרטיס עולה מיד לראש המסך, לא נחשף מתחת לקו
+      // הגלילה (הוראת יניב, 10/08/2026)
+      if (solo) requestAnimationFrame(() => scrollTo(0, 0));
     };
 
     // המיקום שממנו נפתח הכרטיס — נלכד ברגע הלחיצה על עוגן אישי
@@ -297,6 +300,13 @@ const waPath =
 
   /* מצב כרטיס-יחיד: לחיצה על חבר צוות מציגה רק אותו (6.5) */
   .team-card[hidden] { display: none; }
+
+  /* כרטיס-יחיד הוא דף לעצמו (הוראת יניב, 10/08/2026): המסך הראשוני, פס
+     "מה צפוי?" ורצועת הווטסאפ מוסתרים עד החזרה — רואים רק את המדריך */
+  :global(html.team-solo .hero),
+  :global(html.team-solo .rail-slot),
+  :global(html.team-solo .wa-band) { display: none; }
+  :global(html.team-solo .rail-offset) { padding-inline-end: 0; }
 
   .team-grid.is-solo {
     grid-template-columns: min(440px, 100%);
