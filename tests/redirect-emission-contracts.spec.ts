@@ -9,9 +9,11 @@ import {
 } from '../src/lib/legacyRedirects.mjs';
 
 /**
- * חוזה טבלת ההפניות הנפלטת (RULES 24.3.4): השרת הסטטי של הסוללה אינו מגיש
- * 301, אבל טבלת הניתוב שנפלטה ל-`.vercel/output/config.json` — הקובץ
- * ש-Vercel באמת מקבל — כן ניתנת לאימות מקומי.
+ * חוזה טבלת ההפניות הנפלטת (RULES 24.3.4): טבלת הניתוב שנפלטה ל-
+ * `.vercel/output/config.json` — הקובץ ש-Vercel באמת מקבל — נבדקת ישירות.
+ * בנוסף, `scripts/serve-vercel-output.mjs` גוזר מאותו פלט config זמני לשרת
+ * Playwright המקומי, ולכן בדיקות דפדפן יכולות להוכיח 301 אמיתי גם בלי Vercel.
+ * אין רשימת redirects ידנית נוספת.
  *
  * שתי משפחות נשמרות בלי SSOT ידני כפול:
  * - legacy: מקור אמת `src/lib/legacyRedirects.mjs`;
