@@ -69,3 +69,38 @@
 - 11/08/2026 — נשמרו ראיות היסטוריות מ-86a898c ומ-fa05024.
 - 11/08/2026 — ננעל חוזה HTML-only ב-RULES 9.3.26.
 - 11/08/2026 — SHA-256 מקור: d188ce53916ab41e22db7dfbb8d8dc05ef127c823e02a2ae4d778fa47e17087a.
+## מימוש HTML — שלב ליבה
+
+- [x] נוצר scripts/extract-mafmar-content.py.
+- [x] נוצר src/data/mafmar-content.generated.ts.
+- [x] אומתו 18/18 עמודי PDF.
+- [x] נדרש חוזה שימור של 58 מופעי URI.
+- [x] כל occurrence ממופה לשורת HTML עם confidence מחייב >= 0.35.
+- [x] נוצר src/components/MafmarWeb.astro.
+- [x] MafmarRange.astro הוסב מתצוגת PDF לתוכן HTML מקומי תוך שמירת ה-consumers.
+- [x] /hozer-mafmar/ הוסב לתוכן HTML מלא.
+- [x] /hodaot/ אינו מטמיע עוד את PDF המפמ״ר.
+- [x] המצגת הנייטיבית MafmarPresentation נשמרה.
+- [x] נוסף marker data-mafmar-web ל-verify-deploy.
+- [x] נוספה 	ests/mafmar-web.spec.ts.
+- [ ] יש לעדכן חוזי בדיקות ישנים נוספים שעדיין מצפים ל-PDF viewer, אם יימצאו בשער האיכות המלא.
+- [ ] CI.
+- [ ] main.
+- [ ] production.
+## אימות סופי מקומי — HTML
+
+- [x] 18/18 עמודים כתוכן HTML מקומי.
+- [x] 25,931 תווי מקור.
+- [x] 212 annotations גולמיים → 58 קישורים לוגיים.
+- [x] 56 URLs ייחודיים.
+- [x] LOW_CONFIDENCE=0.
+- [x] אפס PDF iframe/embed/object של חוזר המפמ״ר.
+- [x] PDF נשמר כמקור/הורדה בלבד.
+- [x] MafmarRange מציג HTML מקומי.
+- [x] /hodaot/ מציג preview HTML ומצגת נייטיבית.
+- [x] 23 עוגני MAF ו-4 עוגני חלקים.
+- [x] ניגודיות AA עברה על build טרי.
+- [x] npm run quality עבר.
+- [ ] CI מרוחק.
+- [ ] merge ל-main.
+- [ ] production verification.

@@ -9,19 +9,32 @@ test.describe('חוזר מפמ״ר במצגת והודעות שוטפות', () =
     await expect(entry).toHaveAttribute('href', '/hodaot/');
   });
 
-  test('הודעות שוטפות מציגות גם את החוזר וגם את המצגת ביחס מסמך A4', async ({ page }) => {
+  test('הודעות שוטפות מציגות חוזר HTML מקומי לצד המצגת הנייטיבית', async ({ page }) => {
     await page.goto('/hodaot/');
-    await expect(page.getByRole('heading', { name: 'הודעות שוטפות', level: 1 })).toBeVisible();
-    await expect(page.getByRole('link', { name: /^חוזר המפמ״ר ←$/ })).toHaveAttribute('href', '/hozer-mafmar/');
-    await expect(page.getByRole('link', { name: /^דבר המפמ״ר במצגת ←$/ })).toHaveAttribute('href', '/hozer-mafmar-presentation/');
-    await expect(page.locator('iframe[title="חוזר מפמ״ר תשפ״ז — המסמך המלא"]')).toBeVisible();
+
+    await expect(
+      page.getByRole('heading', { name: 'הודעות שוטפות', level: 1 })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole('link', { name: /^חוזר המפמ״ר ←$/ })
+    ).toHaveAttribute('href', '/hozer-mafmar/');
+
+    await expect(
+      page.getByRole('link', { name: /^דבר המפמ״ר במצגת ←$/ })
+    ).toHaveAttribute('href', '/hozer-mafmar-presentation/');
+
+    const web = page.locator('[data-mafmar-web]');
+    await expect(web).toBeVisible();
+    await expect(web.locator('[data-mafmar-page]')).toHaveCount(1);
+
     await expect(page.locator('[data-mafmar-deck]')).toBeVisible();
 
-    const ratio = await page.locator('.pdf-shell').evaluate((element) => {
-      const rect = element.getBoundingClientRect();
-      return rect.width / rect.height;
-    });
-    expect(ratio).toBeCloseTo(595.32 / 841.92, 2);
+    await expect(
+      page.locator(
+        'iframe[src*="hozer-mafmar"], embed[src*="hozer-mafmar"], object[data*="hozer-mafmar"]'
+      )
+    ).toHaveCount(0);
   });
 
   test('המצגת נגזרת מכל 23 המקטעים המאומתים ושומרת קישור מדויק לכל מקטע', async ({ page }) => {

@@ -1,0 +1,476 @@
+---
+import { mafmarContent } from '../data/mafmar-content.generated';
+import {
+  MAFMAR_LOCAL,
+  MAFMAR_URL,
+  mafmarParts,
+  mafmarSections,
+} from '../data/mafmar';
+
+interface Props {
+  startPage?: number;
+  endPage?: number;
+  compact?: boolean;
+  showSearch?: boolean;
+  canonical?: boolean;
+}
+
+const {
+  startPage = 1,
+  endPage = mafmarContent.source.pageCount,
+  compact = false,
+  showSearch = !compact,
+  canonical = false,
+} = Astro.props;
+
+const pages = mafmarContent.pages.filter(
+  (page) => page.page >= startPage && page.page <= endPage
+);
+
+if (!pages.length) {
+  throw new Error(`MafmarWeb: empty range ${startPage}-${endPage}`);
+}
+
+const rootId = canonical
+  ? 'mafmar-web'
+  : `mafmar-web-${startPage}-${endPage}-${compact ? 'compact' : 'range'}`;
+
+const pageId = (page: number) =>
+  canonical ? `mafmar-page-${page}` : `${rootId}-page-${page}`;
+
+const sourceLabelFor = (href: string) => {
+  const host = new URL(href).hostname.replace(/^www\./, '');
+
+  if (host.endsWith('education.gov.il')) return 'משרד החינוך';
+  if (host === 'docs.google.com') return 'מסמך Google';
+  if (host === 'drive.google.com') return 'Google Drive';
+  if (host === 'sites.google.com') return 'Google Sites';
+  if (host === 'facebook.com' || host === 'www.facebook.com') return 'Facebook';
+
+  return host;
+};
+
+const sectionsAt = (page: number) =>
+  canonical ? mafmarSections.filter((section) => section.startPage === page) : [];
+
+const partsAt = (page: number) =>
+  canonical ? mafmarParts.filter((part) => part.startPage === page) : [];
+---
+
+<section
+  class:list={['mafweb', compact && 'is-compact']}
+  id={rootId}
+  dir="rtl"
+  data-mafmar-web
+  data-mafmar-start={startPage}
+  data-mafmar-end={endPage}
+>
+  {
+    !compact && (
+      <header class="mafweb-head">
+        <div>
+          <p class="mafweb-kicker">חוזר מפמ״ר תשפ״ז · תצוגת אינטרנט מלאה</p>
+          <h2>חוזר המפמ״ר</h2>
+          <p class="mafweb-meta">
+            {mafmarContent.source.pageCount} עמודים · תוכן HTML מקומי ·
+            <a href={MAFMAR_URL} target="_blank" rel="noopener noreferrer">
+              מקור משרד החינוך ↗
+            </a>
+            {' · '}
+            <a href={MAFMAR_LOCAL} download>
+              PDF להורדה ↓
+            </a>
+          </p>
+        </div>
+
+        {
+          showSearch && (
+            <label class="mafweb-search">
+              <span>חיפוש בתוך החוזר</span>
+              <input
+                type="search"
+                inputmode="search"
+                placeholder="חיפוש בחוזר…"
+                data-mafmar-search
+              />
+            </label>
+          )
+        }
+      </header>
+    )
+  }
+
+  {
+    !compact && pages.length > 1 && (
+      <nav class="mafweb-pages" aria-label="מעבר בין עמודי חוזר המפמ״ר">
+        {pages.map((page) => (
+          <a href={`#${pageId(page.page)}`}>עמוד {page.page}</a>
+        ))}
+      </nav>
+    )
+  }
+
+  <p class="mafweb-result" role="status" aria-live="polite" data-mafmar-result></p>
+
+  <div class="mafweb-stack">
+    {
+      pages.map((page) => (
+        <section
+          class="mafweb-page"
+          id={pageId(page.page)}
+          data-mafmar-page
+          data-page={page.page}
+        >
+          <div class="mafweb-canonical-anchors" aria-hidden="true">
+            {partsAt(page.page).map((part) => (
+              <span id={part.id} data-mafmar-part-anchor></span>
+            ))}
+            {sectionsAt(page.page).map((section) => (
+              <span id={section.id} data-mafmar-section-anchor></span>
+            ))}
+          </div>
+
+          <header class="mafweb-page-head">
+            <strong>עמוד {page.page}</strong>
+            {!compact && <a href={`#${rootId}`}>לתפריט החוזר</a>}
+          </header>
+
+          <div class="mafweb-rows">
+            {page.rows.map((row, rowIndex) => (
+              <div
+                class:list={[
+                  'mafweb-row',
+                  row.cells.length > 1 && 'is-grid',
+                  row.text.length <= 70 && 'is-short',
+                ]}
+                data-mafmar-row
+                data-mafmar-page-number={page.page}
+                data-mafmar-row-index={rowIndex}
+                data-search={row.text.toLocaleLowerCase('he')}
+              >
+                {
+                  row.cells.length > 1 ? (
+                    <div
+                      class="mafweb-cells"
+                      style={`--maf-cols:${row.cells.length}`}
+                    >
+                      {row.cells.map((cell) => <span>{cell}</span>)}
+                    </div>
+                  ) : (
+                    <p>{row.text}</p>
+                  )
+                }
+
+                {
+                  row.links.length > 0 && (
+                    <span class="mafweb-links" data-mafmar-row-links>
+                      {row.links.map((link) => (
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-mafmar-link
+                          data-mafmar-link-occurrence={link.occurrence}
+                          title={
+                            link.anchor
+                              ? `קישור מקור: ${link.anchor}`
+                              : 'קישור מקור מתוך חוזר המפמ״ר'
+                          }
+                        >
+                          {link.anchor || sourceLabelFor(link.href)} ↗
+                        </a>
+                      ))}
+                    </span>
+                  )
+                }
+              </div>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-mafmar-web]').forEach((root) => {
+    if (root.dataset.mafmarBound === '1') return;
+    root.dataset.mafmarBound = '1';
+
+    const input = root.querySelector<HTMLInputElement>('[data-mafmar-search]');
+    const result = root.querySelector<HTMLElement>('[data-mafmar-result]');
+
+    if (!input || !result) return;
+
+    const rows = Array.from(root.querySelectorAll<HTMLElement>('[data-mafmar-row]'));
+    const pages = Array.from(root.querySelectorAll<HTMLElement>('[data-mafmar-page]'));
+
+    const apply = () => {
+      const query = input.value.trim().toLocaleLowerCase('he');
+      let visible = 0;
+
+      for (const row of rows) {
+        const match = !query || (row.dataset.search ?? '').includes(query);
+        row.hidden = !match;
+        if (match) visible += 1;
+      }
+
+      for (const page of pages) {
+        page.hidden =
+          Boolean(query) &&
+          !page.querySelector('[data-mafmar-row]:not([hidden])');
+      }
+
+      result.textContent = query
+        ? visible
+          ? `${visible} שורות מתאימות נמצאו`
+          : 'לא נמצאה התאמה בחוזר'
+        : '';
+    };
+
+    input.addEventListener('input', apply);
+  });
+</script>
+
+<style>
+  .mafweb {
+    min-inline-size: 0;
+    color: var(--ink, #182033);
+  }
+
+  .mafweb-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.55fr);
+    gap: 1rem;
+    align-items: end;
+    padding: clamp(1rem, 2vw, 1.5rem);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .mafweb-kicker {
+    margin: 0 0 0.3rem;
+    color: var(--gold-deep);
+    font-size: 0.78rem;
+    font-weight: 850;
+  }
+
+  .mafweb h2 {
+    margin: 0;
+    color: var(--navy);
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 3vw, 2.1rem);
+  }
+
+  .mafweb-meta {
+    margin: 0.5rem 0 0;
+    color: var(--ink-soft);
+    font-size: 0.86rem;
+  }
+
+  .mafweb-meta a,
+  .mafweb-links a {
+    color: var(--gold-deep);
+    font-weight: 850;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.18em;
+  }
+
+  .mafweb-search {
+    display: grid;
+    gap: 0.35rem;
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .mafweb-search input {
+    inline-size: 100%;
+    min-block-size: 46px;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+  }
+
+  .mafweb-pages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-block: 0.8rem 1rem;
+  }
+
+  .mafweb-pages a,
+  .mafweb-page-head a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 40px;
+    padding-inline: 0.8rem;
+    border-radius: 999px;
+    color: var(--navy);
+    background: #fff;
+    border: 1px solid var(--line);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .mafweb-result {
+    min-block-size: 1.1rem;
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+  }
+
+  .mafweb-stack {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .mafweb-page {
+    position: relative;
+    overflow: clip;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 14px 34px rgb(20 29 45 / 0.07);
+    scroll-margin-block-start: calc(var(--header-real-h, var(--header-h)) + 1rem);
+  }
+
+  .mafweb-page[hidden],
+  .mafweb-row[hidden] {
+    display: none;
+  }
+
+  .mafweb-canonical-anchors {
+    position: absolute;
+    inset-block-start: 0;
+  }
+
+  .mafweb-canonical-anchors > span {
+    position: absolute;
+    inset-block-start: calc(-1 * var(--header-real-h, var(--header-h)));
+  }
+
+  .mafweb-page-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-block-size: 50px;
+    padding: 0.65rem 0.9rem;
+    background: linear-gradient(115deg, var(--navy), #243c63);
+    color: #fff;
+  }
+
+  .mafweb-page-head a {
+    min-block-size: 34px;
+    color: #fff;
+    border-color: rgb(255 255 255 / 0.35);
+    background: transparent;
+  }
+
+  .mafweb-rows {
+    display: grid;
+    gap: 0.48rem;
+    padding: clamp(0.65rem, 1.6vw, 1rem);
+  }
+
+  .mafweb-row {
+    min-inline-size: 0;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid #e7eaf0;
+    border-inline-start: 4px solid color-mix(in srgb, var(--gold) 70%, var(--navy));
+    border-radius: 13px;
+    background: #fff;
+  }
+
+  .mafweb-row.is-short {
+    background: color-mix(in srgb, var(--gold) 5%, #fff);
+    font-weight: 780;
+  }
+
+  .mafweb-row p {
+    margin: 0;
+    white-space: pre-wrap;
+    line-height: 1.65;
+  }
+
+  .mafweb-cells {
+    display: grid;
+    grid-template-columns: repeat(var(--maf-cols), minmax(0, 1fr));
+    gap: 0;
+    align-items: stretch;
+  }
+
+  .mafweb-cells > span {
+    min-inline-size: 0;
+    padding: 0.38rem 0.48rem;
+    border-inline-end: 1px solid #e8ebf0;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  .mafweb-cells > span:last-child {
+    border-inline-end: 0;
+  }
+
+  .mafweb-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.42rem;
+    margin-block-start: 0.55rem;
+  }
+
+  .mafweb-links a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 38px;
+    padding: 0.35rem 0.62rem;
+    border: 1px solid color-mix(in srgb, var(--gold) 38%, var(--line));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--gold) 7%, #fff);
+    font-size: 0.78rem;
+    overflow-wrap: anywhere;
+  }
+
+  .mafweb.is-compact .mafweb-stack {
+    gap: 0;
+  }
+
+  .mafweb.is-compact .mafweb-page {
+    box-shadow: none;
+  }
+
+  .mafweb.is-compact .mafweb-page-head {
+    min-block-size: 42px;
+  }
+
+  .mafweb.is-compact .mafweb-row {
+    padding: 0.55rem 0.65rem;
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 760px) {
+    .mafweb-head {
+      grid-template-columns: 1fr;
+    }
+
+    .mafweb-cells {
+      grid-template-columns: 1fr;
+    }
+
+    .mafweb-cells > span {
+      border-inline-end: 0;
+      border-block-end: 1px solid #e8ebf0;
+    }
+
+    .mafweb-cells > span:last-child {
+      border-block-end: 0;
+    }
+  }
+</style>

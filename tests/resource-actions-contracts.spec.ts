@@ -22,33 +22,34 @@ test('ResourceSplit consumes the shared action component only for ordinary resou
   expect(split).not.toContain("orb.addEventListener('pointermove'");
 });
 
-test('MafmarRange has no duplicate action board — only page-range navigation survives', async () => {
+test('MafmarRange has no duplicate action board and renders local HTML', async () => {
   const mrange = await source('src/components/MafmarRange.astro');
+
   expect(mrange).not.toContain('mrange-actions');
-  expect(mrange).not.toContain('data-wa');
-  expect(mrange).not.toContain('data-mail');
-  expect(mrange).not.toContain('data-copy');
   expect(mrange).not.toContain('data-resource-actions');
-  expect(mrange).toContain('data-prev');
-  expect(mrange).toContain('data-next');
-  expect(mrange).toContain('mrange-ind');
-  expect(mrange).toContain('mrange-pager');
+
+  expect(mrange).toContain("import MafmarWeb from './MafmarWeb.astro'");
+  expect(mrange).toContain('<MafmarWeb');
+
+  expect(mrange).not.toContain('<iframe');
+  expect(mrange).not.toContain('<embed');
+  expect(mrange).not.toContain('<object');
 });
 
-test('Mafmar full page has no generic ResourceActions — document navigation survives', async () => {
+test('Mafmar full page has no ResourceActions and uses the canonical HTML reader', async () => {
   const mafmar = await source('src/pages/hozer-mafmar.astro');
+
   expect(mafmar).not.toContain("import ResourceActions");
   expect(mafmar).not.toContain('<ResourceActions');
   expect(mafmar).not.toContain('data-resource-actions');
-  expect(mafmar).not.toContain('mafmarCanonical');
-  expect(mafmar).toContain('pg-prev');
-  expect(mafmar).toContain('pg-next');
-  expect(mafmar).toContain('data-goto');
-  expect(mafmar).toContain('viewer-open-card');
-  expect(mafmar).toContain('scroll-margin-block-start: calc(var(--header-real-h, var(--header-h)) + 1.2rem)');
-  expect(mafmar).toContain('aspect-ratio: var(--pw) / var(--ph)');
-  expect(mafmar).toContain('min-block-size: 0');
-  expect(mafmar).not.toContain('min-block-size: 520px');
+
+  expect(mafmar).toContain("import MafmarWeb");
+  expect(mafmar).toContain('<MafmarWeb canonical');
+
+  expect(mafmar).not.toContain('<iframe');
+  expect(mafmar).not.toContain('viewer-open-card');
+  expect(mafmar).not.toContain('pg-prev');
+  expect(mafmar).not.toContain('pg-next');
 });
 
 test('plan/prisa native HTML resources do not own a generic action board either', async () => {
@@ -64,20 +65,17 @@ test('plan/prisa native HTML resources do not own a generic action board either'
   expect(split).toMatch(/<PlanPrisaWeb[^>]*sourceUrl=\{item\.url\}/s);
 });
 
-test('iframe success is driven by a real load event, never a timeout false-green', async () => {
+test('ordinary iframe resources still require a real load event', async () => {
   const split = await source('src/components/ResourceSplit.astro');
-  const mafmar = await source('src/pages/hozer-mafmar.astro');
 
   expect(split).toContain('iframe.addEventListener(');
   expect(split).toContain("'load'");
   expect(split).toContain("frame.classList.add('is-loaded')");
-  expect(split).not.toMatch(/setTimeout\([^)]*is-loaded/s);
-  expect(split).not.toMatch(/setTimeout\([^)]*classList\.add\(['"]is-loaded/s);
 
-  expect(mafmar).toContain("frame.addEventListener('load'");
-  expect(mafmar).toContain("shell.classList.add('is-loaded')");
-  expect(mafmar).not.toMatch(/setTimeout\([^)]*is-loaded/s);
-  expect(mafmar).not.toMatch(/setTimeout\([^)]*classList\.add\(['"]is-loaded/s);
+  expect(split).not.toMatch(/setTimeout\([^)]*is-loaded/s);
+  expect(split).not.toMatch(
+    /setTimeout\([^)]*classList\.add\(['"]is-loaded/s
+  );
 });
 
 test('shared action component retains copy, Web Share, fullscreen and pointer behavior for its consumers', async () => {
@@ -117,56 +115,65 @@ test('plan/prisa native HTML resource page renders with no action board', async 
   await expect(page.locator('[data-plan-prisa-web] a[href="/docs/plan-7-tashpaz.pdf"][download]')).toHaveCount(1);
 });
 
-test('Mafmar section embedded in a resource page has no action board, keeps page navigation', async ({ page }) => {
+test('Mafmar section resource has no action board and renders local HTML', async ({ page }) => {
   await page.goto('/chativat-beynayim/reader/z/maf-02/');
+
   await expect(page.locator('.orbs')).toHaveCount(0);
   await expect(page.locator('[data-resource-actions]')).toHaveCount(0);
-  await expect(page.locator('.mrange-actions')).toHaveCount(0);
-  const pager = page.locator('.mrange-pager');
-  await expect(pager).toHaveCount(1);
-  await expect(pager.locator('[data-prev]')).toHaveCount(1);
-  await expect(pager.locator('[data-next]')).toHaveCount(1);
+
+  const range = page.locator('[data-mafrange]');
+  await expect(range).toHaveCount(1);
+  await expect(range.locator('[data-mafmar-web]')).toHaveCount(1);
+
+  const pages = await range.locator('[data-mafmar-page]').count();
+  expect(pages).toBeGreaterThan(0);
+
+  await expect(range.locator('iframe, embed, object')).toHaveCount(0);
 });
 
-test('Mafmar full page has no action board, keeps part jumps, section jumps and document paging', async ({ page }) => {
+test('Mafmar full page has no action board and renders all 18 HTML pages', async ({ page }) => {
   await page.goto('/hozer-mafmar/');
+
   await expect(page.locator('.orbs')).toHaveCount(0);
   await expect(page.locator('[data-resource-actions]')).toHaveCount(0);
+
   await expect(page.locator('.part-btn')).toHaveCount(4);
-  await expect(page.locator('#pg-prev')).toHaveCount(1);
-  await expect(page.locator('#pg-next')).toHaveCount(1);
+  await expect(page.locator('[data-mafmar-page]')).toHaveCount(18);
+  await expect(page.locator('[data-mafmar-link]')).toHaveCount(58);
+
+  await expect(
+    page.locator(
+      'iframe[src*="hozer-mafmar"], embed[src*="hozer-mafmar"], object[data*="hozer-mafmar"]'
+    )
+  ).toHaveCount(0);
 });
 
-test('בנייד: חוזר מפמ״ר שומר A4 וקפיצת תוכן נוחתת מתחת לכותרת האמיתית', async ({ page, isMobile }) => {
+
+test('בנייד: חוזר מפמ״ר HTML נשאר בתוך המסך והעוגנים לחיצים', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'החוזה רץ רק בפרויקט Pixel 7 האמיתי');
-  expect(isMobile, 'החוזה חייב לרוץ בפרויקט Pixel 7 האמיתי').toBe(true);
-  await page.addInitScript(() => {
-    Object.defineProperty(navigator, 'pdfViewerEnabled', { configurable: true, value: true });
-  });
+
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/hozer-mafmar/');
-  await page.evaluate(() => document.fonts.ready);
 
-  const shell = (await page.locator('.viewer-shell').boundingBox())!;
-  expect(shell, 'מעטפת החוזר חייבת להיות גלויה').toBeTruthy();
-  expect(shell.width / shell.height, 'יחס A4 נשמר בנייד').toBeCloseTo(595.32 / 841.92, 2);
+  await expect(page.locator('[data-mafmar-page]')).toHaveCount(18);
 
-  const jump = page.locator('[data-goto]').first();
-  await expect(jump).toBeVisible();
-  await jump.click();
-  await page.waitForTimeout(250);
+  const overflow = await page.evaluate(
+    () =>
+      document.documentElement.scrollWidth -
+      document.documentElement.clientWidth
+  );
 
-  const geometry = await page.evaluate(() => {
-    const header = document.querySelector<HTMLElement>('.site-header')!;
-    const stage = document.querySelector<HTMLElement>('.viewer-stage')!;
-    return {
-      headerBottom: header.getBoundingClientRect().bottom,
-      stageTop: stage.getBoundingClientRect().top,
-    };
-  });
-  expect(
-    geometry.stageTop,
-    `ראש הצופה (${geometry.stageTop}px) חייב להישאר מתחת לתחתית הכותרת (${geometry.headerBottom}px)`,
-  ).toBeGreaterThanOrEqual(geometry.headerBottom - 1);
+  expect(overflow).toBeLessThanOrEqual(1);
+
+  const firstPart = page.locator('.part-btn[href^="#"]').first();
+  await expect(firstPart).toBeVisible();
+
+  const href = await firstPart.getAttribute('href');
+  expect(href).toMatch(/^#part-/);
+
+  await firstPart.click();
+  await expect(page).toHaveURL(new RegExp(`${href}$`));
+
+  await expect(page.locator(href!)).toHaveCount(1);
 });

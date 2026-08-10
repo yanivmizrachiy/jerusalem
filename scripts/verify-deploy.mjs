@@ -90,6 +90,7 @@ const MARKERS = [
   { path: '/chativat-beynayim/prisot/', needle: 'data-prisa-index', what: 'עמוד מרכזי לכל ארבע פריסות ההוראה' },
   { path: '/chativat-beynayim/reader/z/prisa-z/', needle: 'data-prisa-cell-link', what: 'קישורי הפריסה משויכים לתאים המדויקים בתצוגת האינטרנט' },
   { path: '/hodaot/', needle: 'href="/chativat-beynayim/prisot/"', what: 'כפתור פריסות הוראה בהודעות שוטפות' },
+  { path: '/hozer-mafmar/', needle: 'data-mafmar-web', what: 'חוזר מפמ״ר מוגש כתוכן HTML מקומי מלא — ללא PDF embed (9.3.26)' },
   { path: '/chativat-beynayim/reader/z/amat-tashpaz/', needle: 'class="orbs"', what: 'לוח הפעולות החי במשאב רגיל (8.4)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
