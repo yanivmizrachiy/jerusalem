@@ -35,12 +35,30 @@ test('מצב שחור־לבן מפעיל stylesheet ייעודי לפני ההד
   expect(filter).toContain('grayscale');
 });
 
-test('במדיית הדפסה הניווט, הפעולות וה-iframe אינם מודפסים', async ({ page }) => {
+test('בהדפסה ההטמעה יורדת, המקור נשאר ולוח המידע ממלא את הדף', async ({ page }) => {
   await page.goto('/chativat-beynayim/reader/z/misparim/');
   await page.emulateMedia({ media: 'print' });
 
   await expect(page.locator('.site-header')).toBeHidden();
   await expect(page.locator('.site-footer')).toBeHidden();
-  await expect(page.locator('[data-resource-actions]')).toBeHidden();
   await expect(page.locator('iframe')).toBeHidden();
+  await expect(page.locator('.embed-frame')).toBeHidden();
+  await expect(page.locator('.res-view')).toBeHidden();
+
+  const actions = page.locator('[data-resource-actions]');
+  await expect(actions).toBeVisible();
+  await expect(actions.locator('[data-action="source"]')).toBeVisible();
+  await expect(actions.locator('[data-action="download"]')).toBeHidden();
+  await expect(actions.locator('[data-action="copy"]')).toBeHidden();
+  await expect(actions.locator('[data-action="print"]')).toBeHidden();
+
+  const panelBox = await page.locator('.res-panel').boundingBox();
+  const splitBox = await page.locator('.res-split').boundingBox();
+  expect(panelBox && splitBox, 'לוח המידע והמסגרת קיימים במדיית print').toBeTruthy();
+  expect(panelBox!.width).toBeGreaterThanOrEqual(splitBox!.width - 2);
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
 });
