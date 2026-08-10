@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /api/
 
 Sitemap: https://jerusalem-virid.vercel.app/sitemap-index.xml
