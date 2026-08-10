@@ -93,11 +93,17 @@
   }
 
   /* The original desktop panel budget fits seven 4.3rem cells. Print adds an
-     eighth action. Keep the 58px touch face unchanged and reduce only the
-     surrounding cell/gap budget so the eighth control does not wrap. */
+     eighth action. Keep the 58px touch face unchanged: eight 60px cells need
+     only 480px, while space-between distributes the remaining panel width. */
   @media (min-width: 1100px) {
-    html .orbs.has-print-action { gap: 0.35rem; }
-    html .orbs.has-print-action .orb { inline-size: 3.85rem; }
+    html .orbs.has-print-action {
+      gap: 0;
+      justify-content: space-between;
+    }
+    html .orbs.has-print-action .orb {
+      flex: 0 0 60px;
+      inline-size: 60px;
+    }
   }
 
   @page { size: A4; margin: 14mm 12mm; }
