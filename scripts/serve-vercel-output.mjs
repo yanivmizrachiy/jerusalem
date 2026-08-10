@@ -109,7 +109,11 @@ const child = spawn(
     '--config',
     '../serve.json',
   ],
-  { cwd: ROOT, stdio: 'inherit' },
+  {
+    cwd: ROOT,
+    stdio: 'inherit',
+    shell: npx.endsWith('.cmd'),
+  },
 );
 
 const forward = (signal) => {
