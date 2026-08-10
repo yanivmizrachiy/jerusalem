@@ -22,7 +22,7 @@ const expectProxyStatus = async (promise: Promise<unknown>, status: number) => {
   }
 };
 
-test('proxy responses and robots policy keep /api content out of the public index', async () => {
+test('proxy responses expose noindex headers and robots.txt does not block crawlers from seeing them', async () => {
   const upstream = new Response('ok', {
     status: 200,
     headers: { etag: '"proxy-fixture"', 'cache-control': 'public, max-age=60' },
@@ -32,8 +32,11 @@ test('proxy responses and robots policy keep /api content out of the public inde
   expect(headers.get('x-robots-tag')).toBe(PROXY_ROBOTS_POLICY);
   expect(headers.get('etag')).toBe('"proxy-fixture"');
 
+  // A robots.txt Disallow would prevent compliant crawlers from fetching the
+  // proxy response and therefore from observing the response-level noindex.
   const robots = await readFile(new URL('../public/robots.txt', import.meta.url), 'utf8');
-  expect(robots).toMatch(/^Disallow: \/api\/$/m);
+  expect(robots).not.toMatch(/^Disallow: \/api\/$/m);
+  expect(robots).toMatch(/^Allow: \/$/m);
 });
 
 test('proxy rejects declared oversized POST before buffering the body', async () => {
