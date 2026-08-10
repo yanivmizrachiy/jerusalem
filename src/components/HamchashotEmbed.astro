@@ -1,14 +1,18 @@
 ---
 /**
- * אתר ההמחשות של איילת קריספין (RULES 3.3, 9.1): מוצג בעמוד חטיבת הביניים
- * מתחת לחוברת המרכזית — הטמעה גדולה ודומיננטית דרך הפרוקסי המחוזי (/api/mam/),
- * במסגרת הזכוכית האחידה (8.26), עם כפתור עגול להעתקת הקישור הקנוני.
- * הועבר לכאן מהעמוד הראשי בהוראת יניב (04/08/2026). הרכיב חי בתוך
- * ה-.container של העמוד — אין לו מיכל משלו, כדי להתיישר עם רוחב החוברת.
+ * אתר ההמחשות של איילת קריספין (RULES 3.3, 9.1): הטמעה חיה דרך הפרוקסי
+ * המחוזי (/api/mam/), במסגרת האחידה (8.26), עם כפתור עגול להעתקת הקישור הקנוני.
+ * שני מצבים: ברירת המחדל — הטמעה גבוהה בעמודי המבוא של השכבות; `compact` —
+ * הפאנל שבמסך הראשון של שער חטיבת הביניים, לצד טבלת הקישורים (הוראת יניב,
+ * 10/08/2026). הרכיב חי בתוך המיכל של העמוד — אין לו מיכל משלו.
  */
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
 ---
 
-<section class="hamchashot-section" id="hamchashot" data-reveal>
+<section class:list={['hamchashot-section', { 'is-compact': compact }]} id="hamchashot" data-reveal>
   <div class="section-head">
     <h2>אתר ההמחשות של איילת קריספין</h2>
     <p class="lede">
@@ -83,6 +87,22 @@
   }
 
   .mam-note:hover { color: var(--gold-deep); text-decoration: underline; }
+
+  /* מצב קומפקטי — המסך הראשון של שער חטיבת הביניים (הוראת יניב, 10/08/2026):
+     ההטמעה נכנסת כולה במסך הראשון לצד טבלת הקישורים; הגובה המדויק נמדד
+     בזמן ריצה בעמוד השער (innerHeight פחות ראש המסגרת), והכלל כאן הוא
+     ה-fallback לפני ה-JS ולמסכים צרים. המסגרת המשותפת (8.26) ללא שינוי. */
+  .is-compact { margin-block-start: 0; }
+  .is-compact .section-head { max-width: none; margin-block-end: 0.75rem; }
+  .is-compact .section-head h2 { margin: 0 0 0.3rem; font-size: clamp(1.14rem, 1.5vw, 1.42rem); line-height: 1.25; }
+  .is-compact .section-head .lede { margin: 0; font-size: 0.92rem; line-height: 1.55; }
+  .is-compact .mam-frame { block-size: clamp(360px, 100dvh - 470px, 680px); }
+  .is-compact .mam-actions { margin-block-start: 0.7rem; }
+
+  @media (max-width: 1119px) {
+    /* בערימה הצרה אין "מסך ראשון" לשמור — גובה נוח וקבוע (8.12) */
+    .is-compact .mam-frame { block-size: min(72dvh, 600px); }
+  }
 </style>
 
 <script>

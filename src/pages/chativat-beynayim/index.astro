@@ -29,15 +29,23 @@ const thirds = choveret;
   title="מתמטיקה לחטיבת הביניים — מחוז ירושלים"
   description="מתמטיקה לחטיבת הביניים במחוז ירושלים: כל הקבצים, הקישורים והפעילויות של כיתות ז׳, ח׳ ו-ט׳."
 >
-  <div class="container page-top">
+  <div class="container gate-top page-top">
     <Breadcrumbs items={[{ label: 'ראשי', href: '/' }, { label: 'חטיבת ביניים' }]} />
 
-    <header class="page-head" data-reveal>
-      <h1 class="big-title">מתמטיקה לחטיבת הביניים</h1>
-      <p class="updated-line">{updatedLine}</p>
-    </header>
+    <!-- המסך הראשון (הוראת יניב, 10/08/2026): הכותרת, טבלת הקישורים
+         וההטמעה הקומפקטית של ההמחשות — יחד, בלי גלילה במסך רחב. -->
+    <div class="gate-first">
+      <div class="gate-main">
+        <header class="page-head" data-reveal>
+          <h1 class="big-title">מתמטיקה לחטיבת הביניים</h1>
+          <p class="updated-line">{updatedLine}</p>
+        </header>
 
-    <MiddleSchoolQuickLinks />
+        <MiddleSchoolQuickLinks />
+      </div>
+
+      <HamchashotEmbed compact />
+    </div>
   </div>
 
   <section class="split3" aria-label="בחירת שכבה">
@@ -79,8 +87,6 @@ const thirds = choveret;
   <div class="container page-rest">
     <hr class="section-rule" aria-hidden="true" />
 
-    <HamchashotEmbed />
-
     <ArtBanner
       art="festival"
       alt="איור אמנותי: פסטיבל מתמטיקה צבעוני ברחבת שער יפו בירושלים — קהל לומדים סביב דודקהדרון ענק"
@@ -104,8 +110,24 @@ const thirds = choveret;
 
 <style>
   .page-top { padding-block: 1rem 0; }
-  .page-head { max-width: 760px; margin-block: 0.6rem 1.2rem; }
+  .page-head { max-width: 760px; margin-block: 0.35rem 0; }
+  .page-head .updated-line { margin-block: 0.3rem 0; }
   .page-rest { padding-block: 0 2.2rem; }
+
+  /* המסך הראשון (הוראת יניב, 10/08/2026): רצועה רחבה — הכותרת וטבלת
+     הקישורים מימין, ההטמעה הקומפקטית של ההמחשות משמאל; הכול בלי גלילה. */
+  .gate-top { width: min(1520px, 100% - 2 * clamp(1.1rem, 4vw, 2.5rem)); }
+  .gate-first {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(340px, 1fr);
+    gap: clamp(1.4rem, 2.4vw, 2.4rem);
+    align-items: start;
+  }
+  .gate-main { min-inline-size: 0; }
+
+  @media (max-width: 1119px) {
+    .gate-first { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  }
 
   .split3 {
     position: relative;
@@ -319,6 +341,37 @@ const thirds = choveret;
   }
 </style>
 
+<style is:global>
+  /* כיווץ עדין של הטבלה בתוך המסך הראשון בלבד (10/08/2026) — כדי שהכותרת,
+     הטבלה המלאה וההטמעה ייכנסו יחד במסך אחד. הסלקטורים מעוגנים ל-.gate-first
+     ואינם משפיעים על שום עמוד אחר; מטרות המגע נשארות ≥44px בכל קישור.  */
+  .gate-first .quick-links { margin-block: 0.75rem 0; }
+  .gate-first .quick-head { margin-block-end: 0.6rem; }
+  .gate-first .quick-kicker { margin-block-end: 0.2rem; }
+  .gate-first .quick-head h2 { font-size: clamp(1.3rem, 1.8vw, 1.55rem); line-height: 1.2; }
+  .gate-first .quick-head > p:last-child { margin-block-start: 0.25rem; font-size: 0.92rem; line-height: 1.45; }
+
+  .gate-first .quick-links th {
+    min-block-size: 0;
+    padding: 0.6rem 0.5rem;
+    font-size: clamp(0.94rem, 1.1vw, 1.08rem);
+  }
+  /* העמודה הראשונה רחבה מעט יותר — שלוש גלולות "רגע לפני" בשורה אחת */
+  .gate-first .quick-links th:first-child { inline-size: 30%; }
+  .gate-first .quick-links th small { margin-block-start: 0.2rem; font-size: 0.62rem; }
+  .gate-first .quick-links td > a,
+  .gate-first .quick-links .empty {
+    min-block-size: 56px;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.94rem;
+    line-height: 1.35;
+  }
+  .gate-first .quick-links .multi { min-block-size: 56px; padding: 0.5rem 0.4rem; gap: 0.3rem; }
+  .gate-first .quick-links .multi-label { font-size: 0.94rem; }
+  .gate-first .quick-links .multi-links { gap: 0.28rem; }
+  .gate-first .quick-links .multi-links a { padding: 0.3rem 0.5rem; font-size: 0.84rem; }
+</style>
+
 <script>
   const split = document.querySelector<HTMLElement>('.split3');
   if (split && matchMedia('(min-width: 861px)').matches) {
@@ -330,5 +383,26 @@ const thirds = choveret;
     addEventListener('resize', fit, { passive: true });
     addEventListener('load', fit, { once: true });
     document.fonts?.ready.then(fit);
+  }
+
+  /* המסך הראשון (10/08/2026): גובה ההטמעה נמדד בפועל כך שהיא — יחד עם
+     שורת ההעתקה שמתחתיה — נגמרת בתוך גובה החלון, בלי גלילה. במסכים
+     צרים ההערמה חוזרת ל-fallback שב-CSS. */
+  const mamFrame = document.querySelector<HTMLElement>('.gate-first .mam-frame');
+  if (mamFrame) {
+    const actions = document.querySelector<HTMLElement>('.gate-first .mam-actions');
+    const fitMam = () => {
+      if (!matchMedia('(min-width: 1120px)').matches) {
+        mamFrame.style.removeProperty('block-size');
+        return;
+      }
+      const top = mamFrame.getBoundingClientRect().top + scrollY;
+      const reserve = (actions?.getBoundingClientRect().height ?? 46) + 40;
+      mamFrame.style.blockSize = `${Math.min(680, Math.max(360, Math.round(innerHeight - top - reserve)))}px`;
+    };
+    fitMam();
+    addEventListener('resize', fitMam, { passive: true });
+    addEventListener('load', fitMam, { once: true });
+    document.fonts?.ready.then(fitMam);
   }
 </script>
