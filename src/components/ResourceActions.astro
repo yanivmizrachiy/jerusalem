@@ -1,4 +1,6 @@
 ---
+import { isSameOriginUrl } from '../lib/downloadUrl';
+
 interface Props {
   downloadUrl?: string;
   whatsappText: string;
@@ -33,7 +35,9 @@ const {
 // External download endpoints may still return Content-Disposition, but the
 // browser is allowed to ignore our attribute. Keep the UI truthful: local
 // files promise a download; external files promise only that the file opens.
-const localDownload = Boolean(downloadUrl?.startsWith('/') && !downloadUrl.startsWith('//'));
+// Same-origin is decided by full URL resolution (src/lib/downloadUrl.ts),
+// not by prefix sniffing — 'docs/x' and './x' are local, '//cdn/x' is not.
+const localDownload = isSameOriginUrl(downloadUrl, Astro.site ?? Astro.url);
 const downloadLabel = localDownload ? 'הורדה' : 'פתיחת קובץ';
 ---
 
