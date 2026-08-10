@@ -203,7 +203,7 @@ import { feedDated, feedStanding } from '../data/hodaot';
   .pdf-shell {
     aspect-ratio: var(--pw) / var(--ph);
     block-size: auto;
-    min-height: 480px;
+    min-height: 0;
     overflow: hidden;
   }
 
@@ -252,6 +252,5 @@ import { feedDated, feedStanding } from '../data/hodaot';
     .mafmar-feature { padding: 0.9rem; }
     .feature-actions { inline-size: 100%; }
     .feature-actions .btn { flex: 1 1 100%; justify-content: center; }
-    .pdf-shell { min-height: clamp(420px, 120vw, 640px); }
   }
 </style>
