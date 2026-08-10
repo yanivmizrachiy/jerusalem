@@ -158,7 +158,9 @@ const isTnufaSpec = (item: ChoveretItem) => isTnufa(item) && item.title.includes
   .grade-jump span { color: var(--ink-faint); font-size: 0.86rem; }
 
   .grade-sections { display: grid; gap: 3.2rem; }
-  .grade-exams { scroll-margin-top: calc(var(--header-h) + 1.5rem); }
+  /* מרווח הגלילה נגזר מהגובה הנמדד של הכותרת (‎--header-real-h‎, global.css):
+     הטוקן הקבוע נמוך מהכותרת כשהניווט נשבר לשורות במסך צר (5.17) */
+  .grade-exams { scroll-margin-top: calc(var(--header-real-h, var(--header-h)) + 1.5rem); }
   .grade-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-block-end: 1rem; padding-block-end: 0.8rem; border-block-end: 2px solid color-mix(in srgb, var(--grade) 40%, var(--line)); }
   .grade-heading p { margin: 0; color: var(--grade-dark); font-weight: 800; }
   .grade-heading h2 { margin: 0.15rem 0 0; color: var(--navy); font-family: var(--font-display); font-size: clamp(1.7rem, 4vw, 2.5rem); }

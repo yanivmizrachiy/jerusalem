@@ -79,3 +79,59 @@ test('קפיצה לעוגן אינה נבלעת מתחת לכותרת הדביק
     ).toBeGreaterThanOrEqual(geometry.headerBottom - 1);
   }
 });
+
+/**
+ * עמודים עם override מקומי למרווח הגלילה חייבים לגזור אותו מהגובה הנמדד
+ * (‎--header-real-h‎) ולא מהטוקן הקבוע: הטוקן (76px) נמוך מהכותרת כשהניווט
+ * נשבר לשורות, והעוגן נוחת מוסתר בדיוק ברגע ההגעה אליו (5.17).
+ *
+ * המקרה המדוד: ‏`.grade-exams` בעמוד המבחנים — סרגל הקפיצה שבראש העמוד
+ * מצביע על ‎#grade-*‎, ועם הטוקן הקבוע היעד נבלע ‎~54px‎ ב-360px.
+ *
+ * האיטרציה הראשונה רצה על viewport ברירת המחדל של הפרויקט — בפרויקט
+ * המובייל זהו Pixel 7 אמיתי (412px, כותרת שבורה לשורות) ולא הדמיה צרה.
+ * ‏reduced-motion מנטרל את חשיפת הגלילה (‎translateY(26px)‎ של data-reveal),
+ * כדי שהמדידה תהיה גאומטריה יציבה ולא אמצע אנימציה.
+ */
+test('עוגני סרגל הקפיצה בעמוד המבחנים נוחתים מתחת לכותרת בכל רוחב (5.17)', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const offenders: string[] = [];
+
+  for (const width of [0, 360, 390]) {
+    if (width) await page.setViewportSize({ width, height: 900 });
+    await page.goto('/chativat-beynayim/mivchanim/');
+    await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+
+    // עוגן אמיתי מסרגל הקפיצה — היעד חייב להתקיים ב-DOM (לא רק ב-URL)
+    const anchorId = await page.evaluate(() => {
+      const link = document.querySelector<HTMLAnchorElement>('a[href^="#grade-"]');
+      const id = link?.getAttribute('href')?.slice(1) ?? '';
+      return id && document.getElementById(id) ? id : '';
+    });
+    expect(anchorId, 'סרגל הקפיצה חייב להצביע על מקטע קיים בעמוד').not.toBe('');
+
+    await page.evaluate((id) => {
+      location.hash = `#${id}`;
+    }, anchorId);
+    await page.waitForTimeout(250);
+
+    const geometry = await page.evaluate((id) => {
+      const header = document.querySelector<HTMLElement>('.site-header')!;
+      const target = document.getElementById(id)!;
+      return {
+        headerHeight: Math.round(header.getBoundingClientRect().height),
+        headerBottom: header.getBoundingClientRect().bottom,
+        targetTop: target.getBoundingClientRect().top,
+      };
+    }, anchorId);
+
+    if (!(geometry.targetTop >= geometry.headerBottom - 1)) {
+      offenders.push(
+        `${width || 'native'}px: ראש היעד #${anchorId} (${Math.round(geometry.targetTop)}px) נבלע מתחת לכותרת בגובה ${geometry.headerHeight}px`,
+      );
+    }
+  }
+
+  expect(offenders, `עוגן שנבלע מתחת לכותרת: ${offenders.join(' | ')}`).toHaveLength(0);
+});
