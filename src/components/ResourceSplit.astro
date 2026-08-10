@@ -84,6 +84,13 @@ const showActions = item.kind !== 'maf' && !planPrisaDoc;
       {item.note && <p class="res-note">{item.note}</p>}
       {item.source && <p class="res-source">{item.source}</p>}
 
+      {planPrisaDoc && (
+        <p class="res-plan-sources" aria-label="קישורי מקור לתוכנית ולפריסה">
+          <a class="res-official-source" href={item.url} target="_blank" rel="noopener">מקור משרד החינוך ↗</a>
+          {item.download && <a class="res-local-download" href={item.download} download>PDF להורדה ↓</a>}
+        </p>
+      )}
+
       {showActions && (
         <>
           <ResourceActions
@@ -145,7 +152,7 @@ const showActions = item.kind !== 'maf' && !planPrisaDoc;
         item.kind === 'maf' && item.maf ? (
           <MafmarRange sectionId={item.maf} accent={chapter.color} fill />
         ) : planPrisaDoc ? (
-          <PlanPrisaWeb document={planPrisaDoc} accent={chapter.color} sourceUrl={item.url} />
+          <PlanPrisaWeb document={planPrisaDoc} accent={chapter.color} />
         ) : item.embed ? (
           <>
             <div class="res-frame embed-frame" data-frame aria-busy="true">
@@ -196,7 +203,6 @@ const showActions = item.kind !== 'maf' && !planPrisaDoc;
     margin-block-start: clamp(1.4rem, 3vw, 2.4rem);
     align-items: start;
   }
-
 
   .res-view { order: 1; min-inline-size: 0; }
   .res-panel { order: 2; align-self: start; }
@@ -318,6 +324,9 @@ const showActions = item.kind !== 'maf' && !planPrisaDoc;
   .res-panel :global(.author-attribution) { margin-block-start: 0.8rem; }
   .res-note { margin: 1.2rem 0 0; color: var(--ink-soft); line-height: 1.75; }
   .res-source { margin: 0.6rem 0 0; color: var(--ink-faint); font-size: 0.83rem; }
+  .res-plan-sources { display: flex; flex-wrap: wrap; gap: 0.7rem; margin: 0.85rem 0 0; }
+  .res-plan-sources a { color: var(--ch-ink); font-weight: 800; text-decoration: none; border-block-end: 1px solid currentColor; }
+  .res-plan-sources a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
   .res-status { margin: 0.7rem 0 0; min-block-size: 1.2rem; font-size: 0.85rem; color: var(--gold-deep); font-weight: 600; }
 
   .res-pager {
