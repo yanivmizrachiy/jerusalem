@@ -54,6 +54,12 @@ const pngFetch: typeof globalThis.fetch = async () =>
     headers: { 'content-type': 'image/png' },
   });
 
+const html304Fetch: typeof globalThis.fetch = async () =>
+  new Response(null, {
+    status: 304,
+    headers: { 'content-type': 'text/html; charset=utf-8', etag: '"revalidated"' },
+  });
+
 test('proxy error page is styled RTL HTML with the factual message and status', async () => {
   const res = proxyErrorResponse('המקור אינו זמין כרגע — נסו שוב בעוד רגע.', 502);
   expect(res.status).toBe(502);
@@ -122,6 +128,36 @@ test('proxied HTML documents carry frame-ancestors self and nosniff', async () =
       // ההקשחה אינה מחליפה את משמר זמן-הריצה — הוא עדיין מוזרק ראשון
       expect(await res.text()).toContain('__EM_PROXY__');
     }
+  });
+});
+
+test('HTML 304 revalidation keeps the document security policy — em', async () => {
+  await withFetchStub(html304Fetch, async () => {
+    const req = new Request('http://localhost/api/em/misparim/', {
+      headers: { 'if-none-match': '"revalidated"' },
+    });
+    const res = await emAll({ params: { path: 'misparim/' }, request: req } as unknown as EmContext);
+    expect(res.status).toBe(304);
+    // בלי ההחלה על המסלול ה-bodyless — revalidation מחזיר מסמך בלי המדיניות
+    expect(res.headers.get('content-security-policy')).toBe("frame-ancestors 'self'");
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    // כותרות המטמון של המקור ממשיכות לעבור (copyResponseHeaders)
+    expect(res.headers.get('etag')).toBe('"revalidated"');
+    expect(await res.text()).toBe('');
+  });
+});
+
+test('HTML 304 revalidation keeps the document security policy — mam', async () => {
+  await withFetchStub(html304Fetch, async () => {
+    const req = new Request('http://localhost/api/mam/', {
+      headers: { 'if-none-match': '"revalidated"' },
+    });
+    const res = await mamAll({ params: { path: '' }, request: req } as unknown as MamContext);
+    expect(res.status).toBe(304);
+    expect(res.headers.get('content-security-policy')).toBe("frame-ancestors 'self'");
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(res.headers.get('etag')).toBe('"revalidated"');
+    expect(await res.text()).toBe('');
   });
 });
 

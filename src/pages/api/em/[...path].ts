@@ -68,8 +68,14 @@ export const ALL: APIRoute = async ({ params, request }) => {
   headers.set('content-type', ct);
   copyResponseHeaders(upstream, headers);
 
-  // HEAD/204/304 נושאים כותרות בלבד — גוף כאן הוא תגובה פגומה
+  // HEAD/204/304 נושאים כותרות בלבד — גוף כאן הוא תגובה פגומה.
+  // מדיניות המסמך חלה גם כאן: ‏304 מעדכן את הכותרות השמורות במטמון
+  // (RFC 9111), ו-HEAD משקף את כותרות ה-GET — בלי זה revalidation של
+  // מסמך חוזר בלי frame-ancestors (304 לרוב מגיע בלי content-type, ולכן
+  // אין להתנות ב-ct). על נכסים הכותרות אינן פעילות — ההחלה בטוחה;
+  // מסלול ה-passthrough עם גוף אינו משתנה.
   if (isBodyless(request.method, upstream.status)) {
+    applyDocumentSecurityHeaders(headers);
     return new Response(null, { status: upstream.status, headers });
   }
 

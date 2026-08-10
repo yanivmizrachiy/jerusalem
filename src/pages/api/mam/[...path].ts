@@ -48,8 +48,11 @@ export const ALL: APIRoute = async ({ params, request }) => {
   headers.set('content-type', ct);
   copyResponseHeaders(upstream, headers);
 
-  // HEAD/204/304 נושאים כותרות בלבד
+  // HEAD/204/304 נושאים כותרות בלבד. מדיניות המסמך חלה גם כאן — ‏304
+  // מעדכן את הכותרות השמורות במטמון ו-HEAD משקף את GET; בלי זה
+  // revalidation חוזר בלי frame-ancestors (ר' הערת em המלאה).
   if (isBodyless(request.method, upstream.status)) {
+    applyDocumentSecurityHeaders(headers);
     return new Response(null, { status: upstream.status, headers });
   }
 
