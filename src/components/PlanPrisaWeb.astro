@@ -29,7 +29,7 @@ const prepareRow = (row: ReaderRow) => {
           : row.cells.length > 1
             ? 'is-grid'
             : 'is-text',
-    columns: Math.min(Math.max(row.cells.length, 1), 5),
+    columns: Math.max(row.cells.length, 1),
     search: row.text.toLocaleLowerCase('he'),
   };
 };
