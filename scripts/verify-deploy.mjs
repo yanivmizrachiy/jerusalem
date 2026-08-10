@@ -81,8 +81,9 @@ const MARKERS = [
   { path: '/chativat-beynayim/kita-z/', needle: 'חומרים להוראה', what: 'אזור החומרים בעמוד המבוא (06/08)' },
   { path: '/chativat-beynayim/kita-z/chomarim/', needle: 'class="topics"', what: 'רשימת הנושאים בתצוגת החומרים (3.29)' },
   { path: '/chativat-beynayim/nose/z/z-directed-numbers/', needle: 'class="rcard"', what: 'כרטיסי קבצים בנושא לימודי אמיתי (3.29)' },
-  { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'res-panel', what: 'לוח הפעולות בעמוד המשאב (3.29, 8.2)' },
   { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'data-plan-prisa-web', what: 'תוכנית/פריסה כתצוגת HTML — ללא PDF מוטמע (3.32.1)' },
+  { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: '/docs/plan-7-tashpaz.pdf', what: 'עותק PDF מקומי מאומת נשמר כמקור/הורדה (3.32.1)' },
+  { path: '/chativat-beynayim/reader/z/amat-tashpaz/', needle: 'data-resource-actions', what: 'לוח פעולות reader רגיל מוגש בפרודקשן (8.4)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
   { path: '/', needle: 'hero-actions', what: 'כפתורי הפעולה המובילים בעמוד הראשי (7.28)' },
@@ -344,6 +345,18 @@ try {
   const bare = pdfs.filter((u) => !u.includes('toolbar=0'));
   if (bare.length) fail(`${bare.length} הטמעות PDF בלי toolbar=0 — סרגל שחור חוזר (8.26)`);
   else console.log(`✓ ${pdfs.length} הטמעות PDF עם מסגור נייבי-זהב (8.26)`);
+
+  // ה-smoke החי של לוח הפעולות שייך לשלב post-deploy, לא ל-Playwright של PR.
+  // כאן הוא נבדק מול הפרודקשן אחרי שה-SHA החי אומת בשלב א׳.
+  const actionReader = markup((await fetchOnce('/chativat-beynayim/reader/z/amat-tashpaz/')).html);
+  const actionBoards = countOf(actionReader, /data-resource-actions/g);
+  const orbs = countOf(actionReader, /class="orb"/g);
+  const legacyActions = countOf(actionReader, /res-actions/g);
+  if (actionBoards === 1 && orbs >= 5 && legacyActions === 0) {
+    console.log(`✓ לוח פעולות reader חי — ${orbs} פעולות, בלי הלוח הישן (8.4)`);
+  } else {
+    fail(`לוח פעולות reader חי: boards=${actionBoards}, orbs=${orbs}, legacy=${legacyActions} (8.4)`);
+  }
 } catch (e) {
   fail(`בדיקת המבנה נכשלה: ${e.message}`);
 }
@@ -362,6 +375,6 @@ console.log(
     `  · ${REDIRECTS.length} מסלולי תאימות = ${LEGACY_REDIRECT_STATUS} עם Location מדויק`,
     `  · ${PROXY_CHECKS.length} נקודות פרוקסי חיות + ${PROXY_REJECTS.length} דחיות allowlist + 405 + HEAD`,
     `  · ${MARKERS.length} סמנים מחייבים ב-markup + ${ASSETS.length} נכסים מוגשים`,
-    '  · אינווריאנטים מבניים: שלישים, נושאים, כרטיסים, מסגור PDF',
+    '  · אינווריאנטים מבניים: שלישים, נושאים, כרטיסים, מסגור PDF, לוח פעולות חי',
   ].join('\n'),
 );
