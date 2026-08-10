@@ -12,6 +12,7 @@ import '../styles/home-immediate.css';
 import DateBar from '../components/DateBar.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import PrintController from '../components/PrintController.astro';
 
 interface Props {
   title: string;
@@ -97,6 +98,7 @@ const structuredData =
       <slot />
     </main>
     <SiteFooter />
+    <PrintController />
 
     <script>
       // חשיפה עדינה בגלילה (5.6, 5.20) — מכבד prefers-reduced-motion דרך ה־CSS
