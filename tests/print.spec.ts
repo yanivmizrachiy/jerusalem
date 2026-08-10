@@ -69,6 +69,18 @@ test('הדפסה בעמוד המשאב: קישור "פתיחה במקור" נש�
   }
 });
 
+test('הדפסה במשאב plan/prisa: התוכן הטבעי (לא iframe) נשאר גלוי (8.16, 8.17)', async ({ page }) => {
+  // ל-plan/prisa אין iframe בתוך .embed-frame — .res-view מכיל HTML אמיתי
+  // (PlanPrisaWeb). הכלל הגורף שמוריד את .res-view חייב להחריג אותו,
+  // אחרת גם התוכן וגם קישורי המקור/ההורדה נעלמים מהדף המודפס.
+  await page.goto('/chativat-beynayim/reader/z/tochnit-z/');
+  await page.emulateMedia({ media: 'print' });
+
+  await expect(page.locator('.res-split.is-web-doc .res-view')).toBeVisible();
+  await expect(page.locator('.ppw')).toBeVisible();
+  await expect(page.locator('.ppw-source').first()).toBeVisible();
+});
+
 test('הדפסה בעמוד הבית: ניווט, פוטר וסרטון הפתיחה יורדים, ואין גלילה אופקית (8.16)', async ({ page }) => {
   await page.goto('/');
   await page.emulateMedia({ media: 'print' });

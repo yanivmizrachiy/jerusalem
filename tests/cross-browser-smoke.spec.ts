@@ -41,11 +41,17 @@ for (const { path, title } of pages) {
 
 test('ניווט ראשי לחיץ ומוביל ליעד אמיתי בדפדפן הנוכחי', async ({ page }) => {
   await page.goto('/');
-  const nav = page.locator('nav[aria-label="ניווט ראשי"] .nav-list a[href]').first();
+  // הקישור הראשון הוא "ראשי" (href="/"), אותו עמוד שכבר עליו — ולכן אינו
+  // מוכיח דבר. הקישור השני הוא יעד אמיתי ושונה; מאמתים נתיב מדויק, לא
+  // רגקס רופף שמתאים כמעט לכל כתובת.
+  const nav = page.locator('nav[aria-label="ניווט ראשי"] .nav-list a[href]').nth(1);
   await expect(nav).toBeVisible();
   const href = await nav.getAttribute('href');
+  expect(href).toBeTruthy();
+  expect(href).not.toBe('/');
   await nav.click();
-  await page.waitForURL(new RegExp(href!.replace(/\//g, '\\/')));
+  await page.waitForURL((url) => url.pathname === href);
+  expect(new URL(page.url()).pathname).toBe(href);
 });
 
 test('RTL אמיתי: כיוון הטקסט המחושב הוא rtl בעמוד הראשי', async ({ page }) => {

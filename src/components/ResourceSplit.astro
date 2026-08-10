@@ -369,10 +369,13 @@ const showActions = item.kind !== 'maf' && !planPrisaDoc;
 
   /* הדפסה (8.16): ‏global.css מוריד את .embed-frame, כך שצד ההטמעה
      נשאר עמודת רשת ריקה — קורסים לעמודה אחת כדי שלוח המידע ימלא את הדף
-     במקום להשאיר מחצית עמוד לבנה ומיותרת. */
+     במקום להשאיר מחצית עמוד לבנה ומיותרת. משאבי plan/prisa הם חריג: אין
+     שם iframe בתוך .embed-frame — .res-view מכיל את תוכן PlanPrisaWeb
+     האמיתי (טבלאות, קישור מקור, הורדת PDF), ולכן הוא נשאר גלוי. */
   @media print {
     .res-split { display: block; }
     .res-view { display: none; }
+    .res-split.is-web-doc .res-view { display: block; }
     .res-panel { inline-size: 100%; max-inline-size: none; block-size: auto; overflow: visible; }
   }
 </style>
