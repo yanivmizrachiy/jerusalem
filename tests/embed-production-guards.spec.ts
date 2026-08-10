@@ -125,8 +125,14 @@ test('בנייד ההטמעה ראשונה, גבוהה ונוחה, והפעול�
   expect(await horizontalOverflow(page), 'אין גלילה אופקית בנייד').toBeLessThanOrEqual(1);
 });
 
+/**
+ * מסלולים רגילים בלבד — לא מקטעי מפמ״ר ולא מסמכי plan/prisa, שאין
+ * לצדם לוח פעולות גנרי (הוראת יניב, 10/08/2026, RULES 9.3.11, 3.32.1).
+ * `tochnit-z` הוחלף ב-`amat-tashpaz` (PDF רשמי רגיל, לא plan/prisa)
+ * כי הוא הפך למסמך תוכנית/פריסה ללא `.orbs` — ר' resource-actions-contracts.spec.ts.
+ */
 const readerRoutes = [
-  '/chativat-beynayim/reader/z/tochnit-z/',
+  '/chativat-beynayim/reader/z/amat-tashpaz/',
   '/chativat-beynayim/reader/z/misparim/',
   '/chativat-beynayim/reader/h/kavit-flip/',
 ] as const;
@@ -210,7 +216,7 @@ test('אורבים קיימים אך ורק במסלולי reader — לא בע�
 
 test('smoke חי: לוח הפעולות מוגש בפועל בפרודקשן (8.4)', async ({ request }) => {
   const res = await request.get(
-    'https://jerusalem-virid.vercel.app/chativat-beynayim/reader/z/tochnit-z/'
+    'https://jerusalem-virid.vercel.app/chativat-beynayim/reader/z/amat-tashpaz/'
   );
   expect(res.status(), 'עמוד המשימה עונה 200 בפרודקשן').toBe(200);
 

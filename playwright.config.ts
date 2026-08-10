@@ -10,21 +10,12 @@ import { defineConfig, devices } from '@playwright/test';
 const port = Number(process.env.PW_PORT ?? 4321);
 const baseURL = `http://127.0.0.1:${port}`;
 
-/**
- * PR #100 מחליף את חוזי שער-הווידאו הישנים בחוזי "עולה מיד". הבדיקות
- * המוחלפות נשארות כרגע בקובץ ux לצורך היסטוריה בלבד; הן אינן חוזה קבלה
- * פעיל. tests/home-immediate.spec.ts בודק את אותו שטח בצורה מחמירה יותר,
- * כולל first-load אמיתי ו-360×740 / 390×844 בלי session bypass.
- */
-const supersededHeroContracts = /(ה-hero מלא:|ה-poster והווידאו באותן מידות|כפתור "התחל"|תמונת הפתיחה פרוסה עד תחתית המסך|פתיחה נקייה: אין כפתורי פעולה|סרטון הפתיחה:)/;
-
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   retries: 0,
   reporter: [['list']],
   timeout: 45_000,
-  grepInvert: supersededHeroContracts,
   use: {
     baseURL,
     trace: 'retain-on-failure',

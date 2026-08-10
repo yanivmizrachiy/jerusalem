@@ -42,7 +42,10 @@ const preparedPages = document.pages.map((page) => ({
     <div>
       <p class="ppw-kicker">תצוגת אינטרנט מלאה</p>
       <h2>{document.label}</h2>
-      <p class="ppw-meta">{document.pageCount} עמודים · כל המלל חולץ מהמסמך הרשמי תשפ״ז</p>
+      <p class="ppw-meta">
+        {document.pageCount} עמודים · כל המלל חולץ מהמסמך הרשמי תשפ״ז ·
+        <a class="ppw-source" href={document.pdf} download>PDF מקורי ↓</a>
+      </p>
     </div>
     <label class="ppw-search">
       <span>חיפוש בתוך המסמך</span>
@@ -159,6 +162,15 @@ const preparedPages = document.pages.map((page) => ({
     color: var(--ink-soft, #596274);
     font-size: 0.88rem;
   }
+
+  .ppw-source {
+    color: color-mix(in srgb, var(--pp-accent) 70%, #182033);
+    font-weight: 750;
+    text-decoration: none;
+    border-block-end: 1px solid transparent;
+  }
+  .ppw-source:hover,
+  .ppw-source:focus-visible { border-block-end-color: currentColor; }
 
   .ppw-search { display: grid; gap: 0.38rem; font-size: 0.78rem; font-weight: 750; color: var(--ink-soft, #596274); }
   .ppw-search input {

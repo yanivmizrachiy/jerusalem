@@ -2,7 +2,9 @@
 /**
  * עמוד משאב מחולק: ההטמעה מימין ולוח מידע/פעולות משמאל במסך רחב,
  * ובנייד ההטמעה קודמת למידע. כל metadata גלוי נגזר מהמודל הפדגוגי
- * הקנוני; פעולות משותפות לכל משאב דרך ResourceActions.
+ * הקנוני; פעולות משותפות לכל משאב רגיל דרך ResourceActions — למעט
+ * מקטעי חוזר מפמ״ר ומסמכי plan/prisa, שיש להם ניווט משלהם ואין
+ * לצדם לוח פעולות גנרי (הוראת יניב, 10/08/2026).
  */
 import Breadcrumbs from './Breadcrumbs.astro';
 import AuthorAttribution from './AuthorAttribution.astro';
@@ -45,6 +47,9 @@ const semanticKind = resourceDisplayLabel(item);
 const embedLayout = embedLayoutFor(item);
 const embedStyle = `--resource-aspect:${embedLayout.aspectRatio ?? 'auto'}; --resource-min-h:${embedLayout.minHeight ?? '520px'}`;
 const planPrisaDoc = planPrisaDocumentFor(item.download);
+/** מפמ״ר ומסמכי plan/prisa נושאים ניווט וגלילת מקור משלהם — לוח הפעולות
+    הגנרי מכפיל אותם (הוראת יניב, 10/08/2026). ראו MafmarRange/PlanPrisaWeb. */
+const showActions = item.kind !== 'maf' && !planPrisaDoc;
 ---
 
 <div
@@ -79,22 +84,26 @@ const planPrisaDoc = planPrisaDocumentFor(item.download);
       {item.note && <p class="res-note">{item.note}</p>}
       {item.source && <p class="res-source">{item.source}</p>}
 
-      <ResourceActions
-        downloadUrl={item.download}
-        whatsappText={waText}
-        emailSubject={item.title}
-        emailBody={`${item.title} — ${canonical}`}
-        copyUrl={canonical}
-        shareUrl={canonical}
-        shareTitle={item.title}
-        sourceUrl={item.url}
-        sourceInternal={item.url.startsWith('/')}
-        fullscreen={Boolean(item.embed && item.kind !== 'maf' && !planPrisaDoc)}
-        fullscreenTarget="[data-frame]"
-        statusTarget="[data-status]"
-      />
+      {showActions && (
+        <>
+          <ResourceActions
+            downloadUrl={item.download}
+            whatsappText={waText}
+            emailSubject={item.title}
+            emailBody={`${item.title} — ${canonical}`}
+            copyUrl={canonical}
+            shareUrl={canonical}
+            shareTitle={item.title}
+            sourceUrl={item.url}
+            sourceInternal={item.url.startsWith('/')}
+            fullscreen={Boolean(item.embed)}
+            fullscreenTarget="[data-frame]"
+            statusTarget="[data-status]"
+          />
 
-      <p class="res-status" data-status role="status" aria-live="polite"></p>
+          <p class="res-status" data-status role="status" aria-live="polite"></p>
+        </>
+      )}
 
       <nav class="res-pager" aria-label="ניווט בין המשאבים">
         {

@@ -2,7 +2,7 @@
 
 > מסמך הקשר תפעולי בלבד. הוא אינו מחליף את `RULES.md`, אינו מקור תוכן לפרודקשן ואינו אמור לשכפל את הקוד.
 >
-> **אימות ארכיטקטוני אחרון:** 09/08/2026. בכל משימה יש לבדוק מחדש את הענף הפעיל, את הקבצים הרלוונטיים ואת ה־CI.
+> **אימות ארכיטקטוני אחרון:** 10/08/2026. בכל משימה יש לבדוק מחדש את הענף הפעיל, את הקבצים הרלוונטיים ואת ה־CI.
 
 ## 1. מקורות אמת
 
@@ -45,8 +45,9 @@
 | עמוד שכבה — חומרים | `src/components/GradeIndex.astro` | טבלת הנושאים (`.luxt` מ-global.css, RULES 3.30); מונים נגזרים מהקטלוג הקנוני ובניסוח פדגוגי, לא `משימות` גנרי; ה-ul נשאר `class="topics"` והשורה `class="topic"` — needles של verify-deploy |
 | עמוד נושא — משימות | `src/components/ChapterIndex.astro` | משאב מרכזי מעל טבלת המשימות (`.luxt`); צבע שורה לפי `resourceType`; השורה נשארת `class="rcard"` — needle של verify-deploy |
 | עיצוב הטבלאות | `src/styles/global.css` — בלוק `.luxt` | מקור יחיד לשתי הטבלאות (RULES 3.30, 10/08/2026): כותרות דביקות, זברה, פס צבע, גלולות; שיבוץ אזורים ורוחבי עמודות ברכיבים |
-| עמוד משאב | `src/components/ResourceSplit.astro` | embed אמיתי/fallback, `ResourceActions`, attribution, RTL, mobile |
-| פעולות משאב / Mafmar | `src/components/ResourceActions.astro` | מימוש משותף יחיד; אין מערכת `.res-actions` מקבילה |
+| עמוד משאב | `src/components/ResourceSplit.astro` | embed אמיתי/fallback, `ResourceActions` למשאבים רגילים בלבד (`showActions`), attribution, RTL, mobile |
+| פעולות משאב רגיל | `src/components/ResourceActions.astro` | מימוש משותף יחיד; אין מערכת `.res-actions` מקבילה; לא בשימוש עבור Mafmar או plan/prisa (10/08/2026) |
+| Mafmar / plan-prisa — ניווט בלי לוח פעולות | `src/components/MafmarRange.astro`, `src/pages/hozer-mafmar.astro`, `src/components/PlanPrisaWeb.astro` | אין `ResourceActions`/`.orbs`; רק ניווט עמודים/חלקים/מקטעים; ה-PDF המקורי של plan/prisa נשאר זמין כקישור פשוט (`.ppw-source`) לא כלוח פעולות (הוראת יניב, 10/08/2026, RULES 9.3.11, 9.3.8.1, 3.32.1) |
 | סרטון פתיחה | `src/components/HeroVideo.astro` + `public/media/hero-*` | נכסי hero קנוניים בלבד; אין לשמור renders חלופיים ללא consumer |
 | לוגו ModEL | `src/data/resource-branding.ts` + `public/media/brands/` | mapping מפורש; המקור שסיפק יניב בלבד; `moodle-guide`/`moodle-slides` מיוחסים ל״צוות מודל — משרד החינוך״ |
 | proxy | `src/lib/proxyGuard.ts`, `src/lib/proxyHttp.ts` | allowlist, redirect-origin validation, timeout, methods/headers בטוחים |

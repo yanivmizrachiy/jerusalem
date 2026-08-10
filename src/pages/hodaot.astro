@@ -4,7 +4,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 import ArtBanner from '../components/ArtBanner.astro';
 import MafmarPresentation from '../components/MafmarPresentation.astro';
 import MafmarPresentationEnhancer from '../components/MafmarPresentationEnhancer.astro';
-import { MAFMAR_LOCAL, MAFMAR_VIEW } from '../data/mafmar';
+import { MAFMAR_LOCAL, MAFMAR_VIEW, MAFMAR_PAGE_W, MAFMAR_PAGE_H } from '../data/mafmar';
 import { feedDated, feedStanding } from '../data/hodaot';
 ---
 
@@ -45,7 +45,7 @@ import { feedDated, feedStanding } from '../data/hodaot';
             </div>
             <a href="/hozer-mafmar/">לצפייה מלאה ←</a>
           </div>
-          <div class="pdf-shell embed-frame">
+          <div class="pdf-shell embed-frame" style={`--pw:${MAFMAR_PAGE_W}; --ph:${MAFMAR_PAGE_H}`}>
             <iframe
               src={`${MAFMAR_LOCAL}#page=1&${MAFMAR_VIEW}`}
               title="חוזר מפמ״ר תשפ״ז — המסמך המלא"
@@ -201,8 +201,9 @@ import { feedDated, feedStanding } from '../data/hodaot';
   }
 
   .pdf-shell {
-    aspect-ratio: 16 / 9;
-    min-height: 320px;
+    aspect-ratio: var(--pw) / var(--ph);
+    block-size: auto;
+    min-height: 480px;
     overflow: hidden;
   }
 
@@ -251,6 +252,6 @@ import { feedDated, feedStanding } from '../data/hodaot';
     .mafmar-feature { padding: 0.9rem; }
     .feature-actions { inline-size: 100%; }
     .feature-actions .btn { flex: 1 1 100%; justify-content: center; }
-    .pdf-shell { min-height: 0; aspect-ratio: 4 / 3; }
+    .pdf-shell { min-height: clamp(420px, 120vw, 640px); }
   }
 </style>

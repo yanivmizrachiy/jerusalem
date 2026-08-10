@@ -1,16 +1,14 @@
 ---
 /**
  * חוזר מפמ״ר תשפ״ז: ההטמעה המלאה היחידה של החוזר.
- * הפריסה משתמשת באותו חוזה עמוד משאב: צופה מימין ולוח מידע/פעולות
- * משמאל, ובנייד הצופה קודם. פעולות מגיעות מאותו ResourceActions
- * שמשמש את יתר משאבי האתר.
+ * הפריסה משתמשת באותו חוזה עמוד משאב: צופה מימין ולוח מידע משמאל,
+ * ובנייד הצופה קודם. אין לוח פעולות גנרי (ResourceActions) כאן —
+ * הניווט הוא דפדוף עמודים, קפיצה לחלקים ולמקטעים (הוראת יניב, 10/08/2026).
  */
 import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import ArtBanner from '../components/ArtBanner.astro';
-import ResourceActions from '../components/ResourceActions.astro';
 import {
-  MAFMAR_URL,
   MAFMAR_TOTAL_PAGES,
   mafmarParts,
   mafmarSections,
@@ -28,13 +26,11 @@ const audiences = [
   { key: 'חט״ע', label: 'חטיבה עליונה', accent: 'var(--sky)' },
   { key: 'משותף', label: 'משותף לשתי החטיבות', accent: 'var(--lilac)' },
 ] as const;
-const mafmarCanonical = 'https://jerusalem-virid.vercel.app/hozer-mafmar/';
-const mafmarTitle = 'חוזר מפמ״ר תשפ״ז';
 ---
 
 <Base
   title="חוזר מפמ״ר תשפ״ז — מחוז ירושלים"
-  description="חוזר המפמ״ר לשנת תשפ״ז — צפייה בעמוד מלא בחצי המסך ולוח פעולות בחציו השני, עם ניווט לארבעת החלקים ולכל אחד מ־23 המקטעים לפי טווח העמודים שלו."
+  description="חוזר המפמ״ר לשנת תשפ״ז — צפייה בעמוד מלא בחצי המסך ומידע בחציו השני, עם ניווט לארבעת החלקים ולכל אחד מ־23 המקטעים לפי טווח העמודים שלו."
 >
   <div class="page">
     <Breadcrumbs
@@ -53,19 +49,6 @@ const mafmarTitle = 'חוזר מפמ״ר תשפ״ז';
           חוזר הפיקוח על הוראת המתמטיקה לשנת הלימודים תשפ״ז — {MAFMAR_TOTAL_PAGES}
           עמודים בארבעה חלקים. דפדפו בחוזר שלצד, או קפצו לחלק ולמקטע מהמדריך שמתחת.
         </p>
-
-        <ResourceActions
-          whatsappText={`${mafmarTitle} — ${mafmarCanonical}`}
-          emailSubject={mafmarTitle}
-          emailBody={`${mafmarTitle} — ${mafmarCanonical}`}
-          copyUrl={mafmarCanonical}
-          shareUrl={mafmarCanonical}
-          shareTitle={mafmarTitle}
-          sourceUrl={MAFMAR_URL}
-          fullscreen
-          fullscreenTarget="#viewer-shell"
-          statusTarget="#viewer-status"
-        />
 
         <p class="res-status" id="viewer-status" role="status" aria-live="polite">
           מציג את החוזר המלא — {MAFMAR_TOTAL_PAGES} עמודים
@@ -537,11 +520,6 @@ const mafmarTitle = 'חוזר מפמ״ר תשפ״ז';
   const skel = document.getElementById('viewer-skel')!;
   const openCard = document.getElementById('viewer-open-card') as HTMLElement;
   const openLink = document.getElementById('open-card-link') as HTMLAnchorElement;
-  const actionBoard = document.querySelector<HTMLElement>('[data-resource-actions]')!;
-  const copyAction = actionBoard.querySelector<HTMLButtonElement>('[data-action="copy"]')!;
-  const shareAction = actionBoard.querySelector<HTMLButtonElement>('[data-action="share"]');
-  const waAction = actionBoard.querySelector<HTMLAnchorElement>('[data-action="whatsapp"]')!;
-  const mailAction = actionBoard.querySelector<HTMLAnchorElement>('[data-action="email"]')!;
 
   const pageSrc = (page: number) => `${MAFMAR_LOCAL}#page=${page}&${MAFMAR_VIEW}`;
 
@@ -568,20 +546,6 @@ const mafmarTitle = 'חוזר מפמ״ר תשפ״ז';
     shell.setAttribute('aria-busy', 'false');
   });
 
-  let currentLabel = status.textContent ?? 'חוזר מפמ״ר תשפ״ז';
-
-  const updateShare = () => {
-    const url = location.href;
-    const text = `${currentLabel} — ${url}`;
-    copyAction.dataset.copy = url;
-    if (shareAction) {
-      shareAction.dataset.share = url;
-      shareAction.dataset.shareTitle = currentLabel;
-    }
-    waAction.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    mailAction.href = `mailto:?subject=${encodeURIComponent('חוזר מפמ״ר תשפ״ז')}&body=${encodeURIComponent(text)}`;
-  };
-
   let curPage = 1;
   const TOTAL = MAFMAR_TOTAL_PAGES;
   const pgPrev = document.getElementById('pg-prev') as HTMLButtonElement;
@@ -599,7 +563,6 @@ const mafmarTitle = 'חוזר מפמ״ר תשפ״ז';
     paintPager();
     frame.src = pageSrc(page);
     aimOpenCard(page);
-    currentLabel = label;
     status.textContent = hasPdfViewer ? `מציג: ${label}` : `נבחר: ${label}`;
     document
       .querySelectorAll('.maf-item.is-active, .part-btn.is-active')
@@ -610,7 +573,6 @@ const mafmarTitle = 'חוזר מפמ״ר תשפ״ז';
     } else {
       history.replaceState(null, '', location.pathname);
     }
-    updateShare();
     stage.scrollIntoView({ block: 'start' });
   };
 
@@ -642,6 +604,4 @@ const mafmarTitle = 'חוזר מפמ״ר תשפ״ז';
       document.getElementById(frag)?.scrollIntoView({ behavior: 'auto', block: 'center' });
     }
   }
-
-  updateShare();
 </script>
