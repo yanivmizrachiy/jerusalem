@@ -557,15 +557,40 @@ a:hover { color: var(--ink); }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
 
-/* ---------- הדפסה — בסיס נקי (8.16) ---------- */
+/* ---------- הדפסה — בסיס נקי (8.13–8.17, 19.25–19.26) ---------- */
 
 @media print {
+  @page { size: A4; margin: 14mm 12mm; }
+
   body { background: #fff; color: #000; }
   body::before, body::after { display: none !important; }
   .site-header, .site-footer, .rail, .skip-link,
-  video, iframe, .btn, .orbs, .uplay-actions,
-  .mrange-pager, .viewer-actions { display: none !important; }
+  video, iframe, .btn, .uplay-actions,
+  .mrange-pager, .viewer-actions,
+  /* מסגרת ההטמעה (.embed-frame) היא רקע נייבי כבד עם iframe שממילא לא
+     ניתן להדפסה; בלעדי הכלל הזה היא נשארת על העמוד המודפס כקופסה כהה
+     וריקה שמבזבזת דיו ושטח (8.14, 8.16). */
+  .embed-frame { display: none !important; }
+
+  /* "פתיחה במקור" היא הדרך היחידה לגשת למשאב אחרי שההטמעה ירדה מהדף
+     המודפס (8.17) — לוח הפעולות עצמו נשאר ברנדור (לא display:none, אחרת
+     גם ילד גלוי היה נעלם איתו) אבל כל פעולה חוץ מהקישור למקור יורדת. */
+  .orbs { display: flex !important; }
+  .orbs > *:not([data-action="source"]) { display: none !important; }
+  .orbs [data-action="source"] {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.35em;
+    color: #000;
+  }
+  .orbs [data-action="source"] .orb-glow,
+  .orbs [data-action="source"] .orb-face { display: none !important; }
+  .orbs [data-action="source"] .orb-label { font-weight: 700; text-decoration: underline; }
+
   .card, .card-accent { box-shadow: none !important; border: 1px solid #999 !important; }
+  .card, h1, h2, h3, figure { break-inside: avoid; }
+  img, svg { max-width: 100% !important; break-inside: avoid; }
+
   a { color: #000; text-decoration: underline; }
   main a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; word-break: break-all; }
 }

@@ -366,6 +366,15 @@ const showActions = item.kind !== 'maf' && !planPrisaDoc;
     .res-skel-spin { animation: none; border-block-start-color: rgb(212 175 92 / 0.26); }
     .pager-link:hover { transform: none; }
   }
+
+  /* הדפסה (8.16): ‏global.css מוריד את .embed-frame, כך שצד ההטמעה
+     נשאר עמודת רשת ריקה — קורסים לעמודה אחת כדי שלוח המידע ימלא את הדף
+     במקום להשאיר מחצית עמוד לבנה ומיותרת. */
+  @media print {
+    .res-split { display: block; }
+    .res-view { display: none; }
+    .res-panel { inline-size: 100%; max-inline-size: none; block-size: auto; overflow: visible; }
+  }
 </style>
 
 <script>

@@ -31,5 +31,13 @@ export default defineConfig({
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
     // מטריצת הרספונסיביות (19.32) רצה בפרויקט הדסקטופ עם viewports משתנים
     { name: 'mobile', use: { ...devices['Pixel 7'] }, testIgnore: /responsive/ },
+    /**
+     * דפדפנים מרכזיים (19.2, 21.16–21.17): Chromium מריץ את הסוללה המלאה
+     * למעלה; Firefox ו-WebKit מוגבלים ל-cross-browser-smoke.spec.ts בלבד
+     * כדי שהמטריצה המלאה לא תוכפל פי שלוש בכל PR. הרחבת הכיסוי לקבצים
+     * נוספים תעבור דרך אותו קובץ smoke, לא דרך פתיחת כל הסוללה.
+     */
+    { name: 'firefox-smoke', use: { ...devices['Desktop Firefox'] }, testMatch: /cross-browser-smoke/ },
+    { name: 'webkit-smoke', use: { ...devices['Desktop Safari'] }, testMatch: /cross-browser-smoke/ },
   ],
 });

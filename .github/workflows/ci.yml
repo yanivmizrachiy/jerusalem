@@ -34,7 +34,9 @@ jobs:
       - name: דוח פגיעוּיות High (מדווח, אינו חוסם)
         if: always()
         run: npm audit --omit=dev --audit-level=high || true
-      - run: npx playwright install --with-deps chromium
+      # chromium מריץ את הסוללה המלאה; firefox/webkit מוגבלים ל-smoke בלבד
+      # דרך testMatch ב-playwright.config.ts (19.2, 21.16) — אין הכפלה של זמן הריצה.
+      - run: npx playwright install --with-deps chromium firefox webkit
       # מקור אמת יחיד: repo-health → dead-code hygiene → ModEL rebuild → check → build → Playwright, retries=0.
       - run: npm run quality
       - name: Upload traces on failure
