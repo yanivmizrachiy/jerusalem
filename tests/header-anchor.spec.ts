@@ -90,11 +90,10 @@ test('קפיצה לעוגן אינה נבלעת מתחת לכותרת הדביק
  *
  * האיטרציה הראשונה רצה על viewport ברירת המחדל של הפרויקט — בפרויקט
  * המובייל זהו Pixel 7 אמיתי (412px, כותרת שבורה לשורות) ולא הדמיה צרה.
- * ‏reduced-motion מנטרל את חשיפת הגלילה (‎translateY(26px)‎ של data-reveal),
- * כדי שהמדידה תהיה גאומטריה יציבה ולא אמצע אנימציה.
+ * הבדיקה נשארת עם motion רגיל ומודדת רק אחרי סיום reveal, כדי לא להסתיר
+ * את מסלול הייצור שבו translateY של היעד משתחרר לאחר הקפיצה.
  */
 test('עוגני סרגל הקפיצה בעמוד המבחנים נוחתים מתחת לכותרת בכל רוחב (5.17)', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
   const offenders: string[] = [];
 
   for (const width of [0, 360, 390]) {
@@ -114,7 +113,10 @@ test('עוגני סרגל הקפיצה בעמוד המבחנים נוחתים מ
     await page.evaluate((id) => {
       location.hash = `#${id}`;
     }, anchorId);
-    await page.waitForTimeout(250);
+
+    // data-reveal transitions for 700ms. Measure the settled production geometry,
+    // not the initial transformed box and not a reduced-motion-only path.
+    await page.waitForTimeout(900);
 
     const geometry = await page.evaluate((id) => {
       const header = document.querySelector<HTMLElement>('.site-header')!;
