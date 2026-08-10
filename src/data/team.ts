@@ -68,7 +68,7 @@ export const team: TeamMember[] = [
   {
     slug: 'yaniv',
     name: 'יניב רז',
-    role: 'מדריך מחוזי לחטיבת הביניים בעיר ירושלים',
+    role: 'מדריך מחוזי חט״ב בעיר ירושלים',
     phoneDisplay: '052-374-8115',
     phoneIntl: '972523748115',
     email: 'yanivmiz77@gmail.com',
