@@ -2,7 +2,11 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * סוללת הקבלה (RULES §19, 21.16–21.17): דפדפן אמיתי, דסקטופ ומובייל,
- * מול build הפקה אמיתי שמוגש ישירות מפלט אדפטר Vercel.
+ * מול build הפקה אמיתי שנפלט מאדפטר Vercel.
+ *
+ * שרת הקבלה אינו `serve` גולמי: scripts/serve-vercel-output.mjs גוזר בזמן
+ * הריצה redirect config מאותו פלט build, כך שגם redirects ברמת host נבדקים
+ * מקומית כ-301 אמיתי במקום 404 שקרי. אין manifest ידני נוסף.
  *
  * PW_PORT מאפשר לריצת הסיום לבחור פורט פנוי ולא לבדוק בטעות שרת ישן.
  * retries=0 הוא חלק מחוזה האיכות: כשל ראשון הוא כשל, לא flaky שמותר למזג.
@@ -22,7 +26,7 @@ export default defineConfig({
   },
   webServer: {
     // אין למחזר שרת קיים: שרת ישן עלול לבדוק build שאינו שייך לעץ העבודה הנוכחי.
-    command: `npx serve .vercel/output/static -l ${port} --no-clipboard`,
+    command: `node scripts/serve-vercel-output.mjs --port ${port}`,
     url: baseURL,
     reuseExistingServer: false,
     timeout: 60_000,
