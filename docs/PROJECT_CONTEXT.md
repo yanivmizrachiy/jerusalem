@@ -27,7 +27,7 @@
 - חוזר מפמ״ר ומצגתו נגזרים מ־`src/data/mafmar.ts`.
 - redirects ישנים מנוהלים ממקור יחיד: `src/lib/legacyRedirects.mjs`.
 - עיצוב גלובלי: `src/styles/global.css`; מעטפת/SEO: `src/layouts/Base.astro`.
-- Playwright רץ על build אמיתי, בדסקטופ וב־Pixel 7, עם `retries=0`.
+- Playwright רץ על build אמיתי, בדסקטופ וב־Pixel 7, עם `retries=0`; Firefox/WebKit critical-smoke רצים ב־CI במקביל.
 
 ## 3. מפת עריכה
 
@@ -46,12 +46,12 @@
 | עמוד נושא — משימות | `src/components/ChapterIndex.astro` | משאב מרכזי מעל טבלת המשימות (`.luxt`); צבע שורה לפי `resourceType`; השורה נשארת `class="rcard"` — needle של verify-deploy |
 | עיצוב הטבלאות | `src/styles/global.css` — בלוק `.luxt` | מקור יחיד לשתי הטבלאות (RULES 3.30, 10/08/2026): כותרות דביקות, זברה, פס צבע, גלולות; שיבוץ אזורים ורוחבי עמודות ברכיבים |
 | עמוד משאב | `src/components/ResourceSplit.astro` | embed אמיתי/fallback, `ResourceActions` למשאבים רגילים בלבד (`showActions`), attribution, RTL, mobile |
-| פעולות משאב רגיל | `src/components/ResourceActions.astro` | מימוש משותף יחיד; אין מערכת `.res-actions` מקבילה; לא בשימוש עבור Mafmar או plan/prisa (10/08/2026) |
-| Mafmar / plan-prisa — ניווט בלי לוח פעולות | `src/components/MafmarRange.astro`, `src/pages/hozer-mafmar.astro`, `src/components/PlanPrisaWeb.astro` | אין `ResourceActions`/`.orbs`; רק ניווט עמודים/חלקים/מקטעים; ה-PDF המקורי של plan/prisa נשאר זמין כקישור פשוט (`.ppw-source`) לא כלוח פעולות (הוראת יניב, 10/08/2026, RULES 9.3.11, 9.3.8.1, 3.32.1) |
+| פעולות משאב רגיל | `src/components/ResourceActions.astro` + `src/components/PrintController.astro` | פעולות משאב משותפות + הדפסה אמיתית עם בחירת צבע/שחור־לבן; אין מערכת `.res-actions` מקבילה |
+| Mafmar / plan-prisa — ניווט בלי לוח פעולות | `src/components/MafmarRange.astro`, `src/pages/hozer-mafmar.astro`, `src/components/PlanPrisaWeb.astro` | אין `ResourceActions`/`.orbs`; רק ניווט עמודים/חלקים/מקטעים; ה-PDF המקורי של plan/prisa נשאר זמין כקישור פשוט (`.ppw-source`) |
 | סרטון פתיחה | `src/components/HeroVideo.astro` + `public/media/hero-*` | נכסי hero קנוניים בלבד; אין לשמור renders חלופיים ללא consumer |
 | לוגו ModEL | `src/data/resource-branding.ts` + `public/media/brands/` | mapping מפורש; המקור שסיפק יניב בלבד; `moodle-guide`/`moodle-slides` מיוחסים ל״צוות מודל — משרד החינוך״ |
-| proxy | `src/lib/proxyGuard.ts`, `src/lib/proxyHttp.ts` | allowlist, redirect-origin validation, timeout, methods/headers בטוחים |
-| SEO | `Base.astro`, `astro.config.mjs`, `public/robots.txt` | canonical, sitemap, metadata ו־Open Graph |
+| proxy | `src/lib/proxyGuard.ts`, `src/lib/proxyHttp.ts`, `src/lib/proxyResponse.ts` | allowlist, redirect-origin validation, timeout, methods/headers בטוחים, noindex/framing/error policy |
+| SEO | `Base.astro`, `astro.config.mjs`, `public/robots.txt` | canonical, sitemap, metadata, Open Graph ו־WebSite JSON-LD בעמוד הבית בלבד |
 
 ## 4. חטיבת הביניים — חוזים פעילים
 
@@ -75,48 +75,30 @@
 
 - לכל משאב ציבורי בחט״ב חייב להיות creator מאומת — אדם או ארגון.
 - אין לנחש אדם מדומיין, filename, URL או כותרת.
-- `ATTRIBUTION_PENDING` היא רשימת quarantine שמותר לה רק להצטמצם; התקרה הנוכחית היא 66.
+- `ATTRIBUTION_PENDING` היא רשימת quarantine שמותר לה רק להצטמצם; הראצ׳ט הנוכחי הוא **100**. בביקורת 09/08 הוחזרו להסגר 34 רשומות provenance-only/partial; 34 אינו גודל הרשימה הכולל.
 - יוצר מוצג פעם אחת. אין טקסט גלוי `קרדיט:` / `קרדיטים:`.
 - משרד החינוך וארגונים דומים אינם מקבלים עמוד מחבר אישי.
 - ModEL: `moodle-guide` ו־`moodle-slides` מיוחסים לארגון **צוות מודל — משרד החינוך**. הלוגו ממופה לפי ID בלבד.
 
-## 7. חריגי שימור — לא למחוק כ״קוד מת״
+## 7. חריגי שימור
 
-- `src/components/Booklet.astro` והתלות `page-flip`: אינם מוצגים באתר, אך נשמרים במכוון לפי RULES 4.14 עבור סטודיו החוברת הפרטי.
-- `src/drafts/chativa-elyona/`: תוכן עתידי שמור, אינו route ציבורי כרגע.
-- משאבי quarantine: נשמרים במקור גם כאשר אינם ציבוריים.
-- מקורות אמנות מאושרים ונכסי provenance שה־RULES דורש לשמור: אין למחוק בגלל zero runtime consumer בלבד.
-- `UnitPlaylist.astro`: עדיין בשימוש ב־`/pituach-miktzoi/ai-geometria/`.
+- `src/components/Booklet.astro` נשמר בכוונה ואינו public route. אין למחוק אותו או את `page-flip` כ־dead code.
+- `workbook-studio/` הוא placeholder מעבר בלבד; מחיקה דורשת הוכחה שה־deployment הפרטי כבר הוסב.
+- `src/drafts/chativa-elyona/` אינו dead code; זה חומר שמור מחוץ ל־public pages עד החלטת מוצר.
 
-## 8. שער איכות ופרסום
+## 8. איכות, CI ופרודקשן
 
-הפקודה הקנונית לפני merge משמעותי:
+- `npm run quality` הוא שער הקוד הקנוני: repo-health → strict Playwright TypeScript gate → Astro check → build → Playwright Chromium/Pixel 7, `retries=0`.
+- CI מוסיף parallel critical-smoke ב־Firefox וב־WebKit.
+- Critical production dependency audit חוסם; High מדווח ואינו חוסם.
+- אחרי push ל־`main`, `verify-production` מאמת שהפרודקשן מגיש את אותו SHA ואת חוזי הליבה.
+- כשל Vercel מסוג `api-deployments-free-per-day` הוא חסם תשתיתי; אין לדחוף empty commit כדי לעקוף אותו.
 
-```bash
-npm ci
-npm run quality
-```
+## 9. ניקוי ושינויים
 
-`npm run quality` מריץ לפי הסדר:
-
-1. `scripts/repo-health.mjs`
-2. `npm run check`
-3. `npm run build`
-4. Playwright עם `--retries=0`, דסקטופ + Pixel 7
-
-ה־CI משתמש ב־Node מתוך `.nvmrc` ובגרסת npm המוצמדת ב־`packageManager`. פגיעוּת Critical בתלויות production חוסמת; High מדווחת לפי החוזה הנוכחי.
-
-אחרי push ל־`main`, job `verify-production` מריץ `scripts/verify-deploy.mjs` ומחכה שהפרודקשן יגיש את ה־SHA שנמזג לפני בדיקות routes/proxies/redirects.
-
-## 9. ניקיון ריפו
-
-`scripts/repo-health.mjs` חוסם build output, קבצי temp/log, merge markers, secret-shaped values, path collisions ו־`hero-alt-*` יתומים. הוא גם מדווח על binary גדול מ־5MB לבדיקת consumer/סיבת שימור.
-
-בכל cleanup:
-
-1. הוכח zero-consumer לפני מחיקה.
-2. הפרד בין **runtime consumer** לבין **חוזה שימור מפורש**.
-3. אל תמחק מקור נתונים רק מפני שהוא כרגע quarantined או draft.
+1. לפני מחיקה: search מלא ל-consumers, imports, routes, tests, workflows ו־RULES.
+2. אל תסיק ש־0 imports פירושו dead code כאשר RULES מגדיר חריג שימור.
+3. אל תבצע major upgrade ללא advisory/צורך מוכח.
 4. אל תשאיר source/provenance מיותר תחת `public/` אם הוא נדרש לריפו אך לא אמור להיות מוגש — העבר אותו לתיקיית מקור לא־ציבורית ועדכן את כלי הגזירה.
 5. אחרי מחיקה: `check` → `build` → tests ממוקדים → `quality` מלא.
 
