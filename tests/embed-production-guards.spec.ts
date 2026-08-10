@@ -214,17 +214,5 @@ test('אורבים קיימים אך ורק במסלולי reader — לא בע�
 
 });
 
-test('smoke חי: לוח הפעולות מוגש בפועל בפרודקשן (8.4)', async ({ request }) => {
-  const res = await request.get(
-    'https://jerusalem-virid.vercel.app/chativat-beynayim/reader/z/amat-tashpaz/'
-  );
-  expect(res.status(), 'עמוד המשימה עונה 200 בפרודקשן').toBe(200);
-
-  const html = await res.text();
-  expect(html, 'מכל האורבים קיים ב-HTML החי').toContain('class="orbs"');
-  expect(
-    (html.match(/class="orb"/g) || []).length,
-    'לפחות חמש פעולות מוגשות בפועל'
-  ).toBeGreaterThanOrEqual(5);
-  expect(html, 'לוח הפעולות הישן אינו מוגש עוד').not.toContain('res-actions');
-});
+// Smoke against the public production origin belongs to scripts/verify-deploy.mjs,
+// which runs only after a commit reaches main. PR/local quality must stay deterministic.
