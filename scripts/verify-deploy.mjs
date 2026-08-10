@@ -39,6 +39,8 @@ const ROUTES = [
   '/chativat-beynayim/kita-t/chomarim/',
   '/chativat-beynayim/nose/z/z-directed-numbers/',
   '/chativat-beynayim/reader/z/tochnit-z/',
+  '/chativat-beynayim/prisot/',
+  '/chativat-beynayim/reader/z/prisa-z/',
   '/chativat-beynayim/reader/z/amat-tashpaz/',
 ];
 
@@ -85,6 +87,9 @@ const MARKERS = [
   { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'data-plan-prisa-web', what: 'תוכנית/פריסה כתצוגת HTML — ללא PDF מוטמע (3.32.1)' },
   { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'מקור משרד החינוך', what: 'קישור המקור הרשמי נשמר בתוכנית/פריסה (3.32.1)' },
   { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'PDF להורדה', what: 'עותק ה-PDF המאומת נשמר להורדה (3.32.1)' },
+  { path: '/chativat-beynayim/prisot/', needle: 'data-prisa-index', what: 'עמוד מרכזי לכל ארבע פריסות ההוראה' },
+  { path: '/chativat-beynayim/reader/z/prisa-z/', needle: 'data-prisa-links', what: 'קישורי המקור הפעילים נשמרו בתצוגת הפריסה' },
+  { path: '/hodaot/', needle: 'href="/chativat-beynayim/prisot/"', what: 'כפתור פריסות הוראה בהודעות שוטפות' },
   { path: '/chativat-beynayim/reader/z/amat-tashpaz/', needle: 'class="orbs"', what: 'לוח הפעולות החי במשאב רגיל (8.4)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
