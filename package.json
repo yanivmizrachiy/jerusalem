@@ -11,6 +11,7 @@
     "dev": "astro dev",
     "build": "astro build && node scripts/normalize-vercel-redirects.mjs",
     "check": "astro check",
+    "typecheck:tests": "tsc --noEmit -p tsconfig.tests.json",
     "test": "playwright test",
     "audit:repo": "node scripts/repo-health.mjs",
     "quality": "node scripts/run-quality.mjs",
