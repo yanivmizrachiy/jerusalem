@@ -38,6 +38,8 @@ const routes = [
   '/chativat-beynayim/kita-h/chomarim/',
   '/chativat-beynayim/kita-t/chomarim/',
   '/chativat-beynayim/mivchanim/',
+  // שלושת אלה הם מקורות redirect דינמיים. ה-harness המקומי טוען את טבלת
+  // ה-routing שנגזרה מה-build, ולכן page.goto עוקב אחרי 301 אמיתי אל היעד.
   '/chativat-beynayim/nose/z/tichnun/',
   '/chativat-beynayim/nose/h/hozer/',
   '/chativat-beynayim/nose/t/yahal4/',
@@ -94,12 +96,12 @@ for (const route of routes) {
 }
 
 for (const [legacy, target] of Object.entries(LEGACY_REDIRECTS)) {
-  test(`מסלול תאימות אינו עמוד 200: ${legacy}`, async ({ page }) => {
-    const res = await page.request.fetch(legacy, { redirect: 'manual' });
-    expect(
-      res.status(),
-      `${legacy} עדיין מוגש כעמוד — ההפניה חזרה להיות meta-refresh`,
-    ).toBe(404);
+  test(`מסלול תאימות הוא 301 אמיתי: ${legacy}`, async ({ page }) => {
+    // maxRedirects הוא החוזה הנתמך של Playwright. `redirect: 'manual'` אינו
+    // option של APIRequestContext ונבלע בעבר בשקט — false-green שנחסם ב-#122.
+    const res = await page.request.fetch(legacy, { maxRedirects: 0 });
+    expect(res.status(), `${legacy}: חייב להיות redirect ברמת HTTP`).toBe(301);
+    expect(res.headers()['location'], `${legacy}: Location מדויק`).toBe(target);
   });
 
   test(`יעד מסלול התאימות חי: ${legacy} → ${target}`, async ({ page }) => {
