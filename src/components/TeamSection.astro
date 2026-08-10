@@ -180,7 +180,8 @@ const waPath =
   }
 
   .team-card {
-    scroll-margin-block-start: calc(var(--header-h) + 5rem);
+    /* נמדד ולא קבוע: הכותרת גבוהה מהטוקן כשהניווט נשבר לשורות (5.17) */
+    scroll-margin-block-start: calc(var(--header-real-h, var(--header-h)) + 5rem);
     display: flex;
     flex-direction: column;
     align-items: center;
