@@ -28,6 +28,13 @@ const {
   fullscreenTarget,
   statusTarget,
 } = Astro.props;
+
+// The HTML `download` attribute is only reliable for same-origin URLs.
+// External download endpoints may still return Content-Disposition, but the
+// browser is allowed to ignore our attribute. Keep the UI truthful: local
+// files promise a download; external files promise only that the file opens.
+const localDownload = Boolean(downloadUrl?.startsWith('/'));
+const downloadLabel = localDownload ? 'הורדה' : 'פתיחת קובץ';
 ---
 
 <div
@@ -39,12 +46,22 @@ const {
   data-status-target={statusTarget}
 >
   {downloadUrl && (
-    <a class="orb" style="--orb-c:#d4af5c; --orb-c2:var(--gold-deep); --orb-i:0ms" href={downloadUrl} target="_blank" rel="noopener" download data-action="download">
+    <a
+      class="orb"
+      style="--orb-c:#d4af5c; --orb-c2:var(--gold-deep); --orb-i:0ms"
+      href={downloadUrl}
+      target="_blank"
+      rel="noopener"
+      download={localDownload ? true : undefined}
+      data-action="download"
+      data-download-mode={localDownload ? 'download' : 'open'}
+      aria-label={`${downloadLabel}: ${shareTitle}`}
+    >
       <span class="orb-glow" aria-hidden="true" />
       <span class="orb-face">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M4.5 19.5h15" /></svg>
       </span>
-      <span class="orb-label">הורדה</span>
+      <span class="orb-label">{downloadLabel}</span>
     </a>
   )}
 
