@@ -39,6 +39,7 @@ const ROUTES = [
   '/chativat-beynayim/kita-t/chomarim/',
   '/chativat-beynayim/nose/z/z-directed-numbers/',
   '/chativat-beynayim/reader/z/tochnit-z/',
+  '/chativat-beynayim/reader/z/amat-tashpaz/',
 ];
 
 /**
@@ -81,8 +82,10 @@ const MARKERS = [
   { path: '/chativat-beynayim/kita-z/', needle: 'חומרים להוראה', what: 'אזור החומרים בעמוד המבוא (06/08)' },
   { path: '/chativat-beynayim/kita-z/chomarim/', needle: 'class="topics"', what: 'רשימת הנושאים בתצוגת החומרים (3.29)' },
   { path: '/chativat-beynayim/nose/z/z-directed-numbers/', needle: 'class="rcard"', what: 'כרטיסי קבצים בנושא לימודי אמיתי (3.29)' },
-  { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'res-panel', what: 'לוח הפעולות בעמוד המשאב (3.29, 8.2)' },
   { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'data-plan-prisa-web', what: 'תוכנית/פריסה כתצוגת HTML — ללא PDF מוטמע (3.32.1)' },
+  { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'מקור משרד החינוך', what: 'קישור המקור הרשמי נשמר בתוכנית/פריסה (3.32.1)' },
+  { path: '/chativat-beynayim/reader/z/tochnit-z/', needle: 'PDF להורדה', what: 'עותק ה-PDF המאומת נשמר להורדה (3.32.1)' },
+  { path: '/chativat-beynayim/reader/z/amat-tashpaz/', needle: 'class="orbs"', what: 'לוח הפעולות החי במשאב רגיל (8.4)' },
   { path: '/luach/', needle: 'jerusalem-calendar-wordmark', what: 'כותרת ה-Lovable של הלוח (23.14)' },
   { path: '/', needle: 'wa-band', what: 'רצועת ההצטרפות לקבוצה (7.27)' },
   { path: '/', needle: 'hero-actions', what: 'כפתורי הפעולה המובילים בעמוד הראשי (7.28)' },
@@ -339,11 +342,19 @@ try {
     }
   }
 
-  const reader = markup((await fetchOnce('/chativat-beynayim/reader/z/tochnit-z/')).html);
-  const pdfs = [...reader.matchAll(/data-esrc="([^"]+)"/g)].map((match) => match[1]).filter((u) => /\.pdf(\?|#|$)/i.test(u));
+  // מסגור PDF נבדק על משאב PDF רגיל. תוכנית/פריסה אינה PDF מוטמע יותר.
+  const pdfReader = markup((await fetchOnce('/chativat-beynayim/reader/z/amat-tashpaz/')).html);
+  const pdfs = [...pdfReader.matchAll(/data-esrc="([^"]+)"/g)].map((match) => match[1]).filter((u) => /\.pdf(\?|#|$)/i.test(u));
   const bare = pdfs.filter((u) => !u.includes('toolbar=0'));
-  if (bare.length) fail(`${bare.length} הטמעות PDF בלי toolbar=0 — סרגל שחור חוזר (8.26)`);
+  if (!pdfs.length) fail('משאב PDF רגיל לא כלל הטמעת PDF — אי אפשר לאמת את מסגור 8.26');
+  else if (bare.length) fail(`${bare.length} הטמעות PDF בלי toolbar=0 — סרגל שחור חוזר (8.26)`);
   else console.log(`✓ ${pdfs.length} הטמעות PDF עם מסגור נייבי-זהב (8.26)`);
+
+  // ה-smoke החי שהיה בעבר בתוך Playwright עבר לכאן: רק אחרי main/deploy.
+  const orbs = countOf(pdfReader, /class="orb"/g);
+  if (orbs < 5) fail(`לוח הפעולות החי: ${orbs} אורבים במקום לפחות 5 (8.4)`);
+  else if (pdfReader.includes('res-actions')) fail('לוח הפעולות הישן res-actions חזר בפרודקשן (8.4)');
+  else console.log(`✓ לוח הפעולות החי — ${orbs} אורבים, ללא res-actions ישן (8.4)`);
 } catch (e) {
   fail(`בדיקת המבנה נכשלה: ${e.message}`);
 }
@@ -362,6 +373,6 @@ console.log(
     `  · ${REDIRECTS.length} מסלולי תאימות = ${LEGACY_REDIRECT_STATUS} עם Location מדויק`,
     `  · ${PROXY_CHECKS.length} נקודות פרוקסי חיות + ${PROXY_REJECTS.length} דחיות allowlist + 405 + HEAD`,
     `  · ${MARKERS.length} סמנים מחייבים ב-markup + ${ASSETS.length} נכסים מוגשים`,
-    '  · אינווריאנטים מבניים: שלישים, נושאים, כרטיסים, מסגור PDF',
+    '  · אינווריאנטים מבניים: שלישים, נושאים, כרטיסים, מסגור PDF, לוח פעולות חי',
   ].join('\n'),
 );
