@@ -190,8 +190,8 @@ test('תמונת חטיבת הביניים מוצגת במלואה — יחס ט
 });
 
 /* ===== חטיבת הביניים כעמודי אינטרנט (הוראת יניב, 05/08/2026) =====
-   החוברת המדפדפת בוטלה: שער השלישים, עמוד שכבה לכל כיתה, ועמוד משאב
-   מחולק — הטמעה בצד אחד ולוח הפעולות בצד השני. */
+   החוברת המדפדפת בוטלה: שער עם ארבעה קיצורים קומפקטיים (3.26, 10/08/2026),
+   עמוד שכבה לכל כיתה, ועמוד משאב מחולק — הטמעה בצד אחד ולוח הפעולות בצד השני. */
 
 const noOverflow = async (page: Page, label: string) => {
   const overflow = await page.evaluate(
@@ -223,43 +223,66 @@ function globAstro(dir: string): string[] {
   return out;
 }
 
-test('שער חטיבת הביניים: שלושה שלישים שווים, בלי חוברת מדפדפת (3.29, 05/08)', async ({ page }) => {
+test('שער חטיבת הביניים: ארבעה קיצורים בשורה אחת, בלי חוברת מדפדפת (3.26, 10/08)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/chativat-beynayim/');
 
   // החוברת ומנוע הדפדוף נמחקו כליל
   await expect(page.locator('[data-book], .book-shell, .stf__item')).toHaveCount(0);
 
-  const thirds = page.locator('.split3 .third');
-  await expect(thirds).toHaveCount(3);
+  // מסך השלישים וכפתור המאגר הגדול בוטלו (10/08/2026) — אפס שרידים
+  await expect(
+    page.locator('.split3, .third, .third-count, .third-cta, .third-glow, .third-mark, .split-rule, .exams-cta, .exams-cta-wrap')
+  ).toHaveCount(0);
 
-  const widths = await thirds.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width));
-  expect(Math.max(...widths) - Math.min(...widths), 'שלושת השלישים שווים ברוחבם').toBeLessThanOrEqual(2);
+  const buttons = page.locator('nav.grade-shortcuts a.gs-btn');
+  await expect(buttons).toHaveCount(4);
 
-  // כל שליש הוא קישור לעמוד השכבה שלו, והכיתוב הוא שם השכבה
-  const targets = ['kita-z', 'kita-h', 'kita-t'];
-  const titles = ['מתמטיקה לכיתה ז׳', 'מתמטיקה לכיתה ח׳', 'מתמטיקה לכיתה ט׳'];
-  for (let i = 0; i < 3; i++) {
-    await expect(thirds.nth(i)).toHaveAttribute('href', `/chativat-beynayim/${targets[i]}/`);
-    await expect(thirds.nth(i).locator('.third-title')).toHaveText(titles[i]);
-    const text = (await thirds.nth(i).locator('.third-count').textContent()) ?? '';
-    expect(Number(text.match(/\d+/)?.[0] ?? 0), 'מניין קבצים אמיתי').toBeGreaterThan(0);
+  // שלוש השכבות מ-choveret ואחריהן המאגר — היעדים והשמות המדויקים
+  const targets = [
+    '/chativat-beynayim/kita-z/',
+    '/chativat-beynayim/kita-h/',
+    '/chativat-beynayim/kita-t/',
+    '/chativat-beynayim/mivchanim/',
+  ];
+  const titles = ['מתמטיקה לכיתה ז׳', 'מתמטיקה לכיתה ח׳', 'מתמטיקה לכיתה ט׳', 'מאגר המבחנים'];
+  for (let i = 0; i < 4; i++) {
+    await expect(buttons.nth(i)).toHaveAttribute('href', targets[i]);
+    await expect(buttons.nth(i)).toHaveText(titles[i]);
   }
+
+  // בלי תת-כותרות, מונים או חצים בכפתורים (8.25)
+  await expect(page.locator('nav.grade-shortcuts svg')).toHaveCount(0);
+  expect(await page.locator('nav.grade-shortcuts').textContent(), 'אין מונה בכפתורים').not.toMatch(/\d/);
+
+  // קישור אחד בדיוק בכל העמוד ליעד המאגר
+  await expect(page.locator('a[href="/chativat-beynayim/mivchanim/"]')).toHaveCount(1);
+
+  // שורה אחת במסך רחב — אותו קו עליון, מטרות מגע ≥44px, וסדר RTL מימין לשמאל
+  const boxes = await buttons.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON()));
+  for (const b of boxes) {
+    expect(Math.abs(b.y - boxes[0].y), 'שורה אחת — אותו קו עליון').toBeLessThanOrEqual(2);
+    expect(b.height, 'מטרת מגע ≥44px').toBeGreaterThanOrEqual(44);
+  }
+  expect(boxes[0].x, 'RTL — ז׳ הימני ביותר').toBeGreaterThan(boxes[3].x);
 
   // אין עוד רצועת "כללי" — החומרים המשותפים חולקו לשלוש הכיתות (3.31)
   await expect(page.locator('.klali-band')).toHaveCount(0);
   await noOverflow(page, 'שער 1440');
 });
 
-test('שער חטיבת הביניים בנייד: השלישים נערמים ונשארים גדולים (19.32)', async ({ page }) => {
+test('שער חטיבת הביניים בנייד: רשת קיצורים 2×2 נוחה (19.32, 10/08)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await assertRealMobile(page);
   await page.goto('/chativat-beynayim/');
-  const thirds = page.locator('.split3 .third');
-  await expect(thirds).toHaveCount(3);
-  const boxes = await thirds.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON()));
-  expect(boxes[1].y, 'השלישים נערמים זה מתחת לזה').toBeGreaterThan(boxes[0].y + 100);
-  for (const b of boxes) expect(b.height, 'מטרת מגע גדולה').toBeGreaterThanOrEqual(44);
+  const buttons = page.locator('nav.grade-shortcuts a.gs-btn');
+  await expect(buttons).toHaveCount(4);
+  const boxes = await buttons.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON()));
+  // שתי שורות של שניים: 0–1 באותו קו, 2–3 באותו קו, והשנייה מתחת לראשונה
+  expect(Math.abs(boxes[0].y - boxes[1].y), 'שורה ראשונה מיושרת').toBeLessThanOrEqual(2);
+  expect(Math.abs(boxes[2].y - boxes[3].y), 'שורה שנייה מיושרת').toBeLessThanOrEqual(2);
+  expect(boxes[2].y, 'השורה השנייה מתחת לראשונה').toBeGreaterThanOrEqual(boxes[0].y + boxes[0].height - 1);
+  for (const b of boxes) expect(b.height, 'מטרת מגע ≥44px').toBeGreaterThanOrEqual(44);
   await noOverflow(page, 'שער 390');
 });
 

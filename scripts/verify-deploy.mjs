@@ -79,7 +79,7 @@ const PROXY_REJECTS = [
 
 /** סמנים מחייבים: אם אחד מהם נעלם — רגרסיה שקטה בפרודקשן */
 const MARKERS = [
-  { path: '/chativat-beynayim/', needle: 'split3', what: 'מסך השלישים של חטיבת הביניים (3.26)' },
+  { path: '/chativat-beynayim/', needle: 'grade-shortcuts', what: 'ניווט הקיצורים של חטיבת הביניים (3.26)' },
   { path: '/chativat-beynayim/kita-z/', needle: 'מה אנחנו מלמדים?', what: 'אזור המבוא של השכבה (06/08)' },
   { path: '/chativat-beynayim/kita-z/', needle: 'חומרים להוראה', what: 'אזור החומרים בעמוד המבוא (06/08)' },
   { path: '/chativat-beynayim/kita-z/chomarim/', needle: 'class="topics"', what: 'רשימת הנושאים בתצוגת החומרים (3.29)' },
@@ -308,9 +308,17 @@ try {
   const { html } = await fetchOnce('/chativat-beynayim/');
   const m = markup(html);
 
-  const thirds = countOf(m, /class="third[ "]/g);
-  if (thirds === 3) console.log('✓ שער חטיבת הביניים — שלושה שלישים בדיוק (3.26)');
-  else fail(`שער חטיבת הביניים: ${thirds} שלישים במקום 3 (3.26)`);
+  const shortcuts = countOf(m, /class="gs-btn[ "]/g);
+  if (shortcuts === 4) console.log('✓ שער חטיבת הביניים — ארבעה קיצורים בדיוק (3.26)');
+  else fail(`שער חטיבת הביניים: ${shortcuts} קיצורים במקום 4 (3.26)`);
+
+  const examLinks = countOf(m, /href="\/chativat-beynayim\/mivchanim\/"/g);
+  if (examLinks === 1) console.log('✓ קישור יחיד למאגר המבחנים בשער (3.26)');
+  else fail(`שער חטיבת הביניים: ${examLinks} קישורי מאגר במקום 1 (3.26)`);
+
+  const legacyGate = countOf(m, /class="(?:split3|third[- "]|exams-cta)/g);
+  if (legacyGate) fail(`נמצאו ${legacyGate} שרידי שלישים/כפתור מאגר ישן — המודל שבוטל חזר (3.26)`);
+  else console.log('✓ אין שרידי מסך השלישים או כפתור המאגר הישן (3.26)');
 
   const booklet = countOf(m, /data-book|stf__item|flip-host/g);
   if (booklet) fail(`נמצאו ${booklet} שרידי חוברת מדפדפת — המודל הישן חזר (3.29)`);
@@ -378,6 +386,6 @@ console.log(
     `  · ${REDIRECTS.length} מסלולי תאימות = ${LEGACY_REDIRECT_STATUS} עם Location מדויק`,
     `  · ${PROXY_CHECKS.length} נקודות פרוקסי חיות + ${PROXY_REJECTS.length} דחיות allowlist + 405 + HEAD`,
     `  · ${MARKERS.length} סמנים מחייבים ב-markup + ${ASSETS.length} נכסים מוגשים`,
-    '  · אינווריאנטים מבניים: שלישים, נושאים, כרטיסים, מסגור PDF, לוח פעולות חי',
+    '  · אינווריאנטים מבניים: קיצורי השער, נושאים, כרטיסים, מסגור PDF, לוח פעולות חי',
   ].join('\n'),
 );

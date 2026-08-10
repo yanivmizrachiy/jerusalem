@@ -75,9 +75,12 @@ test('upper-secondary source content is preserved, not deleted', () => {
   expect(mafmarSections.length, 'מפת MAF נשמרה').toBeGreaterThan(0);
 });
 
-test('middle-school gateway exposes the full-width test repository entry', async ({ page }) => {
+test('middle-school gateway exposes a single compact test-repository shortcut', async ({ page }) => {
+  // הכפתור הרביעי בניווט הקיצורים (3.26, 10/08/2026) — הקישור היחיד בעמוד ליעד המאגר
   await page.goto('/chativat-beynayim/');
-  const link = page.getByRole('link', { name: /מאגר מבחנים לחטיבת הביניים/ });
+  const link = page.locator('a[href="/chativat-beynayim/mivchanim/"]');
+  await expect(link).toHaveCount(1);
   await expect(link).toBeVisible();
-  await expect(link).toHaveAttribute('href', '/chativat-beynayim/mivchanim/');
+  await expect(link).toHaveText('מאגר המבחנים');
+  await expect(link).toHaveClass(/gs-exams/);
 });
