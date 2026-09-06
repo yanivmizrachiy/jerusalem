@@ -1,0 +1,156 @@
+---
+// Isolated visual demo: no imports, no shared styles, no production navigation changes.
+---
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Jerusalem — דמו ספר דיגיטלי במסך מלא</title>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,"Heebo",sans-serif;background:#071a2b;color:#10233a}button{font:inherit}
+    body{min-height:100vh;background:radial-gradient(circle at 25% 20%,#244d68 0,transparent 32%),linear-gradient(135deg,#071725,#12334a)}
+    .landing{min-height:100vh;display:grid;place-items:center;padding:24px}.card{width:min(760px,94vw);padding:44px;border:1px solid #ffffff2b;border-radius:28px;background:#ffffff10;backdrop-filter:blur(16px);box-shadow:0 30px 80px #0008;text-align:center;color:white}.logo{font-size:20px;opacity:.82}.card h1{font-size:clamp(34px,6vw,68px);margin:14px 0}.card p{font-size:18px;line-height:1.7;color:#d9e7ef;max-width:620px;margin:0 auto 28px}.open{border:0;border-radius:16px;padding:17px 28px;background:#f5a623;color:#10233a;font-weight:800;font-size:19px;cursor:pointer;box-shadow:0 8px 30px #f5a62355}.hint{display:block;margin-top:16px;color:#a9c1d1;font-size:14px}
+    .viewer{position:fixed;inset:0;display:none;background:#d6e0e7;overflow:hidden}.viewer.active{display:grid;grid-template-rows:72px 1fr 66px}.top{direction:rtl;display:flex;align-items:center;gap:16px;padding:0 20px;background:#071d31;color:#fff;box-shadow:0 3px 14px #0005;z-index:5}.brand{margin-left:auto;display:flex;align-items:center;gap:12px}.brand-icon{font-size:30px}.brand-text strong{display:block;font-size:18px}.brand-text small{opacity:.7}.tools{display:flex;align-items:center;gap:8px}.tool,.exit{border:1px solid #ffffff24;color:white;background:#ffffff08;border-radius:12px;padding:10px 13px;cursor:pointer}.exit{border-color:#f5a623;background:#f5a62318;font-weight:800}.exit span{margin-left:7px}
+    .stage{min-height:0;display:grid;grid-template-columns:238px 1fr;direction:rtl;background:linear-gradient(135deg,#cbd8e0,#eef3f6)}.toc{overflow:auto;background:#f7fafc;border-left:1px solid #b9c6cf;padding-bottom:20px}.toc-head{position:sticky;top:0;background:#0a2943;color:white;padding:22px;font-size:20px;font-weight:800}.month{display:flex;align-items:center;gap:11px;width:100%;padding:14px 18px;border:0;border-bottom:1px solid #e1e6ea;background:white;text-align:right;cursor:pointer}.month:hover{background:#f2f7fb}.month.active{background:#e6f1ff;font-weight:800}.dot{width:13px;height:13px;border-radius:50%;flex:0 0 auto}
+    .book-area{min-width:0;display:grid;place-items:center;padding:24px 34px;overflow:auto;background:linear-gradient(#c8d4dcaa,#e7eef2dd),radial-gradient(circle at 50% 0,#fff 0,transparent 65%)}.book{width:min(1150px,100%);aspect-ratio:1.55/1;display:grid;grid-template-columns:1fr 1fr;direction:ltr;filter:drop-shadow(0 18px 20px #39505c55);transform:perspective(1600px) rotateX(1deg)}.page{position:relative;background:#fffdf8;padding:46px 52px 42px;overflow:hidden;direction:rtl}.page.left{border-radius:18px 3px 3px 18px;background:linear-gradient(90deg,#f9f5ec 0,#fffdf8 18%,#fff 84%,#e9e4dc 100%)}.page.right{border-radius:3px 18px 18px 3px;background:linear-gradient(90deg,#e9e4dc 0,#fff 16%,#fffdf8 82%,#f9f5ec 100%)}.page:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 47%,#00000007 50%,transparent 53%)}.chapter{font-size:13px;color:#60788b;border-bottom:1px solid #abc3d6;padding-bottom:10px}.page h2{font-size:clamp(24px,2.2vw,38px);color:#164f91;margin:28px 0 18px}.box{background:#edf5ff;border-radius:10px;padding:18px 20px;margin:16px 0;line-height:1.65}.example{background:#f6f8fa;border:1px solid #d9e2e8;border-radius:10px;padding:17px 19px;margin:15px 0}.example strong{color:#164f91}.math{direction:ltr;text-align:center;font-family:Georgia,serif;font-size:30px;margin:20px}.page-no{position:absolute;bottom:18px;left:50%;font-size:13px}.ribbon{background:#e5f1ff;color:#164f91;font-weight:800;padding:8px 12px;border-radius:8px}.small{line-height:1.7;color:#30475b}.bottom{direction:rtl;display:flex;align-items:center;justify-content:center;gap:28px;background:#071d31;color:#fff;padding:0 18px;z-index:5}.nav{border:1px solid #ffffff25;background:#ffffff0c;color:white;border-radius:13px;padding:10px 20px;cursor:pointer}.counter{min-width:110px;text-align:center;font-weight:700}.esc-note{position:absolute;left:18px;font-size:12px;color:#b9c9d5}
+    .toast{position:fixed;z-index:20;top:84px;left:50%;transform:translateX(-50%) translateY(-15px);opacity:0;pointer-events:none;background:#10283b;color:#fff;padding:10px 18px;border-radius:12px;box-shadow:0 8px 30px #0004;transition:.2s}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    @media(max-width:900px){.viewer.active{grid-template-rows:62px 1fr 60px}.top{padding:0 10px}.brand-text small,.tool.optional,.esc-note{display:none}.stage{grid-template-columns:1fr}.toc{display:none}.book-area{padding:10px}.book{display:block;aspect-ratio:auto;width:min(680px,100%)}.page{min-height:calc(100vh - 142px);padding:32px 28px}.page.left{display:none}.page.right{border-radius:14px}.exit span{display:none}.tools{gap:5px}.tool,.exit{padding:9px}.bottom{gap:10px}.nav{padding:9px 13px}}
+  </style>
+</head>
+<body>
+  <main class="landing" id="landing">
+    <section class="card">
+      <div class="logo">Jerusalem 2 · חוויית ספר דיגיטלי</div>
+      <h1>מצב ספר במסך מלא</h1>
+      <p>זהו דמו עובד. לחיצה על הכפתור תפתח את הקורא, ותבקש מהדפדפן לעבור למסך מלא. אפשר לצאת בכל רגע עם Esc או בכפתור היציאה.</p>
+      <button class="open" id="openBook">פתח ספר במסך מלא ⛶</button>
+      <span class="hint">אם הדפדפן לא מאפשר Fullscreen, הספר עדיין ייפתח על כל שטח החלון.</span>
+    </section>
+  </main>
+
+  <section class="viewer" id="viewer" aria-label="ספר דיגיטלי">
+    <header class="top">
+      <div class="brand"><div class="brand-icon">▣</div><div class="brand-text"><strong>מתמטיקה — תשרי</strong><small>Jerusalem 2 · ספר דיגיטלי</small></div></div>
+      <div class="tools">
+        <button class="tool optional" type="button">⌕ חיפוש</button>
+        <button class="tool optional" type="button">🖨 הדפסה</button>
+        <button class="tool" type="button" id="tocBtn">☰ תוכן עניינים</button>
+        <button class="exit" type="button" id="exitFull"><span>יציאה ממסך מלא</span> ✕</button>
+      </div>
+    </header>
+
+    <div class="stage">
+      <aside class="toc" id="toc">
+        <div class="toc-head">תוכן העניינים</div>
+        <button class="month active"><i class="dot" style="background:#E95D5D"></i>תשרי</button>
+        <button class="month"><i class="dot" style="background:#F18B45"></i>חשוון</button>
+        <button class="month"><i class="dot" style="background:#F2B84B"></i>כסלו</button>
+        <button class="month"><i class="dot" style="background:#D7C943"></i>טבת</button>
+        <button class="month"><i class="dot" style="background:#83B957"></i>שבט</button>
+        <button class="month"><i class="dot" style="background:#45AE84"></i>אדר</button>
+        <button class="month"><i class="dot" style="background:#39AAB1"></i>ניסן</button>
+        <button class="month"><i class="dot" style="background:#448FCC"></i>אייר</button>
+        <button class="month"><i class="dot" style="background:#5F76CE"></i>סיוון</button>
+        <button class="month"><i class="dot" style="background:#7B68C6"></i>תמוז</button>
+        <button class="month"><i class="dot" style="background:#A564B1"></i>אב</button>
+        <button class="month"><i class="dot" style="background:#C65E8B"></i>אלול</button>
+      </aside>
+
+      <div class="book-area">
+        <div class="book">
+          <article class="page left">
+            <div class="chapter">מתמטיקה · חודש תשרי</div>
+            <h2>1. מספרים טבעיים</h2>
+            <div class="box"><span class="ribbon">נזכור</span><p class="small">מספרים טבעיים הם המספרים המשמשים אותנו לספירה.</p><div class="math">1, 2, 3, 4, 5, …</div></div>
+            <div class="example"><strong>דוגמה 1</strong><p>כתבו את חמשת המספרים הטבעיים הראשונים.</p><p><b>פתרון:</b> 1, 2, 3, 4, 5</p></div>
+            <div class="example"><strong>תרגול קצר</strong><p>מהו המספר הבא בסדרה: 12, 13, 14, ___ ?</p></div>
+            <span class="page-no">6</span>
+          </article>
+          <article class="page right">
+            <div class="chapter">מתמטיקה · חודש תשרי</div>
+            <h2>2. פעולות חשבון בסיסיות</h2>
+            <div class="ribbon">חיבור</div>
+            <div class="example"><p class="small">בחיבור מחברים שני מספרים ומקבלים סכום.</p><div class="math">a + b = c</div></div>
+            <div class="example"><strong>דוגמה 2</strong><p>חשבו: 7 + 5</p><p><b>פתרון:</b> 7 + 5 = 12</p></div>
+            <div class="ribbon">חיסור</div>
+            <div class="example"><p class="small">בחיסור מפחיתים מספר אחד ממספר אחר.</p><div class="math">a − b = c</div></div>
+            <span class="page-no">7</span>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bottom">
+      <button class="nav" type="button">◀ הדף הקודם</button>
+      <div class="counter">6–7 / 120</div>
+      <button class="nav" type="button">הדף הבא ▶</button>
+      <div class="esc-note">Esc · יציאה ממסך מלא</div>
+    </footer>
+  </section>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const landing = document.getElementById('landing');
+    const viewer = document.getElementById('viewer');
+    const openBook = document.getElementById('openBook');
+    const exitFull = document.getElementById('exitFull');
+    const toast = document.getElementById('toast');
+    const toc = document.getElementById('toc');
+    const tocBtn = document.getElementById('tocBtn');
+
+    function showToast(message){
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'),2200);
+    }
+
+    function enterBookMode(){
+      landing.style.display='none';
+      viewer.classList.add('active');
+    }
+
+    function leaveBookMode(){
+      viewer.classList.remove('active');
+      landing.style.display='grid';
+    }
+
+    openBook.addEventListener('click', async () => {
+      enterBookMode();
+      try {
+        if (!document.fullscreenElement && viewer.requestFullscreen) {
+          await viewer.requestFullscreen();
+        } else if (!viewer.requestFullscreen) {
+          showToast('הדפדפן לא תומך במסך מלא — מצב הספר עדיין פעיל');
+        }
+      } catch (e) {
+        showToast('מצב הספר נפתח. הדפדפן לא אישר מסך מלא.');
+      }
+    });
+
+    exitFull.addEventListener('click', async () => {
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+      } catch (e) {}
+      leaveBookMode();
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && viewer.classList.contains('active')) {
+        showToast('יצאת ממסך מלא — הספר נשאר פתוח על כל החלון');
+      }
+    });
+
+    tocBtn.addEventListener('click',()=>{
+      if (innerWidth <= 900) showToast('במובייל תוכן העניינים ייפתח כמגירה');
+      else toc.scrollTo({top:0,behavior:'smooth'});
+    });
+
+    document.querySelectorAll('.month').forEach(btn=>btn.addEventListener('click',()=>{
+      document.querySelectorAll('.month').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+      showToast('דמו: מעבר לחודש ' + btn.textContent.trim());
+    }));
+  </script>
+</body>
+</html>
