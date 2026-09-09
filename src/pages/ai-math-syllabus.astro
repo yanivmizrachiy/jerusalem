@@ -4,6 +4,7 @@ import { aiMathSyllabus } from '../data/aiMathSyllabus';
 const title = aiMathSyllabus.title;
 const description = 'סילבוס להשתלמות למורי מתמטיקה בחטיבת הביניים בנושא שילוב בינה מלאכותית בהוראת מתמטיקה.';
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const emphasisPhrase = 'התלמיד פותר בעצמו בכמה דרכים';
 ---
 
 <!doctype html>
@@ -154,7 +155,11 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
           <article>
             <div class="meeting-label">מפגש {meeting.number}</div>
             <h2>{meeting.question}</h2>
-            {meeting.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+            {meeting.paragraphs.map((paragraph) => {
+              if (!paragraph.includes(emphasisPhrase)) return <p>{paragraph}</p>;
+              const [before, after] = paragraph.split(emphasisPhrase);
+              return <p>{before}<strong>{emphasisPhrase}</strong>{after}</p>;
+            })}
           </article>
         ))}
       </section>
