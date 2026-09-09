@@ -1,0 +1,142 @@
+---
+import { aiMathSyllabus2 } from '../data/aiMathSyllabus2';
+
+const title = aiMathSyllabus2.title;
+const description = 'סילבוס 2 להשתלמות למורי מתמטיקה בחטיבת הביניים: עדכון תוכנית הלימודים, ModEL ובינה מלאכותית.';
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const emphasisPhrase = 'התלמיד פותר בעצמו בכמה דרכים';
+---
+
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="he_IL" />
+    <meta name="theme-color" content="#ffffff" />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #111827;
+        --blue: #17365d;
+        --blue-soft: #315b86;
+        --muted: #5f6b7a;
+        --line: #d9e0e8;
+      }
+
+      * { box-sizing: border-box; }
+      html { background: #ffffff; }
+      body {
+        margin: 0;
+        background: #ffffff;
+        color: var(--ink);
+        font-family: Arial, "Helvetica Neue", sans-serif;
+        font-size: 17px;
+        line-height: 1.78;
+        text-rendering: optimizeLegibility;
+      }
+      main {
+        width: min(920px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 52px 0 80px;
+      }
+      h1, h2, h3 {
+        color: var(--blue);
+        font-family: Arial, "Helvetica Neue", sans-serif;
+        line-height: 1.35;
+        margin-top: 0;
+      }
+      h1 {
+        font-size: clamp(29px, 4vw, 42px);
+        margin-bottom: 12px;
+        font-weight: 700;
+      }
+      .meta {
+        margin: 0 0 4px;
+        color: var(--ink);
+        font-size: 16px;
+      }
+      .lead {
+        margin-top: 26px;
+        padding-top: 22px;
+        border-top: 1px solid var(--line);
+      }
+      .lead h2 {
+        font-size: clamp(23px, 3vw, 30px);
+        margin-bottom: 8px;
+      }
+      .lead p { margin: 8px 0; }
+      .meetings { margin-top: 34px; }
+      article {
+        padding: 28px 0 30px;
+        border-top: 1px solid var(--line);
+      }
+      article:first-child { border-top: 2px solid var(--blue); }
+      .meeting-label {
+        color: var(--blue-soft);
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 6px;
+      }
+      article h2 {
+        font-size: clamp(21px, 2.6vw, 27px);
+        margin-bottom: 12px;
+      }
+      article p { margin: 7px 0; }
+      strong { font-weight: 700; }
+      @media (max-width: 600px) {
+        body { font-size: 16px; }
+        main {
+          width: min(100% - 28px, 920px);
+          padding-top: 30px;
+        }
+        article { padding: 24px 0 26px; }
+      }
+      @media print {
+        body { font-size: 12pt; }
+        main {
+          width: 100%;
+          padding: 0;
+        }
+        article { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>{aiMathSyllabus2.title}</h1>
+        <p class="meta"><strong>{aiMathSyllabus2.subtitle}</strong></p>
+        <p class="meta"><strong>{aiMathSyllabus2.format}</strong></p>
+        <p class="meta">{aiMathSyllabus2.organization}</p>
+        <p class="meta">{aiMathSyllabus2.lead}</p>
+      </header>
+
+      <section class="lead" aria-labelledby="intro-title">
+        <h2 id="intro-title">{aiMathSyllabus2.introTitle}</h2>
+        {aiMathSyllabus2.intro.map((paragraph) => <p>{paragraph}</p>)}
+      </section>
+
+      <section class="meetings" aria-label="מפגשי ההשתלמות">
+        {aiMathSyllabus2.meetings.map((meeting) => (
+          <article>
+            <div class="meeting-label">מפגש {meeting.number}</div>
+            <h2>{meeting.question}</h2>
+            {meeting.paragraphs.map((paragraph) => {
+              if (!paragraph.includes(emphasisPhrase)) return <p>{paragraph}</p>;
+              const [before, after] = paragraph.split(emphasisPhrase);
+              return <p>{before}<strong>{emphasisPhrase}</strong>{after}</p>;
+            })}
+          </article>
+        ))}
+      </section>
+    </main>
+  </body>
+</html>
