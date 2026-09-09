@@ -1,0 +1,70 @@
+---
+import { aiMathSyllabus3 } from '../data/aiMathSyllabus3';
+
+const title = aiMathSyllabus3.title;
+const description = 'סילבוס 3 להשתלמות למורי מתמטיקה בכיתות ז׳–ח׳: עדכון תוכנית הלימודים תשפ״ז, GeoGebra וכלים דיגיטליים לחקר מתמטי.';
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+---
+
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="he_IL" />
+    <meta name="theme-color" content="#ffffff" />
+    <style>
+      :root { color-scheme: light; --ink:#111827; --blue:#17365d; --blue-soft:#315b86; --line:#d9e0e8; }
+      * { box-sizing: border-box; }
+      html, body { background:#fff; }
+      body { margin:0; color:var(--ink); font-family:Arial,"Helvetica Neue",sans-serif; font-size:17px; line-height:1.78; text-rendering:optimizeLegibility; }
+      main { width:min(920px,calc(100% - 40px)); margin:0 auto; padding:52px 0 80px; }
+      h1,h2,h3 { color:var(--blue); margin-top:0; line-height:1.35; }
+      h1 { font-size:clamp(29px,4vw,42px); margin-bottom:12px; }
+      .meta { margin:0 0 4px; font-size:16px; }
+      .lead { margin-top:26px; padding-top:22px; border-top:1px solid var(--line); }
+      .lead h2 { font-size:clamp(23px,3vw,30px); margin-bottom:8px; }
+      .lead p, article p { margin:7px 0; }
+      .meetings { margin-top:34px; }
+      article { padding:28px 0 30px; border-top:1px solid var(--line); }
+      article:first-child { border-top:2px solid var(--blue); }
+      .meeting-label { color:var(--blue-soft); font-weight:700; font-size:15px; margin-bottom:6px; }
+      article h2 { font-size:clamp(21px,2.6vw,27px); margin-bottom:12px; }
+      @media (max-width:600px) { body{font-size:16px} main{width:min(100% - 28px,920px);padding-top:30px} article{padding:24px 0 26px} }
+      @media print { body{font-size:12pt} main{width:100%;padding:0} article{break-inside:avoid} }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>{aiMathSyllabus3.title}</h1>
+        <p class="meta"><strong>{aiMathSyllabus3.subtitle}</strong></p>
+        <p class="meta"><strong>{aiMathSyllabus3.format}</strong></p>
+        <p class="meta">{aiMathSyllabus3.organization}</p>
+        <p class="meta">{aiMathSyllabus3.lead}</p>
+      </header>
+
+      <section class="lead" aria-labelledby="intro-title">
+        <h2 id="intro-title">{aiMathSyllabus3.introTitle}</h2>
+        {aiMathSyllabus3.intro.map((paragraph) => <p>{paragraph}</p>)}
+      </section>
+
+      <section class="meetings" aria-label="מפגשי ההשתלמות">
+        {aiMathSyllabus3.meetings.map((meeting) => (
+          <article>
+            <div class="meeting-label">מפגש {meeting.number}</div>
+            <h2>{meeting.question}</h2>
+            {meeting.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+          </article>
+        ))}
+      </section>
+    </main>
+  </body>
+</html>
