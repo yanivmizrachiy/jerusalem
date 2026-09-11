@@ -91,15 +91,15 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const landing = document.getElementById('landing');
-    const viewer = document.getElementById('viewer');
-    const openBook = document.getElementById('openBook');
-    const exitFull = document.getElementById('exitFull');
-    const toast = document.getElementById('toast');
-    const toc = document.getElementById('toc');
-    const tocBtn = document.getElementById('tocBtn');
+    const landing = document.getElementById('landing') as HTMLElement;
+    const viewer = document.getElementById('viewer') as HTMLElement;
+    const openBook = document.getElementById('openBook') as HTMLButtonElement;
+    const exitFull = document.getElementById('exitFull') as HTMLButtonElement;
+    const toast = document.getElementById('toast') as HTMLDivElement;
+    const toc = document.getElementById('toc') as HTMLElement;
+    const tocBtn = document.getElementById('tocBtn') as HTMLButtonElement;
 
-    function showToast(message){
+    function showToast(message: string){
       toast.textContent = message;
       toast.classList.add('show');
       setTimeout(()=>toast.classList.remove('show'),2200);
@@ -149,7 +149,7 @@
     document.querySelectorAll('.month').forEach(btn=>btn.addEventListener('click',()=>{
       document.querySelectorAll('.month').forEach(x=>x.classList.remove('active'));
       btn.classList.add('active');
-      showToast('דמו: מעבר לחודש ' + btn.textContent.trim());
+      showToast('דמו: מעבר לחודש ' + (btn.textContent ?? '').trim());
     }));
   </script>
 </body>
