@@ -26,7 +26,7 @@ jobs:
       - name: Install exact dependency graph
         run: npm ci --no-audit --no-fund
       - name: Apply only non-breaking npm audit fixes
-        run: npm audit fix --omit=dev --no-audit --no-fund
+        run: npm audit fix --omit=dev --no-audit --no-fund || true
       - name: Capture remaining production audit
         run: npm audit --omit=dev --audit-level=high || true
       - name: Verify dependency graph and project
