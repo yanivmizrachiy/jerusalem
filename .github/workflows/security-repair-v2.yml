@@ -1,0 +1,64 @@
+name: Security repair v2
+
+on:
+  push:
+    branches:
+      - security/astro-avif-rce-20260911
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: security/astro-avif-rce-20260911
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install pinned npm
+        shell: bash
+        run: |
+          NPM_VERSION=$(node -p "require('./package.json').packageManager.split('@')[1]")
+          npm install -g "npm@${NPM_VERSION}"
+      - name: Apply patched dependency versions
+        run: |
+          npm pkg set 'dependencies.astro=^7.2.8'
+          npm pkg set 'devDependencies.sharp=^0.35.4'
+          npm pkg set 'overrides.sharp=^0.35.4'
+          npm install --package-lock-only --no-audit --no-fund
+      - name: Apply strict DOM typing repair
+        run: |
+          sed -i "s/const landing = document.getElementById('landing');/const landing = document.getElementById('landing') as HTMLElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const viewer = document.getElementById('viewer');/const viewer = document.getElementById('viewer') as HTMLElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const openBook = document.getElementById('openBook');/const openBook = document.getElementById('openBook') as HTMLButtonElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const exitFull = document.getElementById('exitFull');/const exitFull = document.getElementById('exitFull') as HTMLButtonElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const toast = document.getElementById('toast');/const toast = document.getElementById('toast') as HTMLDivElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const toc = document.getElementById('toc');/const toc = document.getElementById('toc') as HTMLElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const tocBtn = document.getElementById('tocBtn');/const tocBtn = document.getElementById('tocBtn') as HTMLButtonElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/function showToast(message){/function showToast(message: string){/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/btn.textContent.trim()/(btn.textContent ?? '').trim()/" src/pages/fullscreen-book-demo.astro
+      - name: Verify critical audit
+        run: npm audit --omit=dev --audit-level=critical
+      - name: Install and verify
+        run: |
+          npm ci --no-audit --no-fund
+          npm run check
+          npm run typecheck:tests
+          npm run build
+      - name: Commit verified repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json src/pages/fullscreen-book-demo.astro
+          if git diff --cached --quiet; then
+            echo "No verified changes to commit"
+            exit 0
+          fi
+          git commit -m "fix(security): patch Astro AVIF RCE dependency chain"
+          git push origin HEAD:security/astro-avif-rce-20260911
