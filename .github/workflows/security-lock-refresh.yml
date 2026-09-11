@@ -33,34 +33,15 @@ jobs:
           npm install --package-lock-only --no-audit --no-fund
       - name: Tighten DOM typing exposed by Astro 7.2.8
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path('src/pages/fullscreen-book-demo.astro')
-          text = path.read_text(encoding='utf-8')
-          old = """    const landing = document.getElementById('landing');
-    const viewer = document.getElementById('viewer');
-    const openBook = document.getElementById('openBook');
-    const exitFull = document.getElementById('exitFull');
-    const toast = document.getElementById('toast');
-    const toc = document.getElementById('toc');
-    const tocBtn = document.getElementById('tocBtn');
-
-    function showToast(message){"""
-          new = """    const landing = document.getElementById('landing') as HTMLElement;
-    const viewer = document.getElementById('viewer') as HTMLElement;
-    const openBook = document.getElementById('openBook') as HTMLButtonElement;
-    const exitFull = document.getElementById('exitFull') as HTMLButtonElement;
-    const toast = document.getElementById('toast') as HTMLDivElement;
-    const toc = document.getElementById('toc') as HTMLElement;
-    const tocBtn = document.getElementById('tocBtn') as HTMLButtonElement;
-
-    function showToast(message: string){"""
-          if old not in text:
-              raise SystemExit('Expected DOM binding block not found; refusing broad rewrite')
-          text = text.replace(old, new, 1)
-          text = text.replace("btn.textContent.trim()", "(btn.textContent ?? '').trim()", 1)
-          path.write_text(text, encoding='utf-8')
-          PY
+          sed -i "s/const landing = document.getElementById('landing');/const landing = document.getElementById('landing') as HTMLElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const viewer = document.getElementById('viewer');/const viewer = document.getElementById('viewer') as HTMLElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const openBook = document.getElementById('openBook');/const openBook = document.getElementById('openBook') as HTMLButtonElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const exitFull = document.getElementById('exitFull');/const exitFull = document.getElementById('exitFull') as HTMLButtonElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const toast = document.getElementById('toast');/const toast = document.getElementById('toast') as HTMLDivElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const toc = document.getElementById('toc');/const toc = document.getElementById('toc') as HTMLElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/const tocBtn = document.getElementById('tocBtn');/const tocBtn = document.getElementById('tocBtn') as HTMLButtonElement;/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/function showToast(message){/function showToast(message: string){/" src/pages/fullscreen-book-demo.astro
+          sed -i "s/btn.textContent.trim()/(btn.textContent ?? '').trim()/" src/pages/fullscreen-book-demo.astro
       - name: Verify critical production audit is clean
         run: npm audit --omit=dev --audit-level=critical
       - name: Verify build contracts
