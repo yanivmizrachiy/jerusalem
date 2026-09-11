@@ -31,18 +31,49 @@ jobs:
         run: |
           npm pkg set 'dependencies.astro=^7.2.8' 'devDependencies.sharp=^0.35.4' 'overrides.sharp=^0.35.4'
           npm install --package-lock-only --no-audit --no-fund
+      - name: Tighten DOM typing exposed by Astro 7.2.8
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('src/pages/fullscreen-book-demo.astro')
+          text = path.read_text(encoding='utf-8')
+          old = """    const landing = document.getElementById('landing');
+    const viewer = document.getElementById('viewer');
+    const openBook = document.getElementById('openBook');
+    const exitFull = document.getElementById('exitFull');
+    const toast = document.getElementById('toast');
+    const toc = document.getElementById('toc');
+    const tocBtn = document.getElementById('tocBtn');
+
+    function showToast(message){"""
+          new = """    const landing = document.getElementById('landing') as HTMLElement;
+    const viewer = document.getElementById('viewer') as HTMLElement;
+    const openBook = document.getElementById('openBook') as HTMLButtonElement;
+    const exitFull = document.getElementById('exitFull') as HTMLButtonElement;
+    const toast = document.getElementById('toast') as HTMLDivElement;
+    const toc = document.getElementById('toc') as HTMLElement;
+    const tocBtn = document.getElementById('tocBtn') as HTMLButtonElement;
+
+    function showToast(message: string){"""
+          if old not in text:
+              raise SystemExit('Expected DOM binding block not found; refusing broad rewrite')
+          text = text.replace(old, new, 1)
+          text = text.replace("btn.textContent.trim()", "(btn.textContent ?? '').trim()", 1)
+          path.write_text(text, encoding='utf-8')
+          PY
       - name: Verify critical production audit is clean
         run: npm audit --omit=dev --audit-level=critical
       - name: Verify build contracts
         run: |
           npm ci --no-audit --no-fund
           npm run check
+          npm run typecheck:tests
           npm run build
       - name: Commit dependency repair
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json
+          git add package.json package-lock.json src/pages/fullscreen-book-demo.astro
           if git diff --cached --quiet; then
             echo "No dependency changes to commit"
             exit 0
